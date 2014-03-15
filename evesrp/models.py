@@ -17,6 +17,9 @@ class Timestamped(object)
             default=dt.datetime.utcnow())
 
 
+users_groups = db.Table('users_groups', db.Model.metadata,
+        db.Column('user_id', db.Integer, db.ForeignKey('users.id')),
+        db.Column('group_id', db.Integer, db.ForeignKey('groups.id')))
 
 
 # TODO Oh god, this tangled web of divisions, users and groups is bad. It needs
@@ -61,6 +64,7 @@ class Group(db.Model, AutoID):
     """
     __tablename__ = 'groups'
     name = db.Column(db.String(128), nullable=False)
+    users = db.relationship('User', secondary=users_groups, backref=groups)
 
 
 submit_users = db.Table('submit_users', db.model.metadata,
