@@ -9,8 +9,6 @@ from . import app, db, login_manager, principal
 from .models import User, Group, Division
 
 
-user_method_regex = re.compile(r'(?P<username>\w+)(@(?P<user_type>\w+))?')
-
 @login_manager.user_loader
 def login_loader(userid):
     """Pull a user object from the database.
