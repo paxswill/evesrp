@@ -49,11 +49,56 @@ class User(db.Model, AutoID):
     """User base class.
 
     Represents a user, not only those who can submit requests but also
-    evaluators and payers.
+    evaluators and payers. The default implementation does _no_ authentication.
+    To provide actual authentication, subclass the User module and implement
+    blahdeblahblah.
+
+    TODO: Actually put what to implement.
     """
     __tablename__ = 'users'
-    username = db.Column(db.String(128), nullable=False)
-    visible_name = db.Column(db.String(128))
+    username = db.Column(db.String(128), nullable=False, index=True)
+    division_admin = db.Column(db.Boolean, nullable=False, default=False)
+    full_admin = db.Column(db.Boolean, nullable=False, default=False)
+    user_type = db.Column(db.String(50), nullable=False, default='user')
+    __mapper_args__ = {
+            'polymorphic_identity': 'user',
+            'polymorphic_on': user_type
+    }
+
+    def _all_submit(self):
+        submit = set(self._submit_divisions)
+        for group in self.groups:
+            submit.update(group._submit_divisions)
+        return submit
+
+    def _all_review(self):
+        review = set(self._review_divisions)
+        for group in self.groups:
+            review.update(group._review_divisions)
+        return review
+
+    def _all_payout(self):
+        payout = set(self._payout_divisions)
+        for group in self.groups:
+            payout.update(group._payout_divisions)
+        return payout
+
+    def __init__(self, *kwargs):
+        self.divisions = _DivisionDict(self._all_submit, self._all_review,
+                self._all_payout)
+        super(User, self).__init__(kwargs)
+
+    def is_authenticated(self):
+        return True
+
+    def is_active(self):
+        return True
+
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return unicode(self.id)
 
 
 class Group(db.Model, AutoID):
