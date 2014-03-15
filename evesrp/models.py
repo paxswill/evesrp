@@ -17,6 +17,31 @@ class Timestamped(object)
             default=dt.datetime.utcnow())
 
 
+
+
+# TODO Oh god, this tangled web of divisions, users and groups is bad. It needs
+# to be refactored once it's working and tests that verify it works are
+# written. Then, redo the organization.
+
+class _DivisionDict(object):
+    def __init__(self, submit, review, payout):
+        self.submit = submit
+        self.review = review
+        self.payout = payout
+
+    def __getitem__(self, key):
+        if key == 'submit':
+            return self.submit()
+        elif key == 'review':
+            return self.review()
+        elif key == 'payout':
+            return self.payout()
+        else:
+            raise KeyError("'{}' is not a valid key for
+                DivisionDicts".format(key))
+            return None
+
+
 class User(db.Model, AutoID):
     """User base class.
 
@@ -38,23 +63,29 @@ class Group(db.Model, AutoID):
     name = db.Column(db.String(128), nullable=False)
 
 
-users_authgroups = db.Table('users_authgroups', db.Model.metadata,
+submit_users = db.Table('submit_users', db.model.metadata,
         db.Column('user_id', db.Integer, db.ForeignKey('users.id')),
-        db.Column('authgroup_id', db.Integer, db.ForeignKey('authgroups.id')))
+        db.Column('division_id', db.Integer, db.ForeignKey('divisions.id')))
 
-
-groups_authgroups = db.Table('groups_authgroups', db.Model.metadata,
+submit_groups = db.Table('submit_groups', db.model.metadata,
         db.Column('group_id', db.Integer, db.ForeignKey('groups.id')),
-        db.Column('authgroup_id', db.Integer, db.ForeignKey('authgroups.id')))
+        db.Column('division_id', db.Integer, db.ForeignKey('divisions.id')))
 
+review_users = db.Table('review_users', db.model.metadata,
+        db.Column('user_id', db.Integer, db.ForeignKey('users.id')),
+        db.Column('division_id', db.Integer, db.ForeignKey('divisions.id')))
 
-class AuthorizationGroup(db.Model, AutoID):
-    """A collection of Users and Groups."""
-    __tablename__ = 'authgroups'
-    users = db.relationship('User', secondary=users_divisions,
-            backref='divisions')
-    groups = db.relationship('Group', secondary=groups_divisions,
-            backref='divisions')
+review_groups = db.Table('review_groups', db.model.metadata,
+        db.Column('group_id', db.Integer, db.ForeignKey('groups.id')),
+        db.Column('division_id', db.Integer, db.ForeignKey('divisions.id')))
+
+payout_users = db.Table('payout_users', db.model.metadata,
+        db.Column('user_id', db.Integer, db.ForeignKey('users.id')),
+        db.Column('division_id', db.Integer, db.ForeignKey('divisions.id')))
+
+payout_groups = db.Table('payout_groups', db.model.metadata,
+        db.Column('group_id', db.Integer, db.ForeignKey('groups.id')),
+        db.Column('division_id', db.Integer, db.ForeignKey('divisions.id')))
 
 
 class Division(db.Model, AutoID):
@@ -65,12 +96,40 @@ class Division(db.Model, AutoID):
     """
     __tablename__ = 'divisions'
     name = db.Column(db.String(128), nullable=False)
-    submitters_id = db.Column(db.Integer, db.ForeignKey('authgroups.id'))
-    submitters = db.relationship('AuthorizationGroup')
-    reviewers_id = db.Column(db.Integer, db.ForeignKey('authgroups.id'))
-    reviewers = db.relationship('AuthorizationGroup')
-    payers_id = db.Column(db.Integer, db.ForeignKey('authgroups.id'))
-    payers = db.relationship('AuthorizationGroup')
+    submit_users = db.relationship('User', secondary=submit_users,
+            backref='_submit_divisions')
+    submit_groups = db.relationship('Group', secondary=submit_groups,
+            backref='_submit_divisions')
+    review_users = db.relationship('User', secondary=review_users,
+            backref='_review_divisions')
+    review_groups = db.relationship('Group', secondary=review_groups,
+            backref='_review_divisions')
+    payout_users = db.relationship('User', secondary=payout_users,
+            backref='_payout_divisions')
+    payout_groups = db.relationship('Group', secondary=payout_groups,
+            backref='_payout_divisions')
+
+    @property
+    def submitters(self):
+        submitters = set(self.submit_users)
+        for group in self.submit_groups:
+            submitters.update(group.users)
+        return submitters
+
+    @property
+    def reviewers(self):
+        reviewers = set(self.review_users)
+        for group in self.review_groups:
+            reviewers.update(group.users)
+        return reviewers
+
+    @property
+    def payers(self):
+        payers = set(self.payout_users)
+        for group in self.payout_groups:
+            payers.update(group.users)
+        return payers
+
 
 
 class Action(db.Model, AutoID, Timestamped):
