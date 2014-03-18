@@ -1,8 +1,7 @@
 from .. import db
 from . import AuthMethod
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm.collections import attribute_mapped_collection, \
-        column_mapped_collection
+from sqlalchemy.orm.collections import attribute_mapped_collection, collection
 
 
 users_groups = db.Table('users_groups', db.Model.metadata,
@@ -20,6 +19,31 @@ perm_groups = db.Table('perm_groups', db.Model.metadata,
         db.Column('perm_id', db.Integer, db.ForeignKey('division_perm.id')))
 
 
+class PermissionMapper(object):
+    def __init__(self, data=None):
+        if data is None:
+            self.data = {'submit': set(), 'review': set(), 'pay': set()}
+        else:
+            self.data = data
+
+    @collection.appender
+    def _append(self, permission):
+        permissions = self.data.get(permission.permission)
+        permissions.add(permission)
+
+    @collection.remover
+    def _remove(self, permission):
+        permissions = self.data.get(permission.permissions)
+        return permissions.remove(permission)
+
+    @collection.iterator
+    def __iter__(self):
+        yield from self.data.items()
+
+    def __getitem__(self, permission_level):
+        return self.data[permission_level]
+
+
 class User(db.Model):
     """User base class.
 
@@ -35,7 +59,7 @@ class User(db.Model):
     user_type = db.Column(db.String(50), nullable=False)
     individual_permissions = db.relationship('DivisionPermission',
             secondary=perm_users,
-            collection_class=column_mapped_collection(perm_users.c.user_id),
+            collection_class=PermissionMapper,
             back_populates='individuals')
 
     @declared_attr
@@ -87,7 +111,7 @@ class Group(db.Model):
     users = db.relationship('User', secondary=users_groups, backref='groups',
             collection_class=set)
     permissions = db.relationship('DivisionPermission', secondary=perm_groups,
-            collection_class=column_mapped_collection(perm_groups.c.group_id),
+            collection_class=PermissionMapper,
             back_populates='groups')
 
 
@@ -118,5 +142,5 @@ class Division(db.Model):
     __tablename__ = 'divisions'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False)
-    divisions = db.relationship('DivisionPermission', backref='division'
+    permissions = db.relationship('DivisionPermission', backref='division'
             collection_class=attribute_mapped_collection('permission'))
