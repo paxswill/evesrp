@@ -9,6 +9,18 @@ from . import app, db, login_manager, principal
 from .models import User, Group, Division
 
 
+class AuthMethod(object):
+    method_name = 'Base Authentication'
+
+    @classmethod
+    def authenticate_user(cls, user):
+        pass
+
+    @classmethod
+    def list_groups(cls, user=None):
+        pass
+
+
 @login_manager.user_loader
 def login_loader(userid):
     """Pull a user object from the database.
