@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% block head %}
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}EVE SRP{% endblock %}</title>
+    <!-- Bootstrap -->
+    <link href="{{ url_for('static', filename='css/bootstrap.css') }}" rel="stylesheet">
+    <!-- For now, use the default theme -->
+    <link href="{{ url_for('static', filename='css/bootstrap-theme.css') }}" rel=stylesheet">
+    {% endblock head %}
+  </head>
+  <body>
+    {% block body %}
+    <nav class="navbar navbar-default navbar-static-top" role="navigation">
+      <div class="container">
+        <!-- Navbar "Brand and the collapse/expand toggle -->
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#eve-srp-navbar-collapse">
+            <span class="sr-only">Toggle Navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <!-- TODO: make this link go somewhere -->
+          <a class="navbar-brand" href="#">{% block brand %}EVE SRP{% endblock %}</a>
+        </div><!-- .navbar-header -->
+        <!-- The actual navigation things -->
+        <div class="collapse navbar-collapse" id="eve-srp-navbar-collapse">
+          {% block collapsed_navitems %}
+          <ul class="nav navbar-nav">
+            {% block navitems %}
+            {% if current_user.is_authenticated() -%}
+            {% if current_user.has_permission('submit') -%}
+            <li><a href="#">Submit</a></li>
+            {%- endif %}
+            {% if current_user.has_permission('submit') -%}
+            <li><a href="#">Review</a></li>
+            {%- endif %}
+            {% if current_user.has_permission('submit') -%}
+            <li><a href="#">Pay Out</a></li>
+            {%- endif %}
+            {%- endif %}
+            {% endblock navitems %}
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            {% block navitems_right %}
+            {% if current_user.is_anonymous() -%}
+            <li><a href="{{ url_for('login') }}">Log In</a></li>
+            {%- else -%}
+            <li>Logged in</li>
+            {%- endif %}
+            {% endblock navitems_right %}
+          </ul>
+          {% endblock collapsed_navitems %}
+        </div>
+      </div>
+    </nav>
+    <div class="container">
+      {% block content %}
+      <p>Placeholder content here</p>
+      {% endblock content %}
+    </div>
+    {% endblock body %}
+    {% block scripts %}
+    <!-- Jquery from CDNJS. Not even going to attempt to support IE8 and older -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.0/jquery.js"></script>
+    <!-- Include all templates for now -->
+    <script src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>
+    {% endblock scripts %}
+  </body>
+</html>

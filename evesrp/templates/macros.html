@@ -1,0 +1,21 @@
+{% macro render_input(field) -%}
+<div class="form-group"
+  {{ field.label }}
+  {{ field(class="form-control") }}
+</div>
+{%- endmacro %}
+
+{% macro render_form(form, button_text) -%}
+<form class="form" method="post">
+  {{ form.csrf_token }}
+  {% for field in form -%}
+  <div class="form-group">
+    {% if field.widget.input_type != 'hidden' -%}
+    {{ field.label }}
+    {%- endif %}
+    {{ field(class="form-control") }}
+  </div>
+  {%- endfor %}
+  <button type="submit" class="btn btn-default">{{ button_text }}</button>
+</form>
+{%- endmacro %}

@@ -1,0 +1,9 @@
+{% import "macros.html" as macros %}
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+  <div class="col-md-4 col-md-offset-4">
+    {{ macros.render_form(form, "Log in") }}
+  </div>
+<div>
+{% endblock content %}
