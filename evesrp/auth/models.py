@@ -55,8 +55,7 @@ class User(db.Model):
     TODO: Actually put what to implement.
     """
     id = db.Column(db.Integer, primary_key=True)
-    division_admin = db.Column(db.Boolean, nullable=False, default=False)
-    full_admin = db.Column(db.Boolean, nullable=False, default=False)
+    admin = db.Column(db.Boolean, nullable=False, default=False)
     user_type = db.Column(db.String(50), nullable=False)
     individual_permissions = db.relationship('DivisionPermission',
             secondary=perm_users,
@@ -106,16 +105,29 @@ class Group(db.Model):
     Represents a group of users. Usable for granting permissions to submit,
     evaluate and pay.
     """
-    __tablename__ = 'group'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(128), nullable=False)
-    # TODO: Consider if you should allow groups from different AuthMethods to
-    # be 'merged'
+    name = db.Column(db.String(128), nullable=False, index=True)
+    group_type = db.Column(db.String(128), nullable=False)
     users = db.relationship('User', secondary=users_groups, backref='groups',
             collection_class=set)
     permissions = db.relationship('DivisionPermission', secondary=perm_groups,
             collection_class=PermissionMapper,
             back_populates='groups')
+
+    @declared_attr
+    def __tablename__(cls):
+        return cls.__name__.lower()
+
+    @declared_attr
+    def __mapper_args__(cls):
+        args = {'polymorphic_identity': cls.__name__}
+        if cls.__name__ == 'Group':
+            args['polymorphic_on'] = cls.group_type
+        return args
+
+    @classmethod
+    def authmethod(cls):
+        return AuthMethod
 
 
 class DivisionPermission(db.Model):

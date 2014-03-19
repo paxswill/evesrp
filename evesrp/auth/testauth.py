@@ -1,8 +1,10 @@
 import hashlib
 
+from sqlalchemy.orm.exc import NoResultFound
+
 from .. import db, requests_session
 from . import AuthMethod
-from .models import User
+from .models import User, Group
 
 
 class TestAuth(AuthMethod):
@@ -27,18 +29,27 @@ class TestAuth(AuthMethod):
         json = response.json()
         if json['auth'] != 'ok':
             return None
-        user = TestAuthUser.query.filter_by(auth_id=json['id']).first()
-        if user is None:
+        try:
+            user = TestAuthUser.query.filter_by(auth_id=json['id']).one()
+        except NoResultFound:
             # Create new User
             user_args = {}
             user_args['username'] = json['username']
             user_args['auth_id'] = json['id']
-            # TODO: Check if the json parsing already does truth values
-            if json['staff'] == 'true':
-                user_args['admin'] = True
             user = TestAuthUser(**user_args)
             db.session.add(user)
-            db.session.commit()
+        # Update values from Auth
+        user.admin = json['superuser'] or json['staff']
+        for group in json['groups']:
+            try:
+                db_group = TestAuthGroup.query.filter_by(auth_id=group['id'])\
+                        .one()
+            except NoResultFound:
+                db_group = TestAuthGroup(name=group['name'],
+                        auth_id=group['id'])
+                db.session.add(db_group)
+            user.groups.append(db_group)
+        db.session.commit()
         return user
 
     @classmethod
@@ -80,10 +91,22 @@ class TestAuthUser(User):
     auth_id = db.Column(db.Integer, nullable=False, index=True)
     name = db.Column(db.String(100), nullable=False)
 
-    def __init__(self, username, auth_id, groups=None, admin=False, **kwargs):
+    def __init__(self, username, auth_id, groups=None, **kwargs):
         self.name = username
         self.auth_id = auth_id
-        self.full_admin = admin
+
+    @classmethod
+    def authmethod(cls):
+        return TestAuth
+
+class TestAuthGroup(Group):
+    id = db.Column(db.Integer, db.ForeignKey('group.id'), primary_key=True)
+    auth_id = db.Column(db.Integer, nullable=False, index=True)
+    description = db.Column(db.Text)
+
+    def __init__(self, name, auth_id):
+        self.name = name
+        self.auth_id = auth_id
 
     @classmethod
     def authmethod(cls):

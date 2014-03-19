@@ -50,6 +50,9 @@
             {% if current_user.is_anonymous() -%}
             <li><a href="{{ url_for('login') }}">Log In</a></li>
             {%- else -%}
+            {% if current_user.full_admin or current_user.division_admin -%}
+            <li><a href="{{ url_for('admin') }}">Admin</a></li>
+            {% endif %}
             <li><a href="{{ url_for('logout') }}">Log Out</a></li>
             {%- endif %}
             {% endblock navitems_right %}
