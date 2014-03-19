@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, request
+from flask import render_template, redirect, url_for, request, abort, jsonify
 from flask.ext.login import login_user, login_required, logout_user
 from flask.ext.wtf import Form
 from wtforms.fields import StringField, PasswordField, SelectField, SubmitField
@@ -76,3 +76,27 @@ def add_division():
 def division_detail(division_id):
     division = Division.query.get_or_404(division_id)
     return render_template('division_detail.html', division=division)
+
+
+@app.route('/division/<division_id>/<permission>')
+@login_required
+def division_permission(division_id, permission):
+    division = Division.query.get_or_404(division_id)
+    users = []
+    for user in division.permissions[permission].individuals:
+        user_dict = {
+                'name': user.name,
+                'id': user.id
+                }
+        users.append(user_dict)
+    groups = []
+    for group in division.permissions[permission].groups:
+        group_dict = {
+                'name': group.name,
+                'id': group.id,
+                'size': len(group.individuals)
+                }
+        groups.append(group_dict)
+    return jsonify(name=division.name,
+            groups=groups,
+            users=users)
