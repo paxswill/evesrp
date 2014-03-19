@@ -35,10 +35,10 @@
             {% if current_user.has_permission('submit') -%}
             <li><a href="#">Submit</a></li>
             {%- endif %}
-            {% if current_user.has_permission('submit') -%}
+            {% if current_user.has_permission('review') -%}
             <li><a href="#">Review</a></li>
             {%- endif %}
-            {% if current_user.has_permission('submit') -%}
+            {% if current_user.has_permission('pay') -%}
             <li><a href="#">Pay Out</a></li>
             {%- endif %}
             {%- endif %}
