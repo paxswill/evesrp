@@ -33,7 +33,7 @@ class PermissionMapper(object):
 
     @collection.remover
     def _remove(self, permission):
-        permissions = self.data.get(permission.permissions)
+        permissions = self.data.get(permission.permission)
         return permissions.remove(permission)
 
     @collection.iterator
@@ -144,7 +144,7 @@ class DivisionPermission(db.Model):
     @property
     def users(self):
         user_set = set(self.individuals)
-        for group in groups:
+        for group in self.groups:
             user_set.union(group.users)
 
     def __init__(self, division, permission):
