@@ -1,4 +1,5 @@
-from flask import render_template, redirect, url_for, request, abort, jsonify
+from flask import render_template, redirect, url_for, request, abort, jsonify,\
+        flash
 from flask.ext.login import login_user, login_required, logout_user
 from flask.ext.wtf import Form
 from wtforms.fields import StringField, PasswordField, SelectField, SubmitField
@@ -111,11 +112,14 @@ def division_add_entity(division_id, permission):
     elif request.form['entity_type'] == 'group':
         entity = Group.query.filter_by(name=request.form['name']).first()
     else:
-        print("Cannot find ", request.form['entity_type'], " '",
-                request.form['name'], "'")
         return abort(400)
-    division.permissions[permission].add(entity)
-    db.session.commit()
+    if entity is None:
+        flash("Cannot find a {} named '{}'.".format(
+            request.form['entity_type'], request.form['name']),
+            category='error')
+    else:
+        division.permissions[permission].add(entity)
+        db.session.commit()
     return redirect(url_for('division_detail', division_id=division_id))
 
 
