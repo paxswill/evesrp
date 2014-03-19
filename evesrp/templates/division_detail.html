@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+{% for permission in ('submit', 'review', 'pay') %}
+{% if permission == 'submit' %}
+<h2>Submitters</h2>
+{% elif permission == 'review' %}
+<h2>Reviewers</h2>
+{% elif permission == 'pay' %}
+<h2>Payers</h2>
+{% endif %}
+<div class="row">
+  <div class="col-md-6">
+    <table class="table table-condensed">
+      <tr>
+        <th>Name</th>
+        <th>Member Count</th>
+        <th>Authentication Source</th>
+      </tr>
+      {% for group in division.permissions[permission].groups %}
+      <tr>
+        <td>{{ group.name }}</td>
+        <td>{{ group.users|length }}</td>
+        <td>{{ group.authmethod().method_name }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  <div class="col-md-6">
+    <table class="table table-condensed">
+      <tr>
+        <th>Name</th>
+        <th>Authentication Source</th>
+      </tr>
+      {% for user in division.permissions[permission].individuals %}
+      <tr>
+        <td>{{ user.name }}</td>
+        <td>{{ user.authmethod().method_name }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+{% endfor %}
+{% endblock content %}

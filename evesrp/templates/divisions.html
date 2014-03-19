@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<table class="table table-condensed">
+  <tr>
+    <th>Name</th>
+    <th># of Submitters (Individuals)</th>
+    <th># of Reviewers (Individuals)</th>
+    <th># of Payers (Individuals)</th>
+  </tr>
+  {% if divisions %}
+  {% for division in divisions %}
+  <tr>
+    <td>{{ division.name }}</td>
+    <td>{{ division.permissions['submit'].groups|length }} ({{ division.permissions['submit'].individuals|length }})</td>
+    <td>{{ division.permissions['review'].groups|length }} ({{ division.permissions['review'].individuals|length }})</td>
+    <td>{{ division.permissions['pay'].groups|length }} ({{ division.permissions['pay'].individuals|length }})</td>
+  </tr>
+  {% endfor %}
+  {% endif %}
+</table>
+<a class="btn btn-primary" href="{{ url_for('add_division') }}">Add Division</a>
+{% endblock content %}
