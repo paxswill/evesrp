@@ -160,9 +160,17 @@ class DivisionPermission(db.Model):
         else:
             # TypeError is correct. It must either be a User, Group or an
             # iterable
-            entity_iter = iter(entity)
-            for e in entity_iter:
+            for e in entity:
                 self.add(e)
+
+    def remove(self, entity):
+        if isinstance(entity, User):
+            self.individuals.remove(entity)
+        elif isinstance(entity, Group):
+            self.groups.remove(entity)
+        else:
+            for e in entity:
+                self.remove(e)
 
 
 class Division(db.Model):

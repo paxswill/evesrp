@@ -7,7 +7,7 @@ from wtforms.validators import InputRequired
 
 from . import app, auth_methods, db
 
-from .auth.models import Division
+from .auth.models import User, Group, Division
 
 @app.route('/')
 @login_required
@@ -100,3 +100,35 @@ def division_permission(division_id, permission):
     return jsonify(name=division.name,
             groups=groups,
             users=users)
+
+
+@app.route('/division/<division_id>/<permission>/add/', methods=['POST'])
+@login_required
+def division_add_entity(division_id, permission):
+    division = Division.query.get_or_404(division_id)
+    if request.form['entity_type'] == 'user':
+        entity = User.query.filter_by(name=request.form['name']).first()
+    elif request.form['entity_type'] == 'group':
+        entity = Group.query.filter_by(name=request.form['name']).first()
+    else:
+        print("Cannot find ", request.form['entity_type'], " '",
+                request.form['name'], "'")
+        return abort(400)
+    division.permissions[permission].add(entity)
+    db.session.commit()
+    return redirect(url_for('division_detail', division_id=division_id))
+
+
+@app.route('/division/<division_id>/<permission>/<entity>/<entity_id>/delete')
+@login_required
+def division_delete_entity(division_id, permission, entity, entity_id):
+    division = Division.query.get_or_404(division_id)
+    if entity == 'user':
+        entity = User.query.get_or_404(entity_id)
+    elif entity == 'group':
+        entity = Group.query.get_or_404(entity_id)
+    else:
+        return abort(400)
+    division.permissions[permission].remove(entity)
+    db.session.commit()
+    return redirect(url_for('division_detail', division_id=division_id))

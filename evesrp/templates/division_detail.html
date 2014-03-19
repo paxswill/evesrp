@@ -1,4 +1,23 @@
 {% extends "base.html" %}
+
+{% macro add_entity_form(division, permission, entity) %}
+<form class=form-inline" role="form" action="{{ url_for('division_add_entity', division_id=division.id, permission=permission) }}" method="post">
+  <div class="row">
+    <div class="col-md-9">
+      <div class="form-group">
+        <label class="sr-only" for="{{ permission }}-{{ entity }}-name">{{ entity|capitalize }} Name</label>
+        <input type="text" class="form-control" id="{{ permission }}-{{ entity }}-name" name="name" placeholder="{{ entity|capitalize }} Name">
+      </div>
+      <input type="hidden" name="entity_type" value="{{ entity }}">
+    </div>
+    <div class="col-md-3">
+      <button type="submit" class="btn btn-default">Add {{ entity|capitalize }}</button>
+    </div>
+  </div>
+</form>
+{% endmacro %}
+
+
 {% block content %}
 {% for permission in ('submit', 'review', 'pay') %}
 {% if permission == 'submit' %}
@@ -15,29 +34,35 @@
         <th>Name</th>
         <th>Member Count</th>
         <th>Authentication Source</th>
+        <th>Remove</th>
       </tr>
       {% for group in division.permissions[permission].groups %}
       <tr>
         <td>{{ group.name }}</td>
         <td>{{ group.users|length }}</td>
         <td>{{ group.authmethod().method_name }}</td>
+        <td><a class="close" href="{{ url_for('division_delete_entity', division_id=division.id, permission=permission, entity='group', entity_id=group.id) }}">&times;</a></td>
       </tr>
       {% endfor %}
     </table>
+    {{ add_entity_form(division, permission, 'group') }}
   </div>
   <div class="col-md-6">
     <table class="table table-condensed">
       <tr>
         <th>Name</th>
         <th>Authentication Source</th>
+        <th>Remove</th>
       </tr>
       {% for user in division.permissions[permission].individuals %}
       <tr>
         <td>{{ user.name }}</td>
         <td>{{ user.authmethod().method_name }}</td>
+        <td><a class="close" href="{{ url_for('division_delete_entity', division_id=division.id, permission=permission, entity='user', entity_id=user.id) }}">&times;</a></td>
       </tr>
       {% endfor %}
     </table>
+    {{ add_entity_form(division, permission, 'user') }}
   </div>
 </div>
 {% endfor %}
