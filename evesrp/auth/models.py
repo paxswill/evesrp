@@ -54,6 +54,7 @@ class User(db.Model):
 
     TODO: Actually put what to implement.
     """
+    id = db.Column(db.Integer, primary_key=True)
     division_admin = db.Column(db.Boolean, nullable=False, default=False)
     full_admin = db.Column(db.Boolean, nullable=False, default=False)
     user_type = db.Column(db.String(50), nullable=False)
@@ -69,20 +70,22 @@ class User(db.Model):
     @declared_attr
     def __mapper_args__(cls):
         args = {'polymorphic_identity': cls.__name__}
-        if cls.__name == 'User':
-            args['polymorphic_on'] = user_type
+        if cls.__name__ == 'User':
+            args['polymorphic_on'] = cls.user_type
         return args
-
-    @declared_attr
-    def id(cls):
-        col = db.Column(db.Integer, primary_key=True)
-        if cls.__name__ != 'User':
-            col.append_foreign_key(db.ForeignKey('user.id'))
-        return col
 
     @classmethod
     def authmethod(cls):
         return AuthMethod
+
+    def permissions(self, permission):
+        divisions = set(self.individual_permissions[permission])
+        for group in self.groups:
+            divisions.update(group.permissions[permission])
+        return divisions
+
+    def has_permission(self, permission):
+        return len(self.permissions(permission)) > 0
 
     def is_authenticated(self):
         return True
@@ -94,7 +97,7 @@ class User(db.Model):
         return False
 
     def get_id(self):
-        return unicode(self.id)
+        return str(self.id)
 
 
 class Group(db.Model):
@@ -142,5 +145,5 @@ class Division(db.Model):
     __tablename__ = 'divisions'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False)
-    permissions = db.relationship('DivisionPermission', backref='division'
+    permissions = db.relationship('DivisionPermission', backref='division',
             collection_class=attribute_mapped_collection('permission'))

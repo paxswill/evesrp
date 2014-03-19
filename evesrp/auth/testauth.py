@@ -16,18 +16,18 @@ class TestAuth(AuthMethod):
         create a new one.
         """
         sha = hashlib.sha1()
-        sha.update(password)
+        sha.update(password.encode())
         params = {
                 'user': user,
                 'pass': sha.hexdigest()
                 }
         response = requests_session.get(
-                'https://auth.pleaseignore.com/api/1.0/login'
+                'https://auth.pleaseignore.com/api/1.0/login',
                 params=params)
         json = response.json()
         if json['auth'] != 'ok':
             return None
-        user = User.query.filter_by(auth_id=json['id']).first()
+        user = TestAuthUser.query.filter_by(auth_id=json['id']).first()
         if user is None:
             # Create new User
             user_args = {}
@@ -36,9 +36,9 @@ class TestAuth(AuthMethod):
             # TODO: Check if the json parsing already does truth values
             if json['staff'] == 'true':
                 user_args['admin'] = True
-            user = User(*user_args)
+            user = TestAuthUser(**user_args)
             db.session.add(user)
-            db.session.commit(user)
+            db.session.commit()
         return user
 
     @classmethod
@@ -76,10 +76,11 @@ class TestAuth(AuthMethod):
 
 
 class TestAuthUser(User):
+    id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     auth_id = db.Column(db.Integer, nullable=False, index=True)
     name = db.Column(db.String(100), nullable=False)
 
-    def __init__(self, username, auth_id, groups=None, admin=False):
+    def __init__(self, username, auth_id, groups=None, admin=False, **kwargs):
         self.name = username
         self.auth_id = auth_id
         self.full_admin = admin

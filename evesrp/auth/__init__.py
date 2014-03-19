@@ -5,20 +5,23 @@ from functools import partial
 from flask.ext.login import current_user
 from flask.ext.principal import Permission, UserNeed, RoleNeed, identity_loaded
 
-from . import app, db, login_manager, principal
-from .models import User, Group, Division
+from .. import app, db, login_manager, principal
 
 
 class AuthMethod(object):
     method_name = 'Base Authentication'
 
     @classmethod
-    def authenticate_user(cls, user):
+    def authenticate_user(cls, user, password):
         pass
 
     @classmethod
     def list_groups(cls, user=None):
         pass
+
+
+# Work around some circular imports
+from .models import User, Group, Division
 
 
 @login_manager.user_loader
