@@ -11,7 +11,7 @@ requests_session = requests.Session()
 requests_session.headers.update(
         {'User-Agent': 'EVE-SRP/0.1 (paxswill@paxswill.com)'})
 
-app = Flask(__name__)
+app = Flask('evesrp')
 # SQLALCHEMY_DATABASE_URI gets set by the Heroku extension frmo the
 # DATABASE_URL environment variable
 heroku = Heroku(app)
