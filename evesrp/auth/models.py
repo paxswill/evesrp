@@ -55,6 +55,7 @@ class User(db.Model):
     TODO: Actually put what to implement.
     """
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
     admin = db.Column(db.Boolean, nullable=False, default=False)
     user_type = db.Column(db.String(50), nullable=False)
     individual_permissions = db.relationship('DivisionPermission',

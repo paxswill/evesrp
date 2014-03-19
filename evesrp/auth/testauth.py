@@ -89,7 +89,6 @@ class TestAuth(AuthMethod):
 class TestAuthUser(User):
     id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     auth_id = db.Column(db.Integer, nullable=False, index=True)
-    name = db.Column(db.String(100), nullable=False)
 
     def __init__(self, username, auth_id, groups=None, **kwargs):
         self.name = username
