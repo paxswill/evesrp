@@ -20,3 +20,13 @@
   <button type="submit" class="btn btn-default">{{ button_text }}</button>
 </form>
 {%- endmacro %}
+
+{% macro navbar_button(text, view=None) %}
+{% if view %}
+{% with url = url_for(view) %}
+<li{{ ' class="active"'|safe if url == request.path }}><a href="{{ url }}">{{ text }}</a></li>
+{% endwith %}
+{% else %}
+<li><a href="#">{{ text }}</a></li>
+{% endif %}
+{% endmacro %}

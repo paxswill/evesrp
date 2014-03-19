@@ -1,3 +1,4 @@
+{% import "macros.html" as macros %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -33,13 +34,13 @@
             {% block navitems %}
             {% if current_user.is_authenticated() -%}
             {% if current_user.has_permission('submit') -%}
-            <li><a href="#">Submit</a></li>
+            {{ macros.navbar_button('Submit') }}
             {%- endif %}
             {% if current_user.has_permission('review') -%}
-            <li><a href="#">Review</a></li>
+            {{ macros.navbar_button('Review') }}
             {%- endif %}
             {% if current_user.has_permission('pay') -%}
-            <li><a href="#">Pay Out</a></li>
+            {{ macros.navbar_button('Pay Out') }}
             {%- endif %}
             {%- endif %}
             {% endblock navitems %}
@@ -47,12 +48,12 @@
           <ul class="nav navbar-nav navbar-right">
             {% block navitems_right %}
             {% if current_user.is_anonymous() -%}
-            <li><a href="{{ url_for('login') }}">Log In</a></li>
+            {{ macros.navbar_button('Log In', 'login') }}
             {%- else -%}
             {% if current_user.admin -%}
-            <li><a href="{{ url_for('list_divisions') }}">Divisions</a></li>
+            {{ macros.navbar_button('Divisions', 'list_divisions') }}
             {% endif %}
-            <li><a href="{{ url_for('logout') }}">Log Out</a></li>
+            {{ macros.navbar_button('Log Out', 'logout') }}
             {%- endif %}
             {% endblock navitems_right %}
           </ul>

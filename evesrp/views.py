@@ -50,7 +50,7 @@ def logout():
     return redirect(url_for('index'))
 
 
-@app.route('/divisions')
+@app.route('/division')
 @login_required
 def list_divisions():
     return render_template('divisions.html', divisions=Division.query.all())
