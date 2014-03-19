@@ -7,9 +7,11 @@ from wtforms.fields import StringField, PasswordField, SelectField, SubmitField
 from wtforms.widgets import HiddenInput
 from wtforms.validators import InputRequired
 
+
 class SelectValueField(SelectField):
     def _value(self):
         return self.default if self.default is not None else ''
+
 
 class LoginForm(Form):
     username = StringField('Username', validators=[InputRequired()])
