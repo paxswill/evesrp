@@ -147,6 +147,22 @@ class DivisionPermission(db.Model):
         for group in groups:
             user_set.union(group.users)
 
+    def __init__(self, division, permission):
+        self.permission = permission
+        self.division = division
+
+    def add(self, entity):
+        if isinstance(entity, User):
+            self.individuals.append(entity)
+        elif isinstance(entity, Group):
+            self.groups.append(entity)
+        else:
+            # TypeError is correct. It must either be a User, Group or an
+            # iterable
+            entity_iter = iter(entity)
+            for e in entity_iter:
+                self.add(e)
+
 
 class Division(db.Model):
     """A reimbursement division.
@@ -159,3 +175,8 @@ class Division(db.Model):
     name = db.Column(db.String(128), nullable=False)
     permissions = db.relationship('DivisionPermission', backref='division',
             collection_class=attribute_mapped_collection('permission'))
+
+    def __init__(self, name):
+        self.name = name
+        for perm in ('submit', 'review', 'pay'):
+            DivisionPermission(self, perm)
