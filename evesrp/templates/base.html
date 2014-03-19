@@ -59,6 +59,20 @@
       </div>
     </nav>
     <div class="container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      {% for category, message in messages %}
+      {% if category == 'message' %}{% set alert_class = 'alert-success' %}
+      {% elif category == 'warning' %}{% set alert_class = 'alert-warning' %}
+      {% elif category == 'error' %}{% set alert_class = 'alert-danger' %}
+      {% else %}
+      {# catches 'info', the final recommended flash category #}
+      {% set alert_class = 'alert-info' %}
+      {% endif %}
+      <div class="alert {{ alert_class }}">{{ message }}</div>
+      {% endfor %}
+      {% endif %}
+      {% endwith %}
       {% block content %}
       <p>Placeholder content here</p>
       {% endblock content %}
