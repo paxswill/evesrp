@@ -1,7 +1,7 @@
 from . import app, auth_methods
 
 from flask import render_template, redirect, url_for, request
-from flask.ext.login import login_user, login_required
+from flask.ext.login import login_user, login_required, logout_user
 from flask.ext.wtf import Form
 from wtforms.fields import StringField, PasswordField, SelectField, SubmitField
 from wtforms.widgets import HiddenInput
@@ -19,7 +19,7 @@ class LoginForm(Form):
             coerce=int)
 
 
-@app.route('/', methods=['GET'])
+@app.route('/')
 @login_required
 def index():
     return render_template('base.html')
@@ -37,6 +37,11 @@ def login():
         if user is not None:
             login_user(user)
             return redirect(request.args.get('next') or url_for('index'))
-
-
     return render_template('login.html', form=form)
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
