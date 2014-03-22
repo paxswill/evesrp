@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from flask import render_template, redirect, url_for, request, abort, jsonify,\
         flash
 from flask.ext.login import login_user, login_required, logout_user
@@ -7,7 +9,6 @@ from wtforms.widgets import HiddenInput
 from wtforms.validators import InputRequired
 
 from . import app, auth_methods, db
-
 from .auth.models import User, Group, Division
 
 @app.route('/')
@@ -21,26 +22,26 @@ class SelectValueField(SelectField):
         return self.default if self.default is not None else ''
 
 
-class LoginForm(Form):
-    username = StringField('Username', validators=[InputRequired()])
-    password = PasswordField('Password', validators=[InputRequired()])
-    auth_method = SelectValueField('Authentication Source', default=0,
-            choices=[(i, m.method_name) for i, m in enumerate(auth_methods)],
-            coerce=int)
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    form = LoginForm()
-    if len(auth_methods) < 2:
-        form.auth_method.widget = HiddenInput()
-    if form.validate_on_submit():
-        method = auth_methods[form.auth_method.data]
-        user = method.authenticate_user(form.username.data, form.password.data)
-        if user is not None:
-            login_user(user)
-            return redirect(request.args.get('next') or url_for('index'))
-    return render_template('login.html', form=form)
+    forms = OrderedDict()
+    for auth_method in auth_methods:
+        form = auth_method.form()
+        forms[auth_method.name] = (form, auth_method)
+    if request.method == 'POST':
+        auth_tuple = forms.get(request.form['auth_method'], None)
+        if auth_tuple is not None:
+            form = auth_tuple[0]()
+        else:
+            abort(400)
+        if form.validate():
+            auth_method = auth_tuple[1]
+            return auth_method.login(form)
+    template_forms = []
+    for key, value in forms.items():
+        template_forms.append((key, value[0]()))
+    print(template_forms)
+    return render_template('login.html', forms=template_forms)
 
 
 @app.route('/logout')

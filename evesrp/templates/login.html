@@ -1,9 +1,36 @@
 {% import "macros.html" as macros %}
-{% extends "form.html" %}
+{% extends "base.html" %}
 {% block content %}
 <div class="row">
   <div class="col-md-4 col-md-offset-4">
-    {{ super() }}
+    <ul class="nav nav-tabs">
+    {% for method in forms %}
+      <li{{ ' class="active"'|safe if loop.first }}>
+        <a href="#{{ method[1].__class__.__name__|lower }}" data-toggle="tab">{{ method[0] }}</a>
+      </li>
+    {% endfor %}
+    </ul>
+    <div class="panel panel-default">
+      <div class="panel-body tab-content">
+        {% for method in forms %}
+        <div class="tab-pane{{ ' active'|safe if loop.first }}" id="{{ method[1].__class__.__name__|lower }}">
+          {{ macros.render_form(method[1]) }}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
   </div>
-<div>
+</div>
 {% endblock content %}
+
+{% block scripts %}
+{{ super() }}
+<script type=text/javascript>
+{% for method in forms %}
+$("li a[href=#{{ method[1].__class__.__name__|lower }}]").click(function (e) {
+    e.reventDefault()
+    $(this).tab('show')
+});
+{% endfor %}
+</script>
+{% endblock scripts %}
