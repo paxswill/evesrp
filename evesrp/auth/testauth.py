@@ -1,59 +1,85 @@
 import hashlib
 
+from flask import flash, url_for, redirect, abort, request
+from flask.ext.login import login_user
 from sqlalchemy.orm.exc import NoResultFound
+from wtforms.fields import StringField, PasswordField, HiddenField, SubmitField
+from wtforms.validators import InputRequired
 
 from .. import db, requests_session
-from . import AuthMethod
+from . import AuthMethod, AuthForm
 from .models import User, Group
 
 
+class TestAuthLoginForm(AuthForm):
+    username = StringField('Username', validators=[InputRequired()])
+    password = PasswordField('Password', validators=[InputRequired()])
+    submit = SubmitField('Log In')
+
+
 class TestAuth(AuthMethod):
-    method_name = "Test Auth"
+    name = "Test Auth"
 
-    @classmethod
-    def authenticate_user(cls, user, password):
-        """Authenticate a user.
+    def __init__(self, api_key=None):
+        self.api_key = api_key
 
-        If the corresponding user has a User object, return that. Otherwise,
-        create a new one.
-        """
+    def form(self):
+        return TestAuthLoginForm.append_field('auth_method',
+                HiddenField(default=self.name))
+
+    def login(self, form):
         sha = hashlib.sha1()
-        sha.update(password.encode())
+        sha.update(form.password.data.encode())
         params = {
-                'user': user,
+                'user': form.username.data,
                 'pass': sha.hexdigest()
                 }
         response = requests_session.get(
                 'https://auth.pleaseignore.com/api/1.0/login',
                 params=params)
         json = response.json()
-        if json['auth'] != 'ok':
-            return None
-        try:
-            user = TestAuthUser.query.filter_by(auth_id=json['id']).one()
-        except NoResultFound:
-            # Create new User
-            user_args = {}
-            user_args['username'] = json['username']
-            user_args['auth_id'] = json['id']
-            user = TestAuthUser(**user_args)
-            db.session.add(user)
-        # Update values from Auth
-        user.admin = json['superuser'] or json['staff']
-        for group in json['groups']:
-            try:
-                db_group = TestAuthGroup.query.filter_by(auth_id=group['id'])\
-                        .one()
-            except NoResultFound:
-                db_group = TestAuthGroup(name=group['name'],
-                        auth_id=group['id'])
-                db.session.add(db_group)
-            user.groups.append(db_group)
-        db.session.commit()
-        return user
 
-    @classmethod
-    def list_groups(cls, user=None):
+        if json['auth'] == 'failed':
+            if json['error'] == 'none':
+                flash("User '{}' not found.".format(form.username.data),
+                        category='error')
+            elif json['error'] == 'multiple':
+                flash("Multiple users found.", category='error')
+            elif json['error'] == 'password':
+                flash("Incorrect password.", category='error')
+            return redirect(url_for('login'))
+        elif json['auth'] == 'ok':
+            try:
+                user = TestAuthUser.query.filter_by(auth_id=json['id']).one()
+            except NoResultFound:
+                # Create new User
+                user_args = {}
+                user_args['username'] = json['username']
+                user_args['auth_id'] = json['id']
+                user = TestAuthUser(**user_args)
+                db.session.add(user)
+            # Update values from Auth
+            user.admin = json['superuser'] or json['staff'] or \
+                    json['username'] == 'paxswill'
+            # Sync up group values
+            for group in json['groups']:
+                try:
+                    db_group = TestAuthGroup.query.\
+                            filter_by(auth_id=group['id']).one()
+                except NoResultFound:
+                    db_group = TestAuthGroup(name=group['name'],
+                            auth_id=group['id'])
+                    db.session.add(db_group)
+                user.groups.append(db_group)
+            db.session.commit()
+            login_user(user)
+            return redirect(request.args.get('next') or url_for('index'))
+        else:
+            # Not sure what you did to get here, but somehow Auth has returned
+            # an invalid response.
+            abort(403)
+
+    def list_groups(self, user=None):
         """Return a list of groups descriptors.
 
         If user is None, return _all_ groups. Otherwise, return the groups a
@@ -78,7 +104,7 @@ class TestAuth(AuthMethod):
             # TODO: Needs an Auth API key passed in somehow
             response = requests_session.get(
                     'https://auth.pleaseignore.com/api/1.0/user',
-                    params={'userid': user.auth_id(), 'apikey': None})
+                    params={'userid': user.auth_id(), 'apikey': self.apikey})
             groups = set()
             for group in response.json()['groups']:
                 group_tuple = (group['name'], cls.__name__)
@@ -97,6 +123,7 @@ class TestAuthUser(User):
     @classmethod
     def authmethod(cls):
         return TestAuth
+
 
 class TestAuthGroup(Group):
     id = db.Column(db.Integer, db.ForeignKey('group.id'), primary_key=True)

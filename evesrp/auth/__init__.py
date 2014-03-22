@@ -4,19 +4,45 @@ from functools import partial
 
 from flask.ext.login import current_user
 from flask.ext.principal import Permission, UserNeed, RoleNeed, identity_loaded
+from flask.ext.wtf import Form
+from wtforms.fields import SubmitField, HiddenField
 
 from .. import app, db, login_manager, principal
 
 
-class AuthMethod(object):
-    method_name = 'Base Authentication'
+class AuthForm(Form):
+    submit = SubmitField('Login')
 
     @classmethod
-    def authenticate_user(cls, user, password):
+    def append_field(cls, name, field):
+        setattr(cls, name, field)
+        return cls
+
+
+class AuthMethod(object):
+    name = 'Base Authentication'
+
+    def form(self):
+        """Return an instance of the form to login."""
+        return AuthForm.append_field('auth_method',
+                HiddenField(default=self.name))
+
+    def login(self, form):
+        """Process a validated login form.
+
+        You must return a valid response object.
+        """
+        pass
+
+    def list_groups(self, user=None):
         pass
 
     @classmethod
-    def list_groups(cls, user=None):
+    def register_views(cls, app):
+        """Register views (if needed).
+
+        This is an optional method to implement.
+        """
         pass
 
 
