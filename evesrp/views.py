@@ -58,6 +58,7 @@ def list_divisions():
 
 class AddDivisionForm(Form):
     name = StringField('Division Name', validators=[InputRequired()])
+    submit = SubmitField('Create Division')
 
 
 @app.route('/division/add', methods=['GET', 'POST'])
