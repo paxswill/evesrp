@@ -1,22 +1,26 @@
 {% extends "base.html" %}
 {% block content %}
-<table class="table table-condensed">
-  <tr>
-    <th>Name</th>
-    <th># of Submitters (Individuals)</th>
-    <th># of Reviewers (Individuals)</th>
-    <th># of Payers (Individuals)</th>
-  </tr>
-  {% if divisions %}
-  {% for division in divisions %}
-  <tr>
-    <td><a href="{{ url_for('division_detail', division_id=division.id) }}">{{ division.name }}</a></td>
-    <td><a href="{{ url_for('division_detail', division_id=division.id)}}#submit">{{ division.permissions['submit'].groups|length }} ({{ division.permissions['submit'].individuals|length }})</a></td>
-    <td><a href="{{ url_for('division_detail', division_id=division.id)}}#review">{{ division.permissions['review'].groups|length }} ({{ division.permissions['review'].individuals|length }})</a></td>
-    <td><a href="{{ url_for('division_detail', division_id=division.id)}}#pay">{{ division.permissions['pay'].groups|length }} ({{ division.permissions['pay'].individuals|length }})</a></td>
-  </tr>
-  {% endfor %}
-  {% endif %}
-</table>
-<a class="btn btn-primary" href="{{ url_for('add_division') }}">Add Division</a>
+<div class="row">
+  <div class="col-md-10 col-md-offset-1">
+    <table class="table table-condensed">
+      <tr>
+        <th>Name</th>
+        <th># of Submitters (Individuals)</th>
+        <th># of Reviewers (Individuals)</th>
+        <th># of Payers (Individuals)</th>
+      </tr>
+      {% if divisions %}
+      {% for division in divisions %}
+      <tr>
+        <td><a href="{{ url_for('division_detail', division_id=division.id) }}">{{ division.name }}</a></td>
+        <td><a href="{{ url_for('division_detail', division_id=division.id)}}#submit">{{ division.permissions['submit'].groups|length }} ({{ division.permissions['submit'].individuals|length }})</a></td>
+        <td><a href="{{ url_for('division_detail', division_id=division.id)}}#review">{{ division.permissions['review'].groups|length }} ({{ division.permissions['review'].individuals|length }})</a></td>
+        <td><a href="{{ url_for('division_detail', division_id=division.id)}}#pay">{{ division.permissions['pay'].groups|length }} ({{ division.permissions['pay'].individuals|length }})</a></td>
+      </tr>
+      {% endfor %}
+      {% endif %}
+    </table>
+    <a class="btn btn-primary" href="{{ url_for('add_division') }}">Add Division</a>
+  </div>
+</div>
 {% endblock content %}
