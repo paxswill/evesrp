@@ -64,11 +64,15 @@ class Modifier(db.Model, AutoID, Timestamped):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', foreign_keys=[user_id])
     note = db.Column(db.Text)
-    voided = db.Column(db.Boolean, nullable=False, default=False)
     voided_user_id = db.Column(db.Integer, db.ForeignKey('user.id'),
             nullable=True)
     voided_user = db.relationship('User', foreign_keys=[voided_user_id])
     voided_timestamp = db.Column(DateTime)
+
+    @property
+    def voided(self):
+        return self.voided_user is not None and \
+                self.voided_timestamp is not None
 
     def __init__(self, request, user, note):
         self.request = request
