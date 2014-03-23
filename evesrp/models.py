@@ -38,6 +38,7 @@ class Action(db.Model, AutoID, Timestamped):
         self.request = request
         self.user = user
         self.note = note
+        self.timestamp = dt.datetime.utcnow()
 
 
 class Modifier(db.Model, AutoID, Timestamped):
