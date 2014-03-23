@@ -1,17 +1,21 @@
 from collections import OrderedDict
+from urllib.parse import urlparse
+import re
 
 from flask import render_template, redirect, url_for, request, abort, jsonify,\
-        flash
+        flash, Markup
 from flask.ext.login import login_user, login_required, logout_user, \
         current_user
 from flask.ext.wtf import Form
-from wtforms.fields import StringField, PasswordField, SelectField, SubmitField
+from wtforms.fields import StringField, PasswordField, SelectField, \
+        SubmitField, TextAreaField, HiddenField
 from wtforms.fields.html5 import URLField, DecimalField
 from wtforms.widgets import HiddenInput
 from wtforms.validators import InputRequired, ValidationError
 
-from . import app, auth_methods, db
+from . import app, auth_methods, db, requests_session
 from .auth.models import User, Group, Division
+from .models import Request, Modifier, Action
 
 @app.route('/')
 @login_required
@@ -228,3 +232,103 @@ def submit_request():
         db.session.commit()
         return redirect(url_for('request_detail', request_id=srp_request.id))
     return render_template('form.html', form=form)
+
+
+class ModifierForm(Form):
+    id_ = HiddenField(default='modifier')
+    value = DecimalField('Value')
+    # TODO: add a validator for the type
+    type_ = SelectField('Type', choices=[(1, '% Bonus'),
+            (-1, '% Deduction'), (2, 'M ISK Bonus'),
+            (-2, 'M ISK Deduction')], coerce=int)
+    note = TextAreaField('Reason')
+    submit = SubmitField('Apply')
+
+
+class VoidModifierForm(Form):
+    id_ = HiddenField(default='void')
+    modifier_id = HiddenField()
+    void = SubmitField(Markup('x'))
+
+    def __init__(self, modifier=None, *args, **kwargs):
+        if modifier is not None:
+            self.modifier_id = modifier.id
+        super(VoidModifierForm, self).__init__(*args, **kwargs)
+
+
+class PayoutForm(Form):
+    id_ = HiddenField(default='payout')
+    value = DecimalField('M ISK', validators=[InputRequired()])
+    submit = SubmitField('Set')
+
+
+class ActionForm(Form):
+    id_ = HiddenField(default='action')
+    note = TextAreaField('Note')
+    rejected = SubmitField('Reject')
+    evaluating = SubmitField('Evaluate')
+    approved = SubmitField('Approve')
+    incomplete = SubmitField('Incomplete')
+    paid = SubmitField('Paid')
+    comment = SubmitField('Comment')
+
+    @property
+    def action(self):
+        for action in ('rejected', 'evaluating', 'approved', 'incomplete',
+                'paid', 'comment'):
+            field = getattr(self, action)
+            if field.data:
+                return action
+
+
+@app.route('/request/<int:request_id>', methods=['GET', 'POST'])
+@login_required
+def request_detail(request_id):
+    srp_request = Request.query.get(request_id)
+    if request.method == 'POST':
+        print(request.form)
+        if request.form['id_'] == 'modifier':
+            form = ModifierForm()
+
+        elif request.form['id_'] == 'payout':
+            form = PayoutForm()
+        elif request.form['id_'] == 'action':
+            form = ActionForm()
+        elif request.form['id_'] == 'void':
+            form = VoidModifierForm()
+        else:
+            abort(400)
+        if form.validate():
+            if form.id_.data == 'modifier':
+                print(form)
+                mod = Modifier(srp_request, current_user, form.note.data)
+                if abs(form.type_.data) == 1:
+                    mod.type_ = 'percentage'
+                elif abs(form.type_.data) == 2:
+                    mod.type_ = 'absolute'
+                if form.type_.data < 0:
+                    mod.value = form.value.data * -1
+                else:
+                    mod.value = form.value.data
+                db.session.add(mod)
+                db.session.commit()
+            elif form.id_.data == 'payout':
+                srp_request.base_payout = form.value.data
+                db.session.commit()
+            elif form.id_.data == 'action':
+                action = Action(srp_request, current_user, form.note.data)
+                action.type_ = form.action
+                db.session.add(action)
+                db.session.commit()
+            elif form.id_.data == 'void':
+                modifier = Modifier.query.get(int(form.modifier_id.data))
+                modifier.void(current_user)
+                db.session.commit()
+        else:
+            # TODO: Actual error handling, probably using flash()
+            print(form.errors)
+    return render_template('request_detail.html', request=srp_request,
+            modifier_form=ModifierForm(formdata=None),
+            payout_form=PayoutForm(formdata=None),
+            action_form=ActionForm(formdata=None),
+            void_form=VoidModifierForm(formdata=None))

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% import "macros.html" as macros %}
+{% block content %}
+<div class="row">
+  <div class="col-md-offset-1 col-md-5">
+    <dl class="dl-horizontal">
+      <dt>Lossmail</dt>
+      <dd><a href="{{ request.killmail_url }}">{{ request.id }}</a></dd>
+      <dt>Division</dt>
+      <dd>{{ request.division }}</dd>
+      <dt>Details</dt>
+      <dd class="panel panel-default">
+        <p class="panel-body">{{ request.details }}</p>
+      </dd>
+      <dt>Pilot</dt>
+      <dd>{{ request.pilot }}</dd>
+      <dt>Ship</dt>
+      <dd>{{ request.ship_type }}</dd>
+      <dt>Status</dt>
+      <dd>{{ request.status|capitalize }}</dd>
+      <dt>Payout</dt>
+      <dd>{{ request.payout }}</dd>
+    </dl>
+    <form class="form" method='post'>
+      {{ macros.render_input(action_form.id_) }}
+      {{ macros.render_input(action_form.note) }}
+      {{ macros.render_input(action_form.csrf_token) }}
+      <div class="btn-group">
+        {{ action_form.comment(class="btn btn-default") }}
+        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+          <span class="caret"></span>
+          <span class="sr-only">Toggle Dropdown</span>
+        </button>
+        <ul class="dropdown-menu" role="menu">
+          {% for action in ('rejected', 'evaluating', 'approved', 'incomplete', 'paid') %}
+          <li>{{ (action_form|attr(action))() }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </form>
+    <div class="list-group">
+      {% for action in request.actions %}
+      <div class="list-group-item">
+        <h4 class="list-group-item-heading">{{ action.type_|capitalize }}</h4>
+        <blockquote class="list-group-item-text">
+          <p>{{ action.note }}</p>
+          <footer>{{ action.user.name }} at {{ action.timestamp }}</footer>
+        </blockquote>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="col-md-5">
+    <dl class="dl-horizontal">
+      <dt>Set Base Payout</dt>
+      <dd>{{ macros.render_form(payout_form) }}</dd>
+      <dt>Add Modifier</dt>
+      <dd>
+        {{ macros.render_form(modifier_form) }}
+        <div class="list-group">
+          {% for modifier in request.modifiers %}
+          <div class="list-group-item">
+            <div class="list-group-item-heading">
+              <form class="form" method="POST" action="{{ url_for('request_detail', request_id=request.id) }}">
+                {{ macros.render_input(void_form.csrf_token) }}
+                {{ macros.render_input(void_form.id_) }}
+                <input class="form-control" id="modifier_id_{{ modifier.id }}" name="modifier_id" type="hidden" value="{{ modifier.id }}">
+                <input class="close" type="submit" name="void_modifier" class="close pull-right" value="&times;">
+              </form>
+              {{ '<del>'|safe if modifier.voided }}
+              <h4>{{ modifier.value }}{{ '%' if modifier.type_ == 'percentage' else 'M ISK' }}</h4>
+              {{ '</del>'|safe if modifier.voided }}
+            </div>
+            <p class="list-group-item-group">
+              {{ '<del>'|safe if modifier.voided }}
+              {{ modifier.note }}
+              <footer><small>&mdash;{{ modifier.user.name }} {{ modifier.timestamp }}</small><footer>
+              {{ '</del>'|safe if modifier.voided }}
+              {% if modifier.voided %}
+              <footer><small>&mdash;Voided by {{ modifier.voided_user.name }} {{ modifier.voided_timestamp }}</small></footer>
+              {% endif %}
+            </p>
+          </div>
+          {% endfor %}
+        </div>
+      </dd>
+    </dl>
+  </div>
+</div>
+{% endblock content %}
