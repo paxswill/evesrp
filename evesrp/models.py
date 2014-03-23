@@ -34,6 +34,11 @@ class Action(db.Model, AutoID, Timestamped):
     user = db.relationship('User', back_populates='actions')
     note = db.Column(db.Text)
 
+    def __init__(self, request, user, note):
+        self.request = request
+        self.user = user
+        self.note = note
+
 
 class Modifier(db.Model, AutoID, Timestamped):
     """Modifiers apply bonuses or penalties to Requests.
@@ -64,6 +69,11 @@ class Modifier(db.Model, AutoID, Timestamped):
             nullable=True)
     voided_user = db.relationship('User', foreign_keys=[voided_user_id])
     voided_timestamp = db.Column(DateTime)
+
+    def __init__(self, request, user, note):
+        self.request = request
+        self.user = user
+        self.note = note
 
 
 class Request(db.Model, AutoID, Timestamped):
