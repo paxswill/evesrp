@@ -113,9 +113,9 @@ class Request(db.Model, AutoID, Timestamped):
                 payout += modifier.value
             elif modifier.type_ == 'percentage':
                 if modifier.value > 0:
-                    payout += payout * modifier.value
+                    payout += payout * modifier.value / 100
                 else:
-                    payout -= payout * modifier.value
+                    payout -= payout * modifier.value / 100
         return payout
 
     @property
