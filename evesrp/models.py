@@ -82,7 +82,8 @@ class Request(db.Model, AutoID, Timestamped):
     ship_type = db.Column(db.String(75), nullable=False)
     # Same as Modifer.value, base_payout is the coefficient to 10^6 a.k.a in
     # millions
-    base_payout = db.Column(db.Float)
+    base_payout = db.Column(db.Float, default=0.0)
+    details = db.Column(db.Text)
 
     @property
     def payout(self):
@@ -97,7 +98,7 @@ class Request(db.Model, AutoID, Timestamped):
                     payout += payout * modifier.value
                 else:
                     payout -= payout * modifier.value
-        return modifier
+        return payout
 
     @property
     def status(self):
@@ -108,5 +109,10 @@ class Request(db.Model, AutoID, Timestamped):
                 return action.type_
         else:
             return 'unevaluated'
+
+    def __init__(self, submitter, killmail_url, details):
+        self.submitter = submitter
+        self.killmail_url = killmail_url
+        self.details = details
 
 
