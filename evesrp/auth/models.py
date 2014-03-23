@@ -2,6 +2,7 @@ from .. import db
 from . import AuthMethod
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm.collections import attribute_mapped_collection, collection
+from ..models import Action, Modifier, Request
 
 
 users_groups = db.Table('users_groups', db.Model.metadata,
@@ -62,6 +63,8 @@ class User(db.Model):
             secondary=perm_users,
             collection_class=PermissionMapper,
             back_populates='individuals')
+    requests = db.relationship(Request, back_populates='submitter')
+    actions = db.relationship(Action, back_populates='user')
 
     @declared_attr
     def __tablename__(cls):
@@ -109,7 +112,7 @@ class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False, index=True)
     group_type = db.Column(db.String(128), nullable=False)
-    users = db.relationship('User', secondary=users_groups, backref='groups',
+    users = db.relationship(User, secondary=users_groups, backref='groups',
             collection_class=set)
     permissions = db.relationship('DivisionPermission', secondary=perm_groups,
             collection_class=PermissionMapper,
@@ -134,12 +137,12 @@ class Group(db.Model):
 class DivisionPermission(db.Model):
     __tablename__ = 'division_perm'
     id = db.Column(db.Integer, primary_key=True)
-    division_id = db.Column(db.Integer, db.ForeignKey('divisions.id'))
+    division_id = db.Column(db.Integer, db.ForeignKey('division.id'))
     permission = db.Column(db.Enum('submit', 'review', 'pay',
             name='division_permission'), nullable=False)
-    individuals = db.relationship('User', secondary=perm_users,
+    individuals = db.relationship(User, secondary=perm_users,
             back_populates='individual_permissions')
-    groups = db.relationship('Group', secondary=perm_groups,
+    groups = db.relationship(Group, secondary=perm_groups,
             back_populates='permissions')
 
     @property
@@ -179,11 +182,12 @@ class Division(db.Model):
     A division has (possible non-intersecting) groups of people that can submit
     requests, review requests, and pay out requests.
     """
-    __tablename__ = 'divisions'
+    __tablename__ = 'division'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False)
-    permissions = db.relationship('DivisionPermission', backref='division',
+    permissions = db.relationship(DivisionPermission, backref='division',
             collection_class=attribute_mapped_collection('permission'))
+    requests = db.relationship(Request, back_populates='division')
 
     def __init__(self, name):
         self.name = name
