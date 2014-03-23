@@ -2,11 +2,13 @@ from collections import OrderedDict
 
 from flask import render_template, redirect, url_for, request, abort, jsonify,\
         flash
-from flask.ext.login import login_user, login_required, logout_user
+from flask.ext.login import login_user, login_required, logout_user, \
+        current_user
 from flask.ext.wtf import Form
 from wtforms.fields import StringField, PasswordField, SelectField, SubmitField
+from wtforms.fields.html5 import URLField, DecimalField
 from wtforms.widgets import HiddenInput
-from wtforms.validators import InputRequired
+from wtforms.validators import InputRequired, ValidationError
 
 from . import app, auth_methods, db
 from .auth.models import User, Group, Division
@@ -138,3 +140,16 @@ def division_delete_entity(division_id, permission, entity, entity_id):
     division.permissions[permission].remove(entity)
     db.session.commit()
     return redirect(url_for('division_detail', division_id=division_id))
+
+
+@app.route('/submit')
+@login_required
+def list_submit_requests():
+    requests = current_user.requests
+    return render_template('list_requests.html', requests=requests)
+
+
+@app.route('/submit/request', methods=['GET', 'POST'])
+@login_required
+def submit_request():
+    pass

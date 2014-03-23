@@ -34,7 +34,7 @@
             {% block navitems %}
             {% if current_user.is_authenticated() -%}
             {% if current_user.has_permission('submit') -%}
-            {{ macros.navbar_button('Submit') }}
+            {{ macros.navbar_button('Submit', 'list_submit_requests') }}
             {%- endif %}
             {% if current_user.has_permission('review') -%}
             {{ macros.navbar_button('Review') }}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+  <div class="col-md-10 col-md-offset-1">
+    <a class="btn btn-default pull-right" href="{{ url_for('submit_request') }}">Submit Request</a>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-10 col-md-offset-1">
+    <table class="table table-condensed">
+      <tr>
+        <th>Request ID</th>
+        <th>Pilot</th>
+        <th>Ship</th>
+        <th>Status</th>
+        <th>Payout</th>
+        <th>Submit Time</th>
+      </tr>
+      {% for request in requests %}
+      <tr>
+        <td>{{ request.id }}</td>
+        <td>{{ request.pilot }}</td>
+        <td>{{ request.ship_type }}</td>
+        <td>{{ request.status|capitalize }}</td>
+        <td>{{ request.payout }}</td>
+        <td>{{ request.timestamp }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+{% endblock content %}
