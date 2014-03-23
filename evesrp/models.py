@@ -78,7 +78,35 @@ class Request(db.Model, AutoID, Timestamped):
     modifiers = db.relationship('Modifier', back_populates='request',
             order_by='desc(Modifier.timestamp)')
     killmail_url = db.Column(db.String(512), nullable=False)
+    pilot = db.Column(db.String(100), nullable=False)
+    ship_type = db.Column(db.String(75), nullable=False)
     # Same as Modifer.value, base_payout is the coefficient to 10^6 a.k.a in
     # millions
     base_payout = db.Column(db.Float)
+
+    @property
+    def payout(self):
+        payout = self.base_payout
+        for modifier in self.modifiers:
+            if modifier.voided:
+                continue
+            if modifier.type_ == 'absolute':
+                payout += modifier.value
+            elif modifier.type_ == 'percentage':
+                if modifier.value > 0:
+                    payout += payout * modifier.value
+                else:
+                    payout -= payout * modifier.value
+        return modifier
+
+    @property
+    def status(self):
+        for action in self.actions:
+            if action.type_ == 'comment':
+                continue
+            else:
+                return action.type_
+        else:
+            return 'unevaluated'
+
 
