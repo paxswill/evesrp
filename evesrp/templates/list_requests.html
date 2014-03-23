@@ -15,6 +15,7 @@
         <th>Status</th>
         <th>Payout</th>
         <th>Submit Time</th>
+        <th>Division</th>
       </tr>
       {% for request in requests %}
       <tr>
@@ -24,6 +25,7 @@
         <td>{{ request.status|capitalize }}</td>
         <td>{{ request.payout }}</td>
         <td>{{ request.timestamp }}</td>
+        <td>{{ request.division }}</td>
       </tr>
       {% endfor %}
     </table>
