@@ -25,7 +25,7 @@ class Action(db.Model, AutoID, Timestamped):
     change the state of a Request.
     """
     __tablename__ = 'action'
-    type_ = db.Column(db.Enum('unevaluated', 'evaluated', 'paid',
+    type_ = db.Column(db.Enum('evaluating', 'approved', 'paid',
             'rejected', 'incomplete', 'comment', name='action_type'),
             nullable=False)
     request_id = db.Column(db.Integer, db.ForeignKey('request.id'))
@@ -118,7 +118,7 @@ class Request(db.Model, AutoID, Timestamped):
             else:
                 return action.type_
         else:
-            return 'unevaluated'
+            return 'evaluating'
 
     def __init__(self, submitter, killmail_url, details):
         self.submitter = submitter
