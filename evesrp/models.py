@@ -79,6 +79,10 @@ class Modifier(db.Model, AutoID, Timestamped):
         self.user = user
         self.note = note
 
+    def void(self, user):
+        self.voided_user = user
+        self.voided_timestamp = dt.datetime.utcnow()
+
 
 class Request(db.Model, AutoID, Timestamped):
     """Requests represent SRP requests."""
