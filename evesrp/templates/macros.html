@@ -17,10 +17,10 @@
 </div>
 {%- endmacro %}
 
-{% macro render_form(form, button_text) -%}
+{% macro render_form(form, inline=False) -%}
 <form class="form" method="post">
   {% for field in form -%}
-  {{ render_input(field) }}
+  {{ render_input(field, inline) }}
   {%- endfor %}
 </form>
 {%- endmacro %}
