@@ -18,7 +18,17 @@
         <th>Division</th>
       </tr>
       {% for request in requests %}
+      {% if request.status == 'paid' %}
+      <tr class="success">
+      {% elif request.status == 'approved' %}
+      <tr class="info">
+      {% elif request.status == 'evaluating' %}
+      <tr class="warning">
+      {% elif request.status == 'incomplete' or request.status == 'rejected' %}
+      <tr class="danger">
+      {% else %}
       <tr>
+      {% endif %}
         <td><a href="{{ url_for('request_detail', request_id=request.id) }}">{{ request.id }}</a></td>
         <td>{{ request.pilot }}</td>
         <td>{{ request.ship_type }}</td>
