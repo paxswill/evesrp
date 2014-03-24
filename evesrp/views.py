@@ -259,7 +259,6 @@ class VoidModifierForm(Form):
 class PayoutForm(Form):
     id_ = HiddenField(default='payout')
     value = DecimalField('M ISK', validators=[InputRequired()])
-    submit = SubmitField('Set')
 
 
 class ActionForm(Form):

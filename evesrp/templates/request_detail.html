@@ -76,7 +76,19 @@
   <div class="col-md-5">
     <dl class="dl-horizontal">
       <dt>Set Base Payout</dt>
-      <dd>{{ macros.render_form(payout_form) }}</dd>
+      <dd>
+        <form class="form" method="post">
+          {{ macros.render_input(payout_form.csrf_token) }}
+          {{ macros.render_input(payout_form.id_) }}
+          {{ payout_form.value.label(class="sr-only") }}
+          <div class="input-group">
+            {{ payout_form.value(class="form-control", placeholder=payout_form.value.label.text) }}
+            <span class="input-group-btn">
+              <button class="btn btn-default" type="submit">Set</button>
+            </span>
+          </div>
+        </form>
+      </dd>
       <dt>Add Modifier</dt>
       <dd>
         {{ macros.render_form(modifier_form) }}
