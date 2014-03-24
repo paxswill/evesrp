@@ -26,7 +26,7 @@
       {{ macros.render_input(action_form.id_) }}
       {{ macros.render_input(action_form.type_) }}
       {{ macros.render_input(action_form.csrf_token) }}
-      <div class="input-group">
+      <div class="form-group input-group">
         {{ action_form.note(class="form-control") }}
         <div class="input-group-btn">
           <button type="submit" class="btn btn-default" style="height: 3.85em">Comment</button>
@@ -74,7 +74,7 @@
           {{ macros.render_input(payout_form.csrf_token) }}
           {{ macros.render_input(payout_form.id_) }}
           {{ payout_form.value.label(class="sr-only") }}
-          <div class="input-group">
+          <div class="form-group input-group">
             {{ payout_form.value(class="form-control", placeholder=payout_form.value.label.text) }}
             <span class="input-group-btn">
               <button class="btn btn-default" type="submit">Set</button>
@@ -88,7 +88,7 @@
           {{ macros.render_input(modifier_form.csrf_token) }}
           {{ macros.render_input(modifier_form.id_) }}
           {{ macros.render_input(modifier_form.type_) }}
-          <div class="input-group">
+          <div class="form-group input-group">
             {{ modifier_form.value(class="form-control") }}
             <div class="input-group-btn">
               <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Type <span class="caret"></span></button>
