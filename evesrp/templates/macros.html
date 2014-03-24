@@ -34,3 +34,15 @@
 <li><a href="#">{{ text }}</a></li>
 {% endif %}
 {% endmacro %}
+
+{% macro status_color(state_string) %}
+{%- if state_string == 'evaluating' -%}
+warning
+{%- elif state_string == 'approved' -%}
+info
+{%- elif state_string == 'paid' -%}
+success
+{%- elif state_string == 'incomplete' or state_string == 'rejected' -%}
+danger
+{%- endif -%}
+{% endmacro %}

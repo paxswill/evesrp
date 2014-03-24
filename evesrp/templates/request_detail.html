@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "macros.html" as macros %}
+
 {% block content %}
 <div class="row">
   <div class="col-md-offset-1 col-md-5">
@@ -53,15 +54,7 @@
     <div class="list-group">
       {% for action in request.actions %}
       {% with %}
-        {% if action.type_ == 'evaluating' %}
-          {% set item_class = 'text-warning' %}
-        {% elif action.type_ == 'approved' %}
-          {% set item_class = 'text-info' %}
-        {% elif action.type_ == 'paid' %}
-          {% set item_class = 'text-success' %}
-        {% elif action.type_ == 'incomplete' or action.type_ == 'rejected' %}
-          {% set item_class = 'text-danger' %}
-        {% endif -%}
+        {% set item_class = 'text-' ~ macros.status_color(action.type_) if macros.status_color(action.type_) != '' %}
         <div class="list-group-item">
           <h4 class="list-group-item-heading{{ ' ' ~ item_class if item_class is defined }}">{{ action.type_|capitalize if action.type_ != 'comment' }}</h4>
           <blockquote class="list-group-item-text">
