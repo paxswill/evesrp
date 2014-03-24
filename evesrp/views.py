@@ -11,7 +11,7 @@ from wtforms.fields import StringField, PasswordField, SelectField, \
         SubmitField, TextAreaField, HiddenField
 from wtforms.fields.html5 import URLField, DecimalField
 from wtforms.widgets import HiddenInput
-from wtforms.validators import InputRequired, ValidationError
+from wtforms.validators import InputRequired, ValidationError, AnyOf
 
 from . import app, auth_methods, db, requests_session
 from .auth.models import User, Group, Division
@@ -265,20 +265,8 @@ class PayoutForm(Form):
 class ActionForm(Form):
     id_ = HiddenField(default='action')
     note = TextAreaField('Note')
-    rejected = SubmitField('Reject')
-    evaluating = SubmitField('Evaluate')
-    approved = SubmitField('Approve')
-    incomplete = SubmitField('Incomplete')
-    paid = SubmitField('Paid')
-    comment = SubmitField('Comment')
-
-    @property
-    def action(self):
-        for action in ('rejected', 'evaluating', 'approved', 'incomplete',
-                'paid', 'comment'):
-            field = getattr(self, action)
-            if field.data:
-                return action
+    type_ = HiddenField(default='comment', validators=[AnyOf(('rejected',
+            'evaluating', 'approved', 'incomplete', 'paid', 'comment'))])
 
 
 @app.route('/request/<int:request_id>', methods=['GET', 'POST'])
@@ -317,7 +305,7 @@ def request_detail(request_id):
                 db.session.commit()
             elif form.id_.data == 'action':
                 action = Action(srp_request, current_user, form.note.data)
-                action.type_ = form.action
+                action.type_ = form.type_.data
                 db.session.add(action)
                 db.session.commit()
             elif form.id_.data == 'void':

@@ -23,19 +23,31 @@
     </dl>
     <form class="form" method='post'>
       {{ macros.render_input(action_form.id_) }}
-      {{ macros.render_input(action_form.note) }}
+      {{ macros.render_input(action_form.type_) }}
       {{ macros.render_input(action_form.csrf_token) }}
-      <div class="btn-group">
-        {{ action_form.comment(class="btn btn-default") }}
-        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-          <span class="caret"></span>
-          <span class="sr-only">Toggle Dropdown</span>
-        </button>
-        <ul class="dropdown-menu" role="menu">
-          {% for action in ('rejected', 'evaluating', 'approved', 'incomplete', 'paid') %}
-          <li>{{ (action_form|attr(action))() }}</li>
-          {% endfor %}
-        </ul>
+      <div class="input-group">
+        {{ action_form.note(class="form-control") }}
+        <div class="input-group-btn">
+          <button type="submit" class="btn btn-default" style="height: 3.85em">Comment</button>
+          <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" style="height: 3.85em">
+            <span class="caret"></span>
+            <span class="sr-only">Toggle Dropdown</span>
+          </button>
+          <ul class="dropdown-menu" id="action-type" role="menu">
+            {% if request.status == 'evaluating' %}
+            <li><a href="#" id="approved">Approve</a></li>
+            <li><a href="#" id="incomplete">Incomplete</a></li>
+            <li><a href="#" id="rejected">Reject</a></li>
+            {% else %}
+            <li><a href="#" id="evaluating">Evaluating</a></li>
+              {% if request.status == 'paid' %}
+            <li><a href="#" id="approved">Approve</a></li>
+              {% elif request.status == 'approved' %}
+            <li><a href="#" id="paid">Paid</a></li>
+              {% endif %}
+            {% endif %}
+          </ul>
+        </div>
       </div>
     </form>
     <div class="list-group">
@@ -99,3 +111,15 @@
   </div>
 </div>
 {% endblock content %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+$("ul#action-type li a").click( function (e) {
+  e.preventDefault()
+  var form = $(this).closest("form");
+  form.find("input[name='type_']").attr("value", $(this).attr("id"))
+  $(this).closest("form").submit()
+});
+</script>
+{% endblock scripts %}
