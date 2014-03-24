@@ -18,7 +18,7 @@
       <dt>Ship</dt>
       <dd>{{ request.ship_type }}</dd>
       <dt>Status</dt>
-      <dd>{{ request.status|capitalize }}</dd>
+      <dd><span class="label label-{{ macros.status_color(request.status) }}">{{ request.status|capitalize }}</span></dd>
       <dt>Payout</dt>
       <dd>{{ request.payout }}</dd>
     </dl>
