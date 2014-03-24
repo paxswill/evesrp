@@ -66,7 +66,7 @@
           <h4 class="list-group-item-heading">{{ action.type_|capitalize if action.type_ != 'comment' }}</h4>
           <blockquote class="list-group-item-text">
             <p>{{ action.note }}</p>
-            <footer>{{ action.user.name }} ({{ action.timestamp.strftime('%H:%M:%S %d %b, %Y') }}</footer>
+            <footer>{{ action.user.name }} ({{ action.timestamp.strftime('%d %b %Y @ %H:%M:%S') }})</footer>
           </blockquote>
         </div>
       {% endwith %}
