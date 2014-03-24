@@ -105,25 +105,45 @@
           {% for modifier in request.modifiers %}
           <div class="list-group-item">
             <div class="list-group-item-heading">
+              {% if not modifier.voided %}
               <form class="form" method="POST" action="{{ url_for('request_detail', request_id=request.id) }}">
                 {{ macros.render_input(void_form.csrf_token) }}
                 {{ macros.render_input(void_form.id_) }}
                 <input class="form-control" id="modifier_id_{{ modifier.id }}" name="modifier_id" type="hidden" value="{{ modifier.id }}">
-                <input class="close" type="submit" name="void_modifier" class="close pull-right" value="&times;">
+                <button class="close" type="submit" name="void_modifier">&times;</button>
               </form>
+              {% endif %}
               {{ '<del>'|safe if modifier.voided }}
-              <h4>{{ modifier.value }}{{ '%' if modifier.type_ == 'percentage' else 'M ISK' }}</h4>
+              {% with %}
+                {% if modifier.value < 0 %}
+                  {% set color_class = 'text-danger' %}
+                  {% set modifier_text = 'Deduction' %}
+                {% else %}
+                  {% set color_class = 'text-success' %}
+                  {% set modifier_text = 'Bonus' %}
+                {% endif %}
+                {% if modifier.voided %}
+                  {% set color_class = "text-muted" %}
+                {% endif %}
+                {% if modifier.type_ == 'percentage' %}
+              <h4 class="{{ color_class }}">{{ modifier.value }}% {{ modifier_text }}</h4>
+                {% elif modifier.type_ == 'absolute' %}
+              <h4 class="{{ color_class }}">{{ modifier.value }}M ISK {{ modifier_text }}</h4>
+                {% endif %}
+              {% endwith %}
               {{ '</del>'|safe if modifier.voided }}
             </div>
-            <p class="list-group-item-group">
-              {{ '<del>'|safe if modifier.voided }}
-              {{ modifier.note }}
-              <footer><small>&mdash;{{ modifier.user.name }} {{ modifier.timestamp }}</small><footer>
-              {{ '</del>'|safe if modifier.voided }}
+            <blockquote class="list-group-item-text blockquote-reverse">
+              <p class="list-group-item-text">
               {% if modifier.voided %}
-              <footer><small>&mdash;Voided by {{ modifier.voided_user.name }} {{ modifier.voided_timestamp }}</small></footer>
+                <del>{{ modifier.note }}</del>
+                <footer><del>{{ modifier.user.name }} {{ modifier.timestamp.strftime('%d %b %Y @ %H:%M') }}</del></footer>
+                <footer>Voided by {{ modifier.voided_user.name }} {{ modifier.voided_timestamp.strftime('%d %b %Y @ %H:%M') }}</footer>
+              {% else %}
+                {{ modifier.note }}
+                <footer>{{ modifier.user.name }} {{ modifier.timestamp.strftime('%d %b %Y @ %H:%M') }}</footer>
               {% endif %}
-            </p>
+              </p>
           </div>
           {% endfor %}
         </div>
