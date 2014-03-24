@@ -1,4 +1,6 @@
 import datetime as dt
+from decimal import Decimal
+import locale
 from sqlalchemy.types import DateTime
 
 from . import db
@@ -117,7 +119,24 @@ class Request(db.Model, AutoID, Timestamped):
                     payout += payout * modifier.value / 100
                 else:
                     payout -= payout * modifier.value / 100
-        return payout
+
+        class _Payout(object):
+            def __init__(self, payout):
+                self.raw_payout = payout
+                scaled = Decimal.from_float(self.raw_payout)
+                scaled *= 1000000
+                self.scaled_payout = scaled
+
+            def __str__(self):
+                return locale.format('%d', int(self), grouping=True)
+
+            def __int__(self):
+                return int(self.scaled_payout)
+
+            def __float__(self):
+                return self.raw_payout
+
+        return _Payout(payout)
 
     @property
     def status(self):

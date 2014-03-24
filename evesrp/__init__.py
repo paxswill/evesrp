@@ -1,4 +1,5 @@
 import importlib
+import locale
 
 import requests
 from flask import Flask
@@ -18,6 +19,9 @@ heroku = Heroku(app)
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 principal = Principal(app)
+
+# Set default locale
+locale.setlocale(locale.LC_ALL, '')
 
 # Auth setup
 # Stopgap measure until I figure out how configuration should be done
