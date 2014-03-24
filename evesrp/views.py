@@ -238,11 +238,9 @@ class ModifierForm(Form):
     id_ = HiddenField(default='modifier')
     value = DecimalField('Value')
     # TODO: add a validator for the type
-    type_ = SelectField('Type', choices=[(1, '% Bonus'),
-            (-1, '% Deduction'), (2, 'M ISK Bonus'),
-            (-2, 'M ISK Deduction')], coerce=int)
+    type_ = HiddenField(validators=[AnyOf(('rel-bonus', 'rel-deduct',
+            'abs-bonus', 'abs-deduct'))])
     note = TextAreaField('Reason')
-    submit = SubmitField('Apply')
 
 
 class VoidModifierForm(Form):
@@ -276,7 +274,6 @@ def request_detail(request_id):
         print(request.form)
         if request.form['id_'] == 'modifier':
             form = ModifierForm()
-
         elif request.form['id_'] == 'payout':
             form = PayoutForm()
         elif request.form['id_'] == 'action':
@@ -289,14 +286,18 @@ def request_detail(request_id):
             if form.id_.data == 'modifier':
                 print(form)
                 mod = Modifier(srp_request, current_user, form.note.data)
-                if abs(form.type_.data) == 1:
+                if form.type_.data == 'rel-bonus':
                     mod.type_ = 'percentage'
-                elif abs(form.type_.data) == 2:
-                    mod.type_ = 'absolute'
-                if form.type_.data < 0:
-                    mod.value = form.value.data * -1
-                else:
                     mod.value = form.value.data
+                elif form.type_.data == 'rel-deduct':
+                    mod.type_ = 'percentage'
+                    mod.value = form.value.data * -1
+                elif form.type_.data == 'abs-bonus':
+                    mod.type_ = 'absolute'
+                    mod.value = form.value.data
+                elif form.type_.data == 'abs-deduct':
+                    mod.type_ = 'absolute'
+                    mod.value = form.value.data * -1
                 db.session.add(mod)
                 db.session.commit()
             elif form.id_.data == 'payout':

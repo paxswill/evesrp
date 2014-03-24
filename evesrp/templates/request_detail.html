@@ -84,7 +84,23 @@
       </dd>
       <dt>Add Modifier</dt>
       <dd>
-        {{ macros.render_form(modifier_form) }}
+        <form method="post">
+          {{ macros.render_input(modifier_form.csrf_token) }}
+          {{ macros.render_input(modifier_form.id_) }}
+          {{ macros.render_input(modifier_form.type_) }}
+          <div class="input-group">
+            {{ modifier_form.value(class="form-control") }}
+            <div class="input-group-btn">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Type <span class="caret"></span></button>
+              <ul id="modifier-type" class="dropdown-menu pull-right">
+                <li><a href="#" id="rel-bonus">% Bonus</a></li>
+                <li><a href="#" id="rel-deduct">% Deduction</a></li>
+                <li><a href="#" id="abs-bonus">M ISK Bonus</a></li>
+                <li><a href="#" id="abs-deduct">M ISK Deduction</a></li>
+              </ul>
+            </div>
+          </div>
+        </form>
         <div class="list-group">
           {% for modifier in request.modifiers %}
           <div class="list-group-item">
@@ -121,10 +137,16 @@
 {{ super() }}
 <script>
 $("ul#action-type li a").click( function (e) {
-  e.preventDefault()
   var form = $(this).closest("form");
-  form.find("input[name='type_']").attr("value", $(this).attr("id"))
-  $(this).closest("form").submit()
+  form.find("input[name='type_']").attr("value", $(this).attr("id"));
+  form.submit();
+  return false;
+});
+$("ul#modifier-type li a").click( function(e) {
+  var form = $(this).closest("form");
+  form.find("input[name='type_']").attr("value", $(this).attr("id"));
+  form.submit();
+  return false;
 });
 </script>
 {% endblock scripts %}
