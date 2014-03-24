@@ -4,11 +4,6 @@
 {% block content %}
 <div class="row">
   <div class="col-md-10 col-md-offset-1">
-    <a class="btn btn-default pull-right" href="{{ url_for('submit_request') }}">Submit Request</a>
-  </div>
-</div>
-<div class="row">
-  <div class="col-md-10 col-md-offset-1">
     <table class="table table-condensed">
       <tr>
         <th>Request ID</th>
@@ -31,6 +26,11 @@
       </tr>
       {% endfor %}
     </table>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-10 col-md-offset-1">
+    <a class="btn btn-default pull-right" href="{{ url_for('submit_request') }}">Submit Request</a>
   </div>
 </div>
 {% endblock content %}
