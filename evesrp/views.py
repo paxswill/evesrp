@@ -3,10 +3,11 @@ from urllib.parse import urlparse
 import re
 
 from flask import render_template, redirect, url_for, request, abort, jsonify,\
-        flash, Markup
+        flash, Markup, session
 from flask.ext.login import login_user, login_required, logout_user, \
         current_user
 from flask.ext.wtf import Form
+from flask.ext.principal import identity_changed, AnonymousIdentity
 from wtforms.fields import StringField, PasswordField, SelectField, \
         SubmitField, TextAreaField, HiddenField
 from wtforms.fields.html5 import URLField, DecimalField
@@ -54,6 +55,9 @@ def login():
 @login_required
 def logout():
     logout_user()
+    for key in ('identity.name', 'identity.auth_type'):
+        session.pop(key, None)
+    identity_changed.send(app, identity=AnonymousIdentity())
     return redirect(url_for('index'))
 
 

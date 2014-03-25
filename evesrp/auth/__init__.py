@@ -65,7 +65,7 @@ def login_loader(userid):
 ReimbursementNeed = namedtuple('ReimbursementNeed', ['method', 'division'])
 SubmitRequestsNeed = partial(ReimbursementNeed, 'submit')
 ReviewRequestsNeed = partial(ReimbursementNeed, 'review')
-PayoutRequestsNeed = partial(ReimbursementNeed, 'payout')
+PayoutRequestsNeed = partial(ReimbursementNeed, 'pay')
 
 
 # Now, create Permission classes for these kinds of needs.
@@ -91,16 +91,15 @@ class PayoutRequestsPermission(Permission):
 def load_user_permissions(sender, identity):
     identity.user = current_user
 
-    # Set user role (see and modify their own requests)j
-    identity.provides.add(UserNeed(current_user.id))
+    if current_user.is_authenticated():
+        # Set user role (see and modify their own requests)j
+        identity.provides.add(UserNeed(current_user.id))
 
-    # Set division roles
-    for role in ('submit', 'review', 'payout'):
-        for division in current_user.divisions[role]:
-            identity.provides.add(ReimbursementNeed(role, division.id))
+        # Set division roles
+        for role in ('submit', 'review', 'pay'):
+            for division in current_user.divisions[role]:
+                identity.provides.add(ReimbursementNeed(role, division.id))
 
-    # If they're an admin, set that
-    if current_user.full_admin:
-        identity.provides.add(RoleNeed('admin'))
-    if current_user.division_admin:
-        identity.provides.add(RoleNeed('claimer'))
+        # If they're an admin, set that
+        if current_user.admin:
+            identity.provides.add(RoleNeed('admin'))
