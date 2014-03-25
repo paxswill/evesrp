@@ -149,6 +149,10 @@ class Request(db.Model, AutoID, Timestamped):
         else:
             return 'evaluating'
 
+    @property
+    def finalized(self):
+        return self.status in ('paid', 'rejected')
+
     def __init__(self, submitter, killmail_url, details):
         self.submitter = submitter
         self.killmail_url = killmail_url

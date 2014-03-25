@@ -246,6 +246,69 @@ def submit_request():
     return render_template('form.html', form=form)
 
 
+@app.route('/review/')
+@app.route('/review/<int:division_id>')
+@login_required
+def list_review_requests(division_id=None):
+    requests = []
+    if division_id is not None:
+        division = Division.query.get_or_404(division_id)
+        review_perm = ReviewRequestsPermission(division_id)
+        if not review_perm.can():
+            abort(403)
+        else:
+            divisions = [division]
+    else:
+        divisions = current_user.divisions['review']
+    requests = []
+    for division in divisions:
+        all_requests = division.requests
+        requests.extend(filter(lambda a: not a.finalized, all_requests))
+    return render_template('list_requests.html', requests=requests)
+
+
+@app.route('/pay/')
+@app.route('/pay/<int:division_id>')
+@login_required
+def list_approved_requests(division_id=None):
+    requests = []
+    if division_id is not None:
+        division = Division.query.get_or_404(division_id)
+        review_perm = ReviewRequestsPermission(division_id)
+        if not review_perm.can():
+            abort(403)
+        else:
+            divisions = [division]
+    else:
+        divisions = current_user.divisions['review']
+    requests = []
+    for division in divisions:
+        all_requests = division.requests
+        requests.extend(filter(lambda a: a.status == 'approved', all_requests))
+    return render_template('list_requests.html', requests=requests)
+
+
+@app.route('/complete/')
+@app.route('/complete/<int:division_id>')
+@login_required
+def list_completed_requests(division_id=None):
+    requests = []
+    if division_id is not None:
+        division = Division.query.get_or_404(division_id)
+        review_perm = ReviewRequestsPermission(division_id)
+        if not review_perm.can():
+            abort(403)
+        else:
+            divisions = [division]
+    else:
+        divisions = current_user.divisions['review']
+    requests = []
+    for division in divisions:
+        all_requests = division.requests
+        requests.extend(filter(lambda a: a.finalized, all_requests))
+    return render_template('list_requests.html', requests=requests)
+
+
 class ModifierForm(Form):
     id_ = HiddenField(default='modifier')
     value = DecimalField('Value')

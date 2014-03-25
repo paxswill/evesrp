@@ -37,10 +37,13 @@
             {{ macros.navbar_button('Submit', 'list_submit_requests') }}
             {%- endif %}
             {% if current_user.has_permission('review') -%}
-            {{ macros.navbar_button('Review') }}
+            {{ macros.navbar_button('Review', 'list_review_requests') }}
             {%- endif %}
             {% if current_user.has_permission('pay') -%}
-            {{ macros.navbar_button('Pay Out') }}
+            {{ macros.navbar_button('Pay Out', 'list_approved_requests') }}
+            {%- endif %}
+            {% if current_user.has_permission('pay') or current_user.has_permission('review') -%}
+            {{ macros.navbar_button('Completed', 'list_completed_requests') }}
             {%- endif %}
             {%- endif %}
             {% endblock navitems %}
