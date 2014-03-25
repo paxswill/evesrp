@@ -4,6 +4,7 @@ import re
 
 from flask import render_template, redirect, url_for, request, abort, jsonify,\
         flash, Markup, session
+from flask.views import View
 from flask.ext.login import login_user, login_required, logout_user, \
         current_user
 from flask.ext.wtf import Form
@@ -152,11 +153,77 @@ def division_delete_entity(division_id, permission, entity, entity_id):
     return redirect(url_for('division_detail', division_id=division_id))
 
 
-@app.route('/submit')
-@login_required
-def list_submit_requests():
-    requests = current_user.requests
-    return render_template('list_submit.html', requests=requests)
+class RequestListing(View):
+    @property
+    def template(self):
+        return 'list_requests.html'
+
+    def requests(self, division_id=None):
+        raise NotImplementedError()
+
+    def dispatch_request(self, division_id=None):
+        return render_template(self.template,
+                requests=self.requests(division_id))
+
+
+class SubmittedRequestListing(RequestListing):
+    @property
+    def template(self):
+        return 'list_submit.html'
+
+    def requests(self, division_id=None):
+        if division_id is not None:
+            division = Division.query.get_or_404(division_id)
+            return filter(lambda r: r.division == division,
+                    current_user.requests)
+        else:
+            return current_user.requests
+
+
+submit_view = login_required(
+        SubmittedRequestListing.as_view('list_submit_requests'))
+app.add_url_rule('/submit/', view_func=submit_view)
+app.add_url_rule('/submit/<int:division_id>', view_func=submit_view)
+
+
+class PermissionRequestListing(RequestListing):
+    def __init__(self, permissions, filter_func):
+        self.permissions = permissions
+        self.filter_func = filter_func
+
+    def requests(self, division_id):
+        if division_id is not None:
+            division = Division.query.get_or_404(division_id)
+            for permission in self.permissions:
+                if division not in current_user.divisions[self.permission]:
+                    abort(403)
+            else:
+                divisions = [division]
+        else:
+            divisions = []
+            for permission in self.permissions:
+                divisions.extend(current_user.divisions[permission])
+        requests = OrderedDict()
+        for division in divisions:
+            filtered = filter(self.filter_func, division.requests)
+            requests.update(map(lambda r: (r, object), filtered))
+        return requests.keys()
+
+
+def register_perm_request_listing(endpoint, path, permissions, filter_func):
+    view = PermissionRequestListing.as_view(endpoint, permissions=permissions,
+            filter_func=filter_func)
+    view = login_required(view)
+    app.add_url_rule(path, view_func=view)
+    app.add_url_rule('{}/<int:division_id>'.format(path), view_func=view)
+
+
+register_perm_request_listing('list_review_requests', '/review/', ('review',),
+        (lambda r: not r.finalized))
+register_perm_request_listing('list_approved_requests', '/pay/', ('pay',),
+        (lambda r: r.status == 'approved'))
+register_perm_request_listing('list_completed_requests', '/complete/',
+        ('review', 'pay'), (lambda r: r.finalized))
 
 
 zkb_regex = re.compile(r'/detail/(?P<kill_id>\d+)/')
@@ -244,69 +311,6 @@ def submit_request():
         db.session.commit()
         return redirect(url_for('request_detail', request_id=srp_request.id))
     return render_template('form.html', form=form)
-
-
-@app.route('/review/')
-@app.route('/review/<int:division_id>')
-@login_required
-def list_review_requests(division_id=None):
-    requests = []
-    if division_id is not None:
-        division = Division.query.get_or_404(division_id)
-        review_perm = ReviewRequestsPermission(division_id)
-        if not review_perm.can():
-            abort(403)
-        else:
-            divisions = [division]
-    else:
-        divisions = current_user.divisions['review']
-    requests = []
-    for division in divisions:
-        all_requests = division.requests
-        requests.extend(filter(lambda a: not a.finalized, all_requests))
-    return render_template('list_requests.html', requests=requests)
-
-
-@app.route('/pay/')
-@app.route('/pay/<int:division_id>')
-@login_required
-def list_approved_requests(division_id=None):
-    requests = []
-    if division_id is not None:
-        division = Division.query.get_or_404(division_id)
-        review_perm = ReviewRequestsPermission(division_id)
-        if not review_perm.can():
-            abort(403)
-        else:
-            divisions = [division]
-    else:
-        divisions = current_user.divisions['review']
-    requests = []
-    for division in divisions:
-        all_requests = division.requests
-        requests.extend(filter(lambda a: a.status == 'approved', all_requests))
-    return render_template('list_requests.html', requests=requests)
-
-
-@app.route('/complete/')
-@app.route('/complete/<int:division_id>')
-@login_required
-def list_completed_requests(division_id=None):
-    requests = []
-    if division_id is not None:
-        division = Division.query.get_or_404(division_id)
-        review_perm = ReviewRequestsPermission(division_id)
-        if not review_perm.can():
-            abort(403)
-        else:
-            divisions = [division]
-    else:
-        divisions = current_user.divisions['review']
-    requests = []
-    for division in divisions:
-        all_requests = division.requests
-        requests.extend(filter(lambda a: a.finalized, all_requests))
-    return render_template('list_requests.html', requests=requests)
 
 
 class ModifierForm(Form):
