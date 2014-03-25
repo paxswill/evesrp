@@ -1,0 +1,10 @@
+{% extends "list_requests.html" %}
+
+{% block content %}
+{{ super() }}
+<div class="row">
+  <div class="col-md-10 col-md-offset-1">
+    <a class="btn btn-default pull-right" href="{{ url_for('submit_request') }}">Submit Request</a>
+  </div>
+</div>
+{% endblock content %}

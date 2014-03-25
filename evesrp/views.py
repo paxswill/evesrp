@@ -156,7 +156,7 @@ def division_delete_entity(division_id, permission, entity, entity_id):
 @login_required
 def list_submit_requests():
     requests = current_user.requests
-    return render_template('list_requests.html', requests=requests)
+    return render_template('list_submit.html', requests=requests)
 
 
 zkb_regex = re.compile(r'/detail/(?P<kill_id>\d+)/')
