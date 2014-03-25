@@ -70,20 +70,29 @@ PayoutRequestsNeed = partial(ReimbursementNeed, 'pay')
 
 # Now, create Permission classes for these kinds of needs.
 class SubmitRequestsPermission(Permission):
-    def __init__(self, division):
-        need = SubmitRequestsNeed(division.id)
+    def __init__(self, div_or_request):
+        if isinstance(div_or_request, Division):
+            need = SubmitRequestsNeed(div_or_request.id)
+        else:
+            need = SubmitRequestsNeed(div_or_request.division.id)
         super(SubmitRequestsPermission, self).__init__(need)
 
 
 class ReviewRequestsPermission(Permission):
-    def __init__(self, division):
-        need = ReviewRequestsNeed(division.id)
+    def __init__(self, div_or_request):
+        if isinstance(div_or_request, Division):
+            need = ReviewRequestsNeed(div_or_request.id)
+        else:
+            need = ReviewRequestsNeed(div_or_request.division.id)
         super(ReviewRequestsPermission, self).__init__(need)
 
 
 class PayoutRequestsPermission(Permission):
-    def __init__(self, division):
-        need = PayoutRequestsNeed(division.id)
+    def __init__(self, div_or_request):
+        if isinstance(div_or_request, Division):
+            need = PayoutRequestsNeed(div_or_request.id)
+        else:
+            need = PayoutRequestsNeed(div_or_request.division.id)
         super(PayoutRequestsPermission, self).__init__(need)
 
 
