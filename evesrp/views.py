@@ -54,6 +54,12 @@ def login():
     return render_template('login.html', forms=template_forms)
 
 
+@app.route('/login/<string:auth_method>/', methods=['GET', 'POST'])
+def auth_method_login(auth_method):
+    method_map = dict(map(lambda m: (m.__class__.__name__.lower(), m)))
+    return method_map[auth_method].view()
+
+
 @app.route('/logout')
 @login_required
 def logout():

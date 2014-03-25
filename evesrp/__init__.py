@@ -24,17 +24,15 @@ principal = Principal(app)
 locale.setlocale(locale.LC_ALL, '')
 
 # Auth setup
-# Stopgap measure until I figure out how configuration should be done
-method_list = ['evesrp.auth.testauth.TestAuth']
 auth_methods = []
-if method_list is None:
-    method_list = ()
-# FIXME: pull AUTH_METHODS from the configuration
-for plugin in method_list:
-    module_name, method = plugin.rsplit('.', 1)
-    module = importlib.import_module(module_name)
-    auth_methods.append(module.__dict__[method])
 
+@app.before_first_request
+def _copy_config_to_authmethods():
+    for method in app.config['AUTH_METHODS']:
+        module_name, class_name = method.rsplit('.', 1)
+        module = importlib.import_module(module_name)
+        method_class = getattr(module, class_name)
+        auth_methods.append(method_class(config=app.config))
 
 # Views setup
 from . import views

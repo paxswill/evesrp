@@ -2,6 +2,7 @@ import re
 from collections import namedtuple
 from functools import partial
 
+from flask import redirect, url_for
 from flask.ext.login import current_user
 from flask.ext.principal import Permission, UserNeed, RoleNeed, identity_loaded
 from flask.ext.wtf import Form
@@ -37,13 +38,8 @@ class AuthMethod(object):
     def list_groups(self, user=None):
         pass
 
-    @classmethod
-    def register_views(cls, app):
-        """Register views (if needed).
-
-        This is an optional method to implement.
-        """
-        pass
+    def view(self):
+        return redirect(url_for('login'))
 
 
 # Work around some circular imports
