@@ -114,7 +114,7 @@
           <div class="list-group-item">
             <div class="list-group-item-heading">
               {% if not modifier.voided %}
-              <form class="form" method="POST" action="{{ url_for('request_detail', request_id=request.id) }}">
+              <form class="form" method="post" action="{{ url_for('request_detail', request_id=request.id) }}">
                 {{ macros.render_input(void_form.csrf_token) }}
                 {{ macros.render_input(void_form.id_) }}
                 <input class="form-control" id="modifier_id_{{ modifier.id }}" name="modifier_id" type="hidden" value="{{ modifier.id }}">
