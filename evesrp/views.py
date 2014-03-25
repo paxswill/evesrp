@@ -15,6 +15,8 @@ from wtforms.widgets import HiddenInput
 from wtforms.validators import InputRequired, ValidationError, AnyOf
 
 from . import app, auth_methods, db, requests_session
+from .auth import SubmitRequestsPermission, ReviewRequestsPermission, \
+        PayoutRequestsPermission
 from .auth.models import User, Group, Division
 from .models import Request, Modifier, Action
 
@@ -281,6 +283,9 @@ class ActionForm(Form):
 def request_detail(request_id):
     srp_request = Request.query.get(request_id)
     if request.method == 'POST':
+        submit_perm = SubmitRequestsPermission(srp_request)
+        review_perm = ReviewRequestsPermission(srp_request)
+        pay_perm = PayoutRequestsPermission(srp_request)
         if request.form['id_'] == 'modifier':
             form = ModifierForm()
         elif request.form['id_'] == 'payout':
@@ -292,34 +297,81 @@ def request_detail(request_id):
         else:
             abort(400)
         if form.validate():
-            if form.id_.data == 'modifier':
-                mod = Modifier(srp_request, current_user, form.note.data)
-                if form.type_.data == 'rel-bonus':
-                    mod.type_ = 'percentage'
-                    mod.value = form.value.data
-                elif form.type_.data == 'rel-deduct':
-                    mod.type_ = 'percentage'
-                    mod.value = form.value.data * -1
-                elif form.type_.data == 'abs-bonus':
-                    mod.type_ = 'absolute'
-                    mod.value = form.value.data
-                elif form.type_.data == 'abs-deduct':
-                    mod.type_ = 'absolute'
-                    mod.value = form.value.data * -1
-                db.session.add(mod)
-                db.session.commit()
-            elif form.id_.data == 'payout':
-                srp_request.base_payout = form.value.data
-                db.session.commit()
-            elif form.id_.data == 'action':
-                action = Action(srp_request, current_user, form.note.data)
-                action.type_ = form.type_.data
-                db.session.add(action)
-                db.session.commit()
-            elif form.id_.data == 'void':
-                modifier = Modifier.query.get(int(form.modifier_id.data))
-                modifier.void(current_user)
-                db.session.commit()
+            if srp_request.status == 'evaluating':
+                if form.id_.data == 'modifier':
+                    if review_perm.can():
+                        mod = Modifier(srp_request, current_user, form.note.data)
+                        if form.type_.data == 'rel-bonus':
+                            mod.type_ = 'percentage'
+                            mod.value = form.value.data
+                        elif form.type_.data == 'rel-deduct':
+                            mod.type_ = 'percentage'
+                            mod.value = form.value.data * -1
+                        elif form.type_.data == 'abs-bonus':
+                            mod.type_ = 'absolute'
+                            mod.value = form.value.data
+                        elif form.type_.data == 'abs-deduct':
+                            mod.type_ = 'absolute'
+                            mod.value = form.value.data * -1
+                        db.session.add(mod)
+                        db.session.commit()
+                    else:
+                        flash("Insufficient permissions.", 'error')
+                elif form.id_.data == 'payout':
+                    if review_perm.can():
+                        srp_request.base_payout = form.value.data
+                        db.session.commit()
+                    else:
+                        flash("Insufficient permissions.", 'error')
+                elif form.id_.data == 'void':
+                    if review_perm.can():
+                        modifier = Modifier.query.get(
+                                int(form.modifier_id.data))
+                        modifier.void(current_user)
+                        db.session.commit()
+                    else:
+                        flash("Insufficient permissions.", 'error')
+            if form.id_.data == 'action':
+                type_ = form.type_.data
+                invalid = False
+                if srp_request.status == 'evaluating':
+                    if type_ not in ('approved', 'rejected', 'incomplete',
+                            'comment'):
+                        flash("Cannot go from Evaluating to Paid", 'error')
+                        invalid = True
+                    elif type_ != 'comment' and not review_perm.can():
+                        flash("You are not a reviewer.", 'error')
+                        invalid = True
+                elif srp_request.status in ('incomplete', 'rejected'):
+                    if type_ not in ('evaluating', 'comment'):
+                        flash("Can only change to Evaluating.", 'error')
+                        invalid = True
+                    elif type_ != 'comment' and not review_perm.can():
+                        flash("You are not a reviewer.", 'error')
+                        invalid = True
+                elif srp_request.status == 'approved':
+                    if type_ not in ('paid', 'evaluating', 'comment'):
+                        flash("Can only set to Evaluating or Paid.", 'error')
+                        invalid = True
+                    elif type_ == 'paid' and not pay_perm.can():
+                        flash("You are not a payer.", 'error')
+                        invalid = True
+                    elif type_ == 'evaluating' and not review_perm.can():
+                        flash("You are not a reviewer.", 'error')
+                        invalid = True
+                elif srp_request.status == 'paid':
+                    if type_ not in ('comment', 'approved', 'evaluating'):
+                        flash("""Can only move to Approved or Evaluating from
+                                Paid.""", 'error')
+                        invalid = True
+                    elif type_ != 'comment' and not pay_perm.can():
+                        flash("You are not a payer.", 'error')
+                        invalid = True
+                if not invalid:
+                    action = Action(srp_request, current_user,
+                            form.note.data)
+                    action.type_ = type_
+                    db.session.commit()
         else:
             # TODO: Actual error handling, probably using flash()
             print(form.errors)
