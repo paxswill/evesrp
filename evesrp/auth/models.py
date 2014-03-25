@@ -1,6 +1,7 @@
 from .. import db
 from . import AuthMethod
 from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm.collections import attribute_mapped_collection, collection
 from ..models import Action, Modifier, Request
 
@@ -20,31 +21,6 @@ perm_groups = db.Table('perm_groups', db.Model.metadata,
         db.Column('perm_id', db.Integer, db.ForeignKey('division_perm.id')))
 
 
-class PermissionMapper(object):
-    def __init__(self, data=None):
-        if data is None:
-            self.data = {'submit': set(), 'review': set(), 'pay': set()}
-        else:
-            self.data = data
-
-    @collection.appender
-    def _append(self, permission):
-        permissions = self.data.get(permission.permission)
-        permissions.add(permission)
-
-    @collection.remover
-    def _remove(self, permission):
-        permissions = self.data.get(permission.permission)
-        return permissions.remove(permission)
-
-    @collection.iterator
-    def __iter__(self):
-        yield from self.data.items()
-
-    def __getitem__(self, permission_level):
-        return self.data[permission_level]
-
-
 class User(db.Model):
     """User base class.
 
@@ -61,9 +37,11 @@ class User(db.Model):
     user_type = db.Column(db.String(50), nullable=False)
     individual_permissions = db.relationship('DivisionPermission',
             secondary=perm_users,
-            collection_class=PermissionMapper,
+            collection_class=attribute_mapped_collection('permission'),
             back_populates='individuals')
     requests = db.relationship(Request, back_populates='submitter')
+    individual_divisions = association_proxy('individual_permissions',
+            'division')
     actions = db.relationship(Action, back_populates='user')
 
     @declared_attr
@@ -81,14 +59,56 @@ class User(db.Model):
     def authmethod(cls):
         return AuthMethod
 
-    def permissions(self, permission):
-        divisions = set(self.individual_permissions[permission])
-        for group in self.groups:
-            divisions.update(group.permissions[permission])
-        return divisions
+    @property
+    def permissions(self):
+        class _PermProxy(object):
+            def __init__(self, user):
+                self.user = user
+
+            def __getitem__(self, key):
+                perms = set()
+                try:
+                    perms = self.user.individual_permissions[key]
+                except TypeError:
+                    perms.add(self.user.individual_permissions[key])
+                except KeyError:
+                    pass
+                for group in self.user.groups:
+                    try:
+                        perms.update(group.permissions[key])
+                    except TypeError:
+                        perms.add(group.permissions[key])
+                    except KeyError:
+                        pass
+                return perms
+        return _PermProxy(self)
+
+    @property
+    def divisions(self):
+        class _DivProxy(object):
+            def __init__(self, user):
+                self.user = user
+
+            def __getitem__(self, key):
+                divs = set()
+                try:
+                    divs.update(self.user.individual_divisions[key])
+                except TypeError:
+                    divs.add(self.user.individual_divisions[key])
+                except KeyError:
+                    pass
+                for group in self.user.groups:
+                    try:
+                        divs.update(group.divisions[key])
+                    except TypeError:
+                        divs.add(group.divisions[key])
+                    except KeyError:
+                        pass
+                return divs
+        return _DivProxy(self)
 
     def has_permission(self, permission):
-        return len(self.permissions(permission)) > 0
+        return len(self.divisions[permission]) > 0
 
     def is_authenticated(self):
         return True
@@ -115,8 +135,9 @@ class Group(db.Model):
     users = db.relationship(User, secondary=users_groups, backref='groups',
             collection_class=set)
     permissions = db.relationship('DivisionPermission', secondary=perm_groups,
-            collection_class=PermissionMapper,
+            collection_class=attribute_mapped_collection('permission'),
             back_populates='groups')
+    divisions = association_proxy('permissions', 'division')
 
     @declared_attr
     def __tablename__(cls):

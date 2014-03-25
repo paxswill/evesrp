@@ -92,7 +92,8 @@ class Request(db.Model, AutoID, Timestamped):
     __tablename__ = 'request'
     submitter_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     submitter = db.relationship('User', back_populates='requests')
-    division_id = db.Column(db.Integer, db.ForeignKey('division.id'))
+    division_id = db.Column(db.Integer, db.ForeignKey('division.id'),
+            nullable=False)
     division = db.relationship('Division', back_populates='requests')
     actions = db.relationship('Action', back_populates='request',
             order_by='desc(Action.timestamp)')
