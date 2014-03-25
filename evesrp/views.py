@@ -277,7 +277,6 @@ class ActionForm(Form):
 def request_detail(request_id):
     srp_request = Request.query.get(request_id)
     if request.method == 'POST':
-        print(request.form)
         if request.form['id_'] == 'modifier':
             form = ModifierForm()
         elif request.form['id_'] == 'payout':
@@ -290,7 +289,6 @@ def request_detail(request_id):
             abort(400)
         if form.validate():
             if form.id_.data == 'modifier':
-                print(form)
                 mod = Modifier(srp_request, current_user, form.note.data)
                 if form.type_.data == 'rel-bonus':
                     mod.type_ = 'percentage'
