@@ -8,7 +8,7 @@
       <dt>Lossmail</dt>
       <dd><a href="{{ request.killmail_url }}">{{ request.id }}</a></dd>
       <dt>Division</dt>
-      <dd>{{ request.division }}</dd>
+      <dd>{{ request.division.name }}</dd>
       <dt>Details</dt>
       <dd class="panel panel-default">
         <p class="panel-body">{{ request.details }}</p>
@@ -30,23 +30,27 @@
         {{ action_form.note(class="form-control") }}
         <div class="input-group-btn">
           <button type="submit" class="btn btn-default">Comment</button>
+          {% if request.division in current_user.divisions['review'] or request.division in current_user.divisions['pay'] %}
           <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
             <span class="caret"></span>
             <span class="sr-only">Toggle Dropdown</span>
           </button>
           <ul class="dropdown-menu" id="action-type" role="menu">
             {% if request.status == 'evaluating' %}
-            <li><a href="#" id="approved">Approve</a></li>
-            <li><a href="#" id="incomplete">Incomplete</a></li>
-            <li><a href="#" id="rejected">Reject</a></li>
+            {{ '<li><a href="#" id="approved">Approve</a></li>'|safe if request.division in current_user.divisions['review'] }}
+            {{ '<li><a href="#" id="incomplete">Incomplete</a></li>'|safe if request.division in current_user.divisions['review'] }}
+            {{ '<li><a href="#" id="rejected">Reject</a></li>'|safe if request.division in current_user.divisions['review'] }}
             {% else %}
-            <li><a href="#" id="evaluating">Evaluating</a></li>
-              {% if request.status == 'paid' %}
-            <li><a href="#" id="approved">Approve</a></li>
-              {% elif request.status == 'approved' %}
-            <li><a href="#" id="paid">Paid</a></li>
+            {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if request.division in current_user.divisions['review'] }}
+              {% if request.division in current_user.divisions['pay'] %}
+            {{ '<li><a href="#" id="paid">Paid</a></li>'|safe if request.status == 'approved' }}
+            {{ '<li><a href="#" id="approved">Approve</a></li>'|safe if request.status == 'paid'}}
+            {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if request.status == 'paid'}}
+              {% elif request.division in current_user.divisions['review'] %}
+            {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if request.status == 'rejected' }}
               {% endif %}
             {% endif %}
+          {% endif %}
           </ul>
         </div>
       </div>
@@ -68,6 +72,7 @@
   </div>
   <div class="col-md-5">
     <dl class="dl-horizontal">
+      {% if request.division in current_user.divisions['review'] %}
       <dt>Set Base Payout</dt>
       <dd>
         <form class="form" method="post">
@@ -82,8 +87,10 @@
           </div>
         </form>
       </dd>
-      <dt>Add Modifier</dt>
+      {% endif %}
+      <dt>{{ 'Add Modifier' if request.division in current_user.divisions['review'] else 'Modifiers' }}</dt>
       <dd>
+        {% if request.division in current_user.divisions['review'] %}
         <form method="post">
           {{ macros.render_input(modifier_form.csrf_token) }}
           {{ macros.render_input(modifier_form.id_) }}
@@ -101,6 +108,7 @@
             </div>
           </div>
         </form>
+        {% endif %}
         <div class="list-group">
           {% for modifier in request.modifiers %}
           <div class="list-group-item">

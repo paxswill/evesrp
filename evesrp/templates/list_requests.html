@@ -22,7 +22,7 @@
         <td>{{ request.status|capitalize }}</td>
         <td>{{ request.payout }}</td>
         <td>{{ request.timestamp }}</td>
-        <td>{{ request.division }}</td>
+        <td>{{ request.division.name }}</td>
       </tr>
       {% endfor %}
     </table>

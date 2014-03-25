@@ -40,7 +40,7 @@
       <tr>
         <td>{{ group.name }}</td>
         <td>{{ group.users|length }}</td>
-        <td>{{ group.authmethod().method_name }}</td>
+        <td>{{ group.authmethod().name }}</td>
         <td><a class="close" href="{{ url_for('division_delete_entity', division_id=division.id, permission=permission, entity='group', entity_id=group.id) }}">&times;</a></td>
       </tr>
       {% endfor %}
@@ -57,7 +57,7 @@
       {% for user in division.permissions[permission].individuals %}
       <tr>
         <td>{{ user.name }}</td>
-        <td>{{ user.authmethod().method_name }}</td>
+        <td>{{ user.authmethod().name }}</td>
         <td><a class="close" href="{{ url_for('division_delete_entity', division_id=division.id, permission=permission, entity='user', entity_id=user.id) }}">&times;</a></td>
       </tr>
       {% endfor %}

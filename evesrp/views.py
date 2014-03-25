@@ -205,6 +205,7 @@ class RequestForm(Form):
     url = URLField('Killmail URL', validators=[OneOfValidator(
             crest_validator, zkb_validator())])
     details = TextAreaField('Details', validators=[InputRequired()])
+    division = SelectField('Division', coerce=int)
     submit = SubmitField('Submit')
 
 
@@ -212,9 +213,14 @@ class RequestForm(Form):
 @login_required
 def submit_request():
     form = RequestForm()
+    choices = []
+    for division in current_user.divisions['submit']:
+        choices.append((division.id, division.name))
+    form.division.choices = choices
     if form.validate_on_submit():
         # request is already used by Flask. Hooray name collisions!
         srp_request = Request(current_user, form.url.data, form.details.data)
+        srp_request.division = Division.query.get(form.division.data)
         # TODO Refactor url branching to be properly configurable
         parsed_url = urlparse(form.url.data)
         if parsed_url.netloc == 'zkillboard.com':
