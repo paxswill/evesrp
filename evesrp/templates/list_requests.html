@@ -21,7 +21,7 @@
         <td>{{ request.ship_type }}</td>
         <td>{{ request.status|capitalize }}</td>
         <td>{{ request.payout }}</td>
-        <td>{{ request.timestamp }}</td>
+        <td>{{ request.timestamp.strftime('%d %b %Y %H:%M') }}</td>
         <td>{{ request.division.name }}</td>
       </tr>
       {% endfor %}
