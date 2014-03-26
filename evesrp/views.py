@@ -27,11 +27,6 @@ def index():
     return render_template('base.html')
 
 
-class SelectValueField(SelectField):
-    def _value(self):
-        return self.default if self.default is not None else ''
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     forms = OrderedDict()
