@@ -8,10 +8,19 @@
     {% if field.widget.input_type == 'submit' %}
       {{ field(class="btn btn-default") }}
     {% else %}
-      {% if field.widget.input_type != 'hidden' -%}
-        {{ field.label }}
+      {% if field.iter_choices is defined %}
+        {% if field.iter_choices()|list|length == 1 %}
+          {{ field(style="display: none;") }}
+        {% else %}
+          {{ field.label }}
+          {{ field(class="form-control") }}
+        {% endif %}
+      {% else %}
+        {% if field.widget.input_type != 'hidden' -%}
+          {{ field.label }}
+        {% endif %}
+        {{ field(class="form-control") }}
       {% endif %}
-      {{ field(class="form-control") }}
     {% endif %}
   {% endif %}
 </div>
