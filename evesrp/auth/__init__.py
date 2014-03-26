@@ -92,6 +92,9 @@ class PayoutRequestsPermission(Permission):
         super(PayoutRequestsPermission, self).__init__(need)
 
 
+admin_permission = Permission(RoleNeed('admin'))
+
+
 @identity_loaded.connect_via(app)
 def load_user_permissions(sender, identity):
     identity.user = current_user

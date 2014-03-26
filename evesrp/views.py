@@ -18,9 +18,10 @@ from wtforms.validators import InputRequired, ValidationError, AnyOf, URL
 
 from . import app, auth_methods, db, requests_session, killmail_sources
 from .auth import SubmitRequestsPermission, ReviewRequestsPermission, \
-        PayoutRequestsPermission
+        PayoutRequestsPermission, admin_permission
 from .auth.models import User, Group, Division, Pilot
 from .models import Request, Modifier, Action
+
 
 @app.route('/')
 @login_required
@@ -68,6 +69,7 @@ def logout():
 
 @app.route('/division')
 @login_required
+@admin_permission.require()
 def list_divisions():
     return render_template('divisions.html', divisions=Division.query.all())
 
@@ -79,6 +81,7 @@ class AddDivisionForm(Form):
 
 @app.route('/division/add', methods=['GET', 'POST'])
 @login_required
+@admin_permission.require()
 def add_division():
     form = AddDivisionForm()
     if form.validate_on_submit():
@@ -91,6 +94,7 @@ def add_division():
 
 @app.route('/division/<division_id>')
 @login_required
+@admin_permission.require()
 def division_detail(division_id):
     division = Division.query.get_or_404(division_id)
     return render_template('division_detail.html', division=division)
@@ -98,6 +102,7 @@ def division_detail(division_id):
 
 @app.route('/division/<division_id>/<permission>')
 @login_required
+@admin_permission.require()
 def division_permission(division_id, permission):
     division = Division.query.get_or_404(division_id)
     users = []
@@ -122,6 +127,7 @@ def division_permission(division_id, permission):
 
 @app.route('/division/<division_id>/<permission>/add/', methods=['POST'])
 @login_required
+@admin_permission.require()
 def division_add_entity(division_id, permission):
     division = Division.query.get_or_404(division_id)
     if request.form['entity_type'] == 'user':
@@ -142,6 +148,7 @@ def division_add_entity(division_id, permission):
 
 @app.route('/division/<division_id>/<permission>/<entity>/<entity_id>/delete')
 @login_required
+@admin_permission.require()
 def division_delete_entity(division_id, permission, entity, entity_id):
     division = Division.query.get_or_404(division_id)
     if entity == 'user':
