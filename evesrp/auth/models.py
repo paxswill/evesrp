@@ -3,7 +3,7 @@ from . import AuthMethod
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm.collections import attribute_mapped_collection, collection
-from ..models import Action, Modifier, Request
+from ..models import Action, Modifier, Request, AutoID
 
 
 users_groups = db.Table('users_groups', db.Model.metadata,
@@ -21,7 +21,7 @@ perm_groups = db.Table('perm_groups', db.Model.metadata,
         db.Column('perm_id', db.Integer, db.ForeignKey('division_perm.id')))
 
 
-class User(db.Model):
+class User(db.Model, AutoID):
     """User base class.
 
     Represents a user, not only those who can submit requests but also
@@ -31,7 +31,6 @@ class User(db.Model):
 
     TODO: Actually put what to implement.
     """
-    id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     admin = db.Column(db.Boolean, nullable=False, default=False)
     user_type = db.Column(db.String(50), nullable=False)
@@ -123,13 +122,12 @@ class User(db.Model):
         return str(self.id)
 
 
-class Group(db.Model):
+class Group(db.Model, AutoID):
     """Base class for a group of users.
 
     Represents a group of users. Usable for granting permissions to submit,
     evaluate and pay.
     """
-    id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False, index=True)
     group_type = db.Column(db.String(128), nullable=False)
     users = db.relationship(User, secondary=users_groups, backref='groups',
@@ -155,9 +153,8 @@ class Group(db.Model):
         return AuthMethod
 
 
-class DivisionPermission(db.Model):
+class DivisionPermission(db.Model, AutoID):
     __tablename__ = 'division_perm'
-    id = db.Column(db.Integer, primary_key=True)
     division_id = db.Column(db.Integer, db.ForeignKey('division.id'))
     permission = db.Column(db.Enum('submit', 'review', 'pay',
             name='division_permission'), nullable=False)
@@ -197,14 +194,13 @@ class DivisionPermission(db.Model):
                 self.remove(e)
 
 
-class Division(db.Model):
+class Division(db.Model, AutoID):
     """A reimbursement division.
 
     A division has (possible non-intersecting) groups of people that can submit
     requests, review requests, and pay out requests.
     """
     __tablename__ = 'division'
-    id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False)
     permissions = db.relationship(DivisionPermission, backref='division',
             collection_class=attribute_mapped_collection('permission'))
