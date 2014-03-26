@@ -100,7 +100,8 @@ class Request(db.Model, AutoID, Timestamped):
     modifiers = db.relationship('Modifier', back_populates='request',
             order_by='desc(Modifier.timestamp)')
     killmail_url = db.Column(db.String(512), nullable=False)
-    pilot = db.Column(db.String(100), nullable=False)
+    pilot_id = db.Column(db.Integer, db.ForeignKey('pilot.id'), nullable=False)
+    pilot = db.relationship('Pilot', back_populates='requests')
     ship_type = db.Column(db.String(75), nullable=False)
     # Same as Modifer.value, base_payout is the coefficient to 10^6 a.k.a in
     # millions
@@ -153,9 +154,9 @@ class Request(db.Model, AutoID, Timestamped):
     def finalized(self):
         return self.status in ('paid', 'rejected')
 
-    def __init__(self, submitter, killmail_url, details):
+    def __init__(self, submitter, killmail_url, details, id_, division):
         self.submitter = submitter
         self.killmail_url = killmail_url
         self.details = details
-
-
+        self.id = id_
+        self.division = division

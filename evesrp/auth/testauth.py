@@ -9,7 +9,7 @@ from wtforms.validators import InputRequired
 
 from .. import db, requests_session
 from . import AuthMethod, AuthForm
-from .models import User, Group
+from .models import User, Group, Pilot
 
 
 class TestAuthLoginForm(AuthForm):
@@ -78,6 +78,28 @@ class TestAuth(AuthMethod):
                             auth_id=group['id'])
                     db.session.add(db_group)
                 user.groups.append(db_group)
+            # Sync pilot associations
+            pilot = Pilot.query.get(json['primarycharacter']['id'])
+            if not pilot:
+                pilot = Pilot(user, json['primarycharacter']['name'],
+                        json['primarycharacter']['id'])
+            pilot.user = user
+            if self.api_key:
+                resp_user = requests_session.get(
+                        'https://auth.pleaseignore.com/api/1.0/user', params=
+                        {
+                            'userid': user.id,
+                            'apikey': self.api_key
+                        })
+                if resp_user.status_code == 200:
+                    for char in resp_user.json()['characters']:
+                        try:
+                            pilot = Pilot.query.get(char['id'])
+                        except NoResultFound:
+                            pilot = Pilot(user, char['name'], char['id'])
+                        else:
+                            pilot.user = user
+            # All done
             db.session.commit()
             login_user(user)
             identity_changed.send(current_app._get_current_object(),

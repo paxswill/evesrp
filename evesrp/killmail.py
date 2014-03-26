@@ -90,7 +90,7 @@ class EveMDShipNameMixin(RequestsSessionMixin):
         resp = self.requests_session.get(
                 'http://api.eve-marketdata.com/api/type_name.xml', params=
                 {
-                    'char_name': quote(user_agent),
+                    'char_name': quote(self.user_agent),
                     'v': self.ship_id
                 })
         if resp.status_code == requests.codes.ok:
@@ -101,7 +101,7 @@ class EveMDShipNameMixin(RequestsSessionMixin):
 
 
 class ZKillmail(Killmail, RequestsSessionMixin):
-    zkb_regex = re.compile(r'/detail/(?P<kill_id>\d+)/')
+    zkb_regex = re.compile(r'/detail/(?P<kill_id>\d+)/?')
 
     def __init__(self, url, **kwargs):
         super(ZKillmail, self).__init__(**kwargs)

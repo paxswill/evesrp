@@ -9,6 +9,7 @@ from flask.ext.login import login_user, login_required, logout_user, \
         current_user
 from flask.ext.wtf import Form
 from flask.ext.principal import identity_changed, AnonymousIdentity
+from sqlalchemy.orm.exc import NoResultFound
 from wtforms.fields import StringField, PasswordField, SelectField, \
         SubmitField, TextAreaField, HiddenField
 from wtforms.fields.html5 import URLField, DecimalField
@@ -18,7 +19,7 @@ from wtforms.validators import InputRequired, ValidationError, AnyOf, URL
 from . import app, auth_methods, db, requests_session, killmail_sources
 from .auth import SubmitRequestsPermission, ReviewRequestsPermission, \
         PayoutRequestsPermission
-from .auth.models import User, Group, Division
+from .auth.models import User, Group, Division, Pilot
 from .models import Request, Modifier, Action
 
 @app.route('/')
@@ -243,24 +244,42 @@ def submit_request():
         choices.append((division.id, division.name))
     form.division.choices = choices
     if form.validate_on_submit():
-        # request is already used by Flask. Hooray name collisions!
-        srp_request = Request(current_user, form.url.data, form.details.data)
-        srp_request.division = Division.query.get(form.division.data)
+        # validate killmail first
         for source in killmail_sources:
             try:
                 mail = source(url=form.url.data)
             except ValueError as e:
-                pass
+                continue
             except LookupError:
-                pass
+                continue
             else:
-                if mail.verified:
-                    srp_request.pilot = mail.pilot
-                    srp_request.ship_type = mail.ship
-                    break
-        db.session.add(srp_request)
-        db.session.commit()
-        return redirect(url_for('request_detail', request_id=srp_request.id))
+                break
+        else:
+            flash("Killmail URL cannot be verified", 'error')
+            return render_template('form.html', form=form)
+        # Prevent submitting other people's killmails
+        pilot = Pilot.query.get(mail.pilot_id)
+        if not pilot or pilot not in current_user.pilots:
+            flash("You can only submit killmails of characters you control",
+                    'warning')
+            return render_template('form.html', form=form)
+        # Prevent duplicate killmails
+        # The name 'request' is already used by Flask.
+        # Hooray name collisions!
+        srp_request = Request.query.get(mail.kill_id)
+        if srp_request is None:
+            division = Division.query.get(form.division.data)
+            srp_request = Request(current_user, mail.url, form.details.data,
+                    mail.kill_id, division)
+            srp_request.ship_type = mail.ship
+            srp_request.pilot = pilot
+            db.session.add(srp_request)
+            db.session.commit()
+            return redirect(url_for('request_detail', request_id=srp_request.id))
+        else:
+            flash("This kill has already been submitted", 'warning')
+            return redirect(url_for('request_detail',
+                request_id=srp_request.id))
     return render_template('form.html', form=form)
 
 

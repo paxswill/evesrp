@@ -42,6 +42,8 @@ class User(db.Model, AutoID):
     individual_divisions = association_proxy('individual_permissions',
             'division')
     actions = db.relationship(Action, back_populates='user')
+    pilots = db.relationship('Pilot', back_populates='user',
+            collection_class=set)
 
     @declared_attr
     def __tablename__(cls):
@@ -120,6 +122,20 @@ class User(db.Model, AutoID):
 
     def get_id(self):
         return str(self.id)
+
+
+class Pilot(db.Model, AutoID):
+    __tablename__ = 'pilot'
+    name = db.Column(db.String(150), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship(User, back_populates='pilots')
+    requests = db.relationship(Request, back_populates='pilot',
+            collection_class=list, order_by=Request.timestamp.desc())
+
+    def __init__(self, user, name, id_):
+        self.user = user
+        self.name = name
+        self.id = id_
 
 
 class Group(db.Model, AutoID):
