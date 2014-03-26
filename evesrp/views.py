@@ -245,6 +245,8 @@ class RequestForm(Form):
 @app.route('/submit/request', methods=['GET', 'POST'])
 @login_required
 def submit_request():
+    if not current_user.has_permission('submit'):
+        abort(403)
     form = RequestForm()
     choices = []
     for division in current_user.divisions['submit']:

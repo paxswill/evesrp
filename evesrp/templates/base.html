@@ -33,9 +33,7 @@
           <ul class="nav navbar-nav">
             {% block navitems %}
             {% if current_user.is_authenticated() -%}
-            {% if current_user.has_permission('submit') -%}
-            {{ macros.navbar_button('Submit', 'list_submit_requests') }}
-            {%- endif %}
+            {{ macros.navbar_button('Submitted', 'list_submit_requests') }}
             {% if current_user.has_permission('review') -%}
             {{ macros.navbar_button('Review', 'list_review_requests') }}
             {%- endif %}
