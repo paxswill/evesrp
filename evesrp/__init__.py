@@ -48,6 +48,13 @@ def _config_requests_session():
     user_agent = ua_string
 
 
+# Killmail verification
+killmail_sources = []
+@app.before_first_request
+def _config_killmails():
+    killmail_sources.extend(app.config['KILLMAIL_SOURCES'])
+
+
 # Views setup
 from . import views
 

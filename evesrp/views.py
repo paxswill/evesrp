@@ -13,9 +13,9 @@ from wtforms.fields import StringField, PasswordField, SelectField, \
         SubmitField, TextAreaField, HiddenField
 from wtforms.fields.html5 import URLField, DecimalField
 from wtforms.widgets import HiddenInput
-from wtforms.validators import InputRequired, ValidationError, AnyOf
+from wtforms.validators import InputRequired, ValidationError, AnyOf, URL
 
-from . import app, auth_methods, db, requests_session
+from . import app, auth_methods, db, requests_session, killmail_sources
 from .auth import SubmitRequestsPermission, ReviewRequestsPermission, \
         PayoutRequestsPermission
 from .auth.models import User, Group, Division
@@ -227,57 +227,8 @@ register_perm_request_listing('list_completed_requests', '/complete/',
         ('review', 'pay'), (lambda r: r.finalized))
 
 
-zkb_regex = re.compile(r'/detail/(?P<kill_id>\d+)/')
-
-
-def zkb_validator(domain='zkillboard.com'):
-    def _validator(form, field):
-        parsed = urlparse(field.data, scheme='https', allow_fragments=False)
-        if parsed.netloc == '':
-            # silly people, not copy-pasting the whole url
-            parsed = urlparse('//' + field.data, scheme='https',
-                    allow_fragments=False)
-        if parsed.netloc != domain:
-            print('raising domain')
-            raise ValidationError("Killmail must be from {}.".format(domain))
-        if not zkb_regex.match(parsed.path):
-            print('raising path')
-            raise ValidationError("Killmail URL must be to a zKillboard kill.")
-
-    return _validator
-
-
-crest_regex = re.compile(r'/killmails/(?P<kill_id>\d+)/[0-9a-f]+/')
-
-
-def crest_validator(form, field):
-    parsed = urlparse(field.data)
-    if parsed.netloc != 'public-crest.eveonline.com' or \
-            crest_regex.match(parsed.path):
-        print('raising crest')
-        raise ValidationError(
-                "Must be a CREST killmail directly from the game.")
-
-
-class OneOfValidator(object):
-    def __init__(self, *args, message=''):
-        self.validators = args
-        self.message = message
-
-    def __call__(self, form, field):
-        exceptions = []
-        for validator in self.validators:
-            try:
-                validator(form, field)
-            except ValidationError as e:
-                exceptions.append(e)
-            else:
-                return None
-
-
 class RequestForm(Form):
-    url = URLField('Killmail URL', validators=[OneOfValidator(
-            crest_validator, zkb_validator())])
+    url = URLField('Killmail URL', validators=[InputRequired(), URL()])
     details = TextAreaField('Details', validators=[InputRequired()])
     division = SelectField('Division', coerce=int)
     submit = SubmitField('Submit')
@@ -295,19 +246,18 @@ def submit_request():
         # request is already used by Flask. Hooray name collisions!
         srp_request = Request(current_user, form.url.data, form.details.data)
         srp_request.division = Division.query.get(form.division.data)
-        # TODO Refactor url branching to be properly configurable
-        parsed_url = urlparse(form.url.data)
-        if parsed_url.netloc == 'zkillboard.com':
-            match = zkb_regex.match(parsed_url.path)
-            kill_id = match.group('kill_id')
-            srp_request.id = kill_id
-            resp = requests_session.get(
-                    'https://zkillboard.com/api/killID/{}'.format(kill_id))
-            # TODO: actual error checking of the response
-            # zKillboard wraps json in an array
-            json = resp.json()[0]
-            srp_request.pilot = json['victim']['characterName']
-            srp_request.ship_type = json['victim']['shipTypeID']
+        for source in killmail_sources:
+            try:
+                mail = source(url=form.url.data)
+            except ValueError as e:
+                pass
+            except LookupError:
+                pass
+            else:
+                if mail.verified:
+                    srp_request.pilot = mail.pilot
+                    srp_request.ship_type = mail.ship
+                    break
         db.session.add(srp_request)
         db.session.commit()
         return redirect(url_for('request_detail', request_id=srp_request.id))
