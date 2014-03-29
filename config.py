@@ -8,8 +8,10 @@ class Config(object):
 class Development(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///development.sqlite3'
-    AUTH_METHODS = ['evesrp.auth.testauth.TestAuth',\
-            'evesrp.auth.bravecore.BraveCore']
+    AUTH_METHODS = [
+            'evesrp.auth.testauth.TestAuth',
+            'evesrp.auth.bravecore.BraveCore',
+            ]
     CORE_AUTH_PRIVATE_KEY = 'client.private.pem'
     CORE_AUTH_PUBLIC_KEY = 'server.public.pem'
     CORE_AUTH_IDENTIFIER = 'EVE SRP'
