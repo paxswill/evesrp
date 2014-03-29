@@ -24,33 +24,56 @@ perm_groups = db.Table('perm_groups', db.Model.metadata,
 class User(db.Model, AutoID):
     """User base class.
 
-    Represents a user, not only those who can submit requests but also
-    evaluators and payers. The default implementation does _no_ authentication.
-    To provide actual authentication, subclass the User module and implement
-    blahdeblahblah.
-
-    TODO: Actually put what to implement.
+    Represents users who can submit, review and/or pay out requests. It also
+    supplies a number of convenience methods for subclasses.
     """
+    #: The name of the user. Usually a nickname.
     name = db.Column(db.String(100), nullable=False)
+
+    #: If the user is an administrator. This allows the user to create and
+    #: administer divisions.
     admin = db.Column(db.Boolean, nullable=False, default=False)
-    user_type = db.Column(db.String(50), nullable=False)
+
+    #: Map of permission objects granted specifically to this user. Keys are
+    #: one of the permission values.
     individual_permissions = db.relationship('DivisionPermission',
             secondary=perm_users,
             collection_class=attribute_mapped_collection('permission'),
             back_populates='individuals')
-    requests = db.relationship(Request, back_populates='submitter')
+
+    #: Map of :py:class:`Division's this user has been specifically granted
+    #: permissions in. Keys are one of the permissions values.
     individual_divisions = association_proxy('individual_permissions',
             'division')
+
+    #: :py:class:`Request`s this user has submitted.
+    requests = db.relationship(Request, back_populates='submitter')
+
+    #: :py:class:`Action`s this user has performed on requests.
     actions = db.relationship(Action, back_populates='user')
+
+    #: :py:class:`Pilot`s associated with this user.
     pilots = db.relationship('Pilot', back_populates='user',
             collection_class=set)
 
+    #: Polymorphic discriminator column.
+    user_type = db.Column(db.String(50), nullable=False)
+
     @declared_attr
     def __tablename__(cls):
+        """SQLAlchemy late-binding attribute to set the table name.
+
+        Implemented this way so subclasses do not need to specify a table name
+        themselves.
+        """
         return cls.__name__.lower()
 
     @declared_attr
     def __mapper_args__(cls):
+        """SQLAlchemy late-binding attribute to set mapper arguments.
+
+        Obviates subclasses from having to specify polymorphic identities.
+        """
         args = {'polymorphic_identity': cls.__name__}
         if cls.__name__ == 'User':
             args['polymorphic_on'] = cls.user_type
@@ -58,10 +81,17 @@ class User(db.Model, AutoID):
 
     @classmethod
     def authmethod(cls):
+        """:rtype: class
+        :returns: The :py:class:`AuthMethod` for this user class.
+        """
         return AuthMethod
 
     @property
     def permissions(self):
+        """Map of all permissions a user has been granted, including those
+        granted through groups. Keys are permissions values, like those given
+        to :py:attr:`individual_permissions`.
+        """
         class _PermProxy(object):
             def __init__(self, user):
                 self.user = user
@@ -86,6 +116,8 @@ class User(db.Model, AutoID):
 
     @property
     def divisions(self):
+        """Map of all divisions a user has been granted permissions in,
+        including those granted through groups."""
         class _DivProxy(object):
             def __init__(self, user):
                 self.user = user
@@ -109,30 +141,56 @@ class User(db.Model, AutoID):
         return _DivProxy(self)
 
     def has_permission(self, permission):
+        """Check if the user can access any division with the given permission
+        level.
+
+        :param str permission: The permission level to check.
+        :return: If it can access a division with that permission.
+        :rtype: bool
+        """
         return len(self.divisions[permission]) > 0
 
     def is_authenticated(self):
+        """Part of the interface for Flask-Login."""
         return True
 
     def is_active(self):
+        """Part of the interface for Flask-Login."""
         return True
 
     def is_anonymous(self):
+        """Part of the interface for Flask-Login."""
         return False
 
     def get_id(self):
+        """Part of the interface for Flask-Login."""
         return str(self.id)
 
 
 class Pilot(db.Model, AutoID):
+    """Represents an in-game character."""
     __tablename__ = 'pilot'
+
+    #: The name of the character
     name = db.Column(db.String(150), nullable=False)
+
+    #: The id of the User this character belongs to.
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    #: The User this character belongs to.
     user = db.relationship(User, back_populates='pilots')
+
+    #: The Requests filed with lossmails from this character.
     requests = db.relationship(Request, back_populates='pilot',
             collection_class=list, order_by=Request.timestamp.desc())
 
     def __init__(self, user, name, id_):
+        """Create a new Pilot instance.
+
+        :param User user: The user this character belpongs to.
+        :param str name: The name of this character.
+        :param int id_: The CCP-given characterID number.
+        """
         self.user = user
         self.name = name
         self.id = id_
@@ -144,21 +202,34 @@ class Group(db.Model, AutoID):
     Represents a group of users. Usable for granting permissions to submit,
     evaluate and pay.
     """
+
+    #: The name of this group.
     name = db.Column(db.String(128), nullable=False, index=True)
+
+    #: Polymorphic discriminator column
     group_type = db.Column(db.String(128), nullable=False)
+
+    #: :py:class:`User`s that belong to this group.
     users = db.relationship(User, secondary=users_groups, backref='groups',
             collection_class=set)
+
+    #: Permission association objects.
+    # For internal use.
     permissions = db.relationship('DivisionPermission', secondary=perm_groups,
             collection_class=attribute_mapped_collection('permission'),
             back_populates='groups')
+
+    #: :py:class:`Division`s this group has been granted permissions to.
     divisions = association_proxy('permissions', 'division')
 
     @declared_attr
     def __tablename__(cls):
+        """Convenience method easing subclassing."""
         return cls.__name__.lower()
 
     @declared_attr
     def __mapper_args__(cls):
+        """Automatic mapper arguements for easy subclasing."""
         args = {'polymorphic_identity': cls.__name__}
         if cls.__name__ == 'Group':
             args['polymorphic_on'] = cls.group_type
@@ -166,6 +237,9 @@ class Group(db.Model, AutoID):
 
     @classmethod
     def authmethod(cls):
+        """:returns: The AuthMethod subclass for this group class.
+        :rtype: class
+        """
         return AuthMethod
 
 
@@ -181,6 +255,7 @@ class DivisionPermission(db.Model, AutoID):
 
     @property
     def users(self):
+        """A :py:class:`set` of all users granted this permission."""
         user_set = set(self.individuals)
         for group in self.groups:
             user_set.union(group.users)
@@ -190,6 +265,12 @@ class DivisionPermission(db.Model, AutoID):
         self.division = division
 
     def add(self, entity):
+        """Add a User, Group, or an iterable of them to this permission.
+
+        :param entity: The user, group, or iterable to add to this permission.
+        :type entity: A :py:class:`User`, :py:class:`Group` or an iterable of
+        those types (a mixed iterable of both types is allowed).
+        """
         if isinstance(entity, User):
             self.individuals.append(entity)
         elif isinstance(entity, Group):
@@ -201,6 +282,12 @@ class DivisionPermission(db.Model, AutoID):
                 self.add(e)
 
     def remove(self, entity):
+        """Remove a User, Group or iterable from this permission.
+
+        :param entity: The user(s) and/or group(s) to remove.
+        :type entity: A :py:class:`User`, :py:class:`Group` or an iterable of
+        some combination of those types.
+        """
         if isinstance(entity, User):
             self.individuals.remove(entity)
         elif isinstance(entity, Group):
@@ -213,13 +300,20 @@ class DivisionPermission(db.Model, AutoID):
 class Division(db.Model, AutoID):
     """A reimbursement division.
 
-    A division has (possible non-intersecting) groups of people that can submit
+    A division has (possibly non-intersecting) groups of people that can submit
     requests, review requests, and pay out requests.
     """
     __tablename__ = 'division'
+
+    #: The name of this division.
     name = db.Column(db.String(128), nullable=False)
+
+    #: The permissions objects for this division, mapped via their permission
+    #: names.
     permissions = db.relationship(DivisionPermission, backref='division',
             collection_class=attribute_mapped_collection('permission'))
+
+    #: :py:class:`Request` s filed under this division.
     requests = db.relationship(Request, back_populates='division')
 
     def __init__(self, name):
