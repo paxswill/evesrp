@@ -14,7 +14,9 @@
         <p class="panel-body">{{ request.details }}</p>
       </dd>
       <dt>Pilot</dt>
-      <dd>{{ request.pilot }}</dd>
+      <dd>{{ request.pilot.name }}</dd>
+      <dt>Corporation</dt>
+      <dd>{{ request.pilot.corp }}</dd>
       <dt>Ship</dt>
       <dd>{{ request.ship_type }}</dd>
       <dt>Status</dt>

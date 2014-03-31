@@ -31,24 +31,22 @@ def index():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    forms = OrderedDict()
+    forms = []
     for auth_method in auth_methods:
+        prefix = auth_method.__class__.__name__.lower()
         form = auth_method.form()
-        forms[auth_method.name] = (form, auth_method)
+        forms.append((auth_method, form(prefix=prefix)))
+    print(forms)
     if request.method == 'POST':
-        auth_tuple = forms.get(request.form['auth_method'], None)
-        if auth_tuple is not None:
-            form = auth_tuple[0]()
+        for auth_tuple in forms:
+            if auth_tuple[1].submit.data:
+                auth_method, form = auth_tuple
+                break
         else:
             abort(400)
         if form.validate():
-            auth_method = auth_tuple[1]
             return auth_method.login(form)
-    template_forms = []
-    for key, value in forms.items():
-        template_forms.append((key, value[0]()))
-    print(template_forms)
-    return render_template('login.html', forms=template_forms)
+    return render_template('login.html', forms=forms)
 
 
 @app.route('/login/<string:auth_method>/', methods=['GET', 'POST'])

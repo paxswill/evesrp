@@ -2,10 +2,9 @@ from ecdsa import SigningKey, VerifyingKey
 from brave.api.client import SignedAuth, API
 from sqlalchemy.orm.exc import NoResultFound
 from flask import flash, url_for, redirect, abort, current_app
-from flask.ext.principal import identity_changed, Identity
 
 from .. import db, auth_methods, requests_session
-from . import AuthMethod
+from . import AuthMethod, AuthForm
 from .models import User, Group
 
 
@@ -94,9 +93,7 @@ class BraveCore(AuthMethod):
                 group = BraveCoreGroup.query.filter_by(core_id=tag).one()
                 user.groups.remove(group)
             db.session.commit()
-            login_user(user)
-            identity_changed.send(current_app._get_current_object(),
-                    identity=Identity(user.id))
+            self.login_user(user)
             # TODO Have a meaningful redirect for this
             return redirect(url_for('index'))
         else:

@@ -1,8 +1,6 @@
 import hashlib
 
-from flask import flash, url_for, redirect, abort, request, current_app
-from flask.ext.login import login_user
-from flask.ext.principal import identity_changed, Identity
+from flask import flash, url_for, redirect, abort, request
 from sqlalchemy.orm.exc import NoResultFound
 from wtforms.fields import StringField, PasswordField, HiddenField, SubmitField
 from wtforms.validators import InputRequired
@@ -31,8 +29,7 @@ class TestAuth(AuthMethod):
                 self.api_key = None
 
     def form(self):
-        return TestAuthLoginForm.append_field('auth_method',
-                HiddenField(default=self.name))
+        return TestAuthLoginForm
 
     def login(self, form):
         sha = hashlib.sha1()
@@ -101,9 +98,7 @@ class TestAuth(AuthMethod):
                             pilot.user = user
             # All done
             db.session.commit()
-            login_user(user)
-            identity_changed.send(current_app._get_current_object(),
-                    identity=Identity(user.id))
+            self.login_user(user)
             return redirect(request.args.get('next') or url_for('index'))
         else:
             # Not sure what you did to get here, but somehow Auth has returned
