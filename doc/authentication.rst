@@ -15,31 +15,102 @@ table using SQLAlchemy's declarative extension (more specifically, the
 Flask-SQLAlchemy plugin to Flask). The parent class automatically sets up the
 table name and inheritance mapper arguments for you, so all you need to do is
 provide the :py:attr:`id` attribute that links your class with the parent class
-and an attribute to store the password hash.::
+and an attribute to store the password hash. In the example, we're using the
+pbkdf2 package to provide tha password hashing. We also have a checking method
+to make life easier for us later. ::
 
+    from evesrp import db
     from evesrp.auth import User
+    from pbkdf2 import pbkdf2_bin
 
 
     class LocalUser(User):
         id = db.Column(db.Integer, db.ForeignKey('user.id', primary_key=True)
-        password = db.Column(db.String(256), nullable=False)
+        password = db.Column(db.LargeBinary(256), nullable=False)
+        salt = db.Column(db.LargeBinary(256), nullable=False)
+
+        def __init__(self, username, password):
+            self.name = username
+            self.salt = None
+            self.password = pbkdf2_bin(password.encode('utf-8'), self.salt,
+                    iterations=100000)
+
+        def check_password(self, password):
+            key = pbkdf2_bin(password.encode('utf-8'), self.salt,
+                    iterations=100000)
+            matched = 0
+            for a, b in zip(self.password, key):
+                matched |= ord(a) ^ ord(b)
+            return matched == 0
 
         @classmethod
         def authmethod(cls):
             return LocalAuth
 
-In addition, we override :py:meth:`User.authmethod` to tell which authentication
-method class to use for the actual login process.
+In addition, we override :py:meth:`User.authmethod` to tell which
+authentication method class to use for the actual login process.
 
 :py:class:`AuthMethod` subclasses have three and a half methods they can
-subclass to customize themselves. The :py:meth:`AuthMethod.__init__` method is passed an
-instance of the configuration dictionary to allow greater flexibility in
-configuration. :py:meth:`AuthMethod.form` returns the :py:class:`AuthForm` subclass that
-represents the necessary fields. :py:meth:`AuthMethod.login` is performs the actual
-login process. As part of this, it is passed an instance of the class given by
-:py:meth:`AuthMethod.form` with the submitted data via the form argument. Finally, some
-login methods need a secondary view, for example, OpenID needs a destination to
-redirect to and process the arguments passed to along with the redirect. The
-:py:meth:`AuthMethod.view` method is an optional method for AuthMethod subclasses to
-implement. It can be accessed at /login/<AuthMethod.__name__.lower()> and
-accepts the GET and POST HTTP verbs.
+subclass to customize themselves. The :py:meth:`AuthMethod.__init__` method is
+passed an instance of the configuration dictionary to allow greater flexibility
+in configuration. :py:meth:`AuthMethod.form` returns the :py:class:`AuthForm`
+subclass that represents the necessary fields. :py:meth:`AuthMethod.login` is
+performs the actual login process. As part of this, it is passed an instance of
+the class given by :py:meth:`AuthMethod.form` with the submitted data via the
+form argument. Finally, some login methods need a secondary view, for example,
+OpenID needs a destination to redirect to and process the arguments passed to
+along with the redirect. The :py:meth:`AuthMethod.view` method is an optional
+method for AuthMethod subclasses to implement to process/present a secondary
+view. It can be accessed at /login/<AuthMethod.__name__.lower()> and accepts
+the GET and POST HTTP verbs. ::
+
+    from evesrp.auth import AuthForm, AuthMethod
+    from flask import redirect, url_for
+    from flask.ext.wtf import Form
+    from sqlalchemy.orm.exc import NoResultFound
+    from wtforms.fields import StringField, PasswordField, SubmitField
+    from wtforms.validators import InputRequired, EqualTo
+
+
+    class LocalLoginForm(AuthForm):
+        username = StringField('Username', validators=[InputRequired()])
+        password = PasswordField('Password', validators=[InputRequired()])
+        submit = SubmitField('Log In')
+
+
+    class LocalCreateUserForm(Form):
+        username = StringField('Username', validators=[InputRequired()])
+        password = PasswordField('Password', validators=[InputRequired(),
+                EqualTo('password_repeat', message='Passwords must match')])
+        password_repeat = PasswordField(
+                'Repeat Password', validators=[InputRequired()])
+        submit = SubmitField('Log In')
+
+
+    class LocalAuth(AuthMethod):
+        def form(self):
+            return LocalLoginForm()
+
+        def login(self, form):
+            # form has already been validated
+            try:
+                user = LocalUser.query.filter_by(name=form.username.data).one()
+            except NoResultFound:
+                flash("No user found with that username.", 'error')
+                return redirect(url_for('login'))
+            if user.check_password(form.password.data):
+                self.login_user(user)
+                redirect(request.args.get('next') or url_for('index'))
+            else:
+                flash("Incorrect password.", 'error')
+                redirect(url_for('login'))
+
+        def view(self):
+            form = LocalCreateUserForm()
+            if form.validate_on_submit():
+                user = LocalUser(form.username.data, form.password.data)
+                db.session.add(user)
+                db.session.commit()
+                self.login_user(user)
+                return redirect(url_for('index'))
+            return render_template('form.html', form=form)
