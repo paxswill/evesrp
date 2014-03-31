@@ -6,14 +6,14 @@
     <ul class="nav nav-tabs">
     {% for method in forms %}
       <li{{ ' class="active"'|safe if loop.first }}>
-        <a href="#{{ method[1].__class__.__name__|lower }}" data-toggle="tab">{{ method[0] }}</a>
+        <a href="#{{ method[0].__class__.__name__|lower }}" data-toggle="tab">{{ method[0].name }}</a>
       </li>
     {% endfor %}
     </ul>
     <div class="panel panel-default">
       <div class="panel-body tab-content">
         {% for method in forms %}
-        <div class="tab-pane{{ ' active'|safe if loop.first }}" id="{{ method[1].__class__.__name__|lower }}">
+        <div class="tab-pane{{ ' active'|safe if loop.first }}" id="{{ method[0].__class__.__name__|lower }}">
           {{ macros.render_form(method[1]) }}
         </div>
         {% endfor %}

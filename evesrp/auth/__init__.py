@@ -2,9 +2,11 @@ import re
 from collections import namedtuple
 from functools import partial
 
-from flask import redirect, url_for
+from flask import redirect, url_for, current_app
 from flask.ext.login import current_user
-from flask.ext.principal import Permission, UserNeed, RoleNeed, identity_loaded
+import flask.ext.login as flask_login
+from flask.ext.principal import Permission, UserNeed, RoleNeed,\
+        identity_loaded, identity_changed, Identity
 from flask.ext.wtf import Form
 from wtforms.fields import SubmitField, HiddenField
 
@@ -14,19 +16,13 @@ from .. import app, db, login_manager, principal
 class AuthForm(Form):
     submit = SubmitField('Login')
 
-    @classmethod
-    def append_field(cls, name, field):
-        setattr(cls, name, field)
-        return cls
-
 
 class AuthMethod(object):
     name = 'Base Authentication'
 
     def form(self):
         """Return an instance of the form to login."""
-        return AuthForm.append_field('auth_method',
-                HiddenField(default=self.name))
+        return AuthForm
 
     def login(self, form):
         """Process a validated login form.
@@ -40,6 +36,12 @@ class AuthMethod(object):
 
     def view(self):
         return redirect(url_for('login'))
+
+    @staticmethod
+    def login_user(user):
+        flask_login.login_user(user)
+        identity_changed.send(current_app._get_current_object(),
+                identity=Identity(user.id))
 
 
 # Work around some circular imports
