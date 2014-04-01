@@ -16,7 +16,7 @@ Flask-SQLAlchemy plugin to Flask). The parent class automatically sets up the
 table name and inheritance mapper arguments for you, so all you need to do is
 provide the :py:attr:`id` attribute that links your class with the parent class
 and an attribute to store the password hash. In the example, we're using the
-pbkdf2 package to provide tha password hashing. We also have a checking method
+pbkdf2 package to provide the password hashing. We also have a checking method
 to make life easier for us later. ::
 
     from evesrp import db

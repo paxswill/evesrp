@@ -8,10 +8,10 @@ support for TEST Alliance's Auth and Brave's Core systems. It also features a
 configurable killmail source system, with built in support for zKillboard based
 killboards and the recent CREST killmail endpoint. Again, this is an extensible
 system so if you have a custom killboard, as long as there's some sort of
-programmatic access, you can probably write a custom adaptor.
+programmatic access, you can probably write a custom adapter.
 
-For the users, EVE-SRP offers quick submissision and an easy way to check your
-SRP pending requsts. On the administrative side, EVE-SRP uses the concept of
+For the users, EVE-SRP offers quick submission and an easy way to check your
+SRP pending requests. On the administrative side, EVE-SRP uses the concept of
 divisions, with different users and groups of users being able to submit
 requests, review them (set payouts and approve or reject requests), and finally
 pay out approved requests. This separation allows spreading of the labor

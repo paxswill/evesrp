@@ -20,7 +20,7 @@ the bottom of the window with the text, "Submit Request". Click it.
 .. image:: images/submitted.png
 
 Enter a killmail URL that is accepted by your organization, for example , API
-verified killmail from zKIllboard. Enter in any requested supporting details
+verified killmail from zKillboard. Enter in any requested supporting details
 and then click the "Submit" button.
 
 .. image:: images/submit_form.png
@@ -46,7 +46,7 @@ in blue.
 
 In this interface, you have a number of control available to you. When the
 request is in an evaluating state you can set the base payout and add and
-remove payout modifiers liek bonuses and deductions. To set the base payout,
+remove payout modifiers like bonuses and deductions. To set the base payout,
 enter a value in the appropriate text box and then click the "Set" button.
 
 .. image:: images/set_payout.png
@@ -60,8 +60,8 @@ added.
 
 .. image:: images/applied_modifier.png
 
-If you make a mistake on a modifier and the request ius still in the evaluating
-state, you can void it by clickint the small "X".
+If you make a mistake on a modifier and the request is still in the evaluating
+state, you can void it by clicking the small "X".
 
 .. image:: images/voided_modifier.png
 
