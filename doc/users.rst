@@ -37,7 +37,7 @@ Reviewing Requests
 ******************
 
 If you have the review permission in a division and are logged in, you can
-click on the "Review" link at the top of the window. There, you will see a list
+click on the "Review" link at the top of the screen. There, you will see a list
 of requests that are not in a final (paid or rejected) state, and are thus able
 to be reviewed. Unevaluated requests have a yellow highlight, incomplete and
 rejected have a red highlight, approved (pending payout) have blue, and paid
@@ -80,6 +80,6 @@ base payout, you can set approved (but not paid) requests back to evaluating.
 .. image:: images/evaluating.png
 
 Finally, you can see a list of completed (paid of rejected) requests by
-clicking the "Completed" link at the top of the window.
+clicking the "Completed" link at the top of the screen.
 
 .. image:: images/list_completed.png
