@@ -5,29 +5,31 @@ Logging in and Submitting Requests
 **********************************
 
 When you first access a website running EVE-SRP, you will be asked to login.
-Select the appropriate login option if you are presented with choices, enter
-your credentials and login.
+Select the appropriate login option if you are presented with multiple choices,
+enter your credentials and login.
 
 .. image:: images/login.png
 
 Once you have logged in, you will be able to see what reimbursement divisions
-you have been granted permissions in. To submit a request, click on the
-"Submit" link at the top of the screen. This page will list all requests you
-have filed, regardless of final status and your current privileges.
-If you have the submit permission on any divisions, there will be a button at
-the bottom of the window with the text, "Submit Request". Click it.
+you have been granted permissions in. If you click the "Submit" button  at the
+top of the screen you will see a list of all requests you have submitted,
+regardless of final status or current division privileges. To submit a request,
+click the "Submit Request" button at the bottom of the list. The button will
+only be present if you have been granted the submit privilege within a
+division.
 
 .. image:: images/submitted.png
 
-Enter a killmail URL that is accepted by your organization, for example , API
-verified killmail from zKillboard. Enter in any requested supporting details
-and then click the "Submit" button.
+In the form, enter a killmail URL and any details your organization normally
+requires. What kind of killmail URLs that are acceptable is up to your
+organization, but common choices are zKillboard based killboards or CREST
+killmail URLs from an in-game killmail. Click the "Submit" button once you are
+done entering the information.
 
 .. image:: images/submit_form.png
 
-After that, you will be redirected to the request detail page. You can get back
-here by clicking on the link for this request on the listing of requests you
-say earlier. You can also add comments and reply to comments made by reviewers.
+You will be redirected to the request detail page once you have submitted your
+request. Via this page you can add comments for reviewers.
 
 .. image:: images/request_submitted.png
 
