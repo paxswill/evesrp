@@ -37,49 +37,50 @@ Reviewing Requests
 ******************
 
 If you have the review permission in a division and are logged in, you can
-click on the "Review" link at the top of the screen. There, you will see a list
+click on the "Review" link at the top of the screen to see a list
 of requests that are not in a final (paid or rejected) state, and are thus able
-to be reviewed. Unevaluated requests have a yellow highlight, incomplete and
-rejected have a red highlight, approved (pending payout) have blue, and paid
-requests have a green highlight. To open a request, click the Request ID link,
-in blue.
+to be reviewed. Unevaluated requests have a yellow background, incomplete and
+rejected have a red background, approved (pending payout) have blue, and paid
+requests have a green background. To open a request, click the Request ID link
+(blue text).
 
 .. image:: images/list_submitted.png
 
-In this interface, you have a number of control available to you. When the
-request is in an evaluating state you can set the base payout and add and
-remove payout modifiers like bonuses and deductions. To set the base payout,
-enter a value in the appropriate text box and then click the "Set" button.
+In addition to the controls available to a normal user, reviewers have a few
+extra available. The base payout can be set by entering a value (in millions of
+ISK) and clicking the "Set" button.
 
 .. image:: images/set_payout.png
 
 To apply bonuses and/or deduction, enter an amount in the "Add Modifier" form,
-Enter a reason for the modifier, and then select the type of modifier from the
-dropdown button labeled, "Type". Modifiers are applied in the order they are
-added.
+enter a reason for the modifier, and then select the type of modifier from the
+dropdown button labeled, "Type". The effect of modifiers are calculated in the
+order they are added.
 
 .. image:: images/add_modifier.png
 
 .. image:: images/applied_modifier.png
 
 If you make a mistake on a modifier and the request is still in the evaluating
-state, you can void it by clicking the small "X".
+state, you can void the modifier by clicking the small "X".
 
 .. image:: images/voided_modifier.png
 
 Once you have applied all the modifiers you want/need, you can change the
-status of the request the same way you'd comment. Enter a reason for the status
-change in the comment box, and then click the dropdown button to the right of
-the "Comment" button. Click the new status you want applied, and that's it.
+status of the request using the same interface used for commenting. Enter a
+reason for the status change in the comment box, click the dropdown button to
+the right of the "Comment" button, and finally click the new status you want
+applied.
 
 .. image:: images/approving.png
 
 If you missed something and need to add or void a modifier, or even change the
-base payout, you can set approved (but not paid) requests back to evaluating.
+base payout, you can set approved (but not yet paid) requests back to
+evaluating.
 
 .. image:: images/evaluating.png
 
-Finally, you can see a list of completed (paid of rejected) requests by
+Finally, you can see a list of completed (paid or rejected) requests by
 clicking the "Completed" link at the top of the screen.
 
 .. image:: images/list_completed.png
