@@ -84,3 +84,28 @@ Finally, you can see a list of completed (paid or rejected) requests by
 clicking the "Completed" link at the top of the screen.
 
 .. image:: images/list_completed.png
+
+Paying Out Requests
+*******************
+
+TODO
+
+Administering Divisions
+***********************
+
+A fresh installation of EVE-SRP will not have any divisions configured, so
+one of the first actions after installation should be to configure divisions.
+If you have either the global administrator or a divisional administrator
+permission, you will have a "Divisions" button at the top of the screen.
+
+.. image:: images/list_divisions.png
+
+To add a division, click the "Add Division" button, enter a name on the form,
+then click the "Create Division" button. Afterwards you will be taken to the
+administration page for the new division. To grant a permission to a group,
+enter the group name then click the "Add Group" button. The process for adding
+users is identical. User and group names are case sensitive!
+
+.. image:: images/division_detail.png
+
+To revoke privileges to a user or group, click the "X" in the "Remove" column.
