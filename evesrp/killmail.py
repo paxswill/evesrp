@@ -15,7 +15,7 @@ class Killmail(object):
             except AttributeError:
                 pass
             except KeyError:
-                pass
+                setattr(self, attr, None)
         super(Killmail, self).__init__(**kwargs)
 
     def __str__(self):
