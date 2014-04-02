@@ -24,9 +24,10 @@ replacement hulls.
 
 .. toctree::
    :maxdepth: 2
+   :includehidden:
 
    users
-   authentication
+   devel
 
 
 
