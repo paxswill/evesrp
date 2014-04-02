@@ -13,10 +13,11 @@ class Killmail(object):
                 'url', 'value'):
             try:
                 setattr(self, attr, kwargs[attr])
-            except AttributeError:
-                pass
             except KeyError:
-                setattr(self, attr, None)
+                try:
+                    setattr(self, attr, None)
+                except AttributeError:
+                    pass
         super(Killmail, self).__init__(**kwargs)
 
     def __str__(self):
