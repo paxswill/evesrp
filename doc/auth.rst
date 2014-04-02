@@ -1,5 +1,5 @@
-Authentication in EVE-SRP
-=========================
+Authentication
+==============
 
 Authentication in EVE-SRP was designed from the start to allow for multiple
 different authentication systems and to make it easy to integrate it with an

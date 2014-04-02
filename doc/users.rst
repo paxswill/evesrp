@@ -1,5 +1,5 @@
-Users
-=====
+User Guide
+==========
 
 Logging in and Submitting Requests
 **********************************
