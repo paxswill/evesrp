@@ -16,11 +16,11 @@ from wtforms.fields.html5 import URLField, DecimalField
 from wtforms.widgets import HiddenInput
 from wtforms.validators import InputRequired, ValidationError, AnyOf, URL
 
-from . import app, auth_methods, db, requests_session, killmail_sources
-from .auth import SubmitRequestsPermission, ReviewRequestsPermission, \
+from .. import app, auth_methods, db, requests_session, killmail_sources
+from ..auth import SubmitRequestsPermission, ReviewRequestsPermission, \
         PayoutRequestsPermission, admin_permission
-from .auth.models import User, Group, Division, Pilot
-from .models import Request, Modifier, Action
+from ..auth.models import User, Group, Division, Pilot
+from ..models import Request, Modifier, Action
 
 
 @app.route('/')
