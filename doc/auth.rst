@@ -1,14 +1,16 @@
 Authentication
 ==============
 
+.. py:currentmodule:: evesrp.auth
+
 Authentication in EVE-SRP was designed from the start to allow for multiple
 different authentication systems and to make it easy to integrate it with an
 existing authentication system.
 
 As an exercise in how to write your own authentication plugin, let's write one
 that doesn't rely on an external service. There are four classes to override
-for your authentication plugin, :py:class:`User`, :py:class:`Group`,
-:py:class:`AuthPlugin` and :py:class:`AuthForm`.
+for your authentication plugin, :py:class:`~models.User`, :py:class:`~models.Group`,
+:py:class:`~models.AuthPlugin` and :py:class:`~models.AuthForm`.
 
 Let's start with subclassing :py:class:`User`. This class is mapped to an SQL
 table using SQLAlchemy's declarative extension (more specifically, the
@@ -114,3 +116,48 @@ the GET and POST HTTP verbs. ::
                 self.login_user(user)
                 return redirect(url_for('index'))
             return render_template('form.html', form=form)
+
+API Documentation
+*****************
+
+.. py:module:: evesrp.auth
+
+.. autoclass:: AuthMethod
+   :members: form, login, view, login_user
+
+.. py:currentmodule:: evesrp.auth.models
+
+.. autoclass:: User
+   :members: name, admin, individual_divisions, requests, actions, pilots,\
+      authmethod, divisions, has_permission
+
+.. autoclass:: Pilot
+   :members: name, user, requests
+
+.. autoclass:: Group
+   :members: name, users, divisions, authmethod
+
+.. autoclass:: Division
+   :members: name, requests
+
+.. py:module:: evesrp.auth.testauth
+
+.. autoclass:: TestAuth
+   :members: __init__, login
+
+.. autoclass:: TestAuthUser
+   :members: auth_id, __init__
+
+.. autoclass:: TestAuthGroup
+   :members: auth_id, description, __init__
+
+.. py:module:: evesrp.auth.bravecore
+
+.. autoclass:: BraveCore
+   :members: __init__, login, view
+
+.. autoclass:: BraveCoreUser
+   :members: token
+
+.. autoclass:: BraveCoreGroup
+   :members: core_id, description
