@@ -1,163 +1,19 @@
 from collections import OrderedDict
-from urllib.parse import urlparse
-import re
 
-from flask import render_template, redirect, url_for, request, abort, jsonify,\
-        flash, Markup, session
+from flask import render_template, abort, url_for, flash, Markup, request,\
+    redirect
 from flask.views import View
-from flask.ext.login import login_user, login_required, logout_user, \
-        current_user
+from flask.ext.login import login_required, current_user
 from flask.ext.wtf import Form
-from flask.ext.principal import identity_changed, AnonymousIdentity
-from sqlalchemy.orm.exc import NoResultFound
-from wtforms.fields import StringField, PasswordField, SelectField, \
-        SubmitField, TextAreaField, HiddenField
+from wtforms.fields import SelectField, SubmitField, TextAreaField, HiddenField
 from wtforms.fields.html5 import URLField, DecimalField
-from wtforms.widgets import HiddenInput
-from wtforms.validators import InputRequired, ValidationError, AnyOf, URL
+from wtforms.validators import InputRequired, AnyOf, URL
 
-from . import app, auth_methods, db, requests_session, killmail_sources
-from .auth import SubmitRequestsPermission, ReviewRequestsPermission, \
+from .. import app, db, killmail_sources
+from ..models import Request, Modifier, Action
+from ..auth import SubmitRequestsPermission, ReviewRequestsPermission, \
         PayoutRequestsPermission, admin_permission
-from .auth.models import User, Group, Division, Pilot
-from .models import Request, Modifier, Action
-
-
-@app.route('/')
-@login_required
-def index():
-    return render_template('base.html')
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    forms = []
-    for auth_method in auth_methods:
-        prefix = auth_method.__class__.__name__.lower()
-        form = auth_method.form()
-        forms.append((auth_method, form(prefix=prefix)))
-    print(forms)
-    if request.method == 'POST':
-        for auth_tuple in forms:
-            if auth_tuple[1].submit.data:
-                auth_method, form = auth_tuple
-                break
-        else:
-            abort(400)
-        if form.validate():
-            return auth_method.login(form)
-    return render_template('login.html', forms=forms)
-
-
-@app.route('/login/<string:auth_method>/', methods=['GET', 'POST'])
-def auth_method_login(auth_method):
-    method_map = dict(map(lambda m: (m.__class__.__name__.lower(), m)))
-    return method_map[auth_method].view()
-
-
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    for key in ('identity.name', 'identity.auth_type'):
-        session.pop(key, None)
-    identity_changed.send(app, identity=AnonymousIdentity())
-    return redirect(url_for('index'))
-
-
-@app.route('/division')
-@login_required
-@admin_permission.require()
-def list_divisions():
-    return render_template('divisions.html', divisions=Division.query.all())
-
-
-class AddDivisionForm(Form):
-    name = StringField('Division Name', validators=[InputRequired()])
-    submit = SubmitField('Create Division')
-
-
-@app.route('/division/add', methods=['GET', 'POST'])
-@login_required
-@admin_permission.require()
-def add_division():
-    form = AddDivisionForm()
-    if form.validate_on_submit():
-        division = Division(form.name.data)
-        db.session.add(division)
-        db.session.commit()
-        return redirect(url_for('division_detail', division_id=division.id))
-    return render_template('form.html', form=form)
-
-
-@app.route('/division/<division_id>')
-@login_required
-@admin_permission.require()
-def division_detail(division_id):
-    division = Division.query.get_or_404(division_id)
-    return render_template('division_detail.html', division=division)
-
-
-@app.route('/division/<division_id>/<permission>')
-@login_required
-@admin_permission.require()
-def division_permission(division_id, permission):
-    division = Division.query.get_or_404(division_id)
-    users = []
-    for user in division.permissions[permission].individuals:
-        user_dict = {
-                'name': user.name,
-                'id': user.id
-                }
-        users.append(user_dict)
-    groups = []
-    for group in division.permissions[permission].groups:
-        group_dict = {
-                'name': group.name,
-                'id': group.id,
-                'size': len(group.individuals)
-                }
-        groups.append(group_dict)
-    return jsonify(name=division.name,
-            groups=groups,
-            users=users)
-
-
-@app.route('/division/<division_id>/<permission>/add/', methods=['POST'])
-@login_required
-@admin_permission.require()
-def division_add_entity(division_id, permission):
-    division = Division.query.get_or_404(division_id)
-    if request.form['entity_type'] == 'user':
-        entity = User.query.filter_by(name=request.form['name']).first()
-    elif request.form['entity_type'] == 'group':
-        entity = Group.query.filter_by(name=request.form['name']).first()
-    else:
-        return abort(400)
-    if entity is None:
-        flash("Cannot find a {} named '{}'.".format(
-            request.form['entity_type'], request.form['name']),
-            category='error')
-    else:
-        division.permissions[permission].add(entity)
-        db.session.commit()
-    return redirect(url_for('division_detail', division_id=division_id))
-
-
-@app.route('/division/<division_id>/<permission>/<entity>/<entity_id>/delete')
-@login_required
-@admin_permission.require()
-def division_delete_entity(division_id, permission, entity, entity_id):
-    division = Division.query.get_or_404(division_id)
-    if entity == 'user':
-        entity = User.query.get_or_404(entity_id)
-    elif entity == 'group':
-        entity = Group.query.get_or_404(entity_id)
-    else:
-        return abort(400)
-    division.permissions[permission].remove(entity)
-    db.session.commit()
-    return redirect(url_for('division_detail', division_id=division_id))
+from ..auth.models import Division, Pilot
 
 
 class RequestListing(View):
@@ -276,13 +132,13 @@ def submit_request():
         srp_request = Request.query.get(mail.kill_id)
         if srp_request is None:
             division = Division.query.get(form.division.data)
-            srp_request = Request(current_user, mail.url, form.details.data,
-                    mail.kill_id, division)
-            srp_request.ship_type = mail.ship
+            srp_request = Request(current_user, form.details.data, division,
+                    mail)
             srp_request.pilot = pilot
             db.session.add(srp_request)
             db.session.commit()
-            return redirect(url_for('request_detail', request_id=srp_request.id))
+            return redirect(url_for('request_detail',
+                request_id=srp_request.id))
         else:
             flash("This kill has already been submitted", 'warning')
             return redirect(url_for('request_detail',

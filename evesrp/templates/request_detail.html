@@ -7,6 +7,8 @@
     <dl class="dl-horizontal">
       <dt>Lossmail</dt>
       <dd><a href="{{ request.killmail_url }}">{{ request.id }}</a></dd>
+      <dt>Time of Loss</dt>
+      <dd>{{ request.kill_timestamp.strftime('%d %b %Y %H:%M') }}</dd>
       <dt>Division</dt>
       <dd>{{ request.division.name }}</dd>
       <dt>Details</dt>
@@ -16,7 +18,9 @@
       <dt>Pilot</dt>
       <dd>{{ request.pilot.name }}</dd>
       <dt>Corporation</dt>
-      <dd>{{ request.pilot.corp }}</dd>
+      <dd>{{ request.corporation }}</dd>
+      <dt>Alliance</dt>
+      <dd>{{ request.alliance|default(' ') }}
       <dt>Ship</dt>
       <dd>{{ request.ship_type }}</dd>
       <dt>Status</dt>

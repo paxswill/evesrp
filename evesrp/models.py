@@ -102,7 +102,10 @@ class Request(db.Model, AutoID, Timestamped):
     killmail_url = db.Column(db.String(512), nullable=False)
     pilot_id = db.Column(db.Integer, db.ForeignKey('pilot.id'), nullable=False)
     pilot = db.relationship('Pilot', back_populates='requests')
-    ship_type = db.Column(db.String(75), nullable=False)
+    corporation = db.Column(db.String(150), nullable=False, index=True)
+    alliance = db.Column(db.String(150), nullable=True, index=True)
+    ship_type = db.Column(db.String(75), nullable=False, index=True)
+    kill_timestamp = db.Column(DateTime, nullable=False, index=True)
     # Same as Modifer.value, base_payout is the coefficient to 10^6 a.k.a in
     # millions
     base_payout = db.Column(db.Float, default=0.0)
@@ -154,9 +157,12 @@ class Request(db.Model, AutoID, Timestamped):
     def finalized(self):
         return self.status in ('paid', 'rejected')
 
-    def __init__(self, submitter, killmail_url, details, id_, division):
-        self.submitter = submitter
-        self.killmail_url = killmail_url
-        self.details = details
-        self.id = id_
+    def __init__(self, submitter, details, division, killmail):
         self.division = division
+        self.details = details
+        self.submitter = submitter
+        # Pull basically everything else from the killmail object
+        # The base Killmail object has an iterator defined that returns tuples
+        # of Request attributes and values for those attributes
+        for attr, value in killmail:
+            setattr(self, attr, value)

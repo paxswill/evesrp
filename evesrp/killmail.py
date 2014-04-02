@@ -1,3 +1,6 @@
+import datetime as dt
+import time
+from decimal import Decimal
 from functools import partial
 import re
 import sys
@@ -9,19 +12,30 @@ import requests
 class Killmail(object):
     def __init__(self, **kwargs):
         for attr in ('kill_id', 'ship_id', 'ship', 'pilot_id', 'pilot',
-                'corp_id', 'corp', 'alliance_id', 'alliance', 'verified'):
+                'corp_id', 'corp', 'alliance_id', 'alliance', 'verified',
+                'url', 'value', 'timestamp'):
             try:
                 setattr(self, attr, kwargs[attr])
-            except AttributeError:
-                pass
             except KeyError:
-                pass
+                try:
+                    setattr(self, attr, None)
+                except AttributeError:
+                    pass
         super(Killmail, self).__init__(**kwargs)
 
     def __str__(self):
         return "{kill_id}: {pilot} lost a {ship}. Verified: {verified}.".\
                 format(kill_id=self.kill_id, pilot=self.pilot, ship=self.ship,
                         verified=self.verified)
+
+    def __iter__(self):
+        yield ('id', self.kill_id)
+        yield ('ship_type', self.ship)
+        yield ('corporation', self.corp)
+        yield ('alliance', self.alliance)
+        yield ('killmail_url', self.url)
+        yield ('base_payout', self.value)
+        yield ('kill_timestamp', self.timestamp)
 
 
 class RequestsSessionMixin(object):
@@ -136,6 +150,14 @@ class ZKillmail(Killmail, RequestsSessionMixin):
         self.alliance_id = victim['allianceID']
         self.alliance = victim['allianceName']
         self.ship_id = victim['shipTypeID']
+        # For consistency, store self.value in millions. Decimal is being used
+        # for precision at large values.
+        value = Decimal(json['zkb']['totalValue'])
+        self.value = value / 1000000
+        # Parse the timestamp
+        time_struct = time.strptime(json['killTime'], '%Y-%m-%d %H:%M:%S')
+        self.timestamp = dt.datetime(*(time_struct[0:6]),
+                tzinfo=dt.timezone.utc)
 
     @property
     def verified(self):
@@ -183,4 +205,9 @@ class CRESTMail(Killmail, RequestsSessionMixin):
         self.alliance = alliance['name']
         self.ship_id = ship['id']
         self.ship = ship['name']
+        # CREST Killmails are always verified
         self.verified = True
+        # Parse the timestamp
+        time_struct = time.strptime(json['killTime'], '%Y.%m.%d %H:%M:%S')
+        self.timestamp = dt.datetime(*(time_struct[0:6]),
+                tzinfo=dt.timezone.utc)
