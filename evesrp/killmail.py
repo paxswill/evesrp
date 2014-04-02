@@ -1,3 +1,4 @@
+from decimal import Decimal
 from functools import partial
 import re
 import sys
@@ -146,6 +147,10 @@ class ZKillmail(Killmail, RequestsSessionMixin):
         self.alliance_id = victim['allianceID']
         self.alliance = victim['allianceName']
         self.ship_id = victim['shipTypeID']
+        # For consistency, store self.value in millions. Decimal is being used
+        # for precision at large values.
+        value = Decimal(json['zkb']['totalValue'])
+        self.value = value / 1000000
 
     @property
     def verified(self):
