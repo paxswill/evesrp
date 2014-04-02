@@ -104,7 +104,8 @@ class Request(db.Model, AutoID, Timestamped):
     pilot = db.relationship('Pilot', back_populates='requests')
     corporation = db.Column(db.String(150), nullable=False, index=True)
     alliance = db.Column(db.String(150), nullable=True, index=True)
-    ship_type = db.Column(db.String(75), nullable=False)
+    ship_type = db.Column(db.String(75), nullable=False, index=True)
+    kill_timestamp = db.Column(DateTime, nullable=False, index=True)
     # Same as Modifer.value, base_payout is the coefficient to 10^6 a.k.a in
     # millions
     base_payout = db.Column(db.Float, default=0.0)
