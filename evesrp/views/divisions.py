@@ -1,4 +1,4 @@
-from flask import url_for, render_template, redirect, abort, flash
+from flask import url_for, render_template, redirect, abort, flash, request
 from flask.ext.login import login_required
 from flask.ext.wtf import Form
 from wtforms.fields import StringField, SubmitField
