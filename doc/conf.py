@@ -34,6 +34,7 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
+    'sphinx.ext.intersphinx',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -99,6 +100,12 @@ pygments_style = 'sphinx'
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
 
+# -- Interphinx setup -------------------
+
+intersphinx_mapping = {
+    'principal': ('https://pythonhosted.org/Flask-Principal/', None),
+    'login': ('https://flask-login.readthedocs.org/en/latest/', None),
+}
 
 # -- Options for HTML output ----------------------------------------------
 
