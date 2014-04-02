@@ -55,6 +55,6 @@ def _config_killmails():
 
 # Views setup
 from . import views
-from .views import divisions
+from .views import divisions, login
 
 login_manager.login_view = 'login'
