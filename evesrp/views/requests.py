@@ -1,6 +1,7 @@
 from collections import OrderedDict
 
-from flask import render_template, abort, url_for, flash, Markup, request
+from flask import render_template, abort, url_for, flash, Markup, request,\
+    redirect
 from flask.views import View
 from flask.ext.login import login_required, current_user
 from flask.ext.wtf import Form
