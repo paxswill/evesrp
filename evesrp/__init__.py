@@ -10,8 +10,6 @@ from flask.ext.principal import Principal
 requests_session = requests.Session()
 
 app = Flask('evesrp')
-# SQLALCHEMY_DATABASE_URI gets set by the Heroku extension frmo the
-# DATABASE_URL environment variable
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 principal = Principal(app)
