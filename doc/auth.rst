@@ -123,41 +123,41 @@ API Documentation
 .. py:module:: evesrp.auth
 
 .. autoclass:: AuthMethod
-   :members: form, login, view, login_user
+    :members: form, login, view, login_user
 
 .. py:currentmodule:: evesrp.auth.models
 
 .. autoclass:: User
-   :members: name, admin, individual_divisions, requests, actions, pilots,\
-      authmethod, divisions, has_permission
+    :members: name, admin, individual_divisions, requests, actions, pilots,\
+        authmethod, divisions, has_permission
 
 .. autoclass:: Pilot
-   :members: name, user, requests
+    :members: name, user, requests
 
 .. autoclass:: Group
-   :members: name, users, divisions, authmethod
+    :members: name, users, divisions, authmethod
 
 .. autoclass:: Division
-   :members: name, requests
+    :members: name, requests
 
 .. py:module:: evesrp.auth.testauth
 
 .. autoclass:: TestAuth
-   :members: __init__, login
+    :members: __init__, login
 
 .. autoclass:: TestAuthUser
-   :members: auth_id, __init__
+    :members: auth_id, __init__
 
 .. autoclass:: TestAuthGroup
-   :members: auth_id, description, __init__
+    :members: auth_id, description, __init__
 
 .. py:module:: evesrp.auth.bravecore
 
 .. autoclass:: BraveCore
-   :members: __init__, login, view
+    :members: __init__, login, view
 
 .. autoclass:: BraveCoreUser
-   :members: token
+    :members: token
 
 .. autoclass:: BraveCoreGroup
-   :members: core_id, description
+    :members: core_id, description

@@ -23,11 +23,11 @@ fitting requirements, and in lieu of payouts you may have someone hand out
 replacement hulls.
 
 .. toctree::
-   :maxdepth: 2
-   :includehidden:
+    :maxdepth: 2
+    :includehidden:
 
-   users
-   devel
+    users
+    devel
 
 
 
