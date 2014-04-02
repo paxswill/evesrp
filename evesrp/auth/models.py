@@ -41,18 +41,18 @@ class User(db.Model, AutoID):
             collection_class=attribute_mapped_collection('permission'),
             back_populates='individuals')
 
-    #: Map of :py:class:`Division's this user has been specifically granted
+    #: Map of :py:class:`Division` s this user has been specifically granted
     #: permissions in. Keys are one of the permissions values.
     individual_divisions = association_proxy('individual_permissions',
             'division')
 
-    #: :py:class:`Request`s this user has submitted.
+    #: :py:class:`Request` s this user has submitted.
     requests = db.relationship(Request, back_populates='submitter')
 
-    #: :py:class:`Action`s this user has performed on requests.
+    #: :py:class:`Action` s this user has performed on requests.
     actions = db.relationship(Action, back_populates='user')
 
-    #: :py:class:`Pilot`s associated with this user.
+    #: :py:class:`Pilot` s associated with this user.
     pilots = db.relationship('Pilot', back_populates='user',
             collection_class=set)
 
@@ -209,7 +209,7 @@ class Group(db.Model, AutoID):
     #: Polymorphic discriminator column
     group_type = db.Column(db.String(128), nullable=False)
 
-    #: :py:class:`User`s that belong to this group.
+    #: :py:class:`User` s that belong to this group.
     users = db.relationship(User, secondary=users_groups, backref='groups',
             collection_class=set)
 
@@ -219,7 +219,7 @@ class Group(db.Model, AutoID):
             collection_class=attribute_mapped_collection('permission'),
             back_populates='groups')
 
-    #: :py:class:`Division`s this group has been granted permissions to.
+    #: :py:class:`Division` s this group has been granted permissions to.
     divisions = association_proxy('permissions', 'division')
 
     @declared_attr
