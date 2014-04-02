@@ -35,10 +35,27 @@ class AuthMethod(object):
         pass
 
     def view(self):
+        """Optional method for providing secondary views.
+
+        :py:func:`evesrp.views.auth_method_login` is configured to allow both
+        GET and POST requests, and will call this method as soon as it is known
+        which auth method is meant to be called. The path for this view is
+        ``/login/self.__class__.__name__.lower()/``, and can be generated with
+        ``url_for('auth_method_login',
+        auth_method=self.__class__.__name__.lower())``.
+        """
         return redirect(url_for('login'))
 
     @staticmethod
     def login_user(user):
+        """Signal to the authentication systems that a new user has logged in.
+
+        Handles sending the :py:data:`flask.ext.principal.identity_changed`
+        signal and calling :py:func:`flask.ext.login.login_user` for you.
+
+        :param user: The user that has been authenticated and is logging in.
+        :type user: :py:class:`~models.User`
+        """
         flask_login.login_user(user)
         identity_changed.send(current_app._get_current_object(),
                 identity=Identity(user.id))
