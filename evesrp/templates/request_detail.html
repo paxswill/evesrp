@@ -16,7 +16,9 @@
       <dt>Pilot</dt>
       <dd>{{ request.pilot.name }}</dd>
       <dt>Corporation</dt>
-      <dd>{{ request.pilot.corp }}</dd>
+      <dd>{{ request.corporation }}</dd>
+      <dt>Alliance</dt>
+      <dd>{{ request.alliance|default(' ') }}
       <dt>Ship</dt>
       <dd>{{ request.ship_type }}</dd>
       <dt>Status</dt>

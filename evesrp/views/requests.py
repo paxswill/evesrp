@@ -131,13 +131,13 @@ def submit_request():
         srp_request = Request.query.get(mail.kill_id)
         if srp_request is None:
             division = Division.query.get(form.division.data)
-            srp_request = Request(current_user, mail.url, form.details.data,
-                    mail.kill_id, division)
-            srp_request.ship_type = mail.ship
+            srp_request = Request(current_user, form.details.data, division,
+                    mail)
             srp_request.pilot = pilot
             db.session.add(srp_request)
             db.session.commit()
-            return redirect(url_for('request_detail', request_id=srp_request.id))
+            return redirect(url_for('request_detail',
+                request_id=srp_request.id))
         else:
             flash("This kill has already been submitted", 'warning')
             return redirect(url_for('request_detail',

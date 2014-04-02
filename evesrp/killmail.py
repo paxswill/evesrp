@@ -9,7 +9,8 @@ import requests
 class Killmail(object):
     def __init__(self, **kwargs):
         for attr in ('kill_id', 'ship_id', 'ship', 'pilot_id', 'pilot',
-                'corp_id', 'corp', 'alliance_id', 'alliance', 'verified'):
+                'corp_id', 'corp', 'alliance_id', 'alliance', 'verified',
+                'url', 'value'):
             try:
                 setattr(self, attr, kwargs[attr])
             except AttributeError:
@@ -22,6 +23,14 @@ class Killmail(object):
         return "{kill_id}: {pilot} lost a {ship}. Verified: {verified}.".\
                 format(kill_id=self.kill_id, pilot=self.pilot, ship=self.ship,
                         verified=self.verified)
+
+    def __iter__(self):
+        yield ('id', self.kill_id)
+        yield ('ship_type', self.ship)
+        yield ('corporation', self.corp)
+        yield ('alliance', self.alliance)
+        yield ('killmail_url', self.url)
+        yield ('base_payout', self.value)
 
 
 class RequestsSessionMixin(object):
