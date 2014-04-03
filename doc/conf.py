@@ -105,6 +105,7 @@ pygments_style = 'sphinx'
 intersphinx_mapping = {
     'principal': ('https://pythonhosted.org/Flask-Principal/', None),
     'login': ('https://flask-login.readthedocs.org/en/latest/', None),
+    'sqlalchemy': ('http://docs.sqlalchemy.org/en/rel_0_9/', None),
 }
 
 # -- Options for HTML output ----------------------------------------------
