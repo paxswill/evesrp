@@ -7,6 +7,8 @@ import sys
 from urllib.parse import urlparse, urlunparse, quote
 
 import requests
+from sqlalchemy import create_engine, Table, MetaData
+from sqlalchemy.sql import select
 
 
 class Killmail(object):
@@ -47,44 +49,40 @@ class RequestsSessionMixin(object):
         super(RequestsSessionMixin, self).__init__(**kwargs)
 
 
-class SQLShipNameMixin(object):
+def SQLShipMixin(*args, **kwargs):
+    """Class factory for mixin classes to retrieve ship names from a database.
 
-    select_stmt = {
-        'qmark':
-            'SELECT typeName FROM invTypes WHERE invTypes.typeID=?;',
-        'numeric':
-            'SELECT typeName FROM invTypes WHERE invTypes.typeID=:1;',
-        'named':
-            'SELECT typeName FROM invTypes WHERE invTypes.typeID=:type',
-        'format':
-            'SELECT typeName FROM invTypes WHERE invTypes.typeID=%s;',
-        'pyformat':
-            'SELECT typeName FROM invTypes WHERE invTypes.typeID=%(type);'
-    }
+    Uses SQLAlchemy internally for SQL operations so as to make it usable on as
+    many platforms as possible. The arguments passed to this function are
+    passed directly to :py:func:`sqlalchemy.create_engine`, so feel free to use
+    whatver arguemtns you wish. As long as the database has an ``invTypes``
+    table with ``typeID`` and ``typeName`` columns and there's a DBAPI driver
+    supported by SQLAlchemy, this mixin should work.
+    """
+    class _SQLMixin(object):
+        engine = create_engine(*args, **kwargs)
+        metadata = MetaData(bind=engine)
+        invTypes = Table('invTypes', metadata, autoload=True)
 
+        def __init__(self, *args, **kwargs):
+            super(_SQLMixin, self).__init__(*args, **kwargs)
 
-    def __init__(self, driver=None, connect_args=None, **kwargs):
-        if driver is not None:
-            self.__class__.driver = driver
-        if connect_args is not None:
-            self.__class.connect_args = connect_args
-        super(SQLShipNameMixin, self).__init__(**kwargs)
+        @property
+        def ship(self):
+            conn = self.engine.connect()
+            # Construct the select statement
+            sel = select([self.invTypes.c.typeName])
+            sel = sel.where(self.invTypes.c.typeID == self.ship_id)
+            sel = sel.limit(1)
+            # Get the results
+            result = conn.execute(sel)
+            row = result.fetchone()
+            # Cleanup
+            result.close()
+            conn.close()
+            return row[0]
 
-    @property
-    def ship(self):
-        con = self.driver.connect(self.connect_args)
-        cursor = con.cursor()
-        module = sys.modules[cursor.__class__.__module__]
-        # Attempt to support as many DB backend as possible
-        if module.paramstyle in ('qmark', 'format', 'numeric'):
-            results = cursor.execute(
-                    self.select_stmt[module.paramstyle], (self.ship_id,))
-        elif module.paramstyle in ('named', 'pyformat'):
-            results = cursor.execute(self.select_stmt[module.paramstyle],
-                    {'type': self.ship_id})
-        result = results.fetchone()[0]
-        con.close()
-        return result
+    return _SQLMixin
 
 
 class EveMDShipNameMixin(RequestsSessionMixin):
