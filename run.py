@@ -1,14 +1,10 @@
 #!/usr/bin/env python
 from evesrp import app
-from evesrp.killmail import CRESTMail, ZKillmail, SQLShipNameMixin
-import sqlite3
+from evesrp.killmail import CRESTMail, ZKillmail, SQLShipMixin
 
 import config
 
-SQLShipNameMixin.driver = sqlite3
-SQLShipNameMixin.connect_args = 'rubicon.sqlite'
-
-class SQLZKillmail(ZKillmail, SQLShipNameMixin): pass
+class SQLZKillmail(ZKillmail, SQLShipMixin('sqlite:///rubicon.sqlite')): pass
 
 app.config.from_object(config.Development)
 app.config['USER_AGENT_EMAIL'] = 'paxswill@paxswill.com'
