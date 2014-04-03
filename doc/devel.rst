@@ -5,3 +5,4 @@ Developers Guide to EVE-SRP
 
     auth
     killmail
+    views

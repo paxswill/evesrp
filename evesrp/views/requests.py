@@ -22,9 +22,22 @@ class RequestListing(View):
         return 'list_requests.html'
 
     def requests(self, division_id=None):
+        """Returns a list :py:class:`~.models.Request`\s belonging to
+        the specified :py:class:`~.models.Division`, or all divisions if
+        ``None``. Must be implemented by subclasses, as this is an abstract
+        method.
+
+        :param division_id int: ID number of a Division, or ``None``.
+        :returns: Requests
+        :rtype: iterable
+        """
         raise NotImplementedError()
 
     def dispatch_request(self, division_id=None):
+        """Returns the response to requests.
+
+        Part of the :py:class:`flask.views.View` interface.
+        """
         return render_template(self.template,
                 requests=self.requests(division_id))
 
