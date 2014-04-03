@@ -16,7 +16,7 @@ along with the ID numbers for each. As CREST killmail links are API verified as
 a matter of course, the :py:attr:`~evesrp.killmail.Killmail.verified` attribute
 is permanently set to ``True``. :py:class:`~evesrp.killmail.ZKillmail` is a
 near-complete implementation. The zKillboard API does not return the ship type
-name, only the ID. To proved the name lookup, there are a pair of mixin classes
+name, only the ID. To provide the name lookup, there are a pair of mixin classes
 that can provide :py:attr:`~evesrp.killmail.Killmail.ship` given
 :py:attr:`~evesrp.killmail.Killmail.ship_id` exists.
 :py:class:`~evesrp.killmail.EveMDShipNameMixin` will look up the ship name
