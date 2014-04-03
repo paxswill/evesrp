@@ -17,6 +17,10 @@ from ..auth.models import Division, Pilot
 
 
 class RequestListing(View):
+    """Abstract class for lists of :py:class:`~evesrp.models.Request`\s.
+    """
+
+    #: The template to use for listing requests
     template = 'list_requests.html'
 
     def requests(self, division_id=None):
