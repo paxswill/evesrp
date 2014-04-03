@@ -41,3 +41,25 @@ use it to provide the :py:attr:`ship` attribute.::
     SQLShipNameMixin.connect_args = 'rubicon.sqlite'
 
     class SQLZKillmail(ZKillmail, SQLShipNameMixin): pass
+
+API
+***
+
+.. py:module:: evesrp.killmail
+
+.. autoclass:: Killmail
+    :members:
+
+.. autoclass:: ZKillmail
+    :members:
+
+.. autoclass:: CRESTMail
+    :members:
+
+.. autoclass:: RequestsSessionMixin
+    :members:
+
+.. autoclass:: EveMDShipNameMixin
+    :members:
+
+.. autofunction:: SQLShipMixin
