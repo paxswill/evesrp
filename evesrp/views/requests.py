@@ -17,9 +17,7 @@ from ..auth.models import Division, Pilot
 
 
 class RequestListing(View):
-    @property
-    def template(self):
-        return 'list_requests.html'
+    template = 'list_requests.html'
 
     def requests(self, division_id=None):
         raise NotImplementedError()
@@ -30,9 +28,7 @@ class RequestListing(View):
 
 
 class SubmittedRequestListing(RequestListing):
-    @property
-    def template(self):
-        return 'list_submit.html'
+    template = 'list_submit.html'
 
     def requests(self, division_id=None):
         if division_id is not None:
