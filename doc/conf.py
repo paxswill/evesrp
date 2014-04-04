@@ -110,6 +110,10 @@ intersphinx_mapping = {
     'python3': ('https://docs.python.org/3/', None),
 }
 
+# -- Autodoc configuration --------------
+
+autodoc_default_flags = ['members', 'special-members']
+
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for

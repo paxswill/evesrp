@@ -48,21 +48,18 @@ API
 .. py:module:: evesrp.killmail
 
 .. autoclass:: Killmail
-    :members:
+    :exclude-members: __weakref__
 
 .. autoclass:: ZKillmail
-    :members:
     :show-inheritance:
 
 .. autoclass:: CRESTMail
-    :members:
     :show-inheritance:
 
 .. autoclass:: RequestsSessionMixin
-    :members:
+    :exclude-members: __weakref__
 
 .. autoclass:: EveMDShipNameMixin
-    :members:
     :show-inheritance:
 
 .. autofunction:: SQLShipMixin

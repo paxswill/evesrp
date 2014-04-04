@@ -9,10 +9,7 @@ Login
 *****
 
 .. automodule:: evesrp.views.login
-    :members:
 
 .. automodule:: evesrp.views.divisions
-    :members:
 
 .. automodule:: evesrp.views.requests
-    :members:
