@@ -52,14 +52,17 @@ API
 
 .. autoclass:: ZKillmail
     :members:
+    :show-inheritance:
 
 .. autoclass:: CRESTMail
     :members:
+    :show-inheritance:
 
 .. autoclass:: RequestsSessionMixin
     :members:
 
 .. autoclass:: EveMDShipNameMixin
     :members:
+    :show-inheritance:
 
 .. autofunction:: SQLShipMixin
