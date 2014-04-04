@@ -23,7 +23,7 @@ name, only the ID, so to provide the name lookup there are a pair of mixin
 classes that can provide :py:attr:`Killmail.ship` given
 :py:attr:`Killmail.ship_id` exists.
 :py:class:`EveMDShipNameMixin` will look up the ship name
-using the `eve-marketdata.com <http://eve-marketdata.com/>` API. This can be a
+using the `eve-marketdata.com <http://eve-marketdata.com/>`_ API. This can be a
 slow process, and is dependent on the web server having access to their
 website. :py:func:`~evesrp.killmail.SQLShipMixin` provides an alternative
 method of mapping ship ID numbers to names. If you already have a database with
