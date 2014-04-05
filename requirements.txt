@@ -1,4 +1,4 @@
--e git+https://github.com/bravecollective/api.git#egg=Brave_Core_Service_API_Bindings
+-e git+https://github.com/bravecollective/api.git@develop#egg=Brave_Core_Service_API_Bindings
 Flask==0.10.1
 Flask-Login==0.2.10
 Flask-Principal==0.4.0
