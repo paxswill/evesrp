@@ -3,7 +3,7 @@ from . import AuthMethod
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm.collections import attribute_mapped_collection, collection
-from ..models import Action, Modifier, Request, AutoID
+from ..models import Action, Modifier, Request, AutoID, Timestamped
 
 
 users_groups = db.Table('users_groups', db.Model.metadata,
@@ -44,6 +44,10 @@ class User(db.Model, AutoID):
     actions = db.relationship(Action, back_populates='user')
     pilots = db.relationship('Pilot', back_populates='user',
             collection_class=set)
+    notes = db.relationship('Note', back_populates='user',
+            order_by='desc(Note.timestamp)', foreign_keys='Note.user_id')
+    notes_made = db.relationship('Note', back_populates='noter',
+            order_by='desc(Note.timestamp)', foreign_keys='Note.noter_id')
 
     @declared_attr
     def __tablename__(cls):
@@ -122,6 +126,18 @@ class User(db.Model, AutoID):
 
     def get_id(self):
         return str(self.id)
+
+
+class Note(db.Model, AutoID, Timestamped):
+    __tablename__ = 'note'
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship(User, back_populates='notes',
+            foreign_keys=[user_id])
+    content = db.Column(db.Text, nullable=False)
+    noter_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    noter = db.relationship(User, back_populates='notes_made',
+            foreign_keys=[noter_id])
+
 
 
 class Pilot(db.Model, AutoID):
