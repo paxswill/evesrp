@@ -1,7 +1,9 @@
-from ecdsa import SigningKey, VerifyingKey
+from ecdsa import SigningKey, VerifyingKey, NIST256p
 from brave.api.client import SignedAuth, API
 from sqlalchemy.orm.exc import NoResultFound
 from flask import flash, url_for, redirect, abort, current_app
+from hashlib import sha256
+from binascii import unhexlify
 
 from .. import db, auth_methods, requests_session
 from . import AuthMethod, AuthForm
@@ -29,40 +31,53 @@ class BraveCore(AuthMethod):
             try:
                 url = config['CORE_AUTH_URL']
             except KeyError:
-                url = 'https://core.bravecollective.net/api'
+                url = 'https://core.bravecollective.net/'
 
         if isinstance(client_key, SigningKey):
+            # Is the value a key object?
             priv = client_key
         elif hasattr(client_key, 'read'):
+            # Is the value a file opject to a PEM encoded key?
             priv_pem = client_key.read()
-            priv = SigningKey.from_pem(priv_pem)
+            priv = SigningKey.from_pem(priv_pem, hashfunc=sha256)
         else:
-            with open(client_key, 'r') as f:
-                priv_pem = f.read()
-                priv = SigningKey.from_pem(priv_pem)
+            try:
+                # Is the value the filename of a PEM encoded key?
+                with open(client_key, 'r') as f:
+                    priv_pem = f.read()
+                    priv = SigningKey.from_pem(priv_pem, hashfunc=sha256)
+            except FileNotFoundError:
+                # Is the value a hex encoded key?
+                priv = SigningKey.from_string(unhexlify(client_key),
+                        curve=NIST256p, hashfunc=sha256)
 
+        # GO through the entire process again for the public key
         if isinstance(server_key, VerifyingKey):
             pub = server_key
         elif hasattr(server_key, 'read'):
             pub_pem = server_key.read()
             pub = VerifyingKey.from_pem(pub_pem)
         else:
-            with open(server_key, 'r') as f:
-                pub_pem = f.read()
-                pub = VerifyingKey.from_pem(pub_pem)
+            try:
+                with open(server_key, 'r') as f:
+                    pub_pem = f.read()
+                    pub = VerifyingKey.from_pem(pub_pem)
+            except FileNotFoundError:
+                pub = VerifyingKey.from_string(unhexlify(server_key),
+                        curve=NIST256p, hashfunc=sha256)
 
         self.api = API(url, identifier, priv, pub,
-                requests_session)
+                requests_session).api
 
     def login(self, form):
         # Redirect to Core for the authorization token. Give URLs to return to.
         # Sidenote: At this time, Brave has nearly 0 API documentation. The
         # kinda-sorta hidden TEST Auth API documentation is more complete.
-        result_url = url_for('auth_method_login',
+        result_url = url_for('auth_method_login', _external=True,
                 auth_method=self.__class__.__name__.lower())
-        core_url = self.api.core.authorize(success=result_url,
+        response = self.api.core.authorize(success=result_url,
                 failure=result_url)
-        print(core_url)
+        core_url = response['location']
         return redirect(core_url)
 
     def list_groups(self, user=None):
