@@ -125,19 +125,19 @@ API Documentation
 .. autoclass:: AuthMethod
     :exclude-members: __weakref__
 
-.. py:currentmodule:: evesrp.auth.models
-
 .. autoclass:: User
     :exclude-members: individual_permissions, permissions, user_type
-
-.. autoclass:: Pilot
-    :exclude-members: user_id
 
 .. autoclass:: Group
     :exclude-members: group_type, permissions
 
 .. autoclass:: Division
     :exclude-members: permissions
+
+.. py:module:: evesrp.auth.models
+
+.. autoclass:: Pilot
+    :exclude-members: user_id
 
 .. py:module:: evesrp.auth.testauth
 
