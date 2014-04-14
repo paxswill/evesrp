@@ -46,13 +46,13 @@ class User(db.Model, AutoID):
     individual_divisions = association_proxy('individual_permissions',
             'division')
 
-    #: :py:class:`Request` s this user has submitted.
+    #: :py:class:`~.Request` s this user has submitted.
     requests = db.relationship(Request, back_populates='submitter')
 
-    #: :py:class:`Action` s this user has performed on requests.
+    #: :py:class:`~.Action` s this user has performed on requests.
     actions = db.relationship(Action, back_populates='user')
 
-    #: :py:class:`Pilot` s associated with this user.
+    #: :py:class:`~.Pilot` s associated with this user.
     pilots = db.relationship('Pilot', back_populates='user',
             collection_class=set)
 
@@ -187,7 +187,8 @@ class Pilot(db.Model, AutoID):
     def __init__(self, user, name, id_):
         """Create a new Pilot instance.
 
-        :param User user: The user this character belpongs to.
+        :param user: The user this character belpongs to.
+        :type user: :py:class:`~.User`
         :param str name: The name of this character.
         :param int id_: The CCP-given characterID number.
         """
@@ -238,7 +239,7 @@ class Group(db.Model, AutoID):
     @classmethod
     def authmethod(cls):
         """:returns: The AuthMethod subclass for this group class.
-        :rtype: class
+        :rtype: :py:func:`type`
         """
         return AuthMethod
 

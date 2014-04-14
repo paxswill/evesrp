@@ -24,12 +24,13 @@ class RequestListing(View):
     template = 'list_requests.html'
 
     def requests(self, division_id=None):
-        """Returns a list :py:class:`~.models.Request`\s belonging to
-        the specified :py:class:`~.models.Division`, or all divisions if
+        """Returns a list :py:class:`~.Request`\s belonging to
+        the specified :py:class:`~.Division`, or all divisions if
         ``None``. Must be implemented by subclasses, as this is an abstract
         method.
 
-        :param int division_id: ID number of a Division, or ``None``.
+        :param int division_id: ID number of a :py:class:`~.Division`, or
+            ``None``.
         :returns: :py:class:`~.models.Request`\s
         :rtype: iterable
         """

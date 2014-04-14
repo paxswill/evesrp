@@ -37,7 +37,7 @@ class AuthMethod(object):
     def view(self):
         """Optional method for providing secondary views.
 
-        :py:func:`evesrp.views.auth_method_login` is configured to allow both
+        :py:func:`evesrp.views.login.auth_method_login` is configured to allow both
         GET and POST requests, and will call this method as soon as it is known
         which auth method is meant to be called. The path for this view is
         ``/login/self.__class__.__name__.lower()/``, and can be generated with

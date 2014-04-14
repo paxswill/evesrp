@@ -9,8 +9,8 @@ existing authentication system.
 
 As an exercise in how to write your own authentication plugin, let's write one
 that doesn't rely on an external service. There are four classes to override
-for your authentication plugin, :py:class:`~models.User`, :py:class:`~models.Group`,
-:py:class:`~models.AuthPlugin` and :py:class:`~models.AuthForm`.
+for your authentication plugin, :py:class:`User`, :py:class:`Group`,
+:py:class:`AuthMethod` and :py:class:`AuthForm`.
 
 Let's start with subclassing :py:class:`User`. This class is mapped to an SQL
 table using SQLAlchemy's declarative extension (more specifically, the
@@ -27,7 +27,7 @@ to make life easier for us later. ::
 
 
     class LocalUser(User):
-        id = db.Column(db.Integer, db.ForeignKey('user.id', primary_key=True)
+        id = db.Column(db.Integer, db.ForeignKey('user.id', primary_key=True))
         password = db.Column(db.LargeBinary(256), nullable=False)
         salt = db.Column(db.LargeBinary(256), nullable=False)
 
@@ -56,13 +56,14 @@ authentication method class to use for the actual login process.
 subclass to customize themselves. The :py:meth:`AuthMethod.__init__` method is
 passed an instance of the configuration dictionary to allow greater flexibility
 in configuration. :py:meth:`AuthMethod.form` returns the :py:class:`AuthForm`
-subclass that represents the necessary fields. :py:meth:`AuthMethod.login` is
+subclass that represents the necessary fields. :py:meth:`AuthMethod.login`
 performs the actual login process. As part of this, it is passed an instance of
 the class given by :py:meth:`AuthMethod.form` with the submitted data via the
-form argument. Finally, some login methods need a secondary view, for example,
+``form`` argument. Finally, some login methods need a secondary view, for
+example,
 OpenID needs a destination to redirect to and process the arguments passed to
 along with the redirect. The :py:meth:`AuthMethod.view` method is an optional
-method for AuthMethod subclasses to implement to process/present a secondary
+method AuthMethod subclasses can implement to process/present a secondary
 view. It can be accessed at /login/<AuthMethod.__name__.lower()> and accepts
 the GET and POST HTTP verbs. ::
 
