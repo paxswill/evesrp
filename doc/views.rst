@@ -10,6 +10,12 @@ Login
 
 .. automodule:: evesrp.views.login
 
+Divisions
+*********
+
 .. automodule:: evesrp.views.divisions
+
+Requests
+********
 
 .. automodule:: evesrp.views.requests
