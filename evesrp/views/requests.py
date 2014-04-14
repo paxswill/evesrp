@@ -29,8 +29,8 @@ class RequestListing(View):
         ``None``. Must be implemented by subclasses, as this is an abstract
         method.
 
-        :param division_id int: ID number of a Division, or ``None``.
-        :returns: Requests
+        :param int division_id: ID number of a Division, or ``None``.
+        :returns: :py:class:`~.models.Request`\s
         :rtype: iterable
         """
         raise NotImplementedError()
@@ -45,6 +45,12 @@ class RequestListing(View):
 
 
 class SubmittedRequestListing(RequestListing):
+    """A requests listing with a button for submitting requests at the bottom.
+
+    It will show all requests the current user has submitted. The button links
+    to :py:func:`submit_request`.
+    """
+
     template = 'list_submit.html'
 
     def requests(self, division_id=None):
@@ -63,7 +69,22 @@ app.add_url_rule('/submit/<int:division_id>', view_func=submit_view)
 
 
 class PermissionRequestListing(RequestListing):
+    """Show all requests that the current user has permissions to access.
+
+    This is used for the various permission-specific views.
+    """
+
     def __init__(self, permissions, filter_func):
+        """Create a :py:class:`PermissionRequestListing` for the given
+        permissions.
+
+        The requests can be further filtered by providing a callable via
+        ``filter_func``.
+
+        :param tuple permissions: The permissions to filter by
+        :param callable filter_func: A callable taking a request as an argument
+            and returning ``True`` or ``False`` if it should be included.
+        """
         self.permissions = permissions
         self.filter_func = filter_func
 
@@ -87,6 +108,16 @@ class PermissionRequestListing(RequestListing):
 
 
 def register_perm_request_listing(endpoint, path, permissions, filter_func):
+    """Utility function for creating :py:class:`PermissionRequestListing`
+    views.
+
+    :param str endpoint: The name of the view
+    :param str path: The URL path for the view
+    :param tuple permissions: Passed to
+        :py:meth:`PermissionRequestListing.__init__`
+    :param callable filter_func: Passed to
+        :py:meth:`PermissionRequestListing.__init__`
+    """
     view = PermissionRequestListing.as_view(endpoint, permissions=permissions,
             filter_func=filter_func)
     view = login_required(view)
@@ -112,6 +143,14 @@ class RequestForm(Form):
 @app.route('/submit/request', methods=['GET', 'POST'])
 @login_required
 def submit_request():
+    """Submit a :py:class:`~.models.Request`\.
+
+    Displayes a form for submitting a request and then processes the submitted
+    information. Verifies that the user has the appropriate permissions to
+    submit a request for the chosen division and that the killmail URL given is
+    valid. Also enforces that the user submitting this requests controls the
+    character from the killmail and prevents duplicate requests.
+    """
     if not current_user.has_permission('submit'):
         abort(403)
     form = RequestForm()
@@ -194,6 +233,46 @@ class ActionForm(Form):
 @app.route('/request/<int:request_id>', methods=['GET', 'POST'])
 @login_required
 def request_detail(request_id):
+    """Renders the detail page for a :py:class:`~.models.Request`\.
+
+    This function is currently used for `all` request detail views, including
+    the reviewers and payers as well as the submitting user. It also enforces a
+    the evaluation workflow, which can be seen in the diagram below. In
+    addition, the payout amount can only be changed (either directly or through
+    modifiers) while the request is in the 'evaluating' state.
+
+    :param int request_id: the ID of the request
+
+    .. digraph:: request_workflow
+
+        rankdir="LR";
+
+        sub [label="submitted", shape=plaintext];
+
+        node [style="dashed, filled"];
+
+        eval [label="evaluating", fillcolor="#fcf8e3"];
+        rej [label="rejected", style="solid, filled", fillcolor="#f2dede"];
+        app [label="approved", fillcolor="#d9edf7"];
+        inc [label="incomplete", fillcolor="#f2dede"];
+        paid [label="paid", style="solid, filled", fillcolor="#dff0d8"];
+
+        sub -> eval;
+        eval -> rej [label="R"];
+        eval -> app [label="R"];
+        eval -> inc [label="R"];
+        rej -> eval [label="R"];
+        inc -> eval [label="R, S"];
+        inc -> rej [label="R"];
+        app -> paid [label="P"];
+        app -> eval [label="R"];
+        paid -> eval [label="P"];
+        paid -> app [label="P"];
+
+    R means a reviewer can make that change, S means the submitter can make
+    that change, and P means payers can make that change. Solid borders are
+    terminal states.
+    """
     srp_request = Request.query.get(request_id)
     if request.method == 'POST':
         submit_perm = SubmitRequestsPermission(srp_request)
@@ -245,6 +324,8 @@ def request_detail(request_id):
                     else:
                         flash("Insufficient permissions.", 'error')
             if form.id_.data == 'action':
+                # For serious, look at the diagram in the documentation before
+                # tinkering around in here.
                 type_ = form.type_.data
                 invalid = False
                 if srp_request.status == 'evaluating':

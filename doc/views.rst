@@ -19,3 +19,4 @@ Requests
 ********
 
 .. automodule:: evesrp.views.requests
+    :exclude-members: submit_view
