@@ -13,6 +13,10 @@ from ..auth.models import Division, User, Group
 @login_required
 @admin_permission.require()
 def list_divisions():
+    """Show a page listing all divisions.
+
+    Accesible only to administrators.
+    """
     return render_template('divisions.html', divisions=Division.query.all())
 
 
@@ -25,6 +29,10 @@ class AddDivisionForm(Form):
 @login_required
 @admin_permission.require()
 def add_division():
+    """Present a form for adding a view and also process that form.
+
+    Only accesible to adminstrators.
+    """
     form = AddDivisionForm()
     if form.validate_on_submit():
         division = Division(form.name.data)
@@ -38,6 +46,15 @@ def add_division():
 @login_required
 @admin_permission.require()
 def division_detail(division_id):
+    """Generate a page showing the details of a division.
+
+    Shows which groups and individuals have been granted permissions to each
+    division.
+
+    Only accesible to administrators.
+
+    :param int division_id: The ID number of the division
+    """
     division = Division.query.get_or_404(division_id)
     return render_template('division_detail.html', division=division)
 
@@ -71,6 +88,16 @@ def division_permission(division_id, permission):
 @login_required
 @admin_permission.require()
 def division_add_entity(division_id, permission):
+    """Utility path for granting permissions to an entity in a division.
+
+    Redirects to the :py:func:`detail page <division_detail>` for the division
+    being operated on.
+
+    Only accesible to admins.
+
+    :param int division_id: The ID of the division
+    :param str permission: The permission being granted
+    """
     division = Division.query.get_or_404(division_id)
     if request.form['entity_type'] == 'user':
         entity = User.query.filter_by(name=request.form['name']).first()
@@ -92,6 +119,18 @@ def division_add_entity(division_id, permission):
 @login_required
 @admin_permission.require()
 def division_delete_entity(division_id, permission, entity, entity_id):
+    """Utility path for removing a permission for an entity.
+
+    Redirects to the :py:func:`details <division_detail>` for the division
+    being operated on.
+
+    Accesible only to admins.
+
+    :param int division_id: The division ID number
+    :param str permission: The permission to remove
+    :param str entity: What kind of entity to remove ('group' or 'user')
+    :param int entity_id: The ID number of the user or group to remove
+    """
     division = Division.query.get_or_404(division_id)
     if entity == 'user':
         entity = User.query.get_or_404(entity_id)

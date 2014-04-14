@@ -7,7 +7,7 @@ from . import db
 
 
 class AutoID(object):
-    """Mixin adding an integer column named 'id'."""
+    """Mixin adding a primary key integer column named 'id'."""
     id = db.Column(db.Integer, primary_key=True)
 
 
@@ -26,14 +26,29 @@ class Action(db.Model, AutoID, Timestamped):
     With the exception of the comment action (which does nothing), actions
     change the state of a Request.
     """
+
     __tablename__ = 'action'
+
+    #: The action being taken. Must be one of: ``'evaluating'``,
+    #: ``'approved'``, ``'paid'``, ``'rejected'``, ``'incomplete'``,
+    #: or ``'comment'``.
     type_ = db.Column(db.Enum('evaluating', 'approved', 'paid',
             'rejected', 'incomplete', 'comment', name='action_type'),
             nullable=False)
+
+    #: The ID of the :py:class:`Request` this action applies to.
     request_id = db.Column(db.Integer, db.ForeignKey('request.id'))
+
+    #: The :py:class:`Request` this action applies to.
     request = db.relationship('Request', back_populates='actions')
+
+    #: The ID of the :py:class:`~.User` who made this action.
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    #: The :py:class:`~.User` who made this action.
     user = db.relationship('User', back_populates='actions')
+
+    #: Any additional notes for this action.
     note = db.Column(db.Text)
 
     def __init__(self, request, user, note):
@@ -52,28 +67,50 @@ class Modifier(db.Model, AutoID, Timestamped):
     tank" or "15% alliance logistics bonus". They can also be voided at a later
     date. The user who voided a modifier and when they did are recorded.
     """
+
     __tablename__ = 'modifier'
+
+    #: What kind of modifier this is, either ``'absolute'`` or
+    #: ``'percentage'``.
     type_ = db.Column(db.Enum('absolute', 'percentage',
             name='modifier_type'), nullable=False)
+
+    #: The ID of the :py:class:`Request` this modifier applies to.
     request_id = db.Column(db.Integer, db.ForeignKey('request.id'))
+
+    #: The :py:class:`Request` this modifier applies to.
     request = db.relationship('Request', back_populates='modifiers')
-    # The data type of the value column is not set in stone yet. It might
-    # change as I think about whether it should be a float or maybe
-    # decimal, or maybe even integer.
-    # For now, if the modifier_type is absolute, it should be treated as the
-    # coefficient of a value in scientific notation raised to the 6th power. In
-    # short, in millions.
+
+    #: The value of this modifier. If this is an absolute modifier (
+    #: :py:attr:`type_` is ``'absolute'``) this is in millions of ISK. If
+    #: :py:attr:`type_` is ``'percentage'``, this is the percentage of the
+    #: bonus or deduction. If it's a bonus, still only set the value between
+    #: 1.0 and 0.0. For example: a 20% bonus would be 0.20.
     value = db.Column(db.Float)
+
+    #: The ID of the :py:class`~.User` who added this modifier.
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    #: The :py:class:`~.User` who added this modifier.
     user = db.relationship('User', foreign_keys=[user_id])
+
+    #: Any notes explaining this modification.
     note = db.Column(db.Text)
+
+    #: The ID of the :py:class:`~.User` who voided this modifier (if voided).
     voided_user_id = db.Column(db.Integer, db.ForeignKey('user.id'),
             nullable=True)
+
+    #: The :py:class:`~.User` who voided this modifier if it has been voided.
     voided_user = db.relationship('User', foreign_keys=[voided_user_id])
+
+    #: If this modifier has been voided, this will be the timestamp of when it
+    #: was voided.
     voided_timestamp = db.Column(DateTime)
 
     @property
     def voided(self):
+        """Boolean of whether this modifier has been voided or not."""
         return self.voided_user is not None and \
                 self.voided_timestamp is not None
 
@@ -83,36 +120,83 @@ class Modifier(db.Model, AutoID, Timestamped):
         self.note = note
 
     def void(self, user):
+        """Mark this modifier as void.
+
+        :param user: The user voiding this modifier
+        :type user: :py:class:`~.User`
+        """
         self.voided_user = user
         self.voided_timestamp = dt.datetime.utcnow()
 
 
 class Request(db.Model, AutoID, Timestamped):
     """Requests represent SRP requests."""
+
     __tablename__ = 'request'
+
+    #: The ID of the :py:class:`~.User` who submitted this request.
     submitter_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    #: The :py:class:`~.User` who submitted this request.
     submitter = db.relationship('User', back_populates='requests')
+
+    #: The ID of the :py:class`~.Division` this request was submitted to.
     division_id = db.Column(db.Integer, db.ForeignKey('division.id'),
             nullable=False)
+
+    #: The :py:class`~.Division` this request was submitted to.
     division = db.relationship('Division', back_populates='requests')
+
+    #: A list of :py:class:`Action`\s that have been applied to this request,
+    #: sorted in the order they were applied.
     actions = db.relationship('Action', back_populates='request',
             order_by='desc(Action.timestamp)')
+
+    #: A list of all :py:class:`Modifier`\s that have been applied to this
+    #: request, regardless of wether they have been voided or not. They're
+    #: sorted in the order they were added.
     modifiers = db.relationship('Modifier', back_populates='request',
             order_by='desc(Modifier.timestamp)')
+
+    #: The URL of the source killmail.
     killmail_url = db.Column(db.String(512), nullable=False)
+
+    #: The ID of the :py:class:`~.Pilot` for the killmail.
     pilot_id = db.Column(db.Integer, db.ForeignKey('pilot.id'), nullable=False)
+
+    #: The :py:class:`~.Pilot` for the killmail this request is for.
     pilot = db.relationship('Pilot', back_populates='requests')
+
+    #: The corporation of the :py:attr:`pilot` at the time of the killmail.
     corporation = db.Column(db.String(150), nullable=False, index=True)
+
+    #: The alliance of the :py:attr:`pilot` at the time of the killmail.
     alliance = db.Column(db.String(150), nullable=True, index=True)
+
+    #: The type of ship that was destroyed.
     ship_type = db.Column(db.String(75), nullable=False, index=True)
+
+    #: The date and time of when the ship was destroyed.
     kill_timestamp = db.Column(DateTime, nullable=False, index=True)
-    # Same as Modifer.value, base_payout is the coefficient to 10^6 a.k.a in
-    # millions
+
+    #: The base payout for this request in millions of ISK.
+    #: :py:attr:`modifiers` apply to this value.
     base_payout = db.Column(db.Float, default=0.0)
+
     details = db.Column(db.Text)
 
     @property
     def payout(self):
+        """The resulting payout taking all active :py:attr:`modifiers` into
+        account.
+
+        The return value is an internal class that will return different
+        representations depending on the type it is being coerced to.
+        :py:class:`Strings <str>` will be formatted accroding to the current
+        locale with thousands separators, :py:func:`float`\s will be in
+        millions of ISK, and :py:func:`ints`\s will be the total ISK value
+        (equivalent to the string representation).
+        """
         payout = self.base_payout
         for modifier in self.modifiers:
             if modifier.voided:
@@ -145,6 +229,12 @@ class Request(db.Model, AutoID, Timestamped):
 
     @property
     def status(self):
+        """The current status of this request.
+
+        The status is modified by :py:class:`Action`\s. The default status for
+        requests with no actions is ``'evaluating'``. Possible values are the
+        same as :py:attr:`Action.type_` with the exception of ``'comment'``.
+        """
         for action in self.actions:
             if action.type_ == 'comment':
                 continue
@@ -155,9 +245,22 @@ class Request(db.Model, AutoID, Timestamped):
 
     @property
     def finalized(self):
+        """If this request is in a finalized status (``'paid'`` or
+        ``'rejected'``).
+        """
         return self.status in ('paid', 'rejected')
 
     def __init__(self, submitter, details, division, killmail):
+        """Create a :py:class:`Request`.
+
+        :param submitter: The user submitting this request
+        :type submitter: :py:class:`~.User`
+        :param str details: Supporting details for this request
+        :param division: The division this request is being submitted to
+        :type division: :py:class:`~.Division`
+        :param killmail: The killmail this request pertains to
+        :type killmail: :py:class:`~.Killmail`
+        """
         self.division = division
         self.details = details
         self.submitter = submitter

@@ -12,7 +12,85 @@ from sqlalchemy.sql import select
 
 
 class Killmail(object):
+    """Base killmail representation.
+
+    .. py:attribute:: kill_id
+
+        The ID integer of this killmail. Used by most killboards and by CCP to
+        refer to killmails.
+
+    .. py:attribute:: ship_id
+
+        The typeID integer of for the ship lost for this killmail.
+
+    .. py:attribute:: ship
+
+        The human readable name of the ship lost for this killmail.
+
+    .. py:attribute:: pilot_id
+
+        The ID number of the pilot who lost the ship. Referred to by CCP as
+        ``characterID``.
+
+    .. py:attribute:: pilot
+
+        The name of the pilot who lost the ship.
+
+    .. py:attribute:: corp_id
+
+        The ID number of the corporation :py:attr:`pilot` belonged to at the
+        time this kill happened.
+
+    .. py:attribute:: corp
+
+        The name of the corporation referred to by :py:attr:`corp_id`.
+
+    .. py:attribute:: alliance_id
+
+        The ID number of the alliance :py:attr:`corp` belonged to at the time
+        of this kill, or ``None`` if the corporation wasn't in an alliance at
+        the time.
+
+    .. py:attribute:: alliance
+
+        The name of the alliance referred to by :py:attr:`alliance_id`.
+
+    .. py:attribute:: url
+
+        A URL for viewing this killmail's information later. Typically an
+        online killboard such as `zKillboard <https://zkillboard.com>`, but
+        other kinds of links may be used.
+
+    .. py:attribute:: value
+
+        The extimated ISK loss for the ship destroyed in this killmail. This is
+        an optional attribute, and is ``None`` if unsupported. If this
+        attribute is set, it should be a floating point number (or something
+        like it, like :py:class:`decimal.Decimal`) representing millions of
+        ISK.
+
+    .. py:attribute:: timestamp
+
+        The date and time that this kill occured as a
+        :py:class:`datetime.datetime` object (with a UTC timezone).
+
+    .. py:attribute:: verified
+
+        Whether or not this killmail has been API verified (or more accurately,
+        if it is to be trusted when making a
+        :py:class:`~evesrp.models.Request`.
+    """
+
     def __init__(self, **kwargs):
+        """Initialize a :py:class:`Killmail` with ``None`` for all attributes.
+
+        All subclasses of this class, (and all mixins designed to be used with
+        it) must call ``super().__init__(**kwargs)`` to ensure all
+        initialization is done.
+
+        :param: keyword arguments corresponding to attributes.
+        """
+        super(Killmail, self).__init__(**kwargs)
         for attr in ('kill_id', 'ship_id', 'ship', 'pilot_id', 'pilot',
                 'corp_id', 'corp', 'alliance_id', 'alliance', 'verified',
                 'url', 'value', 'timestamp'):
@@ -23,7 +101,6 @@ class Killmail(object):
                     setattr(self, attr, None)
                 except AttributeError:
                     pass
-        super(Killmail, self).__init__(**kwargs)
 
     def __str__(self):
         return "{kill_id}: {pilot} lost a {ship}. Verified: {verified}.".\
@@ -31,6 +108,13 @@ class Killmail(object):
                         verified=self.verified)
 
     def __iter__(self):
+        """Iterate over the attributes of this killmail.
+
+        Yields tuples in the form ``('<name>', <value>)``. This is used by
+        :py:meth:`evesrp.models.Request.__init__` to initialize its data
+        quickly. The `<name>` in the returned tuples is the name of the
+        attribute on the :py:class:`~evesrp.models.Request`.
+        """
         yield ('id', self.kill_id)
         yield ('ship_type', self.ship)
         yield ('corporation', self.corp)
@@ -41,7 +125,23 @@ class Killmail(object):
 
 
 class RequestsSessionMixin(object):
+    """Mixin for providing a :py:class:`requests.Session`.
+
+    The shared session allows HTTP user agents to be set properly, and for
+    possible connection pooling.
+
+    .. py:attribute:: requests_session
+
+        A :py:class:`~requests.Session` for making HTTP requests.
+    """
     def __init__(self, requests_session=None, **kwargs):
+        """Set up a :py:class:`~requests.Session` for making HTTP requests.
+
+        If an existing session is not provided, one will be created.
+
+        :param requests_session: an existing session to use.
+        :type requests: :py:class:`~requests.Session`
+        """
         if requests_session is None:
             self.requests_session = requests.Session()
         else:
@@ -60,8 +160,16 @@ def SQLShipMixin(*args, **kwargs):
     supported by SQLAlchemy, this mixin should work.
     """
     class _SQLMixin(object):
+        #: The :py:class:`sqlalchemy.engine.Engine` instance for the database.
         engine = create_engine(*args, **kwargs)
+
+        #: The :py:class:`sqlalchemy.MetaData <sqlalchemy.schema.MetaData>`
+        #: instance for the database.
         metadata = MetaData(bind=engine)
+
+        #: The :py:class:`sqlalchemy.Table <sqlalchemy.schema.Table>`
+        #: representing the invTypes table. Column definitions are reflected at
+        #: run time.
         invTypes = Table('invTypes', metadata, autoload=True)
 
         def __init__(self, *args, **kwargs):
@@ -69,6 +177,9 @@ def SQLShipMixin(*args, **kwargs):
 
         @property
         def ship(self):
+            """Looks up the ship name for :py:attr:`~Killmail.ship_id` in an
+            SQL database.
+            """
             conn = self.engine.connect()
             # Construct the select statement
             sel = select([self.invTypes.c.typeName])
@@ -86,11 +197,23 @@ def SQLShipMixin(*args, **kwargs):
 
 
 class EveMDShipNameMixin(RequestsSessionMixin):
+    """Killmail mixin for getting ship names using ship IDs using
+    eve-marketdata.com.
+
+    This method can be a slow method for looking up ship names, but it's fairly
+    reliable.
+    """
     # Yeah, using regexes on XML. Deal with it.
     evemd_regex = re.compile(
             r'<val id="\d+">(?P<ship_name>[A-Za-z0-9]+)</val>')
 
     def __init__(self, user_agent=None, **kwargs):
+        """Setup a :py:class:`Killmail` that looks up ship names from
+        eve-market-data.
+
+        :param user_agent str: Character name (or some other way to contact
+            you).
+        """
         if user_agent is not None or user_agent != '':
             self.user_agent=user_agent
         else:
@@ -99,6 +222,9 @@ class EveMDShipNameMixin(RequestsSessionMixin):
 
     @property
     def ship(self):
+        """Looks up the ship name for :py:attr:`~Killmail.ship_id` using
+        eve-marketdata.com's API.
+        """
         resp = self.requests_session.get(
                 'http://api.eve-marketdata.com/api/type_name.xml', params=
                 {
@@ -113,9 +239,18 @@ class EveMDShipNameMixin(RequestsSessionMixin):
 
 
 class ZKillmail(Killmail, RequestsSessionMixin):
+    """A killmail sourced from a zKillboard based killboard."""
+
     zkb_regex = re.compile(r'/detail/(?P<kill_id>\d+)/?')
 
     def __init__(self, url, **kwargs):
+        """Create a killmail from the given URL.
+
+        :param str url: The URL of the killmail.
+        :raises ValueError: if ``url`` isn't a valid zKillboard killmail.
+        :raises LookupError: if the zKillboard API response is in an unexpected
+            format.
+        """
         super(ZKillmail, self).__init__(**kwargs)
         self.url = url
         match = self.zkb_regex.search(url)
@@ -168,9 +303,18 @@ class ZKillmail(Killmail, RequestsSessionMixin):
 
 
 class CRESTMail(Killmail, RequestsSessionMixin):
+    """A killmail with data sourced from a CREST killmail link."""
+
     crest_regex = re.compile(r'/killmails/(?P<kill_id>\d+)/[0-9a-f]+/')
 
     def __init__(self, url, **kwargs):
+        """Create a killmail from a CREST killmail link.
+
+        :param str url: the CREST killmail URL.
+        :raises ValueError: if ``url`` is not a CREST URL.
+        :raises LookupError: if the CREST API response is in an unexpected
+            format.
+        """
         super(CRESTMail, self).__init__(**kwargs)
         self.url = url
         match = self.crest_regex.search(self.url)
