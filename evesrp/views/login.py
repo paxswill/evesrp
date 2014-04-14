@@ -6,6 +6,11 @@ from .. import app, auth_methods
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """Presents the login form and processes responses from that form.
+
+    When a POST request is recieved, this function passes control to the
+    appropriate :py:meth:`login <evesrp.auth.AuthMethod.login>` method.
+    """
     forms = []
     for auth_method in auth_methods:
         prefix = auth_method.__class__.__name__.lower()
@@ -26,6 +31,11 @@ def login():
 
 @app.route('/login/<string:auth_method>/', methods=['GET', 'POST'])
 def auth_method_login(auth_method):
+    """Trampoline for :py:class:`~evesrp.auth.AuthMethod`\-specific views.
+
+    See :py:meth:`Authmethod.view <evesrp.auth.AuthMethod.view>` for more
+    details.
+    """
     method_map = dict(map(lambda m: (m.__class__.__name__.lower(), m)))
     return method_map[auth_method].view()
 
@@ -33,6 +43,10 @@ def auth_method_login(auth_method):
 @app.route('/logout')
 @login_required
 def logout():
+    """Logs the current user out.
+
+    Redirects to :py:func:`.index`.
+    """
     logout_user()
     for key in ('identity.name', 'identity.auth_type'):
         session.pop(key, None)
