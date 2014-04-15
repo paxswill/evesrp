@@ -19,6 +19,7 @@ db = SQLAlchemy()
 
 def create_app(**kwargs):
     app = Flask('evesrp', **kwargs)
+    app.config.from_object('evesrp.default_config')
 
     db.init_app(app)
 
