@@ -4,12 +4,11 @@ from flask.ext.wtf import Form
 from wtforms.fields import StringField, SubmitField
 from wtforms.validators import InputRequired
 
-from .. import app, db
+from ..models import db
 from ..auth import admin_permission
 from ..auth.models import Division, User, Group
 
 
-@app.route('/division')
 @login_required
 @admin_permission.require()
 def list_divisions():
@@ -25,7 +24,6 @@ class AddDivisionForm(Form):
     submit = SubmitField('Create Division')
 
 
-@app.route('/division/add', methods=['GET', 'POST'])
 @login_required
 @admin_permission.require()
 def add_division():
@@ -41,8 +39,9 @@ def add_division():
         return redirect(url_for('division_detail', division_id=division.id))
     return render_template('form.html', form=form)
 
+add_division.methods = ['GET', 'POST']
 
-@app.route('/division/<division_id>')
+
 @login_required
 @admin_permission.require()
 def division_detail(division_id):
@@ -59,7 +58,6 @@ def division_detail(division_id):
     return render_template('division_detail.html', division=division)
 
 
-@app.route('/division/<division_id>/<permission>')
 @login_required
 @admin_permission.require()
 def division_permission(division_id, permission):
@@ -84,7 +82,6 @@ def division_permission(division_id, permission):
             users=users)
 
 
-@app.route('/division/<division_id>/<permission>/add/', methods=['POST'])
 @login_required
 @admin_permission.require()
 def division_add_entity(division_id, permission):
@@ -114,8 +111,9 @@ def division_add_entity(division_id, permission):
         db.session.commit()
     return redirect(url_for('division_detail', division_id=division_id))
 
+division_add_entity.methods = ['POST']
 
-@app.route('/division/<division_id>/<permission>/<entity>/<entity_id>/delete')
+
 @login_required
 @admin_permission.require()
 def division_delete_entity(division_id, permission, entity, entity_id):

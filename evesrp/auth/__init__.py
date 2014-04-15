@@ -6,11 +6,15 @@ from flask import redirect, url_for, current_app
 from flask.ext.login import current_user
 import flask.ext.login as flask_login
 from flask.ext.principal import Permission, UserNeed, RoleNeed,\
-        identity_loaded, identity_changed, Identity
+        identity_loaded, identity_changed, Identity, Principal
 from flask.ext.wtf import Form
 from wtforms.fields import SubmitField, HiddenField
 
-from .. import app, db, login_manager, principal
+from ..models import db
+from ..views.login import login_manager
+
+
+principal = Principal()
 
 
 class AuthForm(Form):
@@ -114,7 +118,6 @@ class PayoutRequestsPermission(Permission):
 admin_permission = Permission(RoleNeed('admin'))
 
 
-@identity_loaded.connect_via(app)
 def load_user_permissions(sender, identity):
     identity.user = current_user
 

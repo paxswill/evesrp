@@ -2,57 +2,71 @@ import importlib
 import locale
 
 import requests
-from flask import Flask
+from flask import Flask, current_app
+from flask.ext.principal import identity_loaded
 from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.login import LoginManager
-from flask.ext.principal import Principal
+
 
 requests_session = requests.Session()
 
-app = Flask('evesrp')
-db = SQLAlchemy(app)
-login_manager = LoginManager(app)
-principal = Principal(app)
 
 # Set default locale
 locale.setlocale(locale.LC_ALL, '')
 
+
+db = SQLAlchemy()
+
+
+def create_app(**kwargs):
+    app = Flask('evesrp', **kwargs)
+
+    db.init_app(app)
+
+    from .views.login import login_manager
+    login_manager.init_app(app)
+
+    from .auth import principal
+    principal.init_app(app)
+
+    from .views import connect_views
+    connect_views(app)
+
+    from .auth import load_user_permissions
+    identity_loaded.connect(load_user_permissions, app)
+
+    app.before_first_request(_copy_config_to_authmethods)
+    app.before_first_request(_config_requests_session)
+    app.before_first_request(_config_killmails)
+
+    return app
+
+
 # Auth setup
-auth_methods = []
-@app.before_first_request
 def _copy_config_to_authmethods():
-    for method in app.config['AUTH_METHODS']:
+    print("configuring auth methods")
+    current_app.auth_methods = []
+    auth_methods = current_app.auth_methods
+    for method in current_app.config['AUTH_METHODS']:
         module_name, class_name = method.rsplit('.', 1)
         module = importlib.import_module(module_name)
         method_class = getattr(module, class_name)
-        auth_methods.append(method_class(config=app.config))
+        auth_methods.append(method_class(config=current_app.config))
 
 
 # Requests session setup
-user_agent = ''
-@app.before_first_request
 def _config_requests_session():
     try:
-        ua_string = app.config['USER_AGENT_STRING']
+        ua_string = current_app.config['USER_AGENT_STRING']
     except KeyError as outer_exc:
         try:
             ua_string = 'EVE-SRP/0.1 ({})'.format(
-                    app.config['USER_AGENT_EMAIL'])
+                    current_app.config['USER_AGENT_EMAIL'])
         except KeyError as inner_exc:
             raise inner_exc from outer_exc
     requests_session.headers.update({'User-Agent': ua_string})
-    user_agent = ua_string
+    current_app.user_agent = ua_string
 
 
 # Killmail verification
-killmail_sources = []
-@app.before_first_request
 def _config_killmails():
-    killmail_sources.extend(app.config['KILLMAIL_SOURCES'])
-
-
-# Views setup
-from . import views
-from .views import login, divisions, requests
-
-login_manager.login_view = 'login'
+    current_app.killmail_sources = current_app.config['KILLMAIL_SOURCES']

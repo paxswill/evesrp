@@ -1,10 +1,12 @@
-from flask import render_template, url_for, abort, session, redirect, request
-from flask.ext.login import login_required, logout_user
+from flask import render_template, url_for, abort, session, redirect, request,\
+        current_app, g
+from flask.ext.login import login_required, logout_user, LoginManager
 from flask.ext.principal import identity_changed, AnonymousIdentity
 
-from .. import app, auth_methods
 
-@app.route('/login', methods=['GET', 'POST'])
+login_manager = LoginManager()
+
+
 def login():
     """Presents the login form and processes responses from that form.
 
@@ -12,7 +14,7 @@ def login():
     appropriate :py:meth:`login <evesrp.auth.AuthMethod.login>` method.
     """
     forms = []
-    for auth_method in auth_methods:
+    for auth_method in current_app.auth_methods:
         prefix = auth_method.__class__.__name__.lower()
         form = auth_method.form()
         forms.append((auth_method, form(prefix=prefix)))
@@ -28,8 +30,12 @@ def login():
             return auth_method.login(form)
     return render_template('login.html', forms=forms)
 
+login.methods = ['GET', 'POST']
 
-@app.route('/login/<string:auth_method>/', methods=['GET', 'POST'])
+
+login_manager.login_view = 'login'
+
+
 def auth_method_login(auth_method):
     """Trampoline for :py:class:`~evesrp.auth.AuthMethod`\-specific views.
 
@@ -39,8 +45,9 @@ def auth_method_login(auth_method):
     method_map = dict(map(lambda m: (m.__class__.__name__.lower(), m)))
     return method_map[auth_method].view()
 
+auth_method_login.methods = ['GET', 'POST']
 
-@app.route('/logout')
+
 @login_required
 def logout():
     """Logs the current user out.
@@ -50,7 +57,6 @@ def logout():
     logout_user()
     for key in ('identity.name', 'identity.auth_type'):
         session.pop(key, None)
-    identity_changed.send(app, identity=AnonymousIdentity())
+    identity_changed.send(current_app._get_current_object(),
+            identity=AnonymousIdentity())
     return redirect(url_for('index'))
-
-

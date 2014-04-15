@@ -1,7 +1,7 @@
 from collections import OrderedDict
 
 from flask import render_template, abort, url_for, flash, Markup, request,\
-    redirect
+    redirect, current_app
 from flask.views import View
 from flask.ext.login import login_required, current_user
 from flask.ext.wtf import Form
@@ -9,7 +9,7 @@ from wtforms.fields import SelectField, SubmitField, TextAreaField, HiddenField
 from wtforms.fields.html5 import URLField, DecimalField
 from wtforms.validators import InputRequired, AnyOf, URL
 
-from .. import app, db, killmail_sources
+from .. import db
 from ..models import Request, Modifier, Action
 from ..auth import SubmitRequestsPermission, ReviewRequestsPermission, \
         PayoutRequestsPermission, admin_permission
@@ -63,12 +63,6 @@ class SubmittedRequestListing(RequestListing):
             return current_user.requests
 
 
-submit_view = login_required(
-        SubmittedRequestListing.as_view('list_submit_requests'))
-app.add_url_rule('/submit/', view_func=submit_view)
-app.add_url_rule('/submit/<int:division_id>', view_func=submit_view)
-
-
 class PermissionRequestListing(RequestListing):
     """Show all requests that the current user has permissions to access.
 
@@ -108,10 +102,13 @@ class PermissionRequestListing(RequestListing):
         return requests.keys()
 
 
-def register_perm_request_listing(endpoint, path, permissions, filter_func):
+def register_perm_request_listing(app, endpoint, path, permissions,
+        filter_func):
     """Utility function for creating :py:class:`PermissionRequestListing`
     views.
 
+    :param app: The application to add the view to
+    :type app: :py:class:`flask.Flask`
     :param str endpoint: The name of the view
     :param str path: The URL path for the view
     :param tuple permissions: Passed to
@@ -126,14 +123,6 @@ def register_perm_request_listing(endpoint, path, permissions, filter_func):
     app.add_url_rule('{}/<int:division_id>'.format(path), view_func=view)
 
 
-register_perm_request_listing('list_review_requests', '/review/', ('review',),
-        (lambda r: not r.finalized))
-register_perm_request_listing('list_approved_requests', '/pay/', ('pay',),
-        (lambda r: r.status == 'approved'))
-register_perm_request_listing('list_completed_requests', '/complete/',
-        ('review', 'pay'), (lambda r: r.finalized))
-
-
 class RequestForm(Form):
     url = URLField('Killmail URL', validators=[InputRequired(), URL()])
     details = TextAreaField('Details', validators=[InputRequired()])
@@ -141,7 +130,6 @@ class RequestForm(Form):
     submit = SubmitField('Submit')
 
 
-@app.route('/submit/request', methods=['GET', 'POST'])
 @login_required
 def submit_request():
     """Submit a :py:class:`~.models.Request`\.
@@ -161,7 +149,7 @@ def submit_request():
     form.division.choices = choices
     if form.validate_on_submit():
         # validate killmail first
-        for source in killmail_sources:
+        for source in current_app.killmail_sources:
             try:
                 mail = source(url=form.url.data)
             except ValueError as e:
@@ -198,6 +186,8 @@ def submit_request():
                 request_id=srp_request.id))
     return render_template('form.html', form=form)
 
+submit_request.methods = ['GET', 'POST']
+
 
 class ModifierForm(Form):
     id_ = HiddenField(default='modifier')
@@ -231,7 +221,6 @@ class ActionForm(Form):
             'evaluating', 'approved', 'incomplete', 'paid', 'comment'))])
 
 
-@app.route('/request/<int:request_id>', methods=['GET', 'POST'])
 @login_required
 def request_detail(request_id):
     """Renders the detail page for a :py:class:`~.models.Request`\.
@@ -375,3 +364,5 @@ def request_detail(request_id):
             payout_form=PayoutForm(formdata=None),
             action_form=ActionForm(formdata=None),
             void_form=VoidModifierForm(formdata=None))
+
+request_detail.methods = ['GET', 'POST']

@@ -5,7 +5,7 @@ from flask import flash, url_for, redirect, abort, current_app
 from hashlib import sha256
 from binascii import unhexlify
 
-from .. import db, auth_methods, requests_session
+from .. import db, requests_session
 from . import AuthMethod, AuthForm
 from .models import User, Group
 
