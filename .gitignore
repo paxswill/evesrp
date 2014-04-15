@@ -1,2 +1,3 @@
 *.py[oc]
 *.egg*
+*.pem
