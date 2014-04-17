@@ -144,6 +144,13 @@ class User(db.Model, AutoID):
                 return divs
         return _DivProxy(self)
 
+    def __init__(self, name, **kwargs):
+        self.name
+        super(User, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return "{x.__class__.__name__}('{x.name}')".format(x=self)
+
     def has_permission(self, permission):
         """Check if the user can access any division with the given permission
         level.
@@ -212,6 +219,10 @@ class Pilot(db.Model, AutoID):
         self.name = name
         self.id = id_
 
+    def __repr__(self):
+        return "{x.__class__.__name__({x.user}, '{x.name}', {x.id})".format(
+                x=self)
+
 
 class Group(db.Model, AutoID):
     """Base class for a group of users.
@@ -259,6 +270,13 @@ class Group(db.Model, AutoID):
         """
         return AuthMethod
 
+    def __init__(self, name, **kwargs):
+        self.name = name
+        super(Group, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return "{x.__class__.__name__}('{x.name}')".format(x=self)
+
 
 class DivisionPermission(db.Model, AutoID):
     __tablename__ = 'division_perm'
@@ -280,6 +298,10 @@ class DivisionPermission(db.Model, AutoID):
     def __init__(self, division, permission):
         self.permission = permission
         self.division = division
+
+    def __repr__(self):
+        return "{x.__class__.__name__}({x.division}, '{x.permission}')".format(
+                x=self)
 
     def add(self, entity):
         """Add a User, Group, or an iterable of them to this permission.
@@ -337,3 +359,6 @@ class Division(db.Model, AutoID):
         self.name = name
         for perm in ('submit', 'review', 'pay'):
             DivisionPermission(self, perm)
+
+    def __repr__(self):
+        return "{x.__class__.__name__}('{x.name}')".format(x=self)

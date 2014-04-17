@@ -57,6 +57,10 @@ class Action(db.Model, AutoID, Timestamped):
         self.note = note
         self.timestamp = dt.datetime.utcnow()
 
+    def __repr__(self):
+        return "{x.__class__.__name__}({x.request}, {x.user}, {x.type_}".\
+                format(x=self)
+
 
 class Modifier(db.Model, AutoID, Timestamped):
     """Modifiers apply bonuses or penalties to Requests.
@@ -118,6 +122,14 @@ class Modifier(db.Model, AutoID, Timestamped):
         self.request = request
         self.user = user
         self.note = note
+
+    def __repr__(self):
+        if self.type_ == 'absolute':
+            value = "{}M ISK".format(self.value)
+        else:
+            value = "{}%".format(self.value)
+        return """{x.__class__.__name__}({x.request}, {x.user}, {value},
+        {x.voided})""".format(x=self, value=value)
 
     def void(self, user):
         """Mark this modifier as void.
@@ -269,3 +281,7 @@ class Request(db.Model, AutoID, Timestamped):
         # of Request attributes and values for those attributes
         for attr, value in killmail:
             setattr(self, attr, value)
+
+    def __repr__(self):
+        return "{x.__class__.__name__}({x.submitter, {x.division}, {x.id})".\
+                format(x=self)
