@@ -4,6 +4,8 @@
 {% block content %}
 <div class="row">
   <div class="col-md-offset-1 col-md-5">
+    {% block left_col %}
+    {% block info %}
     <dl class="dl-horizontal">
       <dt>Lossmail</dt>
       <dd><a href="{{ request.killmail_url }}" target="_blank">{{ request.id }}</a></dd>
@@ -28,6 +30,8 @@
       <dt>Payout</dt>
       <dd>{{ request.payout }}</dd>
     </dl>
+    {% endblock info %}
+    {% block action_form %}
     <form class="form" method='post'>
       {{ macros.render_input(action_form.id_) }}
       {{ macros.render_input(action_form.type_) }}
@@ -61,6 +65,8 @@
         </div>
       </div>
     </form>
+    {% endblock action_form %}
+    {% block action_list %}
     <div class="list-group">
       {% for action in request.actions %}
       {% with %}
@@ -75,9 +81,13 @@
       {% endwith %}
       {% endfor %}
     </div>
+    {% endblock action_list %}
+    {% endblock left_col %}
   </div>
   <div class="col-md-5">
+    {% block right_col %}
     <dl class="dl-horizontal">
+      {% block set_payout %}
       {% if request.division in current_user.divisions['review'] %}
       <dt>Set Base Payout</dt>
       <dd>
@@ -96,8 +106,11 @@
         </form>
       </dd>
       {% endif %}
+      {% endblock set_payout %}
+      {% block modifiers %}
       <dt>{{ 'Add Modifier' if request.division in current_user.divisions['review'] else 'Modifiers' }}</dt>
       <dd>
+        {% block add_modifier %}
         {% if request.division in current_user.divisions['review'] %}
         <form method="post">
           <fieldset{{ ' disabled'|safe if request.status != 'evaluating' }}>
@@ -120,6 +133,8 @@
           </fieldset>
         </form>
         {% endif %}
+        {% endblock add_modifier %}
+        {% block list_modifiers %}
         <div class="list-group">
           {% for modifier in request.modifiers %}
           <div class="list-group-item">
@@ -166,9 +181,12 @@
           </div>
           {% endfor %}
         </div>
+        {% endblock list_modifiers %}
       </dd>
+      {% endblock modifiers %}
     </dl>
   </div>
+  {% endblock right_col %}
 </div>
 {% endblock content %}
 
