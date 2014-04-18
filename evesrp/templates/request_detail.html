@@ -94,14 +94,7 @@
           {% for modifier in request.modifiers %}
           <div class="list-group-item">
             <div class="list-group-item-heading">
-              {% if not modifier.voided and request.status == 'evaluating' %}
-              <form class="form" method="post" action="{{ url_for('request_detail', request_id=request.id) }}">
-                {{ macros.render_input(void_form.csrf_token) }}
-                {{ macros.render_input(void_form.id_) }}
-                <input class="form-control" id="modifier_id_{{ modifier.id }}" name="modifier_id" type="hidden" value="{{ modifier.id }}">
-                <button class="close" type="submit" name="void_modifier">&times;</button>
-              </form>
-              {% endif %}
+              {% block modifier_header %}
               {{ '<del>'|safe if modifier.voided }}
               {% with %}
                 {% if modifier.value < 0 %}
@@ -121,6 +114,7 @@
                 {% endif %}
               {% endwith %}
               {{ '</del>'|safe if modifier.voided }}
+              {% endblock modifier_header %}
             </div>
             <blockquote class="list-group-item-text blockquote-reverse">
               <p class="list-group-item-text">
