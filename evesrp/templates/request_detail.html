@@ -85,28 +85,8 @@
     {% endblock left_col %}
   </div>
   <div class="col-md-5">
-    {% block right_col %}
     <dl class="dl-horizontal">
-      {% block set_payout %}
-      {% if request.division in current_user.divisions['review'] %}
-      <dt>Set Base Payout</dt>
-      <dd>
-        <form class="form" method="post">
-          <fieldset{{ ' disabled'|safe if request.status != 'evaluating' }}>
-            {{ payout_form.csrf_token() }}
-            {{ payout_form.id_() }}
-            {{ payout_form.value.label(class="sr-only") }}
-            <div class="form-group input-group">
-              {{ payout_form.value(class="form-control", placeholder=payout_form.value.label.text) }}
-              <span class="input-group-btn">
-                <button class="btn btn-default" type="submit">Set</button>
-              </span>
-            </div>
-          </fieldset>
-        </form>
-      </dd>
-      {% endif %}
-      {% endblock set_payout %}
+      {% block right_col %}
       {% block modifiers %}
       <dt>{{ 'Add Modifier' if request.division in current_user.divisions['review'] else 'Modifiers' }}</dt>
       <dd>
@@ -184,9 +164,9 @@
         {% endblock list_modifiers %}
       </dd>
       {% endblock modifiers %}
+      {% endblock right_col %}
     </dl>
   </div>
-  {% endblock right_col %}
 </div>
 {% endblock content %}
 

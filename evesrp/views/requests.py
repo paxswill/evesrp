@@ -360,7 +360,7 @@ def request_detail(request_id):
             print(form.errors)
     # Different templates are used for different roles
     if review_perm.can():
-        template = 'request_detail.html'
+        template = 'request_review.html'
     elif pay_perm.can():
         template = 'request_detail.html'
     elif current_user == srp_request.submitter:

@@ -1,0 +1,21 @@
+{% extends "request_detail.html" %}
+
+{% block right_col %}
+  <dt>Set Base Payout</dt>
+  <dd>
+    <form class="form" method="post">
+      <fieldset{{ ' disabled'|safe if request.status != 'evaluating' }}>
+        {{ payout_form.csrf_token() }}
+        {{ payout_form.id_() }}
+        {{ payout_form.value.label(class="sr-only") }}
+        <div class="form-group input-group">
+          {{ payout_form.value(class="form-control", placeholder=payout_form.value.label.text) }}
+          <span class="input-group-btn">
+            <button class="btn btn-default" type="submit">Set</button>
+          </span>
+        </div>
+      </fieldset>
+    </form>
+  </dd>
+  {{ super() }}
+{% endblock right_col %}
