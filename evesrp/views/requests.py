@@ -264,10 +264,9 @@ def request_detail(request_id):
     terminal states.
     """
     srp_request = Request.query.get(request_id)
+    review_perm = ReviewRequestsPermission(srp_request)
+    pay_perm = PayoutRequestsPermission(srp_request)
     if request.method == 'POST':
-        submit_perm = SubmitRequestsPermission(srp_request)
-        review_perm = ReviewRequestsPermission(srp_request)
-        pay_perm = PayoutRequestsPermission(srp_request)
         if request.form['id_'] == 'modifier':
             form = ModifierForm()
         elif request.form['id_'] == 'payout':
@@ -359,7 +358,16 @@ def request_detail(request_id):
         else:
             # TODO: Actual error handling, probably using flash()
             print(form.errors)
-    return render_template('request_detail.html', request=srp_request,
+    # Different templates are used for different roles
+    if review_perm.can():
+        template = 'request_review.html'
+    elif pay_perm.can():
+        template = 'request_detail.html'
+    elif current_user == srp_request.submitter:
+        template = 'request_detail.html'
+    else:
+        abort(403)
+    return render_template(template, request=srp_request,
             modifier_form=ModifierForm(formdata=None),
             payout_form=PayoutForm(formdata=None),
             action_form=ActionForm(formdata=None),

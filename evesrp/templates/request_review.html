@@ -1,0 +1,57 @@
+{% extends "request_detail.html" %}
+
+{% block right_col %}
+  <dt>Set Base Payout</dt>
+  <dd>
+    <form class="form" method="post">
+      <fieldset{{ ' disabled'|safe if request.status != 'evaluating' }}>
+        {{ payout_form.csrf_token() }}
+        {{ payout_form.id_() }}
+        {{ payout_form.value.label(class="sr-only") }}
+        <div class="form-group input-group">
+          {{ payout_form.value(class="form-control", placeholder=payout_form.value.label.text) }}
+          <span class="input-group-btn">
+            <button class="btn btn-default" type="submit">Set</button>
+          </span>
+        </div>
+      </fieldset>
+    </form>
+  </dd>
+  {{ super() }}
+{% endblock right_col %}
+
+{% block list_modifiers %}
+  <form method="post">
+    <fieldset{{ ' disabled'|safe if request.status != 'evaluating' }}>
+      {{ macros.render_input(modifier_form.csrf_token) }}
+      {{ macros.render_input(modifier_form.id_) }}
+      {{ macros.render_input(modifier_form.type_) }}
+      <div class="form-group input-group">
+        {{ modifier_form.value(class="form-control") }}
+        <div class="input-group-btn">
+          <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Type <span class="caret"></span></button>
+          <ul id="modifier-type" class="dropdown-menu pull-right">
+            <li><a href="#" id="rel-bonus">% Bonus</a></li>
+            <li><a href="#" id="rel-deduct">% Deduction</a></li>
+            <li><a href="#" id="abs-bonus">M ISK Bonus</a></li>
+            <li><a href="#" id="abs-deduct">M ISK Deduction</a></li>
+          </ul>
+        </div>
+      </div>
+      {{ macros.render_input(modifier_form.note) }}
+    </fieldset>
+  </form>
+  {{ super() }}
+{% endblock list_modifiers %}
+
+{% block modifier_header %}
+  {% if not modifier.voided and request.status == 'evaluating' %}
+  <form class="form" method="post" action="{{ url_for('request_detail', request_id=request.id) }}">
+    {{ macros.render_input(void_form.csrf_token) }}
+    {{ macros.render_input(void_form.id_) }}
+    <input class="form-control" id="modifier_id_{{ modifier.id }}" name="modifier_id" type="hidden" value="{{ modifier.id }}">
+    <button class="close" type="submit" name="void_modifier">&times;</button>
+  </form>
+  {% endif %}
+  {{ super () }}
+{% endblock modifier_header %}

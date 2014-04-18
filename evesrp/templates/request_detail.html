@@ -4,6 +4,8 @@
 {% block content %}
 <div class="row">
   <div class="col-md-offset-1 col-md-5">
+    {% block left_col %}
+    {% block info %}
     <dl class="dl-horizontal">
       <dt>Lossmail</dt>
       <dd><a href="{{ request.killmail_url }}" target="_blank">{{ request.id }}</a></dd>
@@ -28,6 +30,8 @@
       <dt>Payout</dt>
       <dd>{{ request.payout }}</dd>
     </dl>
+    {% endblock info %}
+    {% block action_form %}
     <form class="form" method='post'>
       {{ macros.render_input(action_form.id_) }}
       {{ macros.render_input(action_form.type_) }}
@@ -61,6 +65,8 @@
         </div>
       </div>
     </form>
+    {% endblock action_form %}
+    {% block action_list %}
     <div class="list-group">
       {% for action in request.actions %}
       {% with %}
@@ -75,63 +81,20 @@
       {% endwith %}
       {% endfor %}
     </div>
+    {% endblock action_list %}
+    {% endblock left_col %}
   </div>
   <div class="col-md-5">
     <dl class="dl-horizontal">
-      {% if request.division in current_user.divisions['review'] %}
-      <dt>Set Base Payout</dt>
+      {% block right_col %}
+      <dt>Modifiers</dt>
       <dd>
-        <form class="form" method="post">
-          <fieldset{{ ' disabled'|safe if request.status != 'evaluating' }}>
-            {{ payout_form.csrf_token() }}
-            {{ payout_form.id_() }}
-            {{ payout_form.value.label(class="sr-only") }}
-            <div class="form-group input-group">
-              {{ payout_form.value(class="form-control", placeholder=payout_form.value.label.text) }}
-              <span class="input-group-btn">
-                <button class="btn btn-default" type="submit">Set</button>
-              </span>
-            </div>
-          </fieldset>
-        </form>
-      </dd>
-      {% endif %}
-      <dt>{{ 'Add Modifier' if request.division in current_user.divisions['review'] else 'Modifiers' }}</dt>
-      <dd>
-        {% if request.division in current_user.divisions['review'] %}
-        <form method="post">
-          <fieldset{{ ' disabled'|safe if request.status != 'evaluating' }}>
-            {{ macros.render_input(modifier_form.csrf_token) }}
-            {{ macros.render_input(modifier_form.id_) }}
-            {{ macros.render_input(modifier_form.type_) }}
-            <div class="form-group input-group">
-              {{ modifier_form.value(class="form-control") }}
-              <div class="input-group-btn">
-                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Type <span class="caret"></span></button>
-                <ul id="modifier-type" class="dropdown-menu pull-right">
-                  <li><a href="#" id="rel-bonus">% Bonus</a></li>
-                  <li><a href="#" id="rel-deduct">% Deduction</a></li>
-                  <li><a href="#" id="abs-bonus">M ISK Bonus</a></li>
-                  <li><a href="#" id="abs-deduct">M ISK Deduction</a></li>
-                </ul>
-              </div>
-            </div>
-            {{ macros.render_input(modifier_form.note) }}
-          </fieldset>
-        </form>
-        {% endif %}
+        {% block list_modifiers %}
         <div class="list-group">
           {% for modifier in request.modifiers %}
           <div class="list-group-item">
             <div class="list-group-item-heading">
-              {% if not modifier.voided and request.status == 'evaluating' %}
-              <form class="form" method="post" action="{{ url_for('request_detail', request_id=request.id) }}">
-                {{ macros.render_input(void_form.csrf_token) }}
-                {{ macros.render_input(void_form.id_) }}
-                <input class="form-control" id="modifier_id_{{ modifier.id }}" name="modifier_id" type="hidden" value="{{ modifier.id }}">
-                <button class="close" type="submit" name="void_modifier">&times;</button>
-              </form>
-              {% endif %}
+              {% block modifier_header %}
               {{ '<del>'|safe if modifier.voided }}
               {% with %}
                 {% if modifier.value < 0 %}
@@ -151,6 +114,7 @@
                 {% endif %}
               {% endwith %}
               {{ '</del>'|safe if modifier.voided }}
+              {% endblock modifier_header %}
             </div>
             <blockquote class="list-group-item-text blockquote-reverse">
               <p class="list-group-item-text">
@@ -163,10 +127,13 @@
                 <footer>{{ modifier.user.name }} {{ modifier.timestamp.strftime('%d %b %Y @ %H:%M') }}</footer>
               {% endif %}
               </p>
+            </blockquote>
           </div>
           {% endfor %}
         </div>
+        {% endblock list_modifiers %}
       </dd>
+      {% endblock right_col %}
     </dl>
   </div>
 </div>
