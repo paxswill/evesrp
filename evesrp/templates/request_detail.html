@@ -94,7 +94,7 @@
           {% for modifier in request.modifiers %}
           <div class="list-group-item">
             <div class="list-group-item-heading">
-              {% block modifier_header %}
+              {% block modifier_header scoped %}
               {{ '<del>'|safe if modifier.voided }}
               {% with %}
                 {% if modifier.value < 0 %}
