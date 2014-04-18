@@ -87,33 +87,8 @@
   <div class="col-md-5">
     <dl class="dl-horizontal">
       {% block right_col %}
-      {% block modifiers %}
-      <dt>{{ 'Add Modifier' if request.division in current_user.divisions['review'] else 'Modifiers' }}</dt>
+      <dt>Modifiers</dt>
       <dd>
-        {% block add_modifier %}
-        {% if request.division in current_user.divisions['review'] %}
-        <form method="post">
-          <fieldset{{ ' disabled'|safe if request.status != 'evaluating' }}>
-            {{ macros.render_input(modifier_form.csrf_token) }}
-            {{ macros.render_input(modifier_form.id_) }}
-            {{ macros.render_input(modifier_form.type_) }}
-            <div class="form-group input-group">
-              {{ modifier_form.value(class="form-control") }}
-              <div class="input-group-btn">
-                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Type <span class="caret"></span></button>
-                <ul id="modifier-type" class="dropdown-menu pull-right">
-                  <li><a href="#" id="rel-bonus">% Bonus</a></li>
-                  <li><a href="#" id="rel-deduct">% Deduction</a></li>
-                  <li><a href="#" id="abs-bonus">M ISK Bonus</a></li>
-                  <li><a href="#" id="abs-deduct">M ISK Deduction</a></li>
-                </ul>
-              </div>
-            </div>
-            {{ macros.render_input(modifier_form.note) }}
-          </fieldset>
-        </form>
-        {% endif %}
-        {% endblock add_modifier %}
         {% block list_modifiers %}
         <div class="list-group">
           {% for modifier in request.modifiers %}
@@ -163,7 +138,6 @@
         </div>
         {% endblock list_modifiers %}
       </dd>
-      {% endblock modifiers %}
       {% endblock right_col %}
     </dl>
   </div>
