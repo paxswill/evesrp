@@ -83,8 +83,8 @@
     </div>
     {% endblock body %}
     {% block scripts %}
-    <!-- Jquery from CDNJS. Not even going to attempt to support IE8 and older -->
-    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.0/jquery.js"></script>
+    <!-- Jquery from CDNJS. Need to use 1.x to support the IGB -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.js"></script>
     <!-- Include all templates for now -->
     <script src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>
     {% endblock scripts %}
