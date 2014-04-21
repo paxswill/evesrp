@@ -1,7 +1,7 @@
 from collections import OrderedDict
 
 from flask import render_template, abort, url_for, flash, Markup, request,\
-    redirect, current_app
+    redirect, current_app, Blueprint
 from flask.views import View
 from flask.ext.login import login_required, current_user
 from flask.ext.wtf import Form
@@ -14,6 +14,9 @@ from ..models import Request, Modifier, Action
 from ..auth import SubmitRequestsPermission, ReviewRequestsPermission, \
         PayoutRequestsPermission, admin_permission
 from ..auth.models import Division, Pilot
+
+
+blueprint = Blueprint('requests', __name__)
 
 
 class RequestListing(View):
@@ -120,7 +123,21 @@ def register_perm_request_listing(app, endpoint, path, permissions,
             filter_func=filter_func)
     view = login_required(view)
     app.add_url_rule(path, view_func=view)
-    app.add_url_rule('{}/<int:division_id>'.format(path), view_func=view)
+    app.add_url_rule('{}<int:division_id>/'.format(path), view_func=view)
+
+
+@blueprint.record
+def register_class_views(state):
+    """Register class based views onto the requests blueprint."""
+    submit_view = SubmittedRequestListing.as_view('list_submit_requests')
+    state.add_url_rule('/submit/', view_func=submit_view)
+    state.add_url_rule('/submit/<int:division_id>/', view_func=submit_view)
+    register_perm_request_listing(state, 'list_review_requests',
+            '/review/', ('review',), (lambda r: not r.finalized))
+    register_perm_request_listing(state, 'list_approved_requests',
+            '/pay/', ('pay',), (lambda r: r.status == 'approved'))
+    register_perm_request_listing(state, 'list_completed_requests',
+            '/complete/', ('review', 'pay'), (lambda r: r.finalized))
 
 
 class RequestForm(Form):
@@ -130,6 +147,7 @@ class RequestForm(Form):
     submit = SubmitField('Submit')
 
 
+@blueprint.route('/add/', methods=['GET', 'POST'])
 @login_required
 def submit_request():
     """Submit a :py:class:`~.models.Request`\.
@@ -178,15 +196,13 @@ def submit_request():
             srp_request.pilot = pilot
             db.session.add(srp_request)
             db.session.commit()
-            return redirect(url_for('request_detail',
+            return redirect(url_for('.request_detail',
                 request_id=srp_request.id))
         else:
             flash("This kill has already been submitted", 'warning')
-            return redirect(url_for('request_detail',
+            return redirect(url_for('.request_detail',
                 request_id=srp_request.id))
     return render_template('form.html', form=form)
-
-submit_request.methods = ['GET', 'POST']
 
 
 class ModifierForm(Form):
@@ -221,6 +237,7 @@ class ActionForm(Form):
             'evaluating', 'approved', 'incomplete', 'paid', 'comment'))])
 
 
+@blueprint.route('/<int:request_id>/', methods=['GET', 'POST'])
 @login_required
 def request_detail(request_id):
     """Renders the detail page for a :py:class:`~.models.Request`\.

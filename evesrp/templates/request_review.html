@@ -46,7 +46,7 @@
 
 {% block modifier_header %}
   {% if not modifier.voided and request.status == 'evaluating' %}
-  <form class="form" method="post" action="{{ url_for('request_detail', request_id=request.id) }}">
+  <form class="form" method="post" action="{{ url_for('requests.request_detail', request_id=request.id) }}">
     {{ macros.render_input(void_form.csrf_token) }}
     {{ macros.render_input(void_form.id_) }}
     <input class="form-control" id="modifier_id_{{ modifier.id }}" name="modifier_id" type="hidden" value="{{ modifier.id }}">

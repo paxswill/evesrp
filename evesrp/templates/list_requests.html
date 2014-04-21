@@ -16,7 +16,7 @@
       </tr>
       {% for request in requests %}
       <tr class="{{ macros.status_color(request.status) }}">
-        <td><a href="{{ url_for('request_detail', request_id=request.id) }}">{{ request.id }}</a></td>
+        <td><a href="{{ url_for('requests.request_detail', request_id=request.id) }}">{{ request.id }}</a></td>
         <td>{{ request.pilot.name }}</td>
         <td>{{ request.ship_type }}</td>
         <td>{{ request.status|capitalize }}</td>

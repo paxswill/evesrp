@@ -33,15 +33,15 @@
           <ul class="nav navbar-nav">
             {% block navitems %}
             {% if current_user.is_authenticated() -%}
-            {{ macros.navbar_button('Submitted', 'list_submit_requests') }}
+            {{ macros.navbar_button('Submitted', 'requests.list_submit_requests') }}
             {% if current_user.has_permission('review') -%}
-            {{ macros.navbar_button('Review', 'list_review_requests') }}
+            {{ macros.navbar_button('Review', 'requests.list_review_requests') }}
             {%- endif %}
             {% if current_user.has_permission('pay') -%}
-            {{ macros.navbar_button('Pay Out', 'list_approved_requests') }}
+            {{ macros.navbar_button('Pay Out', 'requests.list_approved_requests') }}
             {%- endif %}
             {% if current_user.has_permission('pay') or current_user.has_permission('review') -%}
-            {{ macros.navbar_button('Completed', 'list_completed_requests') }}
+            {{ macros.navbar_button('Completed', 'requests.list_completed_requests') }}
             {%- endif %}
             {%- endif %}
             {% endblock navitems %}
