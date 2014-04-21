@@ -195,6 +195,7 @@ class Request(db.Model, AutoID, Timestamped):
     #: :py:attr:`modifiers` apply to this value.
     base_payout = db.Column(db.Float, default=0.0)
 
+    #: Supporting information for the request.
     details = db.Column(db.Text)
 
     @property

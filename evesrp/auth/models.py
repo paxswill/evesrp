@@ -290,9 +290,9 @@ class DivisionPermission(db.Model, AutoID):
     permission = db.Column(db.Enum('submit', 'review', 'pay',
             name='division_permission'), nullable=False)
     individuals = db.relationship(User, secondary=perm_users,
-            back_populates='individual_permissions')
+            back_populates='individual_permissions', collection_class=set)
     groups = db.relationship(Group, secondary=perm_groups,
-            back_populates='permissions')
+            back_populates='permissions', collection_class=set)
 
     @property
     def users(self):

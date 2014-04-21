@@ -26,6 +26,8 @@ class RequestListing(View):
     #: The template to use for listing requests
     template = 'list_requests.html'
 
+    decorators = [login_required]
+
     def requests(self, division_id=None):
         """Returns a list :py:class:`~.Request`\s belonging to
         the specified :py:class:`~.Division`, or all divisions if
@@ -121,7 +123,6 @@ def register_perm_request_listing(app, endpoint, path, permissions,
     """
     view = PermissionRequestListing.as_view(endpoint, permissions=permissions,
             filter_func=filter_func)
-    view = login_required(view)
     app.add_url_rule(path, view_func=view)
     app.add_url_rule('{}<int:division_id>/'.format(path), view_func=view)
 
