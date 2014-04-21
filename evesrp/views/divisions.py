@@ -1,8 +1,9 @@
 from flask import url_for, render_template, redirect, abort, flash, request
 from flask.ext.login import login_required
 from flask.ext.wtf import Form
-from wtforms.fields import StringField, SubmitField
-from wtforms.validators import InputRequired
+from wtforms.fields import StringField, SubmitField, HiddenField
+from wtforms.validators import InputRequired, AnyOf, NumberRange
+from sqlalchemy.orm.exc import NoResultFound
 
 from ..models import db
 from ..auth import admin_permission
@@ -42,6 +43,13 @@ def add_division():
 add_division.methods = ['GET', 'POST']
 
 
+class ChangeEntity(Form):
+    id_ = HiddenField(validators=[NumberRange(min=0)])
+    type_ = HiddenField(validators=[AnyOf('user', 'group')])
+    permission = HiddenField(validators=[AnyOf('submit', 'review', 'pay')])
+    action = HiddenField(validators=[AnyOf('add', 'delete')])
+
+
 @login_required
 @admin_permission.require()
 def division_detail(division_id):
@@ -55,12 +63,41 @@ def division_detail(division_id):
     :param int division_id: The ID number of the division
     """
     division = Division.query.get_or_404(division_id)
-    return render_template('division_detail.html', division=division)
+    form = ChangeEntity()
+    if form.validate_on_submit():
+        consistent = True
+        if form.type_.data == 'user':
+            try:
+                entity = User.query.get(form.id_.data)
+            except NoResultFound:
+                flash("No User for the ID {} found".
+                        format(form.id_.data), category='error')
+                consistent = False
+        elif form.type_.data == 'group':
+            try:
+                entity = Group.query.get(form.id_.data)
+            except NoResultFound:
+                flash("No Group for the ID {} found.".
+                        format(form.id_.data), category='error')
+                consistent = False
+        if consistent:
+            if form.action.data == 'add':
+                division.permissions[form.permission.data].add(entity)
+            elif form.action.data == 'delete':
+                division.permissions[form.permission.data].remove(entity)
+            flash("Added '{}'.".format(entity))
+            db.session.commit()
+    return render_template('division_detail.html', division=division,
+        form=form)
+
+division_detail.methods = ['GET', 'POST']
 
 
 @login_required
 @admin_permission.require()
 def division_permission(division_id, permission):
+    # external API method. It's the only one implemented so far, so just ignore
+    # it for now.
     division = Division.query.get_or_404(division_id)
     users = []
     for user in division.permissions[permission].individuals:

@@ -151,6 +151,9 @@ class User(db.Model, AutoID):
     def __repr__(self):
         return "{x.__class__.__name__}('{x.name}')".format(x=self)
 
+    def __str__(self):
+        return "{x.name}".format(x=self)
+
     def has_permission(self, permission):
         """Check if the user can access any division with the given permission
         level.
@@ -276,6 +279,9 @@ class Group(db.Model, AutoID):
 
     def __repr__(self):
         return "{x.__class__.__name__}('{x.name}')".format(x=self)
+
+    def __str__(self):
+        return "{x.name}".format(x=self)
 
 
 class DivisionPermission(db.Model, AutoID):
