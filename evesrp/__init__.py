@@ -30,7 +30,9 @@ def create_app(**kwargs):
     principal.init_app(app)
 
     from .views import connect_views
+    from .views import divisions
     connect_views(app)
+    app.register_blueprint(divisions.blueprint, url_prefix='/divisions')
 
     from .auth import load_user_permissions
     identity_loaded.connect(load_user_permissions, app)

@@ -52,7 +52,7 @@
             {{ macros.navbar_button('Log In', 'login') }}
             {%- else -%}
             {% if current_user.admin -%}
-            {{ macros.navbar_button('Divisions', 'list_divisions') }}
+            {{ macros.navbar_button('Divisions', 'divisions.list_divisions') }}
             {% endif %}
             {{ macros.navbar_button('Log Out', 'logout') }}
             {%- endif %}

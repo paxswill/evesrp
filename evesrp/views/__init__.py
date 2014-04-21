@@ -23,17 +23,6 @@ def connect_views(app):
     app.add_url_rule(rule='/login/<string:auth_method>/',
             view_func=login.auth_method_login)
     app.add_url_rule(rule='/logout/', view_func=login.logout)
-    # Division management views
-    app.add_url_rule(rule='/division/', view_func=divisions.list_divisions)
-    app.add_url_rule(rule='/division/add', view_func=divisions.add_division)
-    app.add_url_rule(rule='/division/<int:division_id>/',
-            view_func=divisions.division_detail)
-    app.add_url_rule(rule='/division/<int:division_id>/<permission>/',
-            view_func=divisions.division_permission)
-    app.add_url_rule(rule='/division/<int:division_id>/<permission>/add/',
-            view_func=divisions.division_add_entity)
-    app.add_url_rule(rule='/division/<int:division_id>/<permission>/<entity>/<int:entity_id>/delete/',
-            view_func=divisions.division_delete_entity)
     # Requests views
     submit_view = login_required(
             requests.SubmittedRequestListing.as_view('list_submit_requests'))

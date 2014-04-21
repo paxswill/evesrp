@@ -1,4 +1,5 @@
-from flask import url_for, render_template, redirect, abort, flash, request
+from flask import url_for, render_template, redirect, abort, flash, request,\
+        Blueprint
 from flask.ext.login import login_required
 from flask.ext.wtf import Form
 from wtforms.fields import StringField, SubmitField, HiddenField
@@ -10,6 +11,10 @@ from ..auth import admin_permission
 from ..auth.models import Division, User, Group
 
 
+blueprint = Blueprint('divisions', __name__)
+
+
+@blueprint.route('/')
 @login_required
 @admin_permission.require()
 def list_divisions():
@@ -25,6 +30,7 @@ class AddDivisionForm(Form):
     submit = SubmitField('Create Division')
 
 
+@blueprint.route('/add/', methods=['GET', 'POST'])
 @login_required
 @admin_permission.require()
 def add_division():
@@ -37,10 +43,8 @@ def add_division():
         division = Division(form.name.data)
         db.session.add(division)
         db.session.commit()
-        return redirect(url_for('division_detail', division_id=division.id))
+        return redirect(url_for('.division_detail', division_id=division.id))
     return render_template('form.html', form=form)
-
-add_division.methods = ['GET', 'POST']
 
 
 class ChangeEntity(Form):
@@ -50,6 +54,7 @@ class ChangeEntity(Form):
     action = HiddenField(validators=[AnyOf('add', 'delete')])
 
 
+@blueprint.route('/<int:division_id>/', methods=['GET', 'POST'])
 @login_required
 @admin_permission.require()
 def division_detail(division_id):
@@ -90,35 +95,8 @@ def division_detail(division_id):
     return render_template('division_detail.html', division=division,
         form=form)
 
-division_detail.methods = ['GET', 'POST']
 
-
-@login_required
-@admin_permission.require()
-def division_permission(division_id, permission):
-    # external API method. It's the only one implemented so far, so just ignore
-    # it for now.
-    division = Division.query.get_or_404(division_id)
-    users = []
-    for user in division.permissions[permission].individuals:
-        user_dict = {
-                'name': user.name,
-                'id': user.id
-                }
-        users.append(user_dict)
-    groups = []
-    for group in division.permissions[permission].groups:
-        group_dict = {
-                'name': group.name,
-                'id': group.id,
-                'size': len(group.individuals)
-                }
-        groups.append(group_dict)
-    return jsonify(name=division.name,
-            groups=groups,
-            users=users)
-
-
+@blueprint.route('/<int:division_id>/<permission>/add/', methods=['POST'])
 @login_required
 @admin_permission.require()
 def division_add_entity(division_id, permission):
@@ -146,11 +124,14 @@ def division_add_entity(division_id, permission):
     else:
         division.permissions[permission].add(entity)
         db.session.commit()
-    return redirect(url_for('division_detail', division_id=division_id))
+    return redirect(url_for('.division_detail', division_id=division_id))
 
 division_add_entity.methods = ['POST']
 
 
+@blueprint.route(
+        '/<int:division_id>/<permission>/<entity>/<int:entity_id>/delete/',
+        methods=['POST'])
 @login_required
 @admin_permission.require()
 def division_delete_entity(division_id, permission, entity, entity_id):
@@ -175,4 +156,4 @@ def division_delete_entity(division_id, permission, entity, entity_id):
         return abort(400)
     division.permissions[permission].remove(entity)
     db.session.commit()
-    return redirect(url_for('division_detail', division_id=division_id))
+    return redirect(url_for('.division_detail', division_id=division_id))
