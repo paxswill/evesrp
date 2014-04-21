@@ -36,7 +36,7 @@ class User(db.Model, AutoID):
 
     #: Map of permission objects granted specifically to this user. Keys are
     #: one of the permission values.
-    individual_permissions = db.relationship('DivisionPermission',
+    individual_permissions = db.relationship('Permission',
             secondary=perm_users,
             collection_class=attribute_mapped_collection('permission'),
             back_populates='individuals')
@@ -246,7 +246,7 @@ class Group(db.Model, AutoID):
 
     #: Permission association objects.
     # For internal use.
-    permissions = db.relationship('DivisionPermission', secondary=perm_groups,
+    permissions = db.relationship('Permission', secondary=perm_groups,
             collection_class=attribute_mapped_collection('permission'),
             back_populates='groups')
 
@@ -284,7 +284,7 @@ class Group(db.Model, AutoID):
         return "{x.name}".format(x=self)
 
 
-class DivisionPermission(db.Model, AutoID):
+class Permission(db.Model, AutoID):
     __tablename__ = 'division_perm'
     division_id = db.Column(db.Integer, db.ForeignKey('division.id'))
     permission = db.Column(db.Enum('submit', 'review', 'pay',
@@ -355,7 +355,7 @@ class Division(db.Model, AutoID):
 
     #: The permissions objects for this division, mapped via their permission
     #: names.
-    permissions = db.relationship(DivisionPermission, backref='division',
+    permissions = db.relationship(Permission, backref='division',
             collection_class=attribute_mapped_collection('permission'))
 
     #: :py:class:`Request` s filed under this division.
@@ -364,7 +364,7 @@ class Division(db.Model, AutoID):
     def __init__(self, name):
         self.name = name
         for perm in ('submit', 'review', 'pay'):
-            DivisionPermission(self, perm)
+            Permission(self, perm)
 
     def __repr__(self):
         return "{x.__class__.__name__}('{x.name}')".format(x=self)
