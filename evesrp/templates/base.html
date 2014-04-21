@@ -49,12 +49,12 @@
           <ul class="nav navbar-nav navbar-right">
             {% block navitems_right %}
             {% if current_user.is_anonymous() -%}
-            {{ macros.navbar_button('Log In', 'login') }}
+            {{ macros.navbar_button('Log In', 'login.login') }}
             {%- else -%}
             {% if current_user.admin -%}
             {{ macros.navbar_button('Divisions', 'divisions.list_divisions') }}
             {% endif %}
-            {{ macros.navbar_button('Log Out', 'logout') }}
+            {{ macros.navbar_button('Log Out', 'login.logout') }}
             {%- endif %}
             {% endblock navitems_right %}
           </ul>

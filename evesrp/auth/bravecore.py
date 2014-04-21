@@ -73,7 +73,7 @@ class BraveCore(AuthMethod):
         # Redirect to Core for the authorization token. Give URLs to return to.
         # Sidenote: At this time, Brave has nearly 0 API documentation. The
         # kinda-sorta hidden TEST Auth API documentation is more complete.
-        result_url = url_for('auth_method_login', _external=True,
+        result_url = url_for('login.auth_method_login', _external=True,
                 auth_method=self.__class__.__name__.lower())
         response = self.api.core.authorize(success=result_url,
                 failure=result_url)
@@ -113,7 +113,7 @@ class BraveCore(AuthMethod):
             return redirect(url_for('index'))
         else:
             flash("Login failed.")
-            return redirect(url_for('login'))
+            return redirect(url_for('login.login'))
 
 
 class BraveCoreUser(User):

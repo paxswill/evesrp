@@ -51,7 +51,7 @@ class TestAuth(AuthMethod):
                 flash("Multiple users found.", category='error')
             elif json['error'] == 'password':
                 flash("Incorrect password.", category='error')
-            return redirect(url_for('login'))
+            return redirect(url_for('login.login'))
         elif json['auth'] == 'ok':
             try:
                 user = TestAuthUser.query.filter_by(auth_id=json['id']).one()

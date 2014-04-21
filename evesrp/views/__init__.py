@@ -1,7 +1,7 @@
 from flask import render_template
 from flask.ext.login import login_required
 
-from . import login, divisions, requests
+from . import requests
 
 
 @login_required
@@ -18,11 +18,6 @@ def connect_views(app):
     """
     # Base views
     app.add_url_rule(rule='/', view_func=index)
-    # Login views
-    app.add_url_rule(rule='/login/', view_func=login.login)
-    app.add_url_rule(rule='/login/<string:auth_method>/',
-            view_func=login.auth_method_login)
-    app.add_url_rule(rule='/logout/', view_func=login.logout)
     # Requests views
     submit_view = login_required(
             requests.SubmittedRequestListing.as_view('list_submit_requests'))

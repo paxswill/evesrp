@@ -100,13 +100,13 @@ the GET and POST HTTP verbs. ::
                 user = LocalUser.query.filter_by(name=form.username.data).one()
             except NoResultFound:
                 flash("No user found with that username.", 'error')
-                return redirect(url_for('login'))
+                return redirect(url_for('login.login'))
             if user.check_password(form.password.data):
                 self.login_user(user)
                 redirect(request.args.get('next') or url_for('index'))
             else:
                 flash("Incorrect password.", 'error')
-                redirect(url_for('login'))
+                redirect(url_for('login.login'))
 
         def view(self):
             form = LocalCreateUserForm()

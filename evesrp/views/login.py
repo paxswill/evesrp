@@ -1,12 +1,16 @@
 from flask import render_template, url_for, abort, session, redirect, request,\
-        current_app, g
+        current_app, g, Blueprint
 from flask.ext.login import login_required, logout_user, LoginManager
 from flask.ext.principal import identity_changed, AnonymousIdentity
+
+
+blueprint = Blueprint('login', __name__)
 
 
 login_manager = LoginManager()
 
 
+@blueprint.route('/login/', methods=['GET', 'POST'])
 def login():
     """Presents the login form and processes responses from that form.
 
@@ -30,12 +34,11 @@ def login():
             return auth_method.login(form)
     return render_template('login.html', forms=forms)
 
-login.methods = ['GET', 'POST']
+
+login_manager.login_view = 'login.login'
 
 
-login_manager.login_view = 'login'
-
-
+@blueprint.route('/login/<string:auth_method>/', methods=['GET', 'POST'])
 def auth_method_login(auth_method):
     """Trampoline for :py:class:`~evesrp.auth.AuthMethod`\-specific views.
 
@@ -48,6 +51,7 @@ def auth_method_login(auth_method):
 auth_method_login.methods = ['GET', 'POST']
 
 
+@blueprint.route('/logout/')
 @login_required
 def logout():
     """Logs the current user out.

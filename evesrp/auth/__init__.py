@@ -45,10 +45,10 @@ class AuthMethod(object):
         GET and POST requests, and will call this method as soon as it is known
         which auth method is meant to be called. The path for this view is
         ``/login/self.__class__.__name__.lower()/``, and can be generated with
-        ``url_for('auth_method_login',
+        ``url_for('login.auth_method_login',
         auth_method=self.__class__.__name__.lower())``.
         """
-        return redirect(url_for('login'))
+        return redirect(url_for('login.login'))
 
     @staticmethod
     def login_user(user):
