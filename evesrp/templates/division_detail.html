@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% macro add_entity_form(division, permission, entity) %}
-<form class=form-inline" role="form" action="{{ url_for('.division_add_entity', division_id=division.id, permission=permission) }}" method="post">
+<form class=form-inline" role="form" action="{{ url_for('divisions.division_add_entity', division_id=division.id, permission=permission) }}" method="post">
   <div class="row">
     <div class="col-md-9">
       <div class="form-group">
@@ -42,7 +42,7 @@
         <td>{{ group.users|length }}</td>
         <td>{{ group.authmethod().name }}</td>
         <td>
-          <form method="post" action="{{ url_for('.division_detail', division_id=division.id) }}">
+          <form method="post" action="{{ url_for('divisions.division_detail', division_id=division.id) }}">
             {{ form.csrf_token() }}
             {{ form.id_(value=group.id) }}
             {{ form.type_(value='group') }}
@@ -66,7 +66,7 @@
       <tr>
         <td>{{ user.name }}</td>
         <td>{{ user.authmethod().name }}</td>
-        <td><a class="close" href="{{ url_for('.division_delete_entity', division_id=division.id, permission=permission, entity='user', entity_id=user.id) }}">&times;</a></td>
+        <td><a class="close" href="{{ url_for('divisions.division_delete_entity', division_id=division.id, permission=permission, entity='user', entity_id=user.id) }}">&times;</a></td>
       </tr>
       {% endfor %}
     </table>

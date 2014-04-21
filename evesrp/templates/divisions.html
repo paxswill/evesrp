@@ -12,15 +12,15 @@
       {% if divisions %}
       {% for division in divisions %}
       <tr>
-        <td><a href="{{ url_for('.division_detail', division_id=division.id) }}">{{ division.name }}</a></td>
-        <td><a href="{{ url_for('.division_detail', division_id=division.id)}}#submit">{{ division.permissions['submit'].groups|length }} ({{ division.permissions['submit'].individuals|length }})</a></td>
-        <td><a href="{{ url_for('.division_detail', division_id=division.id)}}#review">{{ division.permissions['review'].groups|length }} ({{ division.permissions['review'].individuals|length }})</a></td>
-        <td><a href="{{ url_for('.division_detail', division_id=division.id)}}#pay">{{ division.permissions['pay'].groups|length }} ({{ division.permissions['pay'].individuals|length }})</a></td>
+        <td><a href="{{ url_for('divisions.division_detail', division_id=division.id) }}">{{ division.name }}</a></td>
+        <td><a href="{{ url_for('divisions.division_detail', division_id=division.id)}}#submit">{{ division.permissions['submit'].groups|length }} ({{ division.permissions['submit'].individuals|length }})</a></td>
+        <td><a href="{{ url_for('divisions.division_detail', division_id=division.id)}}#review">{{ division.permissions['review'].groups|length }} ({{ division.permissions['review'].individuals|length }})</a></td>
+        <td><a href="{{ url_for('divisions.division_detail', division_id=division.id)}}#pay">{{ division.permissions['pay'].groups|length }} ({{ division.permissions['pay'].individuals|length }})</a></td>
       </tr>
       {% endfor %}
       {% endif %}
     </table>
-    <a class="btn btn-primary" href="{{ url_for('.add_division') }}">Add Division</a>
+    <a class="btn btn-primary" href="{{ url_for('divisions.add_division') }}">Add Division</a>
   </div>
 </div>
 {% endblock content %}
