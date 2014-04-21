@@ -29,11 +29,14 @@ def create_app(**kwargs):
     from .auth import principal
     principal.init_app(app)
 
-    from .views import index, divisions, login, requests
+    from .views import index, divisions, login, requests, api
     app.add_url_rule(rule='/', view_func=index)
     app.register_blueprint(divisions.blueprint, url_prefix='/divisions')
     app.register_blueprint(login.blueprint)
     app.register_blueprint(requests.blueprint, url_prefix='/requests')
+    app.register_blueprint(api.blueprint, url_prefix='/api')
+
+    app.json_encoder=api.SRPEncoder
 
     from .auth import load_user_permissions
     identity_loaded.connect(load_user_permissions, app)
