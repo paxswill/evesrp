@@ -3,6 +3,10 @@
  * specifically the fiddle at http://jsfiddle.net/KrtB5/340/
  */
 
+.twitter-typeahead {
+  width: 100%;
+}
+
 .twitter-typeahead .tt-query, .twitter-typeahead .tt-hint {
     margin-bottom: 0;
 }
@@ -14,6 +18,7 @@
     line-height: 1.428571429;
     border: 1px solid transparent;
     border-radius:4px;
+    width: 100%;
 }
 .twitter-typeahead .hint-small {
     height: 30px;
@@ -47,6 +52,7 @@
     -webkit-background-clip: padding-box;
     -moz-background-clip: padding;
     background-clip: padding-box;
+    width: 100%;
 }
 .tt-suggestion {
     display: block;

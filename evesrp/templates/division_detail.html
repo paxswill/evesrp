@@ -1,20 +1,14 @@
 {% extends "base.html" %}
 
-{% macro add_entity_form(permission, entity) %}
-{% endmacro %}
-
-{% macro remove_entity_form(permission, entity, id) %}
-{% endmacro %}
-
 {% block head %}
 {{ super() }}
 <link href="{{ url_for('static', filename='css/custom.css') }}" rel="stylesheet">
 {% endblock head %}
 
 {% block content %}
-<div class="row">
-  {% for permission in ('submit', 'review', 'pay') %}
-  <div class="col-md-offset-3 col-md-6" id="{{ permission }}">
+{% for permission in ('submit', 'review', 'pay') %}
+<div class="row" id="{{ permission }}">
+  <div class="col-md-12">
     {% if permission == 'submit' %}
     <h2>Submitters</h2>
     {% elif permission == 'review' %}
@@ -22,6 +16,8 @@
     {% elif permission == 'pay' %}
     <h2>Payers</h2>
     {% endif %}
+  </div>
+  <div class="col-md-8">
     <table class="table table-condensed">
       <tr>
         <th>Name</th>
@@ -50,21 +46,27 @@
       </tr>
       {% endfor %}
     </table>
-    <form class="form-inline" role="form" method="post" autocomplete="off">
-      <div class="input-group">
-        <label class="sr-only" for="add-{{ permission }}-name">Name</label>
-        <input type="text" class="form-control entity-typeahead typeahead" id="add-{{ permission }}--name" name="name" autocomplete="off" placeholder="Name">
-        <span class="input-group-btn">
+  </div>
+  <div class="col-md-4">
+    <form class="form-horizontal" role="form" method="post" autocomplete="off">
+      <div class="form-group">
+        <label class="col-md-2 control-label" for="add-{{ permission }}-name">Name</label>
+        <div class="col-md-10">
+          <input type="text" class="form-control entity-typeahead typeahead" id="add-{{ permission }}-name" name="name" autocomplete="off" placeholder="Name">
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
           <button type="submit" class="btn btn-default">Add {{ entity|capitalize }}</button>
-        </span>
+        </div>
       </div>
       {{ form.csrf_token() }}
       {{ form.action(value="add") }}
       {{ form.permission(value=permission) }}
     </form>
   </div>
-{% endfor %}
 </div>
+{% endfor %}
 {% endblock content %}
 
 {% block scripts %}
