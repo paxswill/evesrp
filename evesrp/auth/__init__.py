@@ -126,9 +126,9 @@ def load_user_permissions(sender, identity):
         identity.provides.add(UserNeed(current_user.id))
 
         # Set division roles
-        for role in ('submit', 'review', 'pay'):
-            for division in current_user.divisions[role]:
-                identity.provides.add(ReimbursementNeed(role, division.id))
+        for perm in current_user.permissions:
+            identity.provides.add(ReimbursementNeed(perm.permission,
+                    perm.division.id))
 
         # If they're an admin, set that
         if current_user.admin:

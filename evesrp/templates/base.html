@@ -10,7 +10,7 @@
     <!-- Bootstrap -->
     <link href="{{ url_for('static', filename='css/bootstrap.css') }}" rel="stylesheet">
     <!-- For now, use the default theme -->
-    <link href="{{ url_for('static', filename='css/bootstrap-theme.css') }}" rel=stylesheet">
+    <link href="{{ url_for('static', filename='css/bootstrap-theme.css') }}" rel="stylesheet">
     {% endblock head %}
   </head>
   <body>
@@ -87,6 +87,9 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.js"></script>
     <!-- Include all templates for now -->
     <script src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>
+    <script type="text/javascript">
+      $SCRIPT_ROOT = {{ request.script_root|tojson }};
+    </script>
     {% endblock scripts %}
   </body>
 </html>

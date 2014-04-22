@@ -8,7 +8,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from ..models import db
 from ..auth import admin_permission
-from ..auth.models import Division, User, Group
+from ..auth.models import Division, Permission, Entity
 
 
 blueprint = Blueprint('divisions', __name__)
@@ -48,10 +48,10 @@ def add_division():
 
 
 class ChangeEntity(Form):
-    id_ = HiddenField(validators=[NumberRange(min=0)])
-    type_ = HiddenField(validators=[AnyOf('user', 'group')])
-    permission = HiddenField(validators=[AnyOf('submit', 'review', 'pay')])
-    action = HiddenField(validators=[AnyOf('add', 'delete')])
+    id_ = HiddenField()
+    name = StringField()
+    permission = HiddenField(validators=[AnyOf(('submit', 'review', 'pay'))])
+    action = HiddenField(validators=[AnyOf(('add', 'delete'))])
 
 
 @blueprint.route('/<int:division_id>/', methods=['GET', 'POST'])
@@ -70,90 +70,27 @@ def division_detail(division_id):
     division = Division.query.get_or_404(division_id)
     form = ChangeEntity()
     if form.validate_on_submit():
-        consistent = True
-        if form.type_.data == 'user':
+        if form.action.data == 'add':
             try:
-                entity = User.query.get(form.id_.data)
+                entity = Entity.query.filter_by(name=form.name.data).one()
             except NoResultFound:
-                flash("No User for the ID {} found".
-                        format(form.id_.data), category='error')
-                consistent = False
-        elif form.type_.data == 'group':
-            try:
-                entity = Group.query.get(form.id_.data)
-            except NoResultFound:
-                flash("No Group for the ID {} found.".
-                        format(form.id_.data), category='error')
-                consistent = False
-        if consistent:
-            if form.action.data == 'add':
-                division.permissions[form.permission.data].add(entity)
-            elif form.action.data == 'delete':
-                division.permissions[form.permission.data].remove(entity)
-            flash("Added '{}'.".format(entity))
-            db.session.commit()
+                flash("No user with the name '{}' found.".
+                        format(form.name.data), category='error')
+            else:
+                perm = Permission(division, form.permission.data, entity)
+                db.session.add(perm)
+                flash("Added '{}'.".format(entity))
+        elif form.action.data == 'delete':
+            entity = Entity.query.get(form.id_.data)
+            if entity is None:
+                flash("No entity with ID '{}' found.".format(form.id_.data),
+                        category='error')
+            else:
+                Permission.query.filter_by(division=division,
+                        permission=form.permission.data,
+                        entity=entity).delete()
+                flash("Removed '{}' from '{}'.".format(form.permission.data,
+                        entity))
+        db.session.commit()
     return render_template('division_detail.html', division=division,
         form=form)
-
-
-@blueprint.route('/<int:division_id>/<permission>/add/', methods=['POST'])
-@login_required
-@admin_permission.require()
-def division_add_entity(division_id, permission):
-    """Utility path for granting permissions to an entity in a division.
-
-    Redirects to the :py:func:`detail page <division_detail>` for the division
-    being operated on.
-
-    Only accesible to admins.
-
-    :param int division_id: The ID of the division
-    :param str permission: The permission being granted
-    """
-    division = Division.query.get_or_404(division_id)
-    if request.form['entity_type'] == 'user':
-        entity = User.query.filter_by(name=request.form['name']).first()
-    elif request.form['entity_type'] == 'group':
-        entity = Group.query.filter_by(name=request.form['name']).first()
-    else:
-        return abort(400)
-    if entity is None:
-        flash("Cannot find a {} named '{}'.".format(
-            request.form['entity_type'], request.form['name']),
-            category='error')
-    else:
-        division.permissions[permission].add(entity)
-        db.session.commit()
-    return redirect(url_for('.division_detail', division_id=division_id))
-
-division_add_entity.methods = ['POST']
-
-
-@blueprint.route(
-        '/<int:division_id>/<permission>/<entity>/<int:entity_id>/delete/',
-        methods=['POST'])
-@login_required
-@admin_permission.require()
-def division_delete_entity(division_id, permission, entity, entity_id):
-    """Utility path for removing a permission for an entity.
-
-    Redirects to the :py:func:`details <division_detail>` for the division
-    being operated on.
-
-    Accesible only to admins.
-
-    :param int division_id: The division ID number
-    :param str permission: The permission to remove
-    :param str entity: What kind of entity to remove ('group' or 'user')
-    :param int entity_id: The ID number of the user or group to remove
-    """
-    division = Division.query.get_or_404(division_id)
-    if entity == 'user':
-        entity = User.query.get_or_404(entity_id)
-    elif entity == 'group':
-        entity = Group.query.get_or_404(entity_id)
-    else:
-        return abort(400)
-    division.permissions[permission].remove(entity)
-    db.session.commit()
-    return redirect(url_for('.division_detail', division_id=division_id))

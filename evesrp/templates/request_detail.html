@@ -8,27 +8,27 @@
     {% block info %}
     <dl class="dl-horizontal">
       <dt>Lossmail</dt>
-      <dd><a href="{{ request.killmail_url }}" target="_blank">{{ request.id }}</a></dd>
+      <dd><a href="{{ srp_request.killmail_url }}" target="_blank">{{ srp_request.id }}</a></dd>
       <dt>Time of Loss</dt>
-      <dd>{{ request.kill_timestamp.strftime('%d %b %Y %H:%M') }}</dd>
+      <dd>{{ srp_request.kill_timestamp.strftime('%d %b %Y %H:%M') }}</dd>
       <dt>Division</dt>
-      <dd>{{ request.division.name }}</dd>
+      <dd>{{ srp_request.division.name }}</dd>
       <dt>Details</dt>
       <dd class="panel panel-default">
-        <p class="panel-body">{{ request.details }}</p>
+        <p class="panel-body">{{ srp_request.details }}</p>
       </dd>
       <dt>Pilot</dt>
-      <dd>{{ request.pilot.name }}</dd>
+      <dd>{{ srp_request.pilot.name }}</dd>
       <dt>Corporation</dt>
-      <dd>{{ request.corporation }}</dd>
+      <dd>{{ srp_request.corporation }}</dd>
       <dt>Alliance</dt>
-      <dd>{{ request.alliance|default(' ') }}
+      <dd>{{ srp_request.alliance|default(' ') }}
       <dt>Ship</dt>
-      <dd>{{ request.ship_type }}</dd>
+      <dd>{{ srp_request.ship_type }}</dd>
       <dt>Status</dt>
-      <dd><span class="label label-{{ macros.status_color(request.status) }}">{{ request.status|capitalize }}</span></dd>
+      <dd><span class="label label-{{ macros.status_color(srp_request.status) }}">{{ srp_request.status|capitalize }}</span></dd>
       <dt>Payout</dt>
-      <dd>{{ request.payout }}</dd>
+      <dd>{{ srp_request.payout }}</dd>
     </dl>
     {% endblock info %}
     {% block action_form %}
@@ -40,25 +40,26 @@
         {{ action_form.note(class="form-control") }}
         <div class="input-group-btn">
           <button type="submit" class="btn btn-default">Comment</button>
-          {% if request.division in current_user.divisions['review'] or request.division in current_user.divisions['pay'] %}
+          {% if current_user.has_permission(('review', 'pay'), srp_request.division) %}
           <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
             <span class="caret"></span>
             <span class="sr-only">Toggle Dropdown</span>
           </button>
           <ul class="dropdown-menu" id="action-type" role="menu">
-            {% if request.status == 'evaluating' %}
-            {{ '<li><a href="#" id="approved">Approve</a></li>'|safe if request.division in current_user.divisions['review'] }}
-            {{ '<li><a href="#" id="incomplete">Incomplete</a></li>'|safe if request.division in current_user.divisions['review'] }}
-            {{ '<li><a href="#" id="rejected">Reject</a></li>'|safe if request.division in current_user.divisions['review'] }}
-            {% else %}
-            {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if request.division in current_user.divisions['review'] }}
-              {% if request.division in current_user.divisions['pay'] %}
-            {{ '<li><a href="#" id="paid">Paid</a></li>'|safe if request.status == 'approved' }}
-            {{ '<li><a href="#" id="approved">Approve</a></li>'|safe if request.status == 'paid'}}
-            {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if request.status == 'paid'}}
-              {% elif request.division in current_user.divisions['review'] %}
-            {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if request.status == 'rejected' }}
-              {% endif %}
+            {% if srp_request.status == 'evaluating' %}
+            {{ '<li><a href="#" id="approved">Approve</a></li>'|safe if current_user.has_permission('review', srp_request.division) }}
+            {{ '<li><a href="#" id="incomplete">Incomplete</a></li>'|safe if current_user.has_permission('review', srp_request.division) }}
+            {{ '<li><a href="#" id="rejected">Reject</a></li>'|safe if current_user.has_permission('review', srp_request.division) }}
+            {% elif srp_request.status == 'paid' %}
+            {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if current_user.has_permission('pay', srp_request.division) }}
+            {% elif srp_request.status == 'approved' %}
+            {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if current_user.has_permission('review', srp_request.division) }}
+            {{ '<li><a href="#" id="paid">Paid</a></li>'|safe if current_user.has_permission('pay', srp_request.division) }}
+            {% elif srp_request.status == 'incomplete' %}
+            {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if current_user.has_permission(('review', 'submit'), srp_request.division) }}
+            {{ '<li><a href="#" id="rejected">Reject</a></li>'|safe if current_user.has_permission('review', srp_request.division) }}
+            {% elif srp_request.status == 'rejected' %}
+            {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if current_user.has_permission('review', srp_request.division) }}
             {% endif %}
           {% endif %}
           </ul>
@@ -68,7 +69,7 @@
     {% endblock action_form %}
     {% block action_list %}
     <div class="list-group">
-      {% for action in request.actions %}
+      {% for action in srp_request.actions %}
       {% with %}
         {% set item_class = 'text-' ~ macros.status_color(action.type_) if macros.status_color(action.type_) != '' %}
         <div class="list-group-item">
@@ -91,7 +92,7 @@
       <dd>
         {% block list_modifiers %}
         <div class="list-group">
-          {% for modifier in request.modifiers %}
+          {% for modifier in srp_request.modifiers %}
           <div class="list-group-item">
             <div class="list-group-item-heading">
               {% block modifier_header scoped %}

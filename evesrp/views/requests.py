@@ -88,18 +88,17 @@ class PermissionRequestListing(RequestListing):
         self.permissions = permissions
         self.filter_func = filter_func
 
-    def requests(self, division_id):
+    def requests(self, division_id=None):
         if division_id is not None:
             division = Division.query.get_or_404(division_id)
-            for permission in self.permissions:
-                if division not in current_user.divisions[self.permission]:
-                    abort(403)
+            if not current_user.has_permission(self.permissions, division):
+                abort(403)
             else:
                 divisions = [division]
         else:
-            divisions = []
-            for permission in self.permissions:
-                divisions.extend(current_user.divisions[permission])
+            perms = filter(lambda p: p.permission in self.permissions,
+                    current_user.permissions)
+            divisions = map(lambda p: p.division, perms)
         requests = OrderedDict()
         for division in divisions:
             filtered = filter(self.filter_func, division.requests)
@@ -153,7 +152,7 @@ class RequestForm(Form):
 def submit_request():
     """Submit a :py:class:`~.models.Request`\.
 
-    Displayes a form for submitting a request and then processes the submitted
+    Displays a form for submitting a request and then processes the submitted
     information. Verifies that the user has the appropriate permissions to
     submit a request for the chosen division and that the killmail URL given is
     valid. Also enforces that the user submitting this requests controls the
@@ -163,7 +162,10 @@ def submit_request():
         abort(403)
     form = RequestForm()
     choices = []
-    for division in current_user.divisions['submit']:
+    divisions = map(lambda x: x.division,
+            filter(lambda y: y.permission == 'submit',
+                    current_user.permissions))
+    for division in divisions:
         choices.append((division.id, division.name))
     form.division.choices = choices
     if form.validate_on_submit():
@@ -385,10 +387,8 @@ def request_detail(request_id):
         template = 'request_detail.html'
     else:
         abort(403)
-    return render_template(template, request=srp_request,
+    return render_template(template, srp_request=srp_request,
             modifier_form=ModifierForm(formdata=None),
             payout_form=PayoutForm(formdata=None),
             action_form=ActionForm(formdata=None),
             void_form=VoidModifierForm(formdata=None))
-
-request_detail.methods = ['GET', 'POST']
