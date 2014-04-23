@@ -10,7 +10,7 @@ from . import AuthMethod, AuthForm
 from .models import User, Group
 
 
-class CoreAuth(AuthMethod):
+class BraveCore(AuthMethod):
     name = 'Brave Core'
 
     def __init__(self, client_key, server_key, identifier,
@@ -36,9 +36,9 @@ class CoreAuth(AuthMethod):
         token = request.args.get('token')
         if token is not None:
             try:
-                user = BraveCoreUser.query.filter_by(token=token).one()
+                user = CoreUser.query.filter_by(token=token).one()
             except NoResultFound:
-                user = BraveCoreUser(token=token)
+                user = CoreUser(token=token)
                 db.session.add(user)
             # update user information
             info = self.api.core.info(token=token)
@@ -46,15 +46,15 @@ class CoreAuth(AuthMethod):
             # Sync up group membership
             for tag in info['tags']:
                 try:
-                    group = BraveCoreGroup.query.filter_by(core_id=tag).one()
+                    group = CoreGroup.query.filter_by(core_id=tag).one()
                 except NoResultFound:
-                    group = BraveCoreGroup()
+                    group = CoreGroup()
                     group.core_id = tag
                     # TODO: Figure out how to get the Group name
                     db.session.add(group)
                 user.groups.append(group)
             for tag in user.groups.difference(info['tags']):
-                group = BraveCoreGroup.query.filter_by(core_id=tag).one()
+                group = CoreGroup.query.filter_by(core_id=tag).one()
                 user.groups.remove(group)
             db.session.commit()
             self.login_user(user)

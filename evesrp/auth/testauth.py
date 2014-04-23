@@ -48,13 +48,13 @@ class TestAuth(AuthMethod):
             return redirect(url_for('login.login'))
         elif json['auth'] == 'ok':
             try:
-                user = TestAuthUser.query.filter_by(auth_id=json['id']).one()
+                user = TestUser.query.filter_by(auth_id=json['id']).one()
             except NoResultFound:
                 # Create new User
                 user_args = {}
                 user_args['username'] = json['username']
                 user_args['auth_id'] = json['id']
-                user = TestAuthUser(**user_args)
+                user = TestUser(**user_args)
                 db.session.add(user)
             # Update values from Auth
             user.admin = json['superuser'] or json['staff'] or \
@@ -62,10 +62,10 @@ class TestAuth(AuthMethod):
             # Sync up group values
             for group in json['groups']:
                 try:
-                    db_group = TestAuthGroup.query.\
+                    db_group = TestGroup.query.\
                             filter_by(auth_id=group['id']).one()
                 except NoResultFound:
-                    db_group = TestAuthGroup(name=group['name'],
+                    db_group = TestGroup(name=group['name'],
                             auth_id=group['id'])
                     db.session.add(db_group)
                 user.groups.append(db_group)
