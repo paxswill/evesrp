@@ -13,6 +13,16 @@ users_groups = db.Table('users_groups', db.Model.metadata,
 
 
 class Entity(db.Model, AutoID):
+    """Private class for shared functionality between :py:class:`User` and
+    :py:class:`Group`.
+
+    This class defines a number of helper methods used indirectly by User and
+    Group subclasses such as automatically defining the table name and mapper
+    arguments.
+
+    You should `not` inherit fomr this class directly, and should instead
+    inherit from either :py:class:`User` or :py:class:`Group`.
+    """
 
     #: The name of the entity. Usually a nickname.
     name = db.Column(db.String(100), nullable=False)
@@ -47,7 +57,7 @@ class Entity(db.Model, AutoID):
     @classmethod
     def authmethod(cls):
         """:rtype: class
-        :returns: The :py:class:`AuthMethod` for this user class.
+        :returns: The :py:class:`AuthMethod` for this entity class.
         """
         return AuthMethod
 
@@ -211,18 +221,23 @@ class Permission(db.Model, AutoID):
     division_id = db.Column(db.Integer, db.ForeignKey('division.id'),
             nullable=False)
 
+    #: The division this permission is granting access to
     division = db.relationship('Division',
             back_populates='division_permissions')
 
     entity_id = db.Column(db.Integer, db.ForeignKey('entity.id'),
             nullable=False)
 
+    #: The :py:class:`Entity` being granted access
     entity = db.relationship(Entity, back_populates='entity_permissions')
 
+    #: The permission being granted.
     permission = db.Column(db.Enum('submit', 'review', 'pay',
             name='division_permission'), nullable=False)
 
     def __init__(self, division, permission, entity):
+        """Create a Permission object granting an entity access to a division.
+        """
         self.division = division
         self.entity = entity
         self.permission = permission
@@ -246,10 +261,11 @@ class Division(db.Model, AutoID):
     division_permissions = db.relationship(Permission, collection_class=set,
             back_populates='division')
 
-    #: The permissions objects for this division, mapped via their permission
-    #: names.
     @property
     def permissions(self):
+        """The permissions objects for this division, mapped via their
+        permission names.
+        """
         class _PermProxy(object):
             def __init__(self, perms):
                 self.perms = perms
