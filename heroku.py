@@ -16,9 +16,8 @@ class EveWikiZKillmail(ZKillmail, EveWikiMixin): pass
 
 
 app = create_app()
-app.config['SQLALCHEMY_DATABASE_URI'] = env['DATABASE_URL']
-app.config['SECRET_KEY'] = unhexlify(env['SECRET_KEY'])
 app.config['USER_AGENT_EMAIL'] = 'paxswill@paxswill.com'
+app.config['SQLALCHEMY_DATABASE_URI'] = env.get('DATABASE_URL', 'sqlite:///')
 app.config['AUTH_METHODS'] = [TestAuth()]
 app.config['CORE_AUTH_PRIVATE_KEY'] = env.get('CORE_PRIVATE_KEY')
 app.config['CORE_AUTH_PUBLIC_KEY'] = env.get('CORE_PUBLIC_KEY')
@@ -30,6 +29,10 @@ app.config['KILLMAIL_SOURCES'] = [
 
 if env.get('DEBUG') is not None:
     app.debug = True
+
+secret_key = env.get('SECRET_KEY')
+if secret_key is not None:
+    app.config['SECRET_KEY'] = unhexlify(secret_key)
 
 
 if __name__ == '__main__':
