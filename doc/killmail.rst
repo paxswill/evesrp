@@ -62,3 +62,5 @@ API
     :show-inheritance:
 
 .. autofunction:: SQLShipMixin
+
+.. autofunction:: ShipURLMixin

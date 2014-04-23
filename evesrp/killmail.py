@@ -161,7 +161,7 @@ def SQLShipMixin(*args, **kwargs):
     Uses SQLAlchemy internally for SQL operations so as to make it usable on as
     many platforms as possible. The arguments passed to this function are
     passed directly to :py:func:`sqlalchemy.create_engine`, so feel free to use
-    whatver arguemtns you wish. As long as the database has an ``invTypes``
+    whatver arguments you wish. As long as the database has an ``invTypes``
     table with ``typeID`` and ``typeName`` columns and there's a DBAPI driver
     supported by SQLAlchemy, this mixin should work.
     """
@@ -242,6 +242,31 @@ class EveMDShipNameMixin(RequestsSessionMixin):
             if match:
                 return match.group('ship_name')
         return None
+
+
+def ShipURLMixin(url_skeleton):
+    """Factory for creating mixins that create URLs for ship types.
+
+    :param skeleton: A string in Python's
+        :ref:`format string <formatstrings>` format. Three named fields are
+        allowed: ``name`` for the ship name, ``id_`` for the ship ID, and
+        ``division`` which will be replaced with the division the request for
+        this killmail is submitted to.
+    :type skeleton: str
+    :rtype: type
+    """
+
+    class _ShipURLMixin(object):
+        """Killmail mixin for providing a URL associated with ship types."""
+        skeleton = url_skeleton
+
+        @property
+        def ship_url(self):
+            """A URL for this ship type."""
+            return self.skeleton.format(name=self.ship, id_=self.ship_id,
+                    division='{division}')
+
+    return _ShipURLMixin
 
 
 class ZKillmail(Killmail, RequestsSessionMixin):
