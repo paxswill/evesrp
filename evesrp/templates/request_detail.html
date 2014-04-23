@@ -24,7 +24,11 @@
       <dt>Alliance</dt>
       <dd>{{ srp_request.alliance|default(' ') }}
       <dt>Ship</dt>
+      {% if srp_request.ship_url %}
+      <dd><a href="{{ srp_request.ship_url }}">{{ srp_request.ship_type }}</a></dd>
+      {% else %}
       <dd>{{ srp_request.ship_type }}</dd>
+      {% endif %}
       <dt>Status</dt>
       <dd><span class="label label-{{ macros.status_color(srp_request.status) }}">{{ srp_request.status|capitalize }}</span></dd>
       <dt>Payout</dt>

@@ -27,6 +27,12 @@ class Killmail(object):
 
         The human readable name of the ship lost for this killmail.
 
+    .. py:attribute:: ship_url
+
+        This is an optional atribute for subclasses to implement. It's intended
+        to be used for requests to link to a custom, possibly external,
+        ship-specific page.
+
     .. py:attribute:: pilot_id
 
         The ID number of the pilot who lost the ship. Referred to by CCP as
