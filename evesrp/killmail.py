@@ -253,7 +253,11 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin):
         self.ship_id = int(victim['shipTypeID'])
         # For consistency, store self.value in millions. Decimal is being used
         # for precision at large values.
-        value = Decimal(json['zkb']['totalValue'])
+        # Old versions of zKB don't give the ISK value
+        try:
+            value = Decimal(json['zkb']['totalValue'])
+        except KeyError:
+            value = 0
         self.value = value / 1000000
         # Parse the timestamp
         time_struct = time.strptime(json['killTime'], '%Y-%m-%d %H:%M:%S')
