@@ -4,6 +4,7 @@ from evesrp.killmail import CRESTMail, ShipURLMixin
 import evesrp.auth.testauth
 from flask.ext.heroku import Heroku
 from os import environ as env
+from binascii import unhexlify
 
 
 skel_url = 'https://wiki.eveonline.com/en/wiki/{name}'
@@ -13,7 +14,7 @@ class EOWikiCREST(CRESTMail, ShipURLMixin(skel_url)): pass
 
 app = create_app()
 heroku = Heroku(app)
-app.config['SECRET_KEY'] = env['SECRET_KEY']
+app.config['SECRET_KEY'] = unhexlify(env['SECRET_KEY'])
 app.config['USER_AGENT_EMAIL'] = 'paxswill@paxswill.com'
 app.config['AUTH_METHODS'] = ['evesrp.auth.testauth.TestAuth']
 app.config['CORE_AUTH_PRIVATE_KEY'] = env.get('CORE_PRIVATE_KEY')
