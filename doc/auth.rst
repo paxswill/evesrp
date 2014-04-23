@@ -53,9 +53,8 @@ In addition, we override :py:meth:`User.authmethod` to tell which
 authentication method class to use for the actual login process.
 
 :py:class:`AuthMethod` subclasses have three and a half methods they can
-subclass to customize themselves. The :py:meth:`AuthMethod.__init__` method is
-passed an instance of the configuration dictionary to allow greater flexibility
-in configuration. :py:meth:`AuthMethod.form` returns the :py:class:`AuthForm`
+subclass to customize themselves. :py:meth:`AuthMethod.form` returns the
+:py:class:`AuthForm`
 subclass that represents the necessary fields. :py:meth:`AuthMethod.login`
 performs the actual login process. As part of this, it is passed an instance of
 the class given by :py:meth:`AuthMethod.form` with the submitted data via the
@@ -147,14 +146,14 @@ API Documentation
 
 .. autoclass:: TestAuth
 
-.. autoclass:: TestAuthUser
+.. autoclass:: TestUser
 
-.. autoclass:: TestAuthGroup
+.. autoclass:: TestGroup
 
 .. py:module:: evesrp.auth.bravecore
 
-.. autoclass:: BraveCore
+.. autoclass:: CoreAuth
 
-.. autoclass:: BraveCoreUser
+.. autoclass:: CoreUser
 
-.. autoclass:: BraveCoreGroup
+.. autoclass:: CoreGroup

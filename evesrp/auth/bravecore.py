@@ -10,62 +10,11 @@ from . import AuthMethod, AuthForm
 from .models import User, Group
 
 
-class BraveCore(AuthMethod):
+class CoreAuth(AuthMethod):
     name = 'Brave Core'
 
-    def __init__(self, **kwargs):
-        try:
-            config = kwargs['config']
-        except KeyError:
-            client_key = kwargs['client_key']
-            server_key = kwargs['server_key']
-            identifier = kwargs['identifier']
-            try:
-                url = kwargs['url']
-            except KeyError:
-                url = 'https://core.bravecollective.net/api'
-        else:
-            client_key = config['CORE_AUTH_PRIVATE_KEY']
-            server_key = config['CORE_AUTH_PUBLIC_KEY']
-            identifier = config['CORE_AUTH_IDENTIFIER']
-            try:
-                url = config['CORE_AUTH_URL']
-            except KeyError:
-                url = 'https://core.bravecollective.net/'
-
-        if isinstance(client_key, SigningKey):
-            # Is the value a key object?
-            priv = client_key
-        elif hasattr(client_key, 'read'):
-            # Is the value a file opject to a PEM encoded key?
-            priv_pem = client_key.read()
-            priv = SigningKey.from_pem(priv_pem, hashfunc=sha256)
-        else:
-            try:
-                # Is the value the filename of a PEM encoded key?
-                with open(client_key, 'r') as f:
-                    priv_pem = f.read()
-                    priv = SigningKey.from_pem(priv_pem, hashfunc=sha256)
-            except FileNotFoundError:
-                # Is the value a hex encoded key?
-                priv = SigningKey.from_string(unhexlify(client_key),
-                        curve=NIST256p, hashfunc=sha256)
-
-        # GO through the entire process again for the public key
-        if isinstance(server_key, VerifyingKey):
-            pub = server_key
-        elif hasattr(server_key, 'read'):
-            pub_pem = server_key.read()
-            pub = VerifyingKey.from_pem(pub_pem)
-        else:
-            try:
-                with open(server_key, 'r') as f:
-                    pub_pem = f.read()
-                    pub = VerifyingKey.from_pem(pub_pem)
-            except FileNotFoundError:
-                pub = VerifyingKey.from_string(unhexlify(server_key),
-                        curve=NIST256p, hashfunc=sha256)
-
+    def __init__(self, client_key, server_key, identifier,
+            url='https://core.braveineve.com'):
         self.api = API(url, identifier, priv, pub,
                 requests_session).api
 
@@ -116,7 +65,7 @@ class BraveCore(AuthMethod):
             return redirect(url_for('login.login'))
 
 
-class BraveCoreUser(User):
+class CoreUser(User):
     id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     token = db.Column(db.String(100))
 
@@ -125,7 +74,7 @@ class BraveCoreUser(User):
         return BraveCore
 
 
-class BraveCoreGroup(Group):
+class CoreGroup(Group):
     id = db.Column(db.Integer, db.ForeignKey('group.id'), primary_key=True)
     core_id = db.Column(db.Integer, index=True)
     description = db.Column(db.Text)
