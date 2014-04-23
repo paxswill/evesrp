@@ -1,3 +1,4 @@
+from collections import defaultdict
 import datetime as dt
 import time
 from decimal import Decimal
@@ -98,7 +99,7 @@ class Killmail(object):
 
         :param: keyword arguments corresponding to attributes.
         """
-        self._data = {}
+        self._data = defaultdict(lambda: None)
         super(Killmail, self).__init__(**kwargs)
         for attr in ('kill_id', 'ship_id', 'ship', 'pilot_id', 'pilot',
                 'corp_id', 'corp', 'alliance_id', 'alliance', 'verified',
