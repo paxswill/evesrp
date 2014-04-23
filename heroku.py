@@ -21,6 +21,9 @@ app.config['CORE_AUTH_PRIVATE_KEY'] = env.get('CORE_PRIVATE_KEY')
 app.config['CORE_AUTH_PUBLIC_KEY'] = env.get('CORE_PUBLIC_KEY')
 app.config['CORE_AUTH_IDENTIFIER'] = env.get('CORE_IDENTIFIER')
 app.config['KILLMAIL_SOURCES'] = [EOWikiCREST]
+if env.get('DEBUG') is not None:
+    app.debug = True
+
 
 if __name__ == '__main__':
     print("Creating databases...")
