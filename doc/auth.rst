@@ -152,7 +152,7 @@ API Documentation
 
 .. py:module:: evesrp.auth.bravecore
 
-.. autoclass:: CoreAuth
+.. autoclass:: BraveCore
 
 .. autoclass:: CoreUser
 
