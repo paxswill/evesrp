@@ -1,10 +1,9 @@
 {% macro render_input(field, inline=False) -%}
-<div class="form-group">
+<div class="form-group{{ " has-error has-feedback" if field.errors }}">
   {% if inline %}
   {{ field.label(class="sr-only") }}
   {{ field(class="form-control", placeholder=field.label.text) }}
   {% else %}
-  {#<p>{{ field }}</p>#}
     {% if field.widget.input_type == 'submit' %}
       {{ field(class="btn btn-default") }}
     {% else %}
@@ -20,6 +19,12 @@
           {{ field.label }}
         {% endif %}
         {{ field(class="form-control") }}
+        {% if field.errors %}
+        <span class="glyphicon glyphicon-remove form-control-feedback"></span>
+        {% for error in field.errors %}
+        <span class="help-block">{{ error }}</span>
+        {% endfor %}
+        {% endif %}
       {% endif %}
     {% endif %}
   {% endif %}
