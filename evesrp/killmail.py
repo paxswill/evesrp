@@ -10,6 +10,8 @@ import requests
 from sqlalchemy import create_engine, Table, MetaData
 from sqlalchemy.sql import select
 
+from . import ships
+
 
 class Killmail(object):
     """Base killmail representation.
@@ -130,6 +132,16 @@ class Killmail(object):
         yield ('kill_timestamp', self.timestamp)
 
 
+class ShipNameMixin(object):
+    """Killmail mixin providing :py:attr:`Killmail.ship` from
+    :py:attr:`Killmail.ship_id`.
+    """
+
+    @property
+    def ship(self):
+        return ships.ships[self.ship_id]
+
+
 class RequestsSessionMixin(object):
     """Mixin for providing a :py:class:`requests.Session`.
 
@@ -153,95 +165,6 @@ class RequestsSessionMixin(object):
         else:
             self.requests_session = request_session
         super(RequestsSessionMixin, self).__init__(**kwargs)
-
-
-def SQLShipMixin(*args, **kwargs):
-    """Class factory for mixin classes to retrieve ship names from a database.
-
-    Uses SQLAlchemy internally for SQL operations so as to make it usable on as
-    many platforms as possible. The arguments passed to this function are
-    passed directly to :py:func:`sqlalchemy.create_engine`, so feel free to use
-    whatver arguments you wish. As long as the database has an ``invTypes``
-    table with ``typeID`` and ``typeName`` columns and there's a DBAPI driver
-    supported by SQLAlchemy, this mixin should work.
-    """
-    class _SQLMixin(object):
-        #: The :py:class:`sqlalchemy.engine.Engine` instance for the database.
-        engine = create_engine(*args, **kwargs)
-
-        #: The :py:class:`sqlalchemy.MetaData <sqlalchemy.schema.MetaData>`
-        #: instance for the database.
-        metadata = MetaData(bind=engine)
-
-        #: The :py:class:`sqlalchemy.Table <sqlalchemy.schema.Table>`
-        #: representing the invTypes table. Column definitions are reflected at
-        #: run time.
-        invTypes = Table('invTypes', metadata, autoload=True)
-
-        def __init__(self, *args, **kwargs):
-            super(_SQLMixin, self).__init__(*args, **kwargs)
-
-        @property
-        def ship(self):
-            """Looks up the ship name for :py:attr:`~Killmail.ship_id` in an
-            SQL database.
-            """
-            conn = self.engine.connect()
-            # Construct the select statement
-            sel = select([self.invTypes.c.typeName])
-            sel = sel.where(self.invTypes.c.typeID == self.ship_id)
-            sel = sel.limit(1)
-            # Get the results
-            result = conn.execute(sel)
-            row = result.fetchone()
-            # Cleanup
-            result.close()
-            conn.close()
-            return row[0]
-
-    return _SQLMixin
-
-
-class EveMDShipNameMixin(RequestsSessionMixin):
-    """Killmail mixin for getting ship names using ship IDs using
-    eve-marketdata.com.
-
-    This method can be a slow method for looking up ship names, but it's fairly
-    reliable.
-    """
-    # Yeah, using regexes on XML. Deal with it.
-    evemd_regex = re.compile(
-            r'<val id="\d+">(?P<ship_name>[A-Za-z0-9]+)</val>')
-
-    def __init__(self, user_agent=None, **kwargs):
-        """Setup a :py:class:`Killmail` that looks up ship names from
-        eve-market-data.
-
-        :param user_agent str: Character name (or some other way to contact
-            you).
-        """
-        if user_agent is not None or user_agent != '':
-            self.user_agent=user_agent
-        else:
-            self.user_agent = 'Unconfigured EVE-SRP Mixin'
-        super(EveMDShipNameMixin, self).__init__(**kwargs)
-
-    @property
-    def ship(self):
-        """Looks up the ship name for :py:attr:`~Killmail.ship_id` using
-        eve-marketdata.com's API.
-        """
-        resp = self.requests_session.get(
-                'http://api.eve-marketdata.com/api/type_name.xml', params=
-                {
-                    'char_name': quote(self.user_agent),
-                    'v': self.ship_id
-                })
-        if resp.status_code == requests.codes.ok:
-            match = self.evemd_regex.search(resp.text)
-            if match:
-                return match.group('ship_name')
-        return None
 
 
 def ShipURLMixin(url_skeleton):
@@ -269,7 +192,7 @@ def ShipURLMixin(url_skeleton):
     return _ShipURLMixin
 
 
-class ZKillmail(Killmail, RequestsSessionMixin):
+class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin):
     """A killmail sourced from a zKillboard based killboard."""
 
     zkb_regex = re.compile(r'/detail/(?P<kill_id>\d+)/?')
@@ -313,7 +236,7 @@ class ZKillmail(Killmail, RequestsSessionMixin):
         self.corp = victim['corporationName']
         self.alliance_id = victim['allianceID']
         self.alliance = victim['allianceName']
-        self.ship_id = victim['shipTypeID']
+        self.ship_id = int(victim['shipTypeID'])
         # For consistency, store self.value in millions. Decimal is being used
         # for precision at large values.
         value = Decimal(json['zkb']['totalValue'])
