@@ -1,4 +1,3 @@
-import importlib
 import locale
 
 import requests
@@ -61,14 +60,7 @@ def sqlalchemy_before():
 
 # Auth setup
 def _copy_config_to_authmethods():
-    print("configuring auth methods")
-    current_app.auth_methods = []
-    auth_methods = current_app.auth_methods
-    for method in current_app.config['AUTH_METHODS']:
-        module_name, class_name = method.rsplit('.', 1)
-        module = importlib.import_module(module_name)
-        method_class = getattr(module, class_name)
-        auth_methods.append(method_class(config=current_app.config))
+    current_app.auth_methods = current_app.config['AUTH_METHODS']
 
 
 # Requests session setup

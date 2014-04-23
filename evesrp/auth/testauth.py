@@ -19,14 +19,8 @@ class TestLoginForm(AuthForm):
 class TestAuth(AuthMethod):
     name = "Test Auth"
 
-    def __init__(self, **kwargs):
-        try:
-            self.api_key = kwargs['config']['TEST_AUTH_API_KEY']
-        except KeyError:
-            try:
-                self.api_key = kwargs['api_key']
-            except KeyError:
-                self.api_key = None
+    def __init__(self, api_key=None):
+        self.api_key = api_key
 
     def form(self):
         return TestLoginForm
