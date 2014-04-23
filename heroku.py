@@ -2,7 +2,6 @@
 from evesrp import create_app
 from evesrp.killmail import CRESTMail, ShipURLMixin
 import evesrp.auth.testauth
-from flask.ext.heroku import Heroku
 from os import environ as env
 from binascii import unhexlify
 
@@ -13,7 +12,7 @@ class EOWikiCREST(CRESTMail, ShipURLMixin(skel_url)): pass
 
 
 app = create_app()
-heroku = Heroku(app)
+app.config['SQLALCHEMY_DATABASE_URI'] = env['DATABASE_URL']
 app.config['SECRET_KEY'] = unhexlify(env['SECRET_KEY'])
 app.config['USER_AGENT_EMAIL'] = 'paxswill@paxswill.com'
 app.config['AUTH_METHODS'] = ['evesrp.auth.testauth.TestAuth']
