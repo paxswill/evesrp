@@ -77,7 +77,7 @@ class Entity(db.Model, AutoID):
             if division is None:
                 perms = self.permissions
             else:
-                perms = division.permissions
+                perms = division.division_permissions
             return any(filter(lambda p: p.permission == permission, perms))
         else:
             try:
