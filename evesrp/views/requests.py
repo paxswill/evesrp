@@ -345,7 +345,19 @@ def request_detail(request_id):
                     elif type_ != 'comment' and not review_perm.can():
                         flash("You are not a reviewer.", 'error')
                         invalid = True
-                elif srp_request.status in ('incomplete', 'rejected'):
+                elif srp_request.status == 'incomplete':
+                    if type_ not in ('evaluating', 'rejected', 'comment'):
+                        flash("Can only reject or re-evaluate.", 'error')
+                        invalid = True
+                    elif type_ == 'evaluating' and not (review_perm.can() or
+                            srp_request.submitter == current_user):
+                        flash(("You must be a reviewer or own this request to"
+                               "re-evaluate."), 'error')
+                        invalid = True
+                    elif type_ == 'rejected' and not review_perm.can():
+                        flash("You are not a reviewer.", 'error')
+                        invalid = True
+                elif srp_request.status == 'rejected':
                     if type_ not in ('evaluating', 'comment'):
                         flash("Can only change to Evaluating.", 'error')
                         invalid = True
