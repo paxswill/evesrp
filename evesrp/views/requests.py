@@ -8,7 +8,8 @@ from flask.ext.login import login_required, current_user
 from flask.ext.wtf import Form
 from wtforms.fields import SelectField, SubmitField, TextAreaField, HiddenField
 from wtforms.fields.html5 import URLField, DecimalField
-from wtforms.validators import InputRequired, AnyOf, URL
+from wtforms.validators import InputRequired, AnyOf, URL, ValidationError,\
+        StopValidation
 
 from .. import db
 from ..models import Request, Modifier, Action
@@ -141,11 +142,41 @@ def register_class_views(state):
             '/complete/', ('review', 'pay'), (lambda r: r.finalized))
 
 
+class ValidKillmail(URL):
+    def __init__(self, mail_class, **kwargs):
+        self.mail_class = mail_class
+        super(ValidKillmail, self).__init__(**kwargs)
+
+    def __call__(self, form, field):
+        super(ValidKillmail, self).__call__(form, field)
+        try:
+            mail = self.mail_class(field.data)
+        except ValueError as e:
+            raise ValidationError("'{}' is not a valid killmail URL".
+                    format(field.data)) from e
+        except LookupError as e:
+            raise ValidationError(str(e)) from e
+        else:
+            form.killmail = mail
+            raise StopValidation
+
+
+def get_killmail_validators():
+    """Delay accessing current_app until in a request context."""
+    validators = [ValidKillmail(s) for s in current_app.killmail_sources]
+    validators.append(InputRequired())
+    return validators
+
+
 class RequestForm(Form):
-    url = URLField('Killmail URL', validators=[InputRequired(), URL()])
+    url = URLField('Killmail URL')
     details = TextAreaField('Details', validators=[InputRequired()])
     division = SelectField('Division', coerce=int)
     submit = SubmitField('Submit')
+
+    def validate_url(form, field):
+        for v in get_killmail_validators():
+            v(form, field)
 
 
 @blueprint.route('/add/', methods=['GET', 'POST'])
@@ -174,19 +205,7 @@ def submit_request():
         choices.append((next(group).id, name))
     form.division.choices = choices
     if form.validate_on_submit():
-        # validate killmail first
-        for source in current_app.killmail_sources:
-            try:
-                mail = source(url=form.url.data)
-            except ValueError as e:
-                continue
-            except LookupError:
-                continue
-            else:
-                break
-        else:
-            flash("Killmail URL cannot be verified", 'error')
-            return render_template('form.html', form=form)
+        mail = form.killmail
         # Prevent submitting other people's killmails
         pilot = Pilot.query.get(mail.pilot_id)
         if not pilot or pilot not in current_user.pilots:
