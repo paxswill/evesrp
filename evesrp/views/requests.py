@@ -152,13 +152,13 @@ class ValidKillmail(URL):
         try:
             mail = self.mail_class(field.data)
         except ValueError as e:
-            raise ValidationError("'{}' is not a valid killmail URL".
-                    format(field.data)) from e
+            raise ValidationError(str(e)) from e
         except LookupError as e:
             raise ValidationError(str(e)) from e
         else:
-            form.killmail = mail
-            raise StopValidation
+            if mail.verified:
+                form.killmail = mail
+                raise StopValidation
 
 
 def get_killmail_validators():
@@ -175,8 +175,16 @@ class RequestForm(Form):
     submit = SubmitField('Submit')
 
     def validate_url(form, field):
+        failures = set()
         for v in get_killmail_validators():
-            v(form, field)
+            try:
+                v(form, field)
+            except ValidationError as e:
+                failures.add(str(e))
+            else:
+                continue
+        else:
+            raise ValidationError([str(e) for e in failures])
 
 
 @blueprint.route('/add/', methods=['GET', 'POST'])

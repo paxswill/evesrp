@@ -22,7 +22,15 @@
         {% if field.errors %}
         <span class="glyphicon glyphicon-remove form-control-feedback"></span>
         {% for error in field.errors %}
+        {% if error is iterable %}
+        <ul class="help-block">
+        {% for sub_error in error %}
+        <li>{{ sub_error }}</li>
+        {% endfor %}
+      </ul>
+        {% else %}
         <span class="help-block">{{ error }}</span>
+        {% endif %}
         {% endfor %}
         {% endif %}
       {% endif %}

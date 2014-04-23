@@ -225,7 +225,7 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin):
         if match:
             self.kill_id = int(match.group('kill_id'))
         else:
-            raise ValueError("Killmail ID was not found in URL '{}'".
+            raise ValueError("'{}' is not a valid zKillboad killmail".
                     format(self.url))
         parsed = urlparse(self.url, scheme='https')
         if parsed.netloc == '':
@@ -293,7 +293,7 @@ class CRESTMail(Killmail, RequestsSessionMixin):
         if match:
             self.kill_id = match.group('kill_id')
         else:
-            raise ValueError("Killmail ID was not found in URL '{}'".
+            raise ValueError("'{}' is not a valid CREST killmail".
                     format(self.url))
         parsed = urlparse(self.url, scheme='https')
         if parsed.netloc == '':
