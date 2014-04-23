@@ -21,5 +21,6 @@ gunicorn==18.0
 ipython==1.2.1
 itsdangerous==0.23
 marrow.util==1.2.3
+psycopg2==2.5.2
 requests==2.2.1
 simple-pbkdf2==1.0
