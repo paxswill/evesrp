@@ -23,5 +23,5 @@ app.config['CORE_AUTH_IDENTIFIER'] = env.get('CORE_IDENTIFIER')
 app.config['KILLMAIL_SOURCES'] = [EOWikiCREST]
 
 if __name__ == '__main__':
+    print("Creating databases...")
     app.extensions['sqlalchemy'].db.create_all(app=app)
-    app.run()
