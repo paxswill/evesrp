@@ -81,6 +81,13 @@
       <p>Placeholder content here</p>
       {% endblock content %}
     </div>
+    {% block stats %}
+    {% if current_user.admin %}
+    <footer id="stats">
+      <p class="text-muted text-center"><small>{{ g.DB_STATS.total_queries }} queries in {{ (g.DB_STATS.total_time * 1000)|round(3)}} ms</small></p>
+    </footer>
+    {% endif %}
+    {% endblock stats %}
     {% endblock body %}
     {% block scripts %}
     <!-- Jquery from CDNJS. Need to use 1.x to support the IGB -->

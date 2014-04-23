@@ -2,9 +2,11 @@ import importlib
 import locale
 
 import requests
-from flask import Flask, current_app
+from flask import Flask, current_app, g
 from flask.ext.principal import identity_loaded
 from flask.ext.sqlalchemy import SQLAlchemy
+
+from .sqlstats import DB_STATS
 
 
 requests_session = requests.Session()
@@ -20,6 +22,9 @@ db = SQLAlchemy()
 def create_app(**kwargs):
     app = Flask('evesrp', **kwargs)
     app.config.from_object('evesrp.default_config')
+
+    # Register SQLAlchemy monitoring before the DB is connected
+    app.before_request(sqlalchemy_before)
 
     db.init_app(app)
 
@@ -46,6 +51,12 @@ def create_app(**kwargs):
     app.before_first_request(_config_killmails)
 
     return app
+
+
+# SQLAlchemy performance logging
+def sqlalchemy_before():
+    DB_STATS.clear()
+    g.DB_STATS = DB_STATS
 
 
 # Auth setup
