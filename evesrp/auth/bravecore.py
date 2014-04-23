@@ -10,7 +10,7 @@ from . import AuthMethod, AuthForm
 from .models import User, Group
 
 
-class BraveCore(AuthMethod):
+class CoreAuth(AuthMethod):
     name = 'Brave Core'
 
     def __init__(self, **kwargs):
@@ -116,7 +116,7 @@ class BraveCore(AuthMethod):
             return redirect(url_for('login.login'))
 
 
-class BraveCoreUser(User):
+class CoreUser(User):
     id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     token = db.Column(db.String(100))
 
@@ -125,7 +125,7 @@ class BraveCoreUser(User):
         return BraveCore
 
 
-class BraveCoreGroup(Group):
+class CoreGroup(Group):
     id = db.Column(db.Integer, db.ForeignKey('group.id'), primary_key=True)
     core_id = db.Column(db.Integer, index=True)
     description = db.Column(db.Text)

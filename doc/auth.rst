@@ -147,14 +147,14 @@ API Documentation
 
 .. autoclass:: TestAuth
 
-.. autoclass:: TestAuthUser
+.. autoclass:: TestUser
 
-.. autoclass:: TestAuthGroup
+.. autoclass:: TestGroup
 
 .. py:module:: evesrp.auth.bravecore
 
-.. autoclass:: BraveCore
+.. autoclass:: CoreAuth
 
-.. autoclass:: BraveCoreUser
+.. autoclass:: CoreUser
 
-.. autoclass:: BraveCoreGroup
+.. autoclass:: CoreGroup

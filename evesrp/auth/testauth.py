@@ -10,7 +10,7 @@ from . import AuthMethod, AuthForm
 from .models import User, Group, Pilot
 
 
-class TestAuthLoginForm(AuthForm):
+class TestLoginForm(AuthForm):
     username = StringField('Username', validators=[InputRequired()])
     password = PasswordField('Password', validators=[InputRequired()])
     submit = SubmitField('Log In')
@@ -29,7 +29,7 @@ class TestAuth(AuthMethod):
                 self.api_key = None
 
     def form(self):
-        return TestAuthLoginForm
+        return TestLoginForm
 
     def login(self, form):
         sha = hashlib.sha1()
@@ -138,7 +138,7 @@ class TestAuth(AuthMethod):
             return groups
 
 
-class TestAuthUser(User):
+class TestUser(User):
     id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     auth_id = db.Column(db.Integer, nullable=False, index=True)
 
@@ -151,7 +151,7 @@ class TestAuthUser(User):
         return TestAuth
 
 
-class TestAuthGroup(Group):
+class TestGroup(Group):
     id = db.Column(db.Integer, db.ForeignKey('group.id'), primary_key=True)
     auth_id = db.Column(db.Integer, nullable=False, index=True)
     description = db.Column(db.Text)
