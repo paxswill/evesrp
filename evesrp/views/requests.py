@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from itertools import groupby
 
 from flask import render_template, abort, url_for, flash, Markup, request,\
     redirect, current_app, Blueprint
@@ -161,12 +162,16 @@ def submit_request():
     if not current_user.has_permission('submit'):
         abort(403)
     form = RequestForm()
-    choices = []
+    # Create a list of divisions this user can submit to
     divisions = map(lambda x: x.division,
             filter(lambda y: y.permission == 'submit',
                     current_user.permissions))
-    for division in divisions:
-        choices.append((division.id, division.name))
+    # Remove duplicates and sort divisions by name
+    keyfunc = lambda d: d.name
+    divisions = sorted(divisions, key=keyfunc)
+    choices = []
+    for name, group in groupby(divisions, keyfunc):
+        choices.append((next(group).id, name))
     form.division.choices = choices
     if form.validate_on_submit():
         # validate killmail first
