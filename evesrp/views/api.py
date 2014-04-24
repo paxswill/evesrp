@@ -183,31 +183,3 @@ def ship_list():
     ship_objs = list(map(lambda s: {'name': s[1], 'id': s[0]},
             ships.ships.items()))
     return jsonify(ships=ship_objs)
-
-
-@login_required
-@admin_permission.require()
-def division_permission(division_id, permission):
-    # external API method. It's the only one implemented so far, so just ignore
-    # it for now.
-    division = Division.query.get_or_404(division_id)
-    users = []
-    for user in division.permissions[permission].individuals:
-        user_dict = {
-                'name': user.name,
-                'id': user.id
-                }
-        users.append(user_dict)
-    groups = []
-    for group in division.permissions[permission].groups:
-        group_dict = {
-                'name': group.name,
-                'id': group.id,
-                'size': len(group.individuals)
-                }
-        groups.append(group_dict)
-    return jsonify(name=division.name,
-            groups=groups,
-            users=users)
-
-
