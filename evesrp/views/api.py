@@ -8,12 +8,12 @@ from ..auth import admin_permission
 from ..auth.models import Division, User, Group
 
 
-blueprint = Blueprint('api', __name__)
+api = Blueprint('api', __name__)
 
 
 
 
-@blueprint.route('/<entity_type>/')
+@api.route('/<entity_type>/')
 @login_required
 @admin_permission.require()
 def list_entities(entity_type):
@@ -46,7 +46,7 @@ def list_entities(entity_type):
     return jsonify(**json_obj)
 
 
-@blueprint.route('/user/<int:user_id>/')
+@api.route('/user/<int:user_id>/')
 def user_detail(user_id):
     user = User.query.get_or_404(user_id)
     # Set up divisions
@@ -70,7 +70,7 @@ def user_detail(user_id):
     return jsonify(**resp)
 
 
-@blueprint.route('/group/<int:group_id>/')
+@api.route('/group/<int:group_id>/')
 def group_detail(group_id):
     group = Group.query.get_or_404(group_id)
     submit = map(lambda p: p.division,
@@ -91,7 +91,7 @@ def group_detail(group_id):
     return jsonify(**resp)
 
 
-@blueprint.route('/request/<int:request_id>/')
+@api.route('/request/<int:request_id>/')
 @login_required
 def request_detail(request_id):
     """Get the details of a request.
@@ -107,7 +107,7 @@ def request_detail(request_id):
     return jsonify(json_obj)
 
 
-@blueprint.route('/division/')
+@api.route('/division/')
 @login_required
 @admin_permission.require()
 def list_divisions():
@@ -116,7 +116,7 @@ def list_divisions():
     return jsonify(divisions=Division.query.all())
 
 
-@blueprint.route('/division/<int:division_id>/')
+@api.route('/division/<int:division_id>/')
 @login_required
 @admin_permission.require()
 def division_detail(division_id):
@@ -139,7 +139,7 @@ def division_detail(division_id):
     return jsonify(**div_obj)
 
 
-@blueprint.route('/ships/')
+@api.route('/ships/')
 @login_required
 def ship_list():
     """Get an array of objects corresponding to every ship type.

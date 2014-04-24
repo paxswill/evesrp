@@ -38,7 +38,7 @@ def create_app(**kwargs):
     app.register_blueprint(divisions.blueprint, url_prefix='/divisions')
     app.register_blueprint(login.blueprint)
     app.register_blueprint(requests.blueprint, url_prefix='/requests')
-    app.register_blueprint(api.blueprint, url_prefix='/api')
+    app.register_blueprint(api.api, url_prefix='/api')
 
     from .json import SRPEncoder
     app.json_encoder=SRPEncoder
