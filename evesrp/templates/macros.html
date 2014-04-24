@@ -20,7 +20,7 @@
         {% endif %}
         {{ field(class="form-control") }}
         {% if field.errors %}
-        <span class="glyphicon glyphicon-remove form-control-feedback"></span>
+        <i class="fa fa-times form-control-feedback"></i>
         {% for error in field.errors %}
         {% if error is iterable %}
         <ul class="help-block">
