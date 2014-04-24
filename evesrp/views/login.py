@@ -22,7 +22,6 @@ def login():
         prefix = auth_method.__class__.__name__.lower()
         form = auth_method.form()
         forms.append((auth_method, form(prefix=prefix)))
-    print(forms)
     if request.method == 'POST':
         for auth_tuple in forms:
             if auth_tuple[1].submit.data:
