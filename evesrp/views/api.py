@@ -19,7 +19,18 @@ class SRPEncoder(JSONEncoder):
                     'id': o.id,
             }
         except AttributeError:
-            pass
+            try:
+                ret = {
+                        'id': o.id,
+                }
+            except AttributeError:
+                # There is nothing I can do for you...
+                pass
+            else:
+                if isinstance(o, Request):
+                    ret['href'] = url_for('api.request_detail',
+                            request_id=o.id)
+                return ret
         else:
             if isinstance(o, User):
                 ret['href'] = url_for('api.user_detail', user_id=o.id)
@@ -31,16 +42,6 @@ class SRPEncoder(JSONEncoder):
                 ret['href'] = url_for('api.request_detail', request_id=o.id)
             return ret
         return super(SRPEncoder, self).default(o)
-
-def json_form(entity):
-    # TODO convert to an actual subclass of JSONEncoder/JSONDecoder
-    ret = {
-        'name': entity.name,
-        'id': entity.id
-    }
-    if isinstance(entity, User):
-        ret['href'] = url_for('api_user_detail', user_id=entity.id)
-    return ret
 
 
 @blueprint.route('/<entity_type>/')
