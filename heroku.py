@@ -18,17 +18,6 @@ class EveWikiZKillmail(ZKillmail, EveWikiMixin): pass
 
 
 
-app = create_app()
-app.config['USER_AGENT_EMAIL'] = 'paxswill@paxswill.com'
-app.config['SQLALCHEMY_DATABASE_URI'] = env.get('DATABASE_URL', 'sqlite:///')
-app.config['AUTH_METHODS'] = [TestAuth()]
-app.config['CORE_AUTH_PRIVATE_KEY'] = env.get('CORE_PRIVATE_KEY')
-app.config['CORE_AUTH_PUBLIC_KEY'] = env.get('CORE_PUBLIC_KEY')
-app.config['CORE_AUTH_IDENTIFIER'] = env.get('CORE_IDENTIFIER')
-app.config['KILLMAIL_SOURCES'] = [
-        EveWikiZKillmail,
-        EveWikiCRESTMail
-]
 
 
 def hex2key(hex_key):
