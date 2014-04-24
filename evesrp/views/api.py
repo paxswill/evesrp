@@ -79,16 +79,45 @@ def list_entities(entity_type):
 
 @blueprint.route('/user/<int:user_id>/')
 def user_detail(user_id):
-    pass
+    user = User.query.get_or_404(user_id)
+    # Set up divisions
+    submit = map(lambda p: p.division,
+            filter(lambda p: p.permission == 'submit', user.permissions))
+    review = map(lambda p: p.division,
+            filter(lambda p: p.permission == 'review', user.permissions))
+    pay = map(lambda p: p.division,
+            filter(lambda p: p.permission == 'pay', user.permissions))
+    resp = {
+        'name': user.name,
+        'groups': list(user.groups),
+        'divisions': {
+            'submit': list(set(submit)),
+            'review': list(set(review)),
+            'pay': list(set(pay)),
+        },
+        'admin': user.admin,
+        'requests': user.requests,
+    }
+    return jsonify(**resp)
 
 
 @blueprint.route('/group/<int:group_id>/')
 def group_detail(group_id):
     group = Group.query.get_or_404(group_id)
+    submit = map(lambda p: p.division,
+            filter(lambda p: p.permission == 'submit', group.permissions))
+    review = map(lambda p: p.division,
+            filter(lambda p: p.permission == 'review', group.permissions))
+    pay = map(lambda p: p.division,
+            filter(lambda p: p.permission == 'pay', group.permissions))
     resp = {
         'name': group.name,
-        'users': group.users,
-        'divisions': group.divisions,
+        'users': list(group.users),
+        'divisions': {
+            'submit': list(set(submit)),
+            'review': list(set(review)),
+            'pay': list(set(pay)),
+        },
     }
     return jsonify(**resp)
 
