@@ -1,16 +1,17 @@
 from flask import url_for, redirect, abort, request, jsonify, Blueprint
-from flask.ext.login import login_required
+from flask.ext.login import login_required, current_user
 from sqlalchemy.orm.exc import NoResultFound
 
 from .. import ships, db
 from ..models import db, Request
 from ..auth import admin_permission
-from ..auth.models import Division, User, Group
+from ..auth.models import Division, User, Group, Pilot
 
 
 api = Blueprint('api', __name__)
 
 
+filters = Blueprint('filters', __name__)
 
 
 @api.route('/<entity_type>/')
@@ -157,3 +158,72 @@ def ship_list():
     ship_objs = list(map(lambda s: {'name': s[1], 'id': s[0]},
             ships.ships.items()))
     return jsonify(ships=ship_objs)
+
+
+@filters.route('/requests/')
+@login_required
+def filter_requests():
+    requests = set(current_user.requests)
+    for perm in current_user.permissions:
+        # Reviewers and Payers can see any request within a division they have
+        # those permissions in.
+        if perm.permission in ('review', 'pay'):
+            requests.update(perm.division.requests)
+
+    def request_dict(request):
+        payout = request.payout
+        return {
+            'id': request.id,
+            'href': url_for('requests.request_detail', request_id=request.id),
+            'pilot': request.pilot.name,
+            'corporation': request.corporation,
+            'alliance': request.alliance,
+            'ship': request.ship_type,
+            'status': request.status,
+            'payout': int(payout),
+            'payout_str': str(payout),
+            'kill_timestamp': request.kill_timestamp,
+            'submit_timestamp': request.timestamp,
+            'division': request.division.name,
+            'submitter_id': request.submitter.id
+        }
+
+    return jsonify(requests=map(request_dict, requests))
+
+
+@filters.route('/ships/')
+@login_required
+def filter_ships():
+    return jsonify(ships=list(ships.ships.values()))
+
+
+def _first(o):
+    return o[0]
+
+
+@filters.route('/pilots/')
+@login_required
+def filter_pilots():
+    pilots = db.session.query(Pilot.name)
+    return jsonify(pilots=map(_first, pilots))
+
+
+@filters.route('/corporations/')
+@login_required
+def filter_corps():
+    corps = db.session.query(Request.corporation).distinct()
+    return jsonify(corporations=map(_first, corps))
+
+
+@filters.route('/alliances/')
+@login_required
+def filter_alliances():
+    alliances = db.session.query(Request.alliance).distinct()
+    return jsonify(alliances=map(_first, alliances))
+
+
+@filters.route('/divisions/')
+@login_required
+def filter_divisions():
+    div_names = db.session.query(Division.name)
+    return jsonify(divisions=map(_first, div_names))
