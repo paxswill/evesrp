@@ -2,7 +2,7 @@ from flask import url_for, redirect, abort, request, jsonify, Blueprint
 from flask.ext.login import login_required
 from sqlalchemy.orm.exc import NoResultFound
 
-from .. import ships
+from .. import ships, db
 from ..models import db, Request
 from ..auth import admin_permission
 from ..auth.models import Division, User, Group
@@ -35,15 +35,15 @@ def list_entities(entity_type):
     :param str entity_type: Either ``'user'`` or ``'group'``.
     """
     if entity_type == 'user':
-        query = User.query
+        query = db.session.query(User.id, User.name)
     elif entity_type == 'group':
-        query = Group.query
+        query = db.session.query(User.id, User.name)
     else:
         abort(404)
     json_obj = {
-        entity_type + 's': query.all(),
+        entity_type + 's': query,
     }
-    return jsonify(**json_obj)
+    return jsonify(json_obj)
 
 
 @api.route('/user/<int:user_id>/')
@@ -67,7 +67,7 @@ def user_detail(user_id):
         'admin': user.admin,
         'requests': user.requests,
     }
-    return jsonify(**resp)
+    return jsonify(resp)
 
 
 @api.route('/group/<int:group_id>/')
@@ -88,7 +88,7 @@ def group_detail(group_id):
             'pay': list(set(pay)),
         },
     }
-    return jsonify(**resp)
+    return jsonify(resp)
 
 
 @api.route('/request/<int:request_id>/')
@@ -113,7 +113,8 @@ def request_detail(request_id):
 def list_divisions():
     """List all divisions.
     """
-    return jsonify(divisions=Division.query.all())
+    divisions = db.session.query(Division.id, Division.name)
+    return jsonify(divisions=divisions)
 
 
 @api.route('/division/<int:division_id>/')
@@ -136,7 +137,7 @@ def division_detail(division_id):
                 'users': permission.individuals,
                 'groups': permission.groups,
         }
-    return jsonify(**div_obj)
+    return jsonify(div_obj)
 
 
 @api.route('/ships/')
