@@ -1,5 +1,4 @@
 from flask import url_for, redirect, abort, request, jsonify, Blueprint
-from flask.json import JSONEncoder
 from flask.ext.login import login_required
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -12,37 +11,6 @@ from ..auth.models import Division, User, Group
 blueprint = Blueprint('api', __name__)
 
 
-class SRPEncoder(JSONEncoder):
-    def default(self, o):
-        try:
-            ret = {
-                    'name': o.name,
-                    'id': o.id,
-            }
-        except AttributeError:
-            try:
-                ret = {
-                        'id': o.id,
-                }
-            except AttributeError:
-                # There is nothing I can do for you...
-                pass
-            else:
-                if isinstance(o, Request):
-                    ret['href'] = url_for('api.request_detail',
-                            request_id=o.id)
-                return ret
-        else:
-            if isinstance(o, User):
-                ret['href'] = url_for('api.user_detail', user_id=o.id)
-            elif isinstance(o, Group):
-                ret['href'] = url_for('api.group_detail', group_id=o.id)
-            elif isinstance(o, Division):
-                ret['href'] = url_for('api.division_detail', division_id=o.id)
-            elif isinstance(o, Request):
-                ret['href'] = url_for('api.request_detail', request_id=o.id)
-            return ret
-        return super(SRPEncoder, self).default(o)
 
 
 @blueprint.route('/<entity_type>/')

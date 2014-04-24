@@ -40,7 +40,8 @@ def create_app(**kwargs):
     app.register_blueprint(requests.blueprint, url_prefix='/requests')
     app.register_blueprint(api.blueprint, url_prefix='/api')
 
-    app.json_encoder=api.SRPEncoder
+    from .json import SRPEncoder
+    app.json_encoder=SRPEncoder
 
     from .auth import load_user_permissions
     identity_loaded.connect(load_user_permissions, app)
