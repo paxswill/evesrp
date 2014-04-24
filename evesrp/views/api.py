@@ -100,11 +100,16 @@ def request_detail(request_id):
     attrs = ('killmail_url', 'kill_timestamp', 'pilot', 'alliance',
         'corporation', 'submitter', 'division', 'status', 'base_payout',
         'payout', 'details', 'actions', 'modifiers', 'id')
-    json_obj = []
+    json = {}
     for attr in attrs:
-        json_obj[attr] = getattr(request, attr)
-    json_obj['submit_timestamp'] = request.timestamp
-    return jsonify(json_obj)
+        if attr == 'payout':
+            json[attr] = int(request.payout)
+        elif attr == 'pilot':
+            json[attr] = request.pilot.name
+        else:
+            json[attr] = getattr(request, attr)
+    json['submit_timestamp'] = request.timestamp
+    return jsonify(json)
 
 
 @api.route('/division/')
