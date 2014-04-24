@@ -15,7 +15,7 @@ class BraveCore(AuthMethod):
 
     def __init__(self, client_key, server_key, identifier,
             url='https://core.braveineve.com'):
-        self.api = API(url, identifier, priv, pub,
+        self.api = API(url, identifier, client_key, server_key,
                 requests_session).api
 
     def login(self, form):
