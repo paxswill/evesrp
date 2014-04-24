@@ -294,5 +294,5 @@ class Request(db.Model, AutoID, Timestamped):
             pass
 
     def __repr__(self):
-        return "{x.__class__.__name__}({x.submitter, {x.division}, {x.id})".\
+        return "{x.__class__.__name__}({x.submitter}, {x.division}, {x.id})".\
                 format(x=self)

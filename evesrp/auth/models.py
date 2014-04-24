@@ -199,7 +199,7 @@ class Pilot(db.Model, AutoID):
         self.id = id_
 
     def __repr__(self):
-        return "{x.__class__.__name__({x.user}, '{x.name}', {x.id})".format(
+        return "{x.__class__.__name__}({x.user}, '{x.name}', {x.id})".format(
                 x=self)
 
 
