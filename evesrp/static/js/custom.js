@@ -1,3 +1,7 @@
+/*
+ * Make the link in button dropdowns submit the form
+ */
+
 $("ul#action-type li a").click( function (e) {
   var form = $(this).closest("form");
   form.find("input[name='type_']").attr("value", $(this).attr("id"));
@@ -11,6 +15,10 @@ $("ul#modifier-type li a").click( function(e) {
   form.submit();
   return false;
 });
+
+/*
+ * Autocomplete for divisions detail
+ */
 
 var users = new Bloodhound({
   datumTokenizer: Bloodhound.tokenizers.obj.nonword('name'),
@@ -60,4 +68,11 @@ $('.entity-typeahead').typeahead({
       return '<p>' + obj['name'] + ' <small class="text-muted">Group</small></p>';
     }
   }
-});
+})
+.on('typeahead:autocompleted', setEntityID)
+.on('typeahead:selected', setEntityID)
+.on('typeahead:cursorchanged', setEntityID);
+
+function setEntityID(ev, datum, dataset) {
+  $(this).closest('form').find("input[name='id_']").attr('value', datum['id']);
+}

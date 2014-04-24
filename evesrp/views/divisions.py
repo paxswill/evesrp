@@ -4,7 +4,7 @@ from flask.ext.login import login_required
 from flask.ext.wtf import Form
 from wtforms.fields import StringField, SubmitField, HiddenField
 from wtforms.validators import InputRequired, AnyOf, NumberRange
-from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from ..models import db
 from ..auth import admin_permission
@@ -70,27 +70,28 @@ def division_detail(division_id):
     division = Division.query.get_or_404(division_id)
     form = ChangeEntity()
     if form.validate_on_submit():
-        if form.action.data == 'add':
+        if form.id_.data is not None:
+            entity = Entity.query.get(form.id_.data)
+            if entity is None:
+                flash("No entity with ID #{}.".format(form.id_.data), 'error')
+        else:
             try:
                 entity = Entity.query.filter_by(name=form.name.data).one()
             except NoResultFound:
-                flash("No user with the name '{}' found.".
+                flash("No entities with the name '{}' found.".
                         format(form.name.data), category='error')
-            else:
-                perm = Permission(division, form.permission.data, entity)
-                db.session.add(perm)
-                flash("Added '{}'.".format(entity))
+            except MultipleResultsFound:
+                flash("Multiple entities eith the name '{}' found.".
+                        format(form.name.data), category='error')
+        if form.action.data == 'add':
+            perm = Permission(division, form.permission.data, entity)
+            db.session.add(perm)
+            flash("Added '{}'.".format(entity))
         elif form.action.data == 'delete':
-            entity = Entity.query.get(form.id_.data)
-            if entity is None:
-                flash("No entity with ID '{}' found.".format(form.id_.data),
-                        category='error')
-            else:
-                Permission.query.filter_by(division=division,
-                        permission=form.permission.data,
-                        entity=entity).delete()
-                flash("Removed '{}' from '{}'.".format(form.permission.data,
-                        entity))
+            Permission.query.filter_by(division=division,
+                    permission=form.permission.data, entity=entity).delete()
+            flash("Removed '{}' from '{}'.".format(form.permission.data,
+                    entity))
         db.session.commit()
     return render_template('division_detail.html', division=division,
         form=form)
