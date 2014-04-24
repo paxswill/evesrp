@@ -3,6 +3,7 @@ from flask.json import JSONEncoder
 from flask.ext.login import login_required
 from sqlalchemy.orm.exc import NoResultFound
 
+from .. import ships
 from ..models import db, Request
 from ..auth import admin_permission
 from ..auth.models import Division, User, Group
@@ -168,6 +169,20 @@ def division_detail(division_id):
                 'groups': permission.groups,
         }
     return jsonify(**div_obj)
+
+
+@blueprint.route('/ships/')
+@login_required
+def ship_list():
+    """Get an array of objects corresponding to every ship type.
+
+    The objects have two keys, ``id`` is the integer typeID, and ``name`` is
+    the name of the ship. This method is only accessible for logged in users to
+    try to keep possible misuse to a minimum.
+    """
+    ship_objs = list(map(lambda s: {'name': s[1], 'id': s[0]},
+            ships.ships.items()))
+    return jsonify(ships=ship_objs)
 
 
 @login_required
