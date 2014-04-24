@@ -68,7 +68,7 @@ class TestAuth(AuthMethod):
                     db_group = TestGroup(name=group['name'],
                             auth_id=group['id'])
                     db.session.add(db_group)
-                user.groups.append(db_group)
+                user.groups.add(db_group)
             # Sync pilot associations
             pilot = Pilot.query.get(json['primarycharacter']['id'])
             if not pilot:

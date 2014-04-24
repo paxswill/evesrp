@@ -45,7 +45,8 @@ def auth_method_login(auth_method):
     See :py:meth:`Authmethod.view <evesrp.auth.AuthMethod.view>` for more
     details.
     """
-    method_map = dict(map(lambda m: (m.__class__.__name__.lower(), m)))
+    method_map = dict(map(lambda m: (m.__class__.__name__.lower(), m),
+        current_app.auth_methods))
     return method_map[auth_method].view()
 
 auth_method_login.methods = ['GET', 'POST']

@@ -1,7 +1,7 @@
 from ecdsa import SigningKey, VerifyingKey, NIST256p
 from brave.api.client import SignedAuth, API
 from sqlalchemy.orm.exc import NoResultFound
-from flask import flash, url_for, redirect, abort, current_app
+from flask import flash, url_for, redirect, abort, current_app, request
 from hashlib import sha256
 from binascii import unhexlify
 
@@ -38,7 +38,7 @@ class BraveCore(AuthMethod):
             try:
                 user = CoreUser.query.filter_by(token=token).one()
             except NoResultFound:
-                user = CoreUser(token=token)
+                user = CoreUser(name=None, token=token)
                 db.session.add(user)
             # update user information
             info = self.api.core.info(token=token)

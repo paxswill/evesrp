@@ -123,6 +123,10 @@ class User(Entity):
     pilots = db.relationship('Pilot', back_populates='user',
             collection_class=set)
 
+    #: :py:class:`Group`\s this user is a member of
+    groups = db.relationship('Group', secondary=users_groups,
+            back_populates='users', collection_class=set)
+
     notes = db.relationship('Note', back_populates='user',
             order_by='desc(Note.timestamp)', foreign_keys='Note.user_id')
 
@@ -209,7 +213,8 @@ class Group(Entity):
     id = db.Column(db.Integer, db.ForeignKey('entity.id'), primary_key=True)
 
     #: :py:class:`User` s that belong to this group.
-    users = db.relationship(User, secondary=users_groups, backref='groups')
+    users = db.relationship(User, secondary=users_groups,
+            back_populates='groups', collection_class=set)
 
     #: Synonym for :py:attr:`entity_permissions`
     permissions = db.synonym('entity_permissions')
