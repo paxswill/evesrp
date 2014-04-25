@@ -38,11 +38,13 @@ def list_entities(entity_type):
     if entity_type == 'user':
         query = db.session.query(User.id, User.name)
     elif entity_type == 'group':
-        query = db.session.query(User.id, User.name)
+        query = db.session.query(Group.id, Group.name)
     else:
         abort(404)
     json_obj = {
-        entity_type + 's': query,
+            entity_type + 's': map(
+                lambda e: {'id': e.id, 'name': e.name},
+                query)
     }
     return jsonify(json_obj)
 
