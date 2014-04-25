@@ -164,17 +164,20 @@ function addSorts() {
       return new TimestampSort(value + '_asc', { attr: value });
     }
   ));
-  /* And a single numerical sort for payout */
-  sorts = sorts.concat(
-    new PourOver.Sort('payout_asc',
-      {
-        attr: 'payout',
-        fn: function (a, b) {
-          return a[this['attr']] - b[this['attr']];
-        }
-      }
-    )
-  );
+  /* Numerical Sorts */
+  var NumericalSort = PourOver.Sort.extend({
+    fn: function (a, b) {
+      var a_ = a[this['attr']];
+      var b_ = b[this['attr']];
+      return a_ - b_;
+    }
+  });
+  sorts = sorts.concat($.map(
+    ['payout', 'id'],
+    function (value) {
+      return new NumericalSort(value + '_asc', { attr: value });
+    }
+  ));
   /* Reversed Sorts */
   var ReversedSort = PourOver.Sort.extend({
     fn: function(a, b) {
