@@ -9,7 +9,10 @@ var RequestsView = PourOver.View.extend({
     var rows = $('table tr');
     var rowsParent = rows.parent();
     var headerRow = rows[0];
-    rows.not(':first').remove();
+    var oldRows = rows.not(':first');
+    if (oldRows.length != 0) {
+      oldRows.remove();
+    }
     /* Rebuild the table */
     $.each(
       this.getCurrentItems(),
