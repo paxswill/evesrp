@@ -6,13 +6,13 @@
   <div class="col-md-10 col-md-offset-1">
     <table class="table table-condensed">
       <tr>
-        <th>Request ID</th>
-        <th>Pilot</th>
-        <th>Ship</th>
-        <th>Status</th>
-        <th>Payout</th>
-        <th>Submit Time</th>
-        <th>Division</th>
+        <th><a href="#" id="col-id">Request ID <i></i></a></th>
+        <th><a href="#" id="col-pilot">Pilot <i></i></a></th>
+        <th><a href="#" id="col-ship">Ship <i></i></a></th>
+        <th><a href="#" id="col-status">Status <i></i></a></th>
+        <th><a href="#" id="col-payout">Payout <i></i></a></th>
+        <th><a href="#" id="col-submit_timestamp">Submit Time <i></i></a></th>
+        <th><a href="#" id="col-division">Division <i></i></a></th>
       </tr>
       {% for request in requests %}
       <tr class="{{ macros.status_color(request.status) }}">

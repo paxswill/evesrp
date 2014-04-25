@@ -213,3 +213,34 @@ function getFilters() {
     }
   );
 }
+
+/* Attach event listeners to column headers */
+$('th a').click( function (e) {
+  var colName = $(this).attr('id').substring(4);
+  var currentSort = requestView.getSort();
+  var newSort = '';
+  if (currentSort !== false) {
+    if (currentSort.slice(0, -4) === colName) {
+      /* swap the direction of the existing sort */
+      var direction = currentSort.slice(-3);
+      if (direction === 'asc') {
+        newSort = colName + '_dsc';
+      } else if (direction === 'dsc') {
+        newsort = colName + '_asc';
+      }
+    }
+    /* remove the old direction arrow */
+    $(this).parent('th').siblings('th').find('i.fa').removeClass();
+  }
+  if (newSort === '') {
+    newSort = colName + '_asc';
+  }
+  /* Set the direction arrows */
+  var direction = newSort.slice(-3);
+  if (direction === 'asc') {
+    $(this).children('i').attr('class', 'fa fa-chevron-down');
+  } else if (direction === 'dsc') {
+    $(this).children('i').attr('class', 'fa fa-chevron-up');
+  }
+  requestView.setSort(newSort);
+});
