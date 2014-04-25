@@ -1,6 +1,8 @@
 /*
  * Filterable lists with PourOver
  */
+
+/* Map month integers to month abbreviations */
 function month(month_int) {
   switch (month_int) {
     case 0:
@@ -30,6 +32,7 @@ function month(month_int) {
   }
 };
 
+/* Pad num to width with 0s */
 function padNum (num, width) {
   /* coerce to a string */
   num = num + '';
@@ -39,6 +42,7 @@ function padNum (num, width) {
   return num;
 }
 
+/* PourOver.View extension that renders into a table */
 var RequestsView = PourOver.View.extend({
   page_size: 15,
   render: function () {
@@ -95,6 +99,7 @@ var RequestsView = PourOver.View.extend({
   }
 });
 
+/* Set up the PourOver.Collection and PourOver.View for requests */
 $.ajax(
   $SCRIPT_ROOT + '/api/filter/requests/',
   {
@@ -121,6 +126,7 @@ $.ajax(
   }
 );
 
+/* Add sorts for request attributes */
 function addSorts() {
   /* Sort statuses in a specific order */
   var statusSort = PourOver.makeExplicitSort(
@@ -194,6 +200,7 @@ function addSorts() {
   requests.addSorts(sorts);
 }
 
+/* Add filters for each request attribute */
 function getFilters() {
   $.map(
     ['ships', 'pilots', 'corporations', 'alliances', 'divisions'],
