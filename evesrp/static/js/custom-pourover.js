@@ -100,6 +100,12 @@ $.ajax(
   {
     dataType: 'json',
     success: function(data) {
+      var filteredRequests = $.map(data['requests'],
+        function (value) {
+          value['kill_timestamp'] = new Date(value['kill_timestamp']);
+          value['submit_timestamp'] = new Date(value['submit_timestamp']);
+          return value;
+        });
       requests = new PourOver.Collection(filteredRequests);
       var statusFilter = PourOver.makeExactFilter('status', ['evaluating',
                                                              'approved',
