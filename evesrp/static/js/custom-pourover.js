@@ -114,11 +114,82 @@ $.ajax(
                                                              'paid'])
       requests.addFilters(statusFilter)
       getFilters();
+      addSorts();
       requestView = new RequestsView('requests', requests);
       requestView.on('update', requestView.render);
     }
   }
 );
+
+function addSorts() {
+  /* Sort statuses in a specific order */
+  var statusSort = PourOver.makeExplicitSort(
+    'status_asc',
+    requests,
+    'status',
+    ['evaluating', 'incomplete', 'approved', 'rejected', 'paid']
+  );
+  var sorts = [ statusSort ];
+  /* Create basic sorts for alphabetical attributes */
+  var AlphabeticalSort = PourOver.Sort.extend({
+    fn: function (a, b) {
+      var a_ = a[this['attr']];
+      var b_ = b[this['attr']];
+      return a_.localeCompare(b_);
+    }
+  });
+  sorts = sorts.concat($.map(
+    ['alliance', 'corporation', 'pilot', 'ship', 'division'],
+    function (value) {
+      return new AlphabeticalSort(value + '_asc', { attr: value });
+    }
+  ));
+  /* create timestamp sorts */
+  var TimestampSort = PourOver.Sort.extend({
+    fn: function (a, b) {
+      var a_ = a[this['attr']].getTime();
+      var b_ = b[this['attr']].getTime();
+      if (a_ < b_) {
+        return -1;
+      } else if (a_ > b_) {
+        return 1;
+      } else {
+        return 0;
+      }
+    }
+  });
+  sorts = sorts.concat($.map(
+    ['kill_timestamp', 'submit_timestamp'],
+    function (value) {
+      return new TimestampSort(value + '_asc', { attr: value });
+    }
+  ));
+  /* And a single numerical sort for payout */
+  sorts = sorts.concat(
+    new PourOver.Sort('payout_asc',
+      {
+        attr: 'payout',
+        fn: function (a, b) {
+          return a[this['attr']] - b[this['attr']];
+        }
+      }
+    )
+  );
+  /* Reversed Sorts */
+  var ReversedSort = PourOver.Sort.extend({
+    fn: function(a, b) {
+      return -1 * this['base_sort']['fn'](a, b);
+    }
+  });
+  sorts = sorts.concat($.map(
+    sorts,
+    function (value) {
+      name = value['attr'] + '_dsc';
+      return new ReversedSort(name, { base_sort: value } );
+    }
+  ));
+  requests.addSorts(sorts);
+}
 
 function getFilters() {
   $.map(
