@@ -1,6 +1,43 @@
 /*
  * Filterable lists with PourOver
  */
+function month(month_int) {
+  switch (month_int) {
+    case 0:
+      return 'Jan';
+    case 1:
+      return 'Feb';
+    case 2:
+      return 'Mar';
+    case 3:
+      return 'Apr';
+    case 4:
+      return 'May';
+    case 5:
+      return 'Jun';
+    case 6:
+      return 'Jul';
+    case 7:
+      return 'Aug';
+    case 8:
+      return 'Sep';
+    case 9:
+      return 'Oct';
+    case 10:
+      return 'Nov';
+    case 11:
+      return 'Dec';
+  }
+};
+
+function padNum (num, width) {
+  /* coerce to a string */
+  num = num + '';
+  while (num.length < width) {
+    num = 0 + num;
+  }
+  return num;
+}
 
 var RequestsView = PourOver.View.extend({
   page_size: 15,
@@ -36,7 +73,20 @@ var RequestsView = PourOver.View.extend({
           ['pilot', 'ship', 'status', 'payout_str', 'submit_timestamp',
            'division'],
           function (index, key) {
-            $('<td>' + request[key] + '</td>').appendTo(row);
+            var content;
+            if (key == 'submit_timestamp') {
+              var date = request[key];
+              content = date.getUTCDate() + ' ' + month(date.getUTCMonth());
+              content = content + ' ' + date.getUTCFullYear() + ' @ ';
+              content = content + date.getUTCHours() + ':';
+              content = content + padNum(date.getUTCMinutes(), 2);
+            } else if (key == 'status') {
+              content = request[key].substr(0, 1).toUpperCase();
+              content = content + request[key].slice(1);
+            } else {
+              content = request[key];
+            }
+            $('<td></td>').append(content).appendTo(row);
           }
         );
         row.appendTo(rowsParent);
