@@ -56,13 +56,13 @@ var RequestsView = PourOver.View.extend({
       function (index, request) {
         var row = $('<tr></tr>');
         /* Color the rows based on status */
-        if (request['status'] == 'evaluating') {
+        if (request['status'] === 'evaluating') {
           row.addClass("warning");
-        } else if (request['status'] == 'approved') {
+        } else if (request['status'] === 'approved') {
           row.addClass("info");
-        } else if (request['status'] == 'paid') {
+        } else if (request['status'] === 'paid') {
           row.addClass("success");
-        } else if (request['status'] == 'incomplete' || request['status'] == 'rejected') {
+        } else if (request['status'] === 'incomplete' || request['status'] === 'rejected') {
           row.addClass("danger");
         }
         var idColumn = $('<td></td>');
@@ -74,13 +74,13 @@ var RequestsView = PourOver.View.extend({
            'division'],
           function (index, key) {
             var content;
-            if (key == 'submit_timestamp') {
+            if (key === 'submit_timestamp') {
               var date = request[key];
               content = date.getUTCDate() + ' ' + month(date.getUTCMonth());
               content = content + ' ' + date.getUTCFullYear() + ' @ ';
               content = content + date.getUTCHours() + ':';
               content = content + padNum(date.getUTCMinutes(), 2);
-            } else if (key == 'status') {
+            } else if (key === 'status') {
               content = request[key].substr(0, 1).toUpperCase();
               content = content + request[key].slice(1);
             } else {
