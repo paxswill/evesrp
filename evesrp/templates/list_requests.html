@@ -29,3 +29,10 @@
   </div>
 </div>
 {% endblock content %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/underscore.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pourover.js') }}"></script>
+<script src="{{ url_for('static', filename='js/custom-pourover.js') }}"></script>
+{% endblock scripts %}
