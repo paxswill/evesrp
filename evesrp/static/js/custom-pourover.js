@@ -100,15 +100,15 @@ $.ajax(
   {
     dataType: 'json',
     success: function(data) {
-      requestsCollection = new PourOver.Collection(data['requests']);
+      requests = new PourOver.Collection(filteredRequests);
       var statusFilter = PourOver.makeExactFilter('status', ['evaluating',
                                                              'approved',
                                                              'rejected',
                                                              'incomplete',
                                                              'paid'])
-      requestsCollection.addFilters(statusFilter)
+      requests.addFilters(statusFilter)
       getFilters();
-      requestView = new RequestsView('requests', requestsCollection);
+      requestView = new RequestsView('requests', requests);
       requestView.on('update', requestView.render);
     }
   }
@@ -127,7 +127,7 @@ function getFilters() {
               filterSource.slice(0, -1),
               data[filterSource]
             );
-            requestsCollection.addFilters(filter);
+            requests.addFilters(filter);
           }
         })
     }
