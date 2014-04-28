@@ -101,7 +101,7 @@ var RequestsView = PourOver.View.extend({
 
 /* Set up the PourOver.Collection and PourOver.View for requests */
 $.ajax(
-  $SCRIPT_ROOT + '/api/filter/requests/',
+  $SCRIPT_ROOT + '/api/filter' + window.location.pathname,
   {
     dataType: 'json',
     success: function(data) {

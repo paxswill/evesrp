@@ -6,6 +6,7 @@ from .. import ships, db
 from ..models import db, Request
 from ..auth import admin_permission
 from ..auth.models import Division, User, Group, Pilot
+from .requests import PermissionRequestListing, SubmittedRequestListing
 
 
 api = Blueprint('api', __name__)
@@ -162,35 +163,62 @@ def ship_list():
     return jsonify(ships=ship_objs)
 
 
-@filters.route('/requests/')
-@login_required
-def filter_requests():
-    requests = set(current_user.requests)
-    for perm in current_user.permissions:
-        # Reviewers and Payers can see any request within a division they have
-        # those permissions in.
-        if perm.permission in ('review', 'pay'):
-            requests.update(perm.division.requests)
+class FiltersRequestListing(object):
+    def dispatch_request(self, division_id=None):
+        def request_dict(request):
+            payout = request.payout
+            return {
+                'id': request.id,
+                'href': url_for('requests.request_detail', request_id=request.id),
+                'pilot': request.pilot.name,
+                'corporation': request.corporation,
+                'alliance': request.alliance,
+                'ship': request.ship_type,
+                'status': request.status,
+                'payout': int(payout),
+                'payout_str': str(payout),
+                'kill_timestamp': request.kill_timestamp,
+                'submit_timestamp': request.timestamp,
+                'division': request.division.name,
+                'submitter_id': request.submitter.id
+            }
 
-    def request_dict(request):
-        payout = request.payout
-        return {
-            'id': request.id,
-            'href': url_for('requests.request_detail', request_id=request.id),
-            'pilot': request.pilot.name,
-            'corporation': request.corporation,
-            'alliance': request.alliance,
-            'ship': request.ship_type,
-            'status': request.status,
-            'payout': int(payout),
-            'payout_str': str(payout),
-            'kill_timestamp': request.kill_timestamp,
-            'submit_timestamp': request.timestamp,
-            'division': request.division.name,
-            'submitter_id': request.submitter.id
-        }
+        return jsonify(requests=map(request_dict, self.requests()))
 
-    return jsonify(requests=map(request_dict, requests))
+
+class APIRequestListing(FiltersRequestListing, PermissionRequestListing): pass
+
+
+class APISubmittedListing(FiltersRequestListing, SubmittedRequestListing): pass
+
+
+@filters.record
+def register_request_lists(state):
+    # Create the views
+    all_requests = APIRequestListing.as_view('filter_requests_all',
+            ('submit', 'review', 'pay'), lambda r: True)
+    submitted_requests = APISubmittedListing.as_view('filter_requests_own')
+    review_requests = APIRequestListing.as_view('filter_requests_review',
+            ('review',), lambda r: not r.finalized)
+    pay_requests = APIRequestListing.as_view('filter_requests_pay',
+            ('pay',), lambda r: r.status == 'approved')
+    completed_requests = APIRequestListing.as_view('filter_requests_completed',
+            ('review', 'pay'), lambda r: r.finalized)
+    # Attach the views to paths
+    state.add_url_rule('/requests/', view_func=all_requests)
+    state.add_url_rule('/requests/<int:division_id>/', view_func=all_requests)
+    state.add_url_rule('/requests/submit/', view_func=submitted_requests)
+    state.add_url_rule('/requests/submit/<int:division_id>/',
+            view_func=submitted_requests)
+    state.add_url_rule('/requests/review/', view_func=review_requests)
+    state.add_url_rule('/requests/review/<int:division_id>/',
+            view_func=review_requests)
+    state.add_url_rule('/requests/pay/', view_func=pay_requests)
+    state.add_url_rule('/requests/pay/<int:division_id>/',
+            view_func=pay_requests)
+    state.add_url_rule('/requests/complete/', view_func=completed_requests)
+    state.add_url_rule('/requests/complete/<int:division_id>/',
+            view_func=completed_requests)
 
 
 @filters.route('/ships/')
