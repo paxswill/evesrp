@@ -2,6 +2,7 @@ import datetime as dt
 from decimal import Decimal
 import locale
 from sqlalchemy.types import DateTime
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from . import db
 
@@ -20,6 +21,10 @@ class Timestamped(object):
             default=dt.datetime.utcnow())
 
 
+action_type = db.Enum('evaluating', 'approved', 'paid', 'rejected',
+        'incomplete', 'comment', name='action_type')
+
+
 class Action(db.Model, AutoID, Timestamped):
     """Actions change the state of a Request.
     
@@ -32,9 +37,7 @@ class Action(db.Model, AutoID, Timestamped):
     #: The action being taken. Must be one of: ``'evaluating'``,
     #: ``'approved'``, ``'paid'``, ``'rejected'``, ``'incomplete'``,
     #: or ``'comment'``.
-    type_ = db.Column(db.Enum('evaluating', 'approved', 'paid',
-            'rejected', 'incomplete', 'comment', name='action_type'),
-            nullable=False)
+    _type = db.Column(action_type, nullable=False)
 
     #: The ID of the :py:class:`Request` this action applies to.
     request_id = db.Column(db.Integer, db.ForeignKey('request.id'))
@@ -56,6 +59,17 @@ class Action(db.Model, AutoID, Timestamped):
         self.user = user
         self.note = note
         self.timestamp = dt.datetime.utcnow()
+
+    @property
+    def type_(self):
+        return self._type
+
+    @type_.setter
+    def type_(self, type_):
+        if type_ != 'comment' and self.timestamp >=\
+                self.request.actions[0].timestamp:
+            self.request.status = type_
+        self._type = type_
 
     def __repr__(self):
         return "{x.__class__.__name__}({x.request}, {x.user}, {x.type_}".\
@@ -201,6 +215,9 @@ class Request(db.Model, AutoID, Timestamped):
     #: Supporting information for the request.
     details = db.Column(db.Text)
 
+    #: The current status of this request
+    status = db.Column(action_type, nullable=False, default='evaluating')
+
     @property
     def payout(self):
         """The resulting payout taking all active :py:attr:`modifiers` into
@@ -243,28 +260,16 @@ class Request(db.Model, AutoID, Timestamped):
 
         return _Payout(payout)
 
-    @property
-    def status(self):
-        """The current status of this request.
-
-        The status is modified by :py:class:`Action`\s. The default status for
-        requests with no actions is ``'evaluating'``. Possible values are the
-        same as :py:attr:`Action.type_` with the exception of ``'comment'``.
-        """
-        for action in self.actions:
-            if action.type_ == 'comment':
-                continue
-            else:
-                return action.type_
-        else:
-            return 'evaluating'
-
-    @property
+    @hybrid_property
     def finalized(self):
         """If this request is in a finalized status (``'paid'`` or
         ``'rejected'``).
         """
-        return self.status in ('paid', 'rejected')
+        return self.status == 'paid' or self.status == 'rejected'
+
+    @finalized.expression
+    def finalized(cls):
+        return db.or_(cls.status == 'paid', cls.status == 'rejected')
 
     def __init__(self, submitter, details, division, killmail):
         """Create a :py:class:`Request`.
