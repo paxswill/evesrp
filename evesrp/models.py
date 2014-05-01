@@ -72,7 +72,7 @@ class Action(db.Model, AutoID, Timestamped):
         self._type = type_
 
     def __repr__(self):
-        return "{x.__class__.__name__}({x.request}, {x.user}, {x.type_}".\
+        return "{x.__class__.__name__}({x.request}, {x.user}, {x.type_})".\
                 format(x=self)
 
 
@@ -142,8 +142,8 @@ class Modifier(db.Model, AutoID, Timestamped):
             value = "{}M ISK".format(self.value)
         else:
             value = "{}%".format(self.value)
-        return """{x.__class__.__name__}({x.request}, {x.user}, {value},
-        {x.voided})""".format(x=self, value=value)
+        return ("{x.__class__.__name__}({x.request}, {x.user}, {value},"
+                "{x.voided})".format(x=self, value=value))
 
     def void(self, user):
         """Mark this modifier as void.
@@ -299,5 +299,5 @@ class Request(db.Model, AutoID, Timestamped):
             pass
 
     def __repr__(self):
-        return "{x.__class__.__name__}({x.submitter, {x.division}, {x.id})".\
+        return "{x.__class__.__name__}({x.submitter}, {x.division}, {x.id})".\
                 format(x=self)
