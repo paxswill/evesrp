@@ -213,7 +213,7 @@ class Request(db.Model, AutoID, Timestamped):
     base_payout = db.Column(db.Float, default=0.0)
 
     #: Supporting information for the request.
-    details = db.Column(db.Text)
+    details = db.deferred(db.Column(db.Text))
 
     #: The current status of this request
     status = db.Column(action_type, nullable=False, default='evaluating')
