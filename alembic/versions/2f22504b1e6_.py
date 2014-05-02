@@ -22,6 +22,8 @@ session = requests.Session()
 
 
 def get_system_id(kill_id):
+    # Have to put a sleep in here to prevent hammering the server and getting
+    # banned
     sleep(10)
     resp = session.get(
             'https://zkb.pleaseignore.com/api/no-attackers/no-items/killID/{}'
