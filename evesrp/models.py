@@ -189,7 +189,7 @@ class Request(db.Model, AutoID, Timestamped):
     #: request, regardless of wether they have been voided or not. They're
     #: sorted in the order they were added.
     modifiers = db.relationship('Modifier', back_populates='request',
-            order_by='desc(Modifier.timestamp)')
+            order_by='desc(Modifier.timestamp)', lazy='dynamic')
 
     #: The URL of the source killmail.
     killmail_url = db.Column(db.String(512), nullable=False)
@@ -237,17 +237,21 @@ class Request(db.Model, AutoID, Timestamped):
         millions of ISK, and :py:func:`ints`\s will be the total ISK value
         (equivalent to the string representation).
         """
-        payout = self.base_payout
-        for modifier in self.modifiers:
-            if modifier.voided:
-                continue
-            if modifier.type_ == 'absolute':
-                payout += modifier.value
-            elif modifier.type_ == 'percentage':
-                if modifier.value > 0:
-                    payout += payout * modifier.value / 100
-                else:
-                    payout -= payout * modifier.value / 100
+        modifier_sum = db.session.query(db.func.sum(Modifier.value))\
+                .join(Request)\
+                .filter(Modifier.request_id==self.id)\
+                .filter(~Modifier.voided)
+
+        abs_mods = modifier_sum.filter(Modifier.type_=='absolute')
+        per_mods = modifier_sum.filter(Modifier.type_=='percentage')
+        absolute = abs_mods.one()[0]
+        if absolute is None:
+            absolute = 0
+        percentage = per_mods.one()[0]
+        if percentage is None:
+            percentage = 0
+        payout = self.base_payout + absolute
+        payout = payout + (payout * percentage / 100)
 
         class _Payout(object):
             def __init__(self, payout):
