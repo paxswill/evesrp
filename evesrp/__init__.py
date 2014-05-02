@@ -17,6 +17,10 @@ locale.setlocale(locale.LC_ALL, '')
 
 db = SQLAlchemy()
 
+# Ensure models are declared
+from . import models
+from .auth import models
+
 
 def create_app(**kwargs):
     app = Flask('evesrp', **kwargs)

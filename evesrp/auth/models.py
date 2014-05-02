@@ -1,5 +1,6 @@
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm.collections import attribute_mapped_collection, collection
 
 from .. import db
@@ -32,7 +33,7 @@ class Entity(db.Model, AutoID):
 
     #: :py:class:`Permission`\s associated specifically with this entity.
     entity_permissions = db.relationship('Permission', collection_class=set,
-            back_populates='entity')
+            back_populates='entity', lazy='dynamic')
 
     @declared_attr
     def __tablename__(cls):
@@ -71,34 +72,22 @@ class Entity(db.Model, AutoID):
     def __str__(self):
         return "{x.name}".format(x=self)
 
-    def has_permission(self, permission, division=None):
+    def has_permission(self, permissions, division=None):
         """Returns if this entity has been granted a permission in a division.
 
         If ``division`` is ``None``, this method checks if this group has the
         given permission in `any` division.
 
-        :param permission: The permission string.
-        :type permission: str, iterable
-        :param division: The division to check. Mayb be ``None``.
+        :param permissions: The series of permissions to check
+        :type permissions: iterable
+        :param division: The division to check. May be ``None``.
         :type division: :py:class:`Division`
         :rtype bool:
         """
-        if permission in ('submit', 'review', 'pay'):
-            if division is None:
-                perms = self.permissions
-            else:
-                perms = division.division_permissions
-            return any(filter(lambda p: p.permission == permission, perms))
-        else:
-            try:
-                iterator = iter(permission)
-            except TypeError:
-                raise
-            else:
-                for perm in iterator:
-                    if self.has_permission(perm, division):
-                        return True
-                return False
+        if permissions in ('submit', 'review', 'pay'):
+            permissions = (permissions,)
+        perms = self.permissions.filter(Permission.permission.in_(permissions))
+        return db.session.query(perms.exists()).all()[0]
 
 
 class User(Entity):
@@ -133,13 +122,28 @@ class User(Entity):
     notes_made = db.relationship('Note', back_populates='noter',
             order_by='desc(Note.timestamp)', foreign_keys='Note.noter_id')
 
-    @property
+    @hybrid_property
     def permissions(self):
         """All :py:class:`Permission` objects associated with this user."""
-        perms = set(self.entity_permissions)
-        for group in self.groups:
-            perms.update(group.permissions)
+        groups = db.session.query(users_groups.c.group_id.label('group_id'))\
+                .filter(users_groups.c.user_id==self.id).subquery()
+        group_perms = db.session.query(Permission)\
+                .join(groups, groups.c.group_id==Permission.entity_id)
+        user_perms = db.session.query(Permission)\
+                .join(User)\
+                .filter(User.id==self.id)
+        perms = user_perms.union(group_perms)
         return perms
+
+    @permissions.expression
+    def permissions(cls):
+        groups = db.select([users_groups.c.group_id])\
+                .where(users_groups.c.user_id==cls.id).alias()
+        group_permissions = db.select([Permission])\
+                .where(Permission.entity_id.in_(groups)).alias()
+        user_permissions = db.select([Permission])\
+                .where(Permission.entity_id==cls.id)
+        return user_permissions.union(group_permissions)
 
     def is_authenticated(self):
         """Part of the interface for Flask-Login."""

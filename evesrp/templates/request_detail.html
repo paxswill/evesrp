@@ -23,6 +23,8 @@
       <dd>{{ srp_request.corporation }}</dd>
       <dt>Alliance</dt>
       <dd>{{ srp_request.alliance|default(' ') }}
+      <dt>Location</dt>
+      <dd>{{ srp_request.region }} / {{ srp_request.constellation }} / {{ srp_request.system }}</dd>
       <dt>Ship</dt>
       {% if srp_request.ship_url %}
       <dd><a href="{{ srp_request.ship_url }}">{{ srp_request.ship_type }}</a></dd>

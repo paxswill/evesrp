@@ -15,7 +15,7 @@ from .. import db
 from ..models import Request, Modifier, Action
 from ..auth import SubmitRequestsPermission, ReviewRequestsPermission, \
         PayoutRequestsPermission, admin_permission
-from ..auth.models import Division, Pilot
+from ..auth.models import Division, Pilot, Permission, User, Group
 
 
 blueprint = Blueprint('requests', __name__)
@@ -62,12 +62,19 @@ class SubmittedRequestListing(RequestListing):
     template = 'list_submit.html'
 
     def requests(self, division_id=None):
+        requests = db.session.query(Request)\
+                .join(User)\
+                .filter(User.id==current_user.id)\
+                .options(
+                    db.load_only('id', 'pilot_id', 'division_id', 'system',
+                        'ship_type', 'status', 'timestamp', 'base_payout'),
+                    db.Load(Division).joinedload('name'),
+                    db.Load(Pilot).joinedload('name'),
+                )
         if division_id is not None:
-            division = Division.query.get_or_404(division_id)
-            return filter(lambda r: r.division == division,
-                    current_user.requests)
-        else:
-            return current_user.requests
+            requests = requests.filter(Request.division_id==division_id)
+        requests = requests.order_by(Request.timestamp.desc())
+        return requests
 
 
 class PermissionRequestListing(RequestListing):
@@ -76,40 +83,45 @@ class PermissionRequestListing(RequestListing):
     This is used for the various permission-specific views.
     """
 
-    def __init__(self, permissions, filter_func):
+    def __init__(self, permissions, statuses):
         """Create a :py:class:`PermissionRequestListing` for the given
-        permissions.
-
-        The requests can be further filtered by providing a callable via
-        ``filter_func``.
+        permissions and statuses.
 
         :param tuple permissions: The permissions to filter by
-        :param callable filter_func: A callable taking a request as an argument
-            and returning ``True`` or ``False`` if it should be included.
+        :param tuple statuses: A tuple of valid statuses for requests to be in
         """
         self.permissions = permissions
-        self.filter_func = filter_func
+        self.statuses = statuses
 
     def requests(self, division_id=None):
+        user_perms = db.session.query(Permission.id.label('permission_id'),
+                Permission.division_id.label('division_id'),
+                Permission.permission.label('permission'))\
+                .filter(Permission.entity==current_user)
+        group_perms = db.session.query(Permission.id.label('permission_id'),
+                Permission.division_id.label('division_id'),
+                Permission.permission.label('permission'))\
+                .join(Group)\
+                .filter(Group.users.contains(current_user))
+        perms = user_perms.union(group_perms)\
+                .filter(Permission.permission.in_(self.permissions))
         if division_id is not None:
-            division = Division.query.get_or_404(division_id)
-            if not current_user.has_permission(self.permissions, division):
-                abort(403)
-            else:
-                divisions = [division]
-        else:
-            perms = filter(lambda p: p.permission in self.permissions,
-                    current_user.permissions)
-            divisions = map(lambda p: p.division, perms)
-        requests = OrderedDict()
-        for division in divisions:
-            filtered = filter(self.filter_func, division.requests)
-            requests.update(map(lambda r: (r, object), filtered))
-        return requests.keys()
+            perms = perms.filter(Permission.division_id==division_id)
+        perms = perms.subquery()
+        requests = db.session.query(Request)\
+                .join(perms, Request.division_id==perms.c.division_id)\
+                .filter(Request.status.in_(self.statuses))\
+                .order_by(Request.timestamp.desc())\
+                .options(
+                        db.load_only('id', 'pilot_id', 'division_id', 'system',
+                            'ship_type', 'status', 'timestamp', 'base_payout'),
+                        db.Load(Division).joinedload('name'),
+                        db.Load(Pilot).joinedload('name'),
+                )
+        return requests
 
 
-def register_perm_request_listing(app, endpoint, path, permissions,
-        filter_func):
+def register_perm_request_listing(app, endpoint, path, permissions, statuses):
     """Utility function for creating :py:class:`PermissionRequestListing`
     views.
 
@@ -119,11 +131,11 @@ def register_perm_request_listing(app, endpoint, path, permissions,
     :param str path: The URL path for the view
     :param tuple permissions: Passed to
         :py:meth:`PermissionRequestListing.__init__`
-    :param callable filter_func: Passed to
+    :param callable statuses: Passed to
         :py:meth:`PermissionRequestListing.__init__`
     """
     view = PermissionRequestListing.as_view(endpoint, permissions=permissions,
-            filter_func=filter_func)
+            statuses=statuses)
     app.add_url_rule(path, view_func=view)
     app.add_url_rule('{}<int:division_id>/'.format(path), view_func=view)
 
@@ -135,11 +147,11 @@ def register_class_views(state):
     state.add_url_rule('/submit/', view_func=submit_view)
     state.add_url_rule('/submit/<int:division_id>/', view_func=submit_view)
     register_perm_request_listing(state, 'list_review_requests',
-            '/review/', ('review',), (lambda r: not r.finalized))
+            '/review/', ('review',), ('evaluating', 'incomplete', 'approved'))
     register_perm_request_listing(state, 'list_approved_requests',
-            '/pay/', ('pay',), (lambda r: r.status == 'approved'))
+            '/pay/', ('pay',), ('approved',))
     register_perm_request_listing(state, 'list_completed_requests',
-            '/complete/', ('review', 'pay'), (lambda r: r.finalized))
+            '/complete/', ('review', 'pay'), ('rejected', 'paid'))
 
 
 class ValidKillmail(URL):
@@ -202,9 +214,10 @@ def submit_request():
         abort(403)
     form = RequestForm()
     # Create a list of divisions this user can submit to
-    divisions = map(lambda x: x.division,
-            filter(lambda y: y.permission == 'submit',
-                    current_user.permissions))
+    submit_perms = current_user.permissions\
+            .filter_by(permission='submit')\
+            .subquery()
+    divisions = db.session.query(Division).join(submit_perms)
     # Remove duplicates and sort divisions by name
     keyfunc = lambda d: d.name
     divisions = sorted(divisions, key=keyfunc)

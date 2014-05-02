@@ -9,6 +9,7 @@
         <th><a href="#" id="col-id">Request ID <i></i></a></th>
         <th><a href="#" id="col-pilot">Pilot <i></i></a></th>
         <th><a href="#" id="col-ship">Ship <i></i></a></th>
+        <th><a href="#" id="col-system">System <i></i></a></th>
         <th><a href="#" id="col-status">Status <i></i></a></th>
         <th><a href="#" id="col-payout">Payout <i></i></a></th>
         <th><a href="#" id="col-submit_timestamp">Submit Time <i></i></a></th>
@@ -19,6 +20,7 @@
         <td><a href="{{ url_for('requests.request_detail', request_id=request.id) }}">{{ request.id }}</a></td>
         <td>{{ request.pilot.name }}</td>
         <td>{{ request.ship_type }}</td>
+        <td>{{ request.system }}</td>
         <td>{{ request.status|capitalize }}</td>
         <td>{{ request.payout }}</td>
         <td>{{ request.timestamp.strftime('%d %b %Y @ %H:%M') }}</td>
