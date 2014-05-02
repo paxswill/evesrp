@@ -64,7 +64,13 @@ class SubmittedRequestListing(RequestListing):
     def requests(self, division_id=None):
         requests = db.session.query(Request)\
                 .join(User)\
-                .filter(User.id==current_user.id)
+                .filter(User.id==current_user.id)\
+                .options(
+                    db.load_only('id', 'pilot_id', 'division_id',
+                        'ship_type', 'status', 'timestamp', 'base_payout'),
+                    db.Load(Division).joinedload('name'),
+                    db.Load(Pilot).joinedload('name'),
+                )
         if division_id is not None:
             requests = requests.filter(Request.division_id==division_id)
         requests = requests.order_by(Request.timestamp.desc())
@@ -104,7 +110,14 @@ class PermissionRequestListing(RequestListing):
         perms = perms.subquery()
         requests = db.session.query(Request)\
                 .join(perms, Request.division_id==perms.c.division_id)\
-                .filter(Request.status.in_(self.statuses))
+                .filter(Request.status.in_(self.statuses))\
+                .order_by(Request.timestamp.desc())\
+                .options(
+                        db.load_only('id', 'pilot_id', 'division_id',
+                            'ship_type', 'status', 'timestamp', 'base_payout'),
+                        db.Load(Division).joinedload('name'),
+                        db.Load(Pilot).joinedload('name'),
+                )
         return requests
 
 
