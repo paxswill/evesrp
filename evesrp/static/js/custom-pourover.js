@@ -74,8 +74,8 @@ var RequestsView = PourOver.View.extend({
             $('<a></a>', { href: request['href'] }).append(request['id']));
         idColumn.appendTo(row);
         $.each(
-          ['pilot', 'ship', 'status', 'payout_str', 'submit_timestamp',
-           'division'],
+          ['pilot', 'ship', 'system', 'status', 'payout_str',
+           'submit_timestamp', 'division'],
           function (index, key) {
             var content;
             if (key === 'submit_timestamp') {
@@ -145,7 +145,7 @@ function addSorts() {
     }
   });
   sorts = sorts.concat($.map(
-    ['alliance', 'corporation', 'pilot', 'ship', 'division'],
+    ['alliance', 'corporation', 'pilot', 'ship', 'division', 'system'],
     function (value) {
       return new AlphabeticalSort(value + '_asc', { attr: value });
     }
@@ -203,7 +203,7 @@ function addSorts() {
 /* Add filters for each request attribute */
 function getFilters() {
   $.map(
-    ['ships', 'pilots', 'corporations', 'alliances', 'divisions'],
+    ['ships', 'pilots', 'corporations', 'alliances', 'divisions', 'systems'],
     function (filterSource) {
       $.ajax(
         $SCRIPT_ROOT + '/api/filter/' + filterSource + '/',

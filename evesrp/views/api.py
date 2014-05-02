@@ -2,7 +2,7 @@ from flask import url_for, redirect, abort, request, jsonify, Blueprint
 from flask.ext.login import login_required, current_user
 from sqlalchemy.orm.exc import NoResultFound
 
-from .. import ships, db
+from .. import ships, systems, db
 from ..models import db, Request
 from ..auth import admin_permission
 from ..auth.models import Division, User, Group, Pilot
@@ -169,7 +169,8 @@ class FiltersRequestListing(object):
             payout = request.payout
             return {
                 'id': request.id,
-                'href': url_for('requests.request_detail', request_id=request.id),
+                'href': url_for('requests.request_detail',
+                    request_id=request.id),
                 'pilot': request.pilot.name,
                 'corporation': request.corporation,
                 'alliance': request.alliance,
@@ -180,7 +181,8 @@ class FiltersRequestListing(object):
                 'kill_timestamp': request.kill_timestamp,
                 'submit_timestamp': request.timestamp,
                 'division': request.division.name,
-                'submitter_id': request.submitter.id
+                'submitter_id': request.submitter.id,
+                'system': request.system,
             }
 
         return jsonify(requests=map(request_dict, self.requests()))
@@ -196,14 +198,15 @@ class APISubmittedListing(FiltersRequestListing, SubmittedRequestListing): pass
 def register_request_lists(state):
     # Create the views
     all_requests = APIRequestListing.as_view('filter_requests_all',
-            ('submit', 'review', 'pay'), lambda r: True)
+            ('submit', 'review', 'pay'),
+            ('evaluating', 'approved', 'paid', 'rejected', 'incomplete'))
     submitted_requests = APISubmittedListing.as_view('filter_requests_own')
     review_requests = APIRequestListing.as_view('filter_requests_review',
-            ('review',), lambda r: not r.finalized)
+            ('review',), ('evaluating', 'approved', 'incomplete'))
     pay_requests = APIRequestListing.as_view('filter_requests_pay',
-            ('pay',), lambda r: r.status == 'approved')
+            ('pay',), ('approved',))
     completed_requests = APIRequestListing.as_view('filter_requests_completed',
-            ('review', 'pay'), lambda r: r.finalized)
+            ('review', 'pay'), ('paid', 'rejected'))
     # Attach the views to paths
     state.add_url_rule('/requests/', view_func=all_requests)
     state.add_url_rule('/requests/<int:division_id>/', view_func=all_requests)
@@ -225,6 +228,12 @@ def register_request_lists(state):
 @login_required
 def filter_ships():
     return jsonify(ships=list(ships.ships.values()))
+
+
+@filters.route('/systems/')
+@login_required
+def filter_systems():
+    return jsonify(systems=list(systems.system_names.values()))
 
 
 def _first(o):
