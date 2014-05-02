@@ -126,11 +126,18 @@ class Modifier(db.Model, AutoID, Timestamped):
     #: was voided.
     voided_timestamp = db.Column(DateTime)
 
-    @property
+    @hybrid_property
     def voided(self):
         """Boolean of whether this modifier has been voided or not."""
         return self.voided_user is not None and \
                 self.voided_timestamp is not None
+
+    @voided.expression
+    def voided(cls):
+        return db.and_(
+                cls.voided_user_id != None,
+                cls.voided_timestamp != None
+        )
 
     def __init__(self, request, user, note):
         self.request = request
