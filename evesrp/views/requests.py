@@ -66,7 +66,7 @@ class SubmittedRequestListing(RequestListing):
                 .join(User)\
                 .filter(User.id==current_user.id)\
                 .options(
-                    db.load_only('id', 'pilot_id', 'division_id',
+                    db.load_only('id', 'pilot_id', 'division_id', 'system',
                         'ship_type', 'status', 'timestamp', 'base_payout'),
                     db.Load(Division).joinedload('name'),
                     db.Load(Pilot).joinedload('name'),
@@ -113,7 +113,7 @@ class PermissionRequestListing(RequestListing):
                 .filter(Request.status.in_(self.statuses))\
                 .order_by(Request.timestamp.desc())\
                 .options(
-                        db.load_only('id', 'pilot_id', 'division_id',
+                        db.load_only('id', 'pilot_id', 'division_id', 'system',
                             'ship_type', 'status', 'timestamp', 'base_payout'),
                         db.Load(Division).joinedload('name'),
                         db.Load(Pilot).joinedload('name'),

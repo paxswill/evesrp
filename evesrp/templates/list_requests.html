@@ -9,6 +9,7 @@
         <th>Request ID</th>
         <th>Pilot</th>
         <th>Ship</th>
+        <th>System</th>
         <th>Status</th>
         <th>Payout</th>
         <th>Submit Time</th>
@@ -19,6 +20,7 @@
         <td><a href="{{ url_for('requests.request_detail', request_id=request.id) }}">{{ request.id }}</a></td>
         <td>{{ request.pilot.name }}</td>
         <td>{{ request.ship_type }}</td>
+        <td>{{ request.system }}</td>
         <td>{{ request.status|capitalize }}</td>
         <td>{{ request.payout }}</td>
         <td>{{ request.timestamp.strftime('%d %b %Y %H:%M') }}</td>
