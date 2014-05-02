@@ -11,7 +11,7 @@ import requests
 from sqlalchemy import create_engine, Table, MetaData
 from sqlalchemy.sql import select
 
-from . import ships
+from . import ships, systems
 
 
 class Killmail(object):
@@ -88,6 +88,13 @@ class Killmail(object):
         Whether or not this killmail has been API verified (or more accurately,
         if it is to be trusted when making a
         :py:class:`~evesrp.models.Request`.
+
+    .. py:attribute:: system
+    .. py:attribute:: system_id
+    .. py:attribute:: constellation
+    .. py:attribute:: region
+
+        The system/constellation/region where the kill occured.
     """
 
     def __init__(self, **kwargs):
@@ -103,7 +110,8 @@ class Killmail(object):
         super(Killmail, self).__init__(**kwargs)
         for attr in ('kill_id', 'ship_id', 'ship', 'pilot_id', 'pilot',
                 'corp_id', 'corp', 'alliance_id', 'alliance', 'verified',
-                'url', 'value', 'timestamp'):
+                'url', 'value', 'timestamp', 'system', 'constellation',
+                'region'):
             try:
                 setattr(self, attr, kwargs[attr])
             except KeyError:
@@ -157,6 +165,20 @@ class ShipNameMixin(object):
         return ships.ships[self.ship_id]
 
 
+class LocationMixin(object):
+    @property
+    def system(self):
+        return systems.system_names[self.system_id]
+
+    @property
+    def constellation(self):
+        return systems.systems_constellations[self.system]
+
+    @property
+    def region(self):
+        return systems.constellations_regions[self.constellation]
+
+
 class RequestsSessionMixin(object):
     """Mixin for providing a :py:class:`requests.Session`.
 
@@ -207,7 +229,7 @@ def ShipURLMixin(url_skeleton):
     return _ShipURLMixin
 
 
-class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin):
+class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
     """A killmail sourced from a zKillboard based killboard."""
 
     zkb_regex = re.compile(r'/detail/(?P<kill_id>\d+)/?')
@@ -252,6 +274,7 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin):
         self.alliance_id = victim['allianceID']
         self.alliance = victim['allianceName']
         self.ship_id = int(victim['shipTypeID'])
+        self.system_id = int(json['solarSystemID'])
         # For consistency, store self.value in millions. Decimal is being used
         # for precision at large values.
         # Old versions of zKB don't give the ISK value
@@ -275,7 +298,7 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin):
                 url=self.url)
 
 
-class CRESTMail(Killmail, RequestsSessionMixin):
+class CRESTMail(Killmail, RequestsSessionMixin, LocationMixin):
     """A killmail with data sourced from a CREST killmail link."""
 
     crest_regex = re.compile(r'/killmails/(?P<kill_id>\d+)/[0-9a-f]+/')
@@ -320,6 +343,9 @@ class CRESTMail(Killmail, RequestsSessionMixin):
         self.alliance = alliance['name']
         self.ship_id = ship['id']
         self.ship = ship['name']
+        solarSystem = json['solarSystem']
+        self.system_id = solarSystem['id']
+        self.system = solarSystem['name']
         # CREST Killmails are always verified
         self.verified = True
         # Parse the timestamp
