@@ -225,6 +225,15 @@ class Request(db.Model, AutoID, Timestamped):
     #: The current status of this request
     status = db.Column(action_type, nullable=False, default='evaluating')
 
+    #: The solar system this loss occured in.
+    system = db.Column(db.String(25), nullable=False, index=True)
+
+    #: The constellation this loss occured in.
+    constellation = db.Column(db.String(25), nullable=False, index=True)
+
+    #: The region this loss occured in.
+    region = db.Column(db.String(25), nullable=False, index=True)
+
     @property
     def payout(self):
         """The resulting payout taking all active :py:attr:`modifiers` into

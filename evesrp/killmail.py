@@ -153,6 +153,9 @@ class Killmail(object):
         yield ('killmail_url', self.url)
         yield ('base_payout', self.value)
         yield ('kill_timestamp', self.timestamp)
+        yield ('system', self.system)
+        yield ('constellation', self.constellation)
+        yield ('region', self.region)
 
 
 class ShipNameMixin(object):
