@@ -51,6 +51,20 @@ class RequestListing(View):
         return render_template(self.template,
                 requests=self.requests(division_id))
 
+    @property
+    def _load_options(self):
+        """Returns a sequence of
+        :py:class:`~sqlalchemy.orm.strategy_options.Load` objects specifying
+        which attributes to load.
+        """
+        return (
+                db.Load(Request).load_only('id', 'pilot_id', 'division_id',
+                    'system', 'ship_type', 'status', 'timestamp',
+                    'base_payout'),
+                db.Load(Division).joinedload('name'),
+                db.Load(Pilot).joinedload('name'),
+        )
+
 
 class SubmittedRequestListing(RequestListing):
     """A requests listing with a button for submitting requests at the bottom.
@@ -65,12 +79,7 @@ class SubmittedRequestListing(RequestListing):
         requests = db.session.query(Request)\
                 .join(User)\
                 .filter(User.id==current_user.id)\
-                .options(
-                    db.load_only('id', 'pilot_id', 'division_id', 'system',
-                        'ship_type', 'status', 'timestamp', 'base_payout'),
-                    db.Load(Division).joinedload('name'),
-                    db.Load(Pilot).joinedload('name'),
-                )
+                .options(*self._load_options)
         if division_id is not None:
             requests = requests.filter(Request.division_id==division_id)
         requests = requests.order_by(Request.timestamp.desc())
@@ -112,12 +121,7 @@ class PermissionRequestListing(RequestListing):
                 .join(perms, Request.division_id==perms.c.division_id)\
                 .filter(Request.status.in_(self.statuses))\
                 .order_by(Request.timestamp.desc())\
-                .options(
-                        db.load_only('id', 'pilot_id', 'division_id', 'system',
-                            'ship_type', 'status', 'timestamp', 'base_payout'),
-                        db.Load(Division).joinedload('name'),
-                        db.Load(Pilot).joinedload('name'),
-                )
+                .options(*self._load_options)
         return requests
 
 

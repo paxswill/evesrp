@@ -164,6 +164,33 @@ def ship_list():
 
 
 class FiltersRequestListing(object):
+    @property
+    def _load_options(self):
+        """Returns a sequence of
+        :py:class:`~sqlalchemy.orm.strategy_options.Load` objects specifying
+        which attributes to load.
+        """
+        return (
+                db.Load(Request).load_only(
+                    'id',
+                    'pilot_id',
+                    'corporation',
+                    'alliance',
+                    'ship_type',
+                    'status',
+                    'base_payout',
+                    'kill_timestamp',
+                    'timestamp',
+                    'division_id',
+                    'submitter_id',
+                    'system',
+                ),
+                db.Load(Division).joinedload('name'),
+                db.Load(Pilot).joinedload('name'),
+                db.Load(User).joinedload('id')
+        )
+
+
     def dispatch_request(self, division_id=None):
         def request_dict(request):
             payout = request.payout
