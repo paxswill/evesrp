@@ -201,9 +201,10 @@ def submit_request():
         abort(403)
     form = RequestForm()
     # Create a list of divisions this user can submit to
-    divisions = map(lambda x: x.division,
-            filter(lambda y: y.permission == 'submit',
-                    current_user.permissions))
+    submit_perms = current_user.permissions\
+            .filter_by(permission='submit')\
+            .subquery()
+    divisions = db.session.query(Division).join(submit_perms)
     # Remove duplicates and sort divisions by name
     keyfunc = lambda d: d.name
     divisions = sorted(divisions, key=keyfunc)
