@@ -42,9 +42,69 @@ function padNum (num, width) {
   return num;
 }
 
+/* return an array of page numbers, skipping some of them as configured by the
+ * options argument. This function should be functionally identical to
+ * Flask-SQLAlchemy's
+ * :py:method:`Pagination.iter_pages <flask.ext.sqlalchemy.Pagination.iter_pages>`
+ * method (including in default arguments). One deviation is that this function
+ * uses 0-indexed page numbers instead of 1-indexed, to ease compatibility with
+ * PourOver.
+ */
+function page_numbers(num_pages, current_page, options) {
+  /* default values */
+  if (options === undefined) {
+    options = {
+      left_edge: 2,
+      left_current: 2,
+      right_current: 5,
+      right_edge: 2
+    };
+  }
+  var pages = [];
+  for (var i = 0; i < num_pages; ++i) {
+    if (i < options.left_edge){
+      pages.push(i);
+    } else if ((current_page - options.left_current - 1) < i &&
+        i < (current_page + options.right_current)) {
+      pages.push(i);
+    } else if ((num_pages - options.right_edge - 1) < i) {
+      pages.push(i);
+    } else if (pages[pages.length - 1] !== null) {
+      pages.push(null);
+    }
+  }
+  return pages;
+}
+
+function pager_a_click(ev) {
+  /* Set the view to the new page */
+  if ($(this).attr('id') === 'prev_page') {
+    requestView.page(-1);
+  } else if ($(this).attr('id') == 'next_page') {
+    requestView.page(1);
+  } else {
+    var page_num = parseInt($(this).contents()[0].data, 10);
+    // zero indexed pages
+    page_num = page_num - 1;
+    requestView.setPage(page_num);
+  }
+  /* Fiddle with the browser history to keep the URL in sync */
+  var new_path = window.location.pathname.replace(/\/?(?:\d+\/?)?$/, '');
+  new_path = new_path + '/' + (requestView.current_page + 1) + '/';
+  History.pushState(
+    {
+      page: requestView.current_page,
+      sort: requestView.getSort()
+    },
+    null,
+    new_path
+  );
+  ev.preventDefault();
+}
+
 /* PourOver.View extension that renders into a table */
 var RequestsView = PourOver.View.extend({
-  page_size: 15,
+  page_size: 20,
   render: function () {
     /* Start with a clean slate (keep header separate from data rows) */
     var rows = $('table tr');
@@ -96,6 +156,41 @@ var RequestsView = PourOver.View.extend({
         row.appendTo(rowsParent);
       }
     );
+    /* rebuild the pager */
+    var num_pages = Math.ceil(this.match_set.length()/this.page_size - 1) + 1;
+    var pager = $('ul.pagination')
+    pager.empty();
+    if (num_pages === 1) {
+      /* don't show the pager when there's only one page */
+      pager.attr('style', 'display: none;');
+    } else {
+      /* prev arrow */
+      if (this.current_page === 0) {
+        pager.append('<li class="disabled"><span>&laquo;</span></li>');
+      } else {
+        pager.append('<li><a id="prev_page" href="#">&laquo;</a></li>');
+      }
+      /* Page numbers */
+      var page_nums = page_numbers(num_pages, this.current_page);
+      for (var i = 0; i < page_nums.length; ++i) {
+        if (page_nums[i] !== null) {
+          if (page_nums[i] !== this.current_page) {
+            pager.append('<li><a href="#">' + (page_nums[i] + 1) + '</a></li>');
+          } else {
+            pager.append('<li class="active"><a href="#">' + (page_nums[i] + 1) + '<span class="sr-only"> (current)</span></a></li>');
+          }
+        } else {
+          pager.append('<li class="disabled"><span>&hellip;</span></li>');
+        }
+      }
+      /* next arrow */
+      if (this.current_page === num_pages - 1) {
+        pager.append('<li class="disabled"><span>&raquo;</span></li>');
+      } else {
+        pager.append('<li><a id="next_page" href="#">&raquo;</a></li>');
+      }
+    }
+    pager.find('li > a').click(pager_a_click);
   }
 });
 
@@ -122,6 +217,18 @@ $.ajax(
       addSorts();
       requestView = new RequestsView('requests', requests);
       requestView.on('update', requestView.render);
+      /* Hijack the pager links */
+      $('ul.pagination > li > a').click(pager_a_click);
+      /* Watch the history for state changes */
+      $(window).on('statechange', function(ev) {
+        var state = History.getState();
+        if (state.data.page !== requestView.current_page) {
+          requestView.setPage(state.data.page);
+        }
+        if (state.data.sort !== requestView.getSort()) {
+          requestView.setSort(state.data.sort);
+        }
+      });
     }
   }
 );

@@ -15,7 +15,7 @@
         <th><a href="#" id="col-submit_timestamp">Submit Time <i></i></a></th>
         <th><a href="#" id="col-division">Division <i></i></a></th>
       </tr>
-      {% for request in requests %}
+      {% for request in pager.items %}
       <tr class="{{ macros.status_color(request.status) }}">
         <td><a href="{{ url_for('requests.request_detail', request_id=request.id) }}">{{ request.id }}</a></td>
         <td>{{ request.pilot.name }}</td>
@@ -28,6 +28,33 @@
       </tr>
       {% endfor %}
     </table>
+    {% if pager.pages > 1 %}
+    <div class="text-center">
+      <ul class="pagination">
+        {% if pager.has_prev %}
+        <li><a id="prev_page" href="{{ url_for(request.endpoint, page=pager.prev_num) }}">&laquo;</a></li>
+        {% else %}
+        <li class="disabled"><span>&laquo;</span></li>
+        {% endif %}
+        {% for page in pager.iter_pages() %}
+          {% if page %}
+            {% if page != pager.page %}
+        <li><a href="{{ url_for(request.endpoint, page=page) }}">{{ page }}</a></li>
+            {% else %}
+        <li class="active"><a href="{{ url_for(request.endpoint, page=page) }}">{{ page }}<span class="sr-only"> (current)</span></a></li>
+            {% endif %}
+          {% else %}
+        <li class="disabled"><span>&hellip;</span></li>
+          {% endif %}
+        {% endfor %}
+        {% if pager.has_next %}
+        <li><a id="next_page" href="{{ url_for(request.endpoint, page=pager.next_num) }}">&raquo;</a></li>
+        {% else %}
+        <li class="disabled"><span>&raquo;</span></li>
+        {% endif %}
+      </ul>
+    </div>
+    {% endif %}
   </div>
 </div>
 {% endblock content %}
@@ -36,5 +63,6 @@
 {{ super() }}
 <script src="{{ url_for('static', filename='js/underscore.js') }}"></script>
 <script src="{{ url_for('static', filename='js/pourover.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery.history.js') }}"></script>
 <script src="{{ url_for('static', filename='js/custom-pourover.js') }}"></script>
 {% endblock scripts %}

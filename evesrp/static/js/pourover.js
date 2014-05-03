@@ -682,7 +682,7 @@ var PourOver = (function(){
         initialize: function(){},
 
         // Given an array of possible values, initializes the object that will store the cached results
-        // of querying for that possibilitiy.
+        // of querying for that possibility.
         create_possibilities: function(vs){
           var o = {};
           _(vs).each(function(v){
@@ -1071,7 +1071,7 @@ var PourOver = (function(){
           this.trigger("pageChange");
         },
 
-        // Page to a specific cid. This IS NOT to page to a specific page.
+        // Page to a specific cid.
         pageTo: function(cid,silent){
           if(typeof(silent) == "undefined"){
             var silent = false;
@@ -1091,6 +1091,14 @@ var PourOver = (function(){
                 this.trigger("pageChange");
               }
           }
+        },
+
+        // Change the page of the view to a specific page.
+        setPage: function(page) {
+          if(page < 0) page = 0;
+          if(page > Math.ceil(this.match_set.length()/this.page_size - 1)) page = Math.ceil(this.match_set.length()/this.page_size - 1);
+          this.current_page = page;
+          this.trigger("pageChange");
         },
 
         // Set the page size.
@@ -1221,7 +1229,7 @@ var PourOver = (function(){
     _.extend(PourOver.UI.Element.prototype,PourOver.Events,{
       initialize: function(){},
       getMatchSet: function(){
-        throw "No get match set function specifiec"
+        throw "No get match set function specified"
       },
       getFilterState: function(){
         throw "No get filter state specified";
@@ -1366,7 +1374,7 @@ var PourOver = (function(){
           });
         },
 
-        // Retreive a specific attr of a specific item from the buffer.
+        // Retrieve a specific attr of a specific item from the buffer.
         getBufferedValue: function(guid,attr){
           if(this.buffered_items.hasOwnProperty(guid)){
             return this.buffered_items[guid][attr] || false;

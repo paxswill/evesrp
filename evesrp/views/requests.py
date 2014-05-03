@@ -43,13 +43,14 @@ class RequestListing(View):
         """
         raise NotImplementedError()
 
-    def dispatch_request(self, division_id=None):
+    def dispatch_request(self, division_id=None, page=1):
         """Returns the response to requests.
 
         Part of the :py:class:`flask.views.View` interface.
         """
+        pager = self.requests(division_id).paginate(page, per_page=20)
         return render_template(self.template,
-                requests=self.requests(division_id))
+                pager=pager)
 
     @property
     def _load_options(self):
@@ -76,7 +77,7 @@ class SubmittedRequestListing(RequestListing):
     template = 'list_submit.html'
 
     def requests(self, division_id=None):
-        requests = db.session.query(Request)\
+        requests = Request.query\
                 .join(User)\
                 .filter(User.id==current_user.id)\
                 .options(*self._load_options)
@@ -117,7 +118,7 @@ class PermissionRequestListing(RequestListing):
         if division_id is not None:
             perms = perms.filter(Permission.division_id==division_id)
         perms = perms.subquery()
-        requests = db.session.query(Request)\
+        requests = Request.query\
                 .join(perms, Request.division_id==perms.c.division_id)\
                 .filter(Request.status.in_(self.statuses))\
                 .order_by(Request.timestamp.desc())\
@@ -141,7 +142,9 @@ def register_perm_request_listing(app, endpoint, path, permissions, statuses):
     view = PermissionRequestListing.as_view(endpoint, permissions=permissions,
             statuses=statuses)
     app.add_url_rule(path, view_func=view)
-    app.add_url_rule('{}<int:division_id>/'.format(path), view_func=view)
+    app.add_url_rule('{}<int:page>/'.format(path), view_func=view)
+    app.add_url_rule('{}<int:page>/<int:division_id>'.format(path),
+            view_func=view)
 
 
 @blueprint.record
@@ -149,7 +152,8 @@ def register_class_views(state):
     """Register class based views onto the requests blueprint."""
     submit_view = SubmittedRequestListing.as_view('list_submit_requests')
     state.add_url_rule('/submit/', view_func=submit_view)
-    state.add_url_rule('/submit/<int:division_id>/', view_func=submit_view)
+    state.add_url_rule('/submit/<int:page>/', view_func=submit_view)
+    state.add_url_rule('/submit/<int:page>/<int:division_id>', view_func=submit_view)
     register_perm_request_listing(state, 'list_review_requests',
             '/review/', ('review',), ('evaluating', 'incomplete', 'approved'))
     register_perm_request_listing(state, 'list_approved_requests',
