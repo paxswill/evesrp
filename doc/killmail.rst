@@ -14,10 +14,31 @@ The interface for :py:class:`Killmail` is fairly simple. It
 provides a number of attributes, and for those that correspond to in-game
 entities, it also provides their ID number. The default implementation has all
 values set to ``None``. Two implementations for creating a :py:class:`Killmail`
-from a URL are provided. :py:class:`CRESTMail` is created from a CREST external
+from a URL are provided: :py:class:`CRESTMail` is created from a CREST external
 killmail link, and :py:class:`ZKillmail` is created from a `zKillboard
-<https://zkillboard.com>`_ details link. ZKillmail should also be compatible
-with other killboards runnign the zKillboard software.
+<https://zkillboard.com>`_ details link.
+
+Extension Example
+=================
+
+The intent of having killmails handled in a separate class was for
+administrators to be able to have customized behavior. As an example, here's a
+:py:class:`Killmail` subclass that will link the ship name to the Eve-Online
+wiki page for that ship, and only accept killmails from the `TEST Alliance
+killboard <https://zkb.pleaseignore.com/>`_. ::
+
+    from evesrp.killmail import ZKillmail, ShipURLMixin
+    
+    
+    eve_wiki_url = 'https://wiki.eveonline.com/en/wiki/{name}'
+    EveWikiMixin = ShipURLMixin(eve_wiki_url)
+    
+    
+    class TestZKillmail(ZKillmail, EveWikiMixin):
+        def __init__(self, *args, **kwargs):
+            super(TestZKillmail, self).__init__(*args, **kwargs)
+            if self.domain not in ('zkb.pleaseignore.com', 'kb.pleaseignore.com'):
+                raise ValueError("This killmail is from the wrong killboard.")
 
 API
 ===
