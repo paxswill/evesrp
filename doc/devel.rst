@@ -8,3 +8,4 @@ Developers Guide to EVE-SRP
     killmail
     views
     models
+    javascript

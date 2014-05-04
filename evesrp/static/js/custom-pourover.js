@@ -50,7 +50,7 @@ function padNum (num, width) {
  * uses 0-indexed page numbers instead of 1-indexed, to ease compatibility with
  * PourOver.
  */
-function page_numbers(num_pages, current_page, options) {
+function pageNumbers(num_pages, current_page, options) {
   /* default values */
   if (options === undefined) {
     options = {
@@ -171,7 +171,7 @@ var RequestsView = PourOver.View.extend({
         pager.append('<li><a id="prev_page" href="#">&laquo;</a></li>');
       }
       /* Page numbers */
-      var page_nums = page_numbers(num_pages, this.current_page);
+      var page_nums = pageNumbers(num_pages, this.current_page);
       for (var i = 0; i < page_nums.length; ++i) {
         if (page_nums[i] !== null) {
           if (page_nums[i] !== this.current_page) {
@@ -213,8 +213,8 @@ $.ajax(
                                                              'incomplete',
                                                              'paid'])
       requests.addFilters(statusFilter)
-      getFilters();
-      addSorts();
+      addRequestFilters(requests);
+      addRequestSorts(requests);
       requestView = new RequestsView('requests', requests);
       requestView.on('update', requestView.render);
       /* Hijack the pager links */
@@ -234,11 +234,11 @@ $.ajax(
 );
 
 /* Add sorts for request attributes */
-function addSorts() {
+function addRequestSorts(collection) {
   /* Sort statuses in a specific order */
   var statusSort = PourOver.makeExplicitSort(
     'status_asc',
-    requests,
+    collection,
     'status',
     ['evaluating', 'incomplete', 'approved', 'rejected', 'paid']
   );
@@ -304,11 +304,11 @@ function addSorts() {
       return new ReversedSort(name, { base_sort: value } );
     }
   ));
-  requests.addSorts(sorts);
+  collection.addSorts(sorts);
 }
 
 /* Add filters for each request attribute */
-function getFilters() {
+function addRequestFilters(collection) {
   $.map(
     ['ships', 'pilots', 'corporations', 'alliances', 'divisions', 'systems'],
     function (filterSource) {
@@ -321,7 +321,7 @@ function getFilters() {
               filterSource.slice(0, -1),
               data[filterSource]
             );
-            requests.addFilters(filter);
+            collection.addFilters(filter);
           }
         })
     }
