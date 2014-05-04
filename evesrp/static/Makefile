@@ -1,5 +1,5 @@
 SUBDIRS := js css
-SUBMODULES := bootstrap fontawesome
+export THIRDPARTY = $(abspath ../../thirdparty)
 
 .PHONY: all clean $(SUBDIRS)
 
@@ -12,8 +12,3 @@ clean:
 
 $(SUBDIRS):
 	$(MAKE) -C $@
-
-css: fontawesome/README.md bootstrap/README.md
-
-fontawesome/README.md bootstrap/README.md:
-	git submodule -u -i
