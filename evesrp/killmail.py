@@ -165,20 +165,32 @@ class ShipNameMixin(object):
 
     @property
     def ship(self):
+        """Looks up the ship name using :py:attr:`Killmail.ship_id`.
+        """
         return ships.ships[self.ship_id]
 
 
 class LocationMixin(object):
+    """Killmail mixin for providing solar system, constellation and region
+    names from :py:attr:`Killmail.system_id`.
+    """
+
     @property
     def system(self):
+        """Provides the solar system name using :py:attr:`Killmail.system_id`.
+        """
         return systems.system_names[self.system_id]
 
     @property
     def constellation(self):
+        """Provides the constellation name using :py:attr:`Killmail.system_id`.
+        """
         return systems.systems_constellations[self.system]
 
     @property
     def region(self):
+        """Provides the region name using :py:attr:`Killmail.system_id`.
+        """
         return systems.constellations_regions[self.constellation]
 
 
