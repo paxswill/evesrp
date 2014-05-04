@@ -56,7 +56,7 @@ class RequestListing(View):
     def _load_options(self):
         """Returns a sequence of
         :py:class:`~sqlalchemy.orm.strategy_options.Load` objects specifying
-        which attributes to load.
+        which attributes to load (or really any load options necessary).
         """
         return (
                 db.Load(Request).load_only('id', 'pilot_id', 'division_id',
