@@ -69,9 +69,3 @@
 </div>
 {% endfor %}
 {% endblock content %}
-
-{% block scripts %}
-{{ super() }}
-<script src="//cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.10.2/typeahead.bundle.min.js"></script>
-<script src="{{ url_for('static', filename='js/custom-typeahead.js') }}"></script>
-{% endblock scripts %}

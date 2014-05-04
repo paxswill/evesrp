@@ -92,11 +92,11 @@
     {% block scripts %}
     <!-- Jquery from CDNJS. Need to use 1.x to support the IGB -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.js"></script>
-    <!-- Include all templates for now -->
-    <script src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>
+    <!-- $SCRIPT_ROOT is the root of this application, wherever it it -->
     <script type="text/javascript">
       $SCRIPT_ROOT = {{ request.script_root|tojson }};
     </script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/evesrp.min.js') }}"></script>
     {% endblock scripts %}
   </body>
 </html>
