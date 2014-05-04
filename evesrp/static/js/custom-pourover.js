@@ -76,162 +76,7 @@ function pageNumbers(num_pages, current_page, options) {
   return pages;
 }
 
-function pager_a_click(ev) {
-  /* Set the view to the new page */
-  if ($(this).attr('id') === 'prev_page') {
-    requestView.page(-1);
-  } else if ($(this).attr('id') == 'next_page') {
-    requestView.page(1);
-  } else {
-    var page_num = parseInt($(this).contents()[0].data, 10);
-    // zero indexed pages
-    page_num = page_num - 1;
-    requestView.setPage(page_num);
-  }
-  /* Fiddle with the browser history to keep the URL in sync */
-  var new_path = window.location.pathname.replace(/\/?(?:\d+\/?)?$/, '');
-  new_path = new_path + '/' + (requestView.current_page + 1) + '/';
-  History.pushState(
-    {
-      page: requestView.current_page,
-      sort: requestView.getSort()
-    },
-    null,
-    new_path
-  );
-  ev.preventDefault();
-}
 
-/* PourOver.View extension that renders into a table */
-var RequestsView = PourOver.View.extend({
-  page_size: 20,
-  render: function () {
-    /* Start with a clean slate (keep header separate from data rows) */
-    var rows = $('table tr');
-    var rowsParent = rows.parent();
-    var headerRow = rows[0];
-    var oldRows = rows.not(':first');
-    if (oldRows.length != 0) {
-      oldRows.remove();
-    }
-    /* Rebuild the table */
-    $.each(
-      this.getCurrentItems(),
-      function (index, request) {
-        var row = $('<tr></tr>');
-        /* Color the rows based on status */
-        if (request['status'] === 'evaluating') {
-          row.addClass("warning");
-        } else if (request['status'] === 'approved') {
-          row.addClass("info");
-        } else if (request['status'] === 'paid') {
-          row.addClass("success");
-        } else if (request['status'] === 'incomplete' || request['status'] === 'rejected') {
-          row.addClass("danger");
-        }
-        var idColumn = $('<td></td>');
-        idColumn.append(
-            $('<a></a>', { href: request['href'] }).append(request['id']));
-        idColumn.appendTo(row);
-        $.each(
-          ['pilot', 'ship', 'system', 'status', 'payout_str',
-           'submit_timestamp', 'division'],
-          function (index, key) {
-            var content;
-            if (key === 'submit_timestamp') {
-              var date = request[key];
-              content = date.getUTCDate() + ' ' + month(date.getUTCMonth());
-              content = content + ' ' + date.getUTCFullYear() + ' @ ';
-              content = content + date.getUTCHours() + ':';
-              content = content + padNum(date.getUTCMinutes(), 2);
-            } else if (key === 'status') {
-              content = request[key].substr(0, 1).toUpperCase();
-              content = content + request[key].slice(1);
-            } else {
-              content = request[key];
-            }
-            $('<td></td>').append(content).appendTo(row);
-          }
-        );
-        row.appendTo(rowsParent);
-      }
-    );
-    /* rebuild the pager */
-    var num_pages = Math.ceil(this.match_set.length()/this.page_size - 1) + 1;
-    var pager = $('ul.pagination')
-    pager.empty();
-    if (num_pages === 1) {
-      /* don't show the pager when there's only one page */
-      pager.attr('style', 'display: none;');
-    } else {
-      /* prev arrow */
-      if (this.current_page === 0) {
-        pager.append('<li class="disabled"><span>&laquo;</span></li>');
-      } else {
-        pager.append('<li><a id="prev_page" href="#">&laquo;</a></li>');
-      }
-      /* Page numbers */
-      var page_nums = pageNumbers(num_pages, this.current_page);
-      for (var i = 0; i < page_nums.length; ++i) {
-        if (page_nums[i] !== null) {
-          if (page_nums[i] !== this.current_page) {
-            pager.append('<li><a href="#">' + (page_nums[i] + 1) + '</a></li>');
-          } else {
-            pager.append('<li class="active"><a href="#">' + (page_nums[i] + 1) + '<span class="sr-only"> (current)</span></a></li>');
-          }
-        } else {
-          pager.append('<li class="disabled"><span>&hellip;</span></li>');
-        }
-      }
-      /* next arrow */
-      if (this.current_page === num_pages - 1) {
-        pager.append('<li class="disabled"><span>&raquo;</span></li>');
-      } else {
-        pager.append('<li><a id="next_page" href="#">&raquo;</a></li>');
-      }
-    }
-    pager.find('li > a').click(pager_a_click);
-  }
-});
-
-/* Set up the PourOver.Collection and PourOver.View for requests */
-$.ajax(
-  $SCRIPT_ROOT + '/api/filter' + window.location.pathname,
-  {
-    dataType: 'json',
-    success: function(data) {
-      var filteredRequests = $.map(data['requests'],
-        function (value) {
-          value['kill_timestamp'] = new Date(value['kill_timestamp']);
-          value['submit_timestamp'] = new Date(value['submit_timestamp']);
-          return value;
-        });
-      requests = new PourOver.Collection(filteredRequests);
-      var statusFilter = PourOver.makeExactFilter('status', ['evaluating',
-                                                             'approved',
-                                                             'rejected',
-                                                             'incomplete',
-                                                             'paid'])
-      requests.addFilters(statusFilter)
-      addRequestFilters(requests);
-      addRequestSorts(requests);
-      requestView = new RequestsView('requests', requests);
-      requestView.on('update', requestView.render);
-      /* Hijack the pager links */
-      $('ul.pagination > li > a').click(pager_a_click);
-      /* Watch the history for state changes */
-      $(window).on('statechange', function(ev) {
-        var state = History.getState();
-        if (state.data.page !== requestView.current_page) {
-          requestView.setPage(state.data.page);
-        }
-        if (state.data.sort !== requestView.getSort()) {
-          requestView.setSort(state.data.sort);
-        }
-      });
-    }
-  }
-);
 
 /* Add sorts for request attributes */
 function addRequestSorts(collection) {
@@ -328,33 +173,191 @@ function addRequestFilters(collection) {
   );
 }
 
-/* Attach event listeners to column headers */
-$('th a').click( function (e) {
-  var colName = $(this).attr('id').substring(4);
-  var currentSort = requestView.getSort();
-  var newSort = '';
-  if (currentSort !== false) {
-    if (currentSort.slice(0, -4) === colName) {
-      /* swap the direction of the existing sort */
-      var direction = currentSort.slice(-3);
-      if (direction === 'asc') {
-        newSort = colName + '_dsc';
-      } else if (direction === 'dsc') {
-        newsort = colName + '_asc';
+
+if ($('div#request-list').length) {
+  /* Event callback for pager links */
+  function pager_a_click(ev) {
+    /* Set the view to the new page */
+    if ($(this).attr('id') === 'prev_page') {
+      request_view.page(-1);
+    } else if ($(this).attr('id') == 'next_page') {
+      request_view.page(1);
+    } else {
+      var page_num = parseInt($(this).contents()[0].data, 10);
+      // zero indexed pages
+      page_num = page_num - 1;
+      request_view.setPage(page_num);
+    }
+    /* Fiddle with the browser history to keep the URL in sync */
+    var new_path = window.location.pathname.replace(/\/?(?:\d+\/?)?$/, '');
+    new_path = new_path + '/' + (request_view.current_page + 1) + '/';
+    History.pushState(
+      {
+        page: request_view.current_page,
+        sort: request_view.getSort()
+      },
+      null,
+      new_path
+    );
+    ev.preventDefault();
+  }
+  /* PourOver.View extension that renders into a table */
+  var RequestsView = PourOver.View.extend({
+    page_size: 20,
+    render: function () {
+      /* Start with a clean slate (keep header separate from data rows) */
+      var rows = $('table tr');
+      var rowsParent = rows.parent();
+      var headerRow = rows[0];
+      var oldRows = rows.not(':first');
+      if (oldRows.length != 0) {
+        oldRows.remove();
+      }
+      /* Rebuild the table */
+      $.each(
+        this.getCurrentItems(),
+        function (index, request) {
+          var row = $('<tr></tr>');
+          /* Color the rows based on status */
+          if (request['status'] === 'evaluating') {
+            row.addClass("warning");
+          } else if (request['status'] === 'approved') {
+            row.addClass("info");
+          } else if (request['status'] === 'paid') {
+            row.addClass("success");
+          } else if (request['status'] === 'incomplete' || request['status'] === 'rejected') {
+            row.addClass("danger");
+          }
+          var idColumn = $('<td></td>');
+          idColumn.append(
+              $('<a></a>', { href: request['href'] }).append(request['id']));
+          idColumn.appendTo(row);
+          $.each(
+            ['pilot', 'ship', 'system', 'status', 'payout_str',
+             'submit_timestamp', 'division'],
+            function (index, key) {
+              var content;
+              if (key === 'submit_timestamp') {
+                var date = request[key];
+                content = date.getUTCDate() + ' ' + month(date.getUTCMonth());
+                content = content + ' ' + date.getUTCFullYear() + ' @ ';
+                content = content + date.getUTCHours() + ':';
+                content = content + padNum(date.getUTCMinutes(), 2);
+              } else if (key === 'status') {
+                content = request[key].substr(0, 1).toUpperCase();
+                content = content + request[key].slice(1);
+              } else {
+                content = request[key];
+              }
+              $('<td></td>').append(content).appendTo(row);
+            }
+          );
+          row.appendTo(rowsParent);
+        }
+      );
+      /* rebuild the pager */
+      var num_pages = Math.ceil(this.match_set.length()/this.page_size - 1) + 1;
+      var pager = $('ul.pagination')
+      pager.empty();
+      if (num_pages === 1) {
+        /* don't show the pager when there's only one page */
+        pager.attr('style', 'display: none;');
+      } else {
+        /* prev arrow */
+        if (this.current_page === 0) {
+          pager.append('<li class="disabled"><span>&laquo;</span></li>');
+        } else {
+          pager.append('<li><a id="prev_page" href="#">&laquo;</a></li>');
+        }
+        /* Page numbers */
+        var page_nums = pageNumbers(num_pages, this.current_page);
+        for (var i = 0; i < page_nums.length; ++i) {
+          if (page_nums[i] !== null) {
+            if (page_nums[i] !== this.current_page) {
+              pager.append('<li><a href="#">' + (page_nums[i] + 1) + '</a></li>');
+            } else {
+              pager.append('<li class="active"><a href="#">' + (page_nums[i] + 1) + '<span class="sr-only"> (current)</span></a></li>');
+            }
+          } else {
+            pager.append('<li class="disabled"><span>&hellip;</span></li>');
+          }
+        }
+        /* next arrow */
+        if (this.current_page === num_pages - 1) {
+          pager.append('<li class="disabled"><span>&raquo;</span></li>');
+        } else {
+          pager.append('<li><a id="next_page" href="#">&raquo;</a></li>');
+        }
+      }
+      pager.find('li > a').click(pager_a_click);
+    }
+  });
+  /* Set up the PourOver.Collection and PourOver.View for requests */
+  $.ajax(
+    $SCRIPT_ROOT + '/api/filter' + window.location.pathname,
+    {
+      dataType: 'json',
+      success: function(data) {
+        var filteredRequests = $.map(data['requests'],
+          function (value) {
+            value['kill_timestamp'] = new Date(value['kill_timestamp']);
+            value['submit_timestamp'] = new Date(value['submit_timestamp']);
+            return value;
+          });
+        requests = new PourOver.Collection(filteredRequests);
+        var statusFilter = PourOver.makeExactFilter('status', ['evaluating',
+                                                               'approved',
+                                                               'rejected',
+                                                               'incomplete',
+                                                               'paid'])
+        requests.addFilters(statusFilter)
+        addRequestFilters(requests);
+        addRequestSorts(requests);
+        request_view = new RequestsView('requests', requests);
+        request_view.on('update', request_view.render);
+        /* Hijack the pager links */
+        $('ul.pagination > li > a').click(pager_a_click);
+        /* Watch the history for state changes */
+        $(window).on('statechange', function(ev) {
+          var state = History.getState();
+          if (state.data.page !== request_view.current_page) {
+            request_view.setPage(state.data.page);
+          }
+          if (state.data.sort !== request_view.getSort()) {
+            request_view.setSort(state.data.sort);
+          }
+        });
       }
     }
-    /* remove the old direction arrow */
-    $(this).parent('th').siblings('th').find('i.fa').removeClass();
-  }
-  if (newSort === '') {
-    newSort = colName + '_asc';
-  }
-  /* Set the direction arrows */
-  var direction = newSort.slice(-3);
-  if (direction === 'asc') {
-    $(this).children('i').attr('class', 'fa fa-chevron-down');
-  } else if (direction === 'dsc') {
-    $(this).children('i').attr('class', 'fa fa-chevron-up');
-  }
-  requestView.setSort(newSort);
-});
+  );
+  /* Attach event listeners to column headers */
+  $('th a').click( function (e) {
+    var colName = $(this).attr('id').substring(4);
+    var currentSort = request_view.getSort();
+    var newSort = '';
+    if (currentSort !== false) {
+      if (currentSort.slice(0, -4) === colName) {
+        /* swap the direction of the existing sort */
+        var direction = currentSort.slice(-3);
+        if (direction === 'asc') {
+          newSort = colName + '_dsc';
+        } else if (direction === 'dsc') {
+          newsort = colName + '_asc';
+        }
+      }
+      /* remove the old direction arrow */
+      $(this).parent('th').siblings('th').find('i.fa').removeClass();
+    }
+    if (newSort === '') {
+      newSort = colName + '_asc';
+    }
+    /* Set the direction arrows */
+    var direction = newSort.slice(-3);
+    if (direction === 'asc') {
+      $(this).children('i').attr('class', 'fa fa-chevron-down');
+    } else if (direction === 'dsc') {
+      $(this).children('i').attr('class', 'fa fa-chevron-up');
+    }
+    request_view.setSort(newSort);
+  });
+}
