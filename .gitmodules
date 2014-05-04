@@ -4,3 +4,15 @@
 [submodule "fontawesome"]
 	path = thirdparty/fontawesome
 	url = https://github.com/FortAwesome/Font-Awesome.git
+[submodule "thirdparty/underscore"]
+	path = thirdparty/underscore
+	url = https://github.com/jashkenas/underscore.git
+[submodule "thirdparty/pourover"]
+	path = thirdparty/pourover
+	url = https://github.com/NYTimes/pourover.git
+[submodule "thirdparty/history_js"]
+	path = thirdparty/history_js
+	url = https://github.com/browserstate/history.js.git
+[submodule "thirdparty/typeahead_js"]
+	path = thirdparty/typeahead_js
+	url = https://github.com/twitter/typeahead.js
