@@ -1,6 +1,8 @@
+##########
 User Guide
-==========
+##########
 
+**********************************
 Logging in and Submitting Requests
 **********************************
 
@@ -33,6 +35,7 @@ request. Via this page you can add comments for reviewers.
 
 .. image:: images/request_submitted.png
 
+******************
 Reviewing Requests
 ******************
 
@@ -85,11 +88,13 @@ clicking the "Completed" link at the top of the screen.
 
 .. image:: images/list_completed.png
 
+*******************
 Paying Out Requests
 *******************
 
 TODO
 
+***********************
 Administering Divisions
 ***********************
 

@@ -1,5 +1,6 @@
+*****************
 Killmail Handling
-=================
+*****************
 
 .. py:currentmodule:: evesrp.killmail
 
@@ -32,7 +33,7 @@ compatible driver for your particular database, but support for most databases
 should be available by default.
 
 Practical Example
-*****************
+=================
 
 This example demonstrates how you can combine :py:func:`SQLShipMixin` to
 provide :py:attr:`~Killmail.ship` to :py:class:`ZKillmail`::
@@ -42,7 +43,7 @@ provide :py:attr:`~Killmail.ship` to :py:class:`ZKillmail`::
     class SQLZKillmail(ZKillmail, SQLShipMixin('sqlite:///rubicon.sqlite')): pass
 
 API
-***
+===
 
 .. py:module:: evesrp.killmail
 
