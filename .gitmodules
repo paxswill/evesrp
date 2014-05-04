@@ -1,0 +1,6 @@
+[submodule "bootstrap"]
+	path = evesrp/static/bootstrap
+	url = https://github.com/twbs/bootstrap.git
+[submodule "fontawesome"]
+	path = evesrp/static/fontawesome
+	url = https://github.com/FortAwesome/Font-Awesome.git

@@ -11,6 +11,8 @@ requires that these utilities be available for development:
 
 * UglifyJS2
 
+* LESS
+
 Most of these are Node.js packages available from NPM:
 
-    npm install uglify-js -g
+    npm install -g uglify-js less
