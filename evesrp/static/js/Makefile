@@ -15,6 +15,7 @@ SOURCE_NAMES := \
 	$(THIRDPARTY)/underscore/underscore \
 	$(THIRDPARTY)/pourover/pourover \
 	$(THIRDPARTY)/history_js/scripts/bundled/html4+html5/jquery.history \
+	$(THIRDPARTY)/bootstrap-tokenfield/dist/bootstrap-tokenfield \
 	custom-pourover \
 	$(THIRDPARTY)/typeahead_js/dist/typeahead.bundle \
 	custom-typeahead
