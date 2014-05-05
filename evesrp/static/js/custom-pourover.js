@@ -151,22 +151,46 @@ function addRequestSorts(collection) {
 }
 
 /* Add filters for each request attribute */
-function addRequestFilters(collection) {
+function addRequestFilters(columns, collection, bloodhound_collection) {
+  function addBloodhound(attribute, values) {
+    /* Create Bloodhound sources for Typeahead */
+    bloodhound_collection[attribute] = new Bloodhound({
+      name: attribute,
+      datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+      queryTokenizer: Bloodhound.tokenizers.whitespace,
+      local: $.map(values, function(v){ return {value: v};})
+    });
+    bloodhound_collection[attribute].initialize();
+  }
+  /* Create filters (and Bloodhounds) for each column */
   $.map(
-    ['ships', 'pilots', 'corporations', 'alliances', 'divisions', 'systems'],
-    function (filterSource) {
-      $.ajax(
-        $SCRIPT_ROOT + '/api/filter/' + filterSource + '/',
-        {
-          dataType: 'json',
-          success: function(data, status, jqXHR) {
-            var filter = PourOver.makeExactFilter(
-              filterSource.slice(0, -1),
-              data[filterSource]
-            );
-            collection.addFilters(filter);
-          }
-        })
+    columns.filter(function (i, val){
+      return val !== 'payout' && val !== 'submit_timestamp' && val !=='id';
+    }),
+    function (attribute) {
+      if (attribute === 'status') {
+        var statusFilter = PourOver.makeExactFilter('status', ['evaluating',
+                                                               'approved',
+                                                               'rejected',
+                                                               'incomplete',
+                                                               'paid'])
+        requests.addFilters(statusFilter)
+        addBloodhound(attribute, statusFilter.values);
+      } else {
+        $.ajax(
+          $SCRIPT_ROOT + '/api/filter/' + attribute + '/',
+          {
+            dataType: 'json',
+            success: function(data, status, jqXHR) {
+              var filter = PourOver.makeExactFilter(
+                attribute,
+                data[attribute]
+              );
+              collection.addFilters(filter);
+              addBloodhound(attribute, data[attribute]);
+            }
+          });
+      }
     }
   );
 }
@@ -198,6 +222,12 @@ if ($('div#request-list').length) {
     );
     ev.preventDefault();
   }
+  function get_columns(rows) {
+    var header_row = rows.first();
+    return header_row.find('th').map(function(index, value) {
+      return $(value).attr('id').substring(4);
+    });
+  }
   /* PourOver.View extension that renders into a table */
   var RequestsView = PourOver.View.extend({
     page_size: 20,
@@ -206,9 +236,7 @@ if ($('div#request-list').length) {
       var rows = $('table tr').not($('.popover tr'));
       var rowsParent = rows.parent();
       var headerRow = rows.first();
-      var columns = headerRow.find('th').map(function (index, value) {
-        return $(value).attr('id').substring(4);
-      });
+      var columns = get_columns(rows);
       var oldRows = rows.not(':first');
       if (oldRows.length != 0) {
         oldRows.remove();
@@ -297,18 +325,19 @@ if ($('div#request-list').length) {
       success: function(data) {
         var filteredRequests = $.map(data['requests'],
           function (value) {
+            /* Convert the dates into JS Dates */
             value['kill_timestamp'] = new Date(value['kill_timestamp']);
             value['submit_timestamp'] = new Date(value['submit_timestamp']);
             return value;
           });
         requests = new PourOver.Collection(filteredRequests);
-        var statusFilter = PourOver.makeExactFilter('status', ['evaluating',
-                                                               'approved',
-                                                               'rejected',
-                                                               'incomplete',
-                                                               'paid'])
-        requests.addFilters(statusFilter)
-        addRequestFilters(requests);
+        column_bloodhounds = new Object;
+        /* Create filters and sorts for columns */
+        addRequestFilters(
+          get_columns($('tr').not($('.popover tr'))),
+          requests,
+          column_bloodhounds
+        );
         addRequestSorts(requests);
         request_view = new RequestsView('requests', requests);
         request_view.on('update', request_view.render);
@@ -357,7 +386,7 @@ if ($('div#request-list').length) {
     }
     request_view.setSort(newSort);
   });
-  /* Make popovers for the filters */
+  /* Make popovers for the filter buttons/links */
   function renderQueries(filter) {
     /* List the queries on the current filter */
     filter_selection = [];
@@ -397,19 +426,20 @@ if ($('div#request-list').length) {
     content: function () {
       var attr = $(this).parent('th').attr('id').substring(4);
       var filter = requests.filters[attr];
-      var wrapper = $('<div></div>');
       /* create the search box */
-      var input = $('<div class="input-group"></div>');
-      input.append('<input type="text" class="form-control">');
+      var input_group = $('<div class="input-group"></div>');
+      var text_box = $('<input type="text" class="form-control">');
+      input_group.append(text_box);
       var button_span = $('<span class="input-group-btn"></span>');
       var input_button = $('<button class="btn btn-default"><i class="fa fa-search"></i></button>');
       button_span.append(input_button);
-      input.append(button_span);
+      input_group.append(button_span);
       /* Add a table after the text box for the current queries */
       var query_table = renderQueries(filter);
+      /* Attach fanciness to the input group */
       input_button.click(function() {
         var popover = $(this).parents('.popover-content');
-        var text_box = popover.find('input');
+        var text_box = popover.find('input.tt-input');
         var attr = $(this).parents('th').attr('id').substring(4);
         var filter = requests.filters[attr];
         filter.unionQuery(text_box.val());
@@ -421,7 +451,20 @@ if ($('div#request-list').length) {
           old_table.replaceWith(table);
         }
       });
-      wrapper.append(input);
+      text_box.typeahead(
+        {
+          hint: false,
+          highlight: true
+        },
+        {
+          source: column_bloodhounds[attr].ttAdapter(),
+          name: attr,
+          displayKey: 'value'
+        }
+      );
+      /* wrapp it all up */
+      var wrapper = $('<div></div>');
+      wrapper.append(input_group);
       wrapper.append(query_table);
       return wrapper;
     }

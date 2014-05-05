@@ -251,45 +251,45 @@ def register_request_lists(state):
             view_func=completed_requests)
 
 
-@filters.route('/ships/')
+@filters.route('/ship/')
 @login_required
 def filter_ships():
-    return jsonify(ships=list(ships.ships.values()))
+    return jsonify(ship=list(ships.ships.values()))
 
 
-@filters.route('/systems/')
+@filters.route('/system/')
 @login_required
 def filter_systems():
-    return jsonify(systems=list(systems.system_names.values()))
+    return jsonify(system=list(systems.system_names.values()))
 
 
 def _first(o):
     return o[0]
 
 
-@filters.route('/pilots/')
+@filters.route('/pilot/')
 @login_required
 def filter_pilots():
     pilots = db.session.query(Pilot.name)
-    return jsonify(pilots=map(_first, pilots))
+    return jsonify(pilot=map(_first, pilots))
 
 
-@filters.route('/corporations/')
+@filters.route('/corporation/')
 @login_required
 def filter_corps():
     corps = db.session.query(Request.corporation).distinct()
-    return jsonify(corporations=map(_first, corps))
+    return jsonify(corporation=map(_first, corps))
 
 
-@filters.route('/alliances/')
+@filters.route('/alliance/')
 @login_required
 def filter_alliances():
     alliances = db.session.query(Request.alliance).distinct()
-    return jsonify(alliances=map(_first, alliances))
+    return jsonify(alliance=map(_first, alliances))
 
 
-@filters.route('/divisions/')
+@filters.route('/division/')
 @login_required
 def filter_divisions():
     div_names = db.session.query(Division.name)
-    return jsonify(divisions=map(_first, div_names))
+    return jsonify(division=map(_first, div_names))
