@@ -74,3 +74,6 @@
 .tt-suggestion p {
     margin: 0;
 }
+.popover-content {
+  font-weight: normal;
+}

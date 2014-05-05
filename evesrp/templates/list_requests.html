@@ -6,14 +6,30 @@
   <div id="request-list" class="col-md-10 col-md-offset-1">
     <table class="table table-condensed">
       <tr>
-        <th><a href="#" id="col-id">Request ID <i></i></a></th>
-        <th><a href="#" id="col-pilot">Pilot <i></i></a></th>
-        <th><a href="#" id="col-ship">Ship <i></i></a></th>
-        <th><a href="#" id="col-system">System <i></i></a></th>
-        <th><a href="#" id="col-status">Status <i></i></a></th>
-        <th><a href="#" id="col-payout">Payout <i></i></a></th>
-        <th><a href="#" id="col-submit_timestamp">Submit Time <i></i></a></th>
-        <th><a href="#" id="col-division">Division <i></i></a></th>
+        <th id="col-id">
+          <a href="#" class="heading">Request ID <i></i></a>
+        </th>
+        <th id="col-pilot">
+          <a href="#" class="heading">Pilot <i></i></a> <a class="filter text-muted fa fa-filter"></a>
+        </th>
+        <th id="col-ship">
+          <a href="#" class="heading">Ship <i></i></a> <a class="filter text-muted fa fa-filter"></a>
+        </th>
+        <th id="col-system">
+          <a href="#" class="heading">System <i></i></a> <a class="filter text-muted fa fa-filter"></a>
+        </th>
+        <th id="col-status">
+          <a href="#" class="heading">Status <i></i></a> <a class="filter text-muted fa fa-filter"></a>
+        </th>
+        <th id="col-payout">
+          <a href="#" class="heading">Payout <i></i></a>
+        </th>
+        <th id="col-submit_timestamp">
+          <a href="#" class="heading">Submit Time <i></i></a>
+        </th>
+        <th id="col-division">
+          <a href="#" class="heading">Division <i></i></a> <a class="filter text-muted fa fa-filter"></a>
+        </th>
       </tr>
       {% for request in pager.items %}
       <tr class="{{ macros.status_color(request.status) }}">

@@ -76,8 +76,6 @@ function pageNumbers(num_pages, current_page, options) {
   return pages;
 }
 
-
-
 /* Add sorts for request attributes */
 function addRequestSorts(collection) {
   /* Sort statuses in a specific order */
@@ -173,7 +171,6 @@ function addRequestFilters(collection) {
   );
 }
 
-
 if ($('div#request-list').length) {
   /* Event callback for pager links */
   function pager_a_click(ev) {
@@ -206,7 +203,7 @@ if ($('div#request-list').length) {
     page_size: 20,
     render: function () {
       /* Start with a clean slate (keep header separate from data rows) */
-      var rows = $('table tr');
+      var rows = $('table tr').not($('.popover tr'));
       var rowsParent = rows.parent();
       var headerRow = rows[0];
       var oldRows = rows.not(':first');
@@ -331,8 +328,8 @@ if ($('div#request-list').length) {
     }
   );
   /* Attach event listeners to column headers */
-  $('th a').click( function (e) {
-    var colName = $(this).attr('id').substring(4);
+  $('th a.heading').click( function (e) {
+    var colName = $(this).parent('th').attr('id').substring(4);
     var currentSort = request_view.getSort();
     var newSort = '';
     if (currentSort !== false) {
@@ -359,5 +356,83 @@ if ($('div#request-list').length) {
       $(this).children('i').attr('class', 'fa fa-chevron-up');
     }
     request_view.setSort(newSort);
+  });
+  /* Make popovers for the filters */
+  function renderQueries(filter) {
+    /* List the queries on the current filter */
+    filter_selection = [];
+    if (filter.current_query !== false && filter.current_query !== undefined) {
+      var stack = filter.current_query.stack;
+      for (var i = 0; i < stack.length; ++i) {
+        if (i === 0) {
+          filter_selection.push(stack[i][1]);
+        } else {
+          // Magic path through the arrays for unioned queries
+          filter_selection.push(stack[i][1][0][1]);
+        }
+      }
+    }
+    var current_table = $('<table class="table table-condensed"></table>');
+    for (var i = 0; i < filter_selection.length; ++i) {
+      var row = $('<tr></tr>');
+      var row_name = $('<td></td>').append(filter_selection[i]);
+      var delete_button = $('<button class="close">&times;</button>');
+      var row_delete = $('<td></td>').append(delete_button);
+      /* Remove this query from the filter */
+      delete_button.click(function () {
+        var row = $(this).parents('.popover tr');
+        var value = row.find('td').contents()[0].data;
+        filter.removeSingleQuery(value);
+        row.remove();
+      });
+      row.append(row_name);
+      row.append(row_delete);
+      current_table.append(row);
+    }
+    return current_table;
+  }
+  $('th a.filter').popover({
+    placement: 'bottom',
+    html: true,
+    content: function () {
+      var attr = $(this).parent('th').attr('id').substring(4);
+      var filter = requests.filters[attr];
+      var wrapper = $('<div></div>');
+      /* create the search box */
+      var input = $('<div class="input-group"></div>');
+      input.append('<input type="text" class="form-control">');
+      var button_span = $('<span class="input-group-btn"></span>');
+      var input_button = $('<button class="btn btn-default"><i class="fa fa-search"></i></button>');
+      button_span.append(input_button);
+      input.append(button_span);
+      /* Add a table after the text box for the current queries */
+      var query_table = renderQueries(filter);
+      input_button.click(function() {
+        var popover = $(this).parents('.popover-content');
+        var text_box = popover.find('input');
+        var attr = $(this).parents('th').attr('id').substring(4);
+        var filter = requests.filters[attr];
+        filter.unionQuery(text_box.val());
+        var table = renderQueries(filter);
+        var old_table = popover.find('table');
+        if (old_table.length === 0) {
+          popover.append(table);
+        } else {
+          old_table.replaceWith(table);
+        }
+      });
+      wrapper.append(input);
+      wrapper.append(query_table);
+      return wrapper;
+    }
+  }).on('show.bs.popover', function(e) {
+    /* hide any other popovers */
+    $(this).parent('th').siblings('th').find('a.filter').popover('hide');
+    /* set up the buttons and table on the popover */
+    var attr = $(this).parents('th').attr('id').substring(4);
+    var filter = requests.filters[attr];
+    var popover = $(this).find('popover');
+    var textbox = $(this).find('input');
+    var button = popover.find('button');
   });
 }

@@ -1,10 +1,5 @@
 {% extends "base.html" %}
 
-{% block head %}
-{{ super() }}
-<link href="{{ url_for('static', filename='css/custom.css') }}" rel="stylesheet">
-{% endblock head %}
-
 {% block content %}
 {% for permission in ('submit', 'review', 'pay') %}
 <div class="row" id="{{ permission }}">
