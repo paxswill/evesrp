@@ -205,7 +205,10 @@ if ($('div#request-list').length) {
       /* Start with a clean slate (keep header separate from data rows) */
       var rows = $('table tr').not($('.popover tr'));
       var rowsParent = rows.parent();
-      var headerRow = rows[0];
+      var headerRow = rows.first();
+      var columns = headerRow.find('th').map(function (index, value) {
+        return $(value).attr('id').substring(4);
+      });
       var oldRows = rows.not(':first');
       if (oldRows.length != 0) {
         oldRows.remove();
@@ -225,16 +228,13 @@ if ($('div#request-list').length) {
           } else if (request['status'] === 'incomplete' || request['status'] === 'rejected') {
             row.addClass("danger");
           }
-          var idColumn = $('<td></td>');
-          idColumn.append(
-              $('<a></a>', { href: request['href'] }).append(request['id']));
-          idColumn.appendTo(row);
           $.each(
-            ['pilot', 'ship', 'system', 'status', 'payout_str',
-             'submit_timestamp', 'division'],
+            columns,
             function (index, key) {
               var content;
-              if (key === 'submit_timestamp') {
+              if (key === 'id') {
+                content = $('<a></a>', { href: request['href'] }).append(request['id']);
+              } else if (key === 'submit_timestamp') {
                 var date = request[key];
                 content = date.getUTCDate() + ' ' + month(date.getUTCMonth());
                 content = content + ' ' + date.getUTCFullYear() + ' @ ';
