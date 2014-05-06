@@ -265,8 +265,19 @@ function attachTokenfield(bloodhounds) {
 
 /* Add filters for each request attribute */
 function addRequestFilters(columns, collection, bloodhound_collection) {
-  var filtered_columns = columns.filter(function (i, val){
-    return val !== 'payout' && val !== 'submit_timestamp' && val !=='id';
+  var supported_columns = [
+    'pilot',
+    'corporation',
+    'alliance',
+    'system',
+    'constellation',
+    'region',
+    'ship',
+    'status',
+    'division'
+  ];
+  var filtered_columns = supported_columns.filter(function (val, i){
+    return (collection.items[0][val] !== undefined);
   });
   var column_checkin = new Object;
   for (var i = 0; i < filtered_columns.length; ++i) {

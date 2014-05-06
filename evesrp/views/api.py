@@ -210,6 +210,8 @@ class FiltersRequestListing(object):
                 'division': request.division.name,
                 'submitter_id': request.submitter.id,
                 'system': request.system,
+                'constellation': request.constellation,
+                'region': request.region,
             }
 
         return jsonify(requests=map(request_dict, self.requests()))
@@ -261,6 +263,18 @@ def filter_ships():
 @login_required
 def filter_systems():
     return jsonify(system=list(systems.system_names.values()))
+
+
+@filters.route('/constellation/')
+@login_required
+def filter_constellations():
+    return jsonify(constellation=list(systems.constellation_names.values()))
+
+
+@filters.route('/region/')
+@login_required
+def filter_regions():
+    return jsonify(region=list(systems.region_names.values()))
 
 
 def _first(o):
