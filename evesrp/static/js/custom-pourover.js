@@ -156,9 +156,12 @@ function modifyToken(ev) {
     if (attr.attr === undefined) {
       var data = attr.label.split(':');
       attr.attr = data[0];
-      attr.real_value = data.slice(1).join(':');
+      if (attr.attr === 'status') {
+        attr.real_value = data.slice(1).join(':').toLowerCase();
+      } else {
+        attr.real_value = data.slice(1).join(':');
+      }
     }
-    attr.value = attr.attr + ':' + attr.real_value;
     attr.label = attr.value;
   }
   if (ev.attrs instanceof Array) {
@@ -241,7 +244,13 @@ function attachTokenfield(bloodhounds) {
   typeahead_args.push({
     name: 'all_args',
     displayKey: function(value) {
-      return value.attr + ':' + value.real_value;
+      if (value.attr === 'status') {
+        var capitalized = value.real_value.substr(0, 1).toUpperCase();
+        capitalized = capitalized + value.real_value.slice(1);
+        return value.attr + ':' + capitalized;
+      } else {
+        return value.attr + ':' + value.real_value;
+      }
     },
     source: superBloodhound
   });
