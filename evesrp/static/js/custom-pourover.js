@@ -397,6 +397,8 @@ if ($('div#request-list').length) {
               } else if (key === 'status') {
                 content = request[key].substr(0, 1).toUpperCase();
                 content = content + request[key].slice(1);
+              } else if (key === 'payout') {
+                content = request.payout_str;
               } else {
                 content = request[key];
               }
