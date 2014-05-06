@@ -152,25 +152,52 @@ function addRequestSorts(collection) {
 
 function modifyToken(ev) {
   /* format the value and label */
-  ev.attrs.label = ev.attrs.attr + ':' + ev.attrs.value;
+  function _modify(attr) {
+    attr.label = attr.attr + ':' + attr.value;
+  }
+  if (ev.attrs instanceof Array) {
+    for (var i = 0; i < ev.attrs.length; ++i) {
+      _modify(ev.attrs[i]);
+    }
+  } else {
+    _modify(ev.attrs)
+  }
 }
 
 function addedToken(ev) {
   /* Apply the filter */
-  var data = ev.attrs.label.split(':');
-  data = [data[0], data.slice(1).join(':')];
-  var attribute = data[0];
-  var value = data[1];
-  requests.filters[attribute].unionQuery(value);
+  function _add(attr) {
+    var data = attr.label.split(':');
+    data = [data[0], data.slice(1).join(':')];
+    var attribute = data[0];
+    var value = data[1];
+    requests.filters[attribute].unionQuery(value);
+  }
+  if (ev.attrs instanceof Array) {
+    for (var i = 0; i < ev.attrs.length; ++i) {
+      _add(ev.attrs[i]);
+    }
+  } else {
+    _add(ev.attrs);
+  }
 }
 
 function removedToken(ev) {
   /* Remove the filter */
-  var data = ev.attrs.label.split(':');
-  data = [data[0], data.slice(1).join(':')];
-  var attribute = data[0];
-  var value = data[1];
-  requests.filters[attribute].removeSingleQuery(value);
+  function _remove(attr) {
+    var data = attr.label.split(':');
+    data = [data[0], data.slice(1).join(':')];
+    var attribute = data[0];
+    var value = data[1];
+    requests.filters[attribute].removeSingleQuery(value);
+  }
+  if (ev.attrs instanceof Array) {
+    for (var i = 0; i < ev.attrs.length; ++i) {
+      _remove(ev.attrs[i]);
+    }
+  } else {
+    _remove(ev.attrs);
+  }
 }
 
 function attachTokenfield(bloodhounds) {
@@ -205,8 +232,8 @@ function addRequestFilters(columns, collection, bloodhound_collection) {
   for (var i = 0; i < filtered_columns.length; ++i) {
     column_checkin[filtered_columns[i]] = false;
   }
+  /* Create Bloodhound sources for Typeahead */
   function addBloodhound(attribute, values) {
-    /* Create Bloodhound sources for Typeahead */
     var source = $.map(values, function(v) {
       return {
         value: v,
@@ -454,10 +481,4 @@ if ($('div#request-list').length) {
     }
     request_view.setSort(newSort);
   });
-  /* Fancy multi-dataset typeahead dataset
-   * It's different than just using multiple dataset, I swear
-   */
-  function prefixTypeahead(query, cb) {
-
-  }
 }
