@@ -150,6 +150,28 @@ function addRequestSorts(collection) {
   collection.addSorts(sorts);
 }
 
+function modifyToken(ev) {
+  /* format the value and label */
+  ev.attrs.label = ev.attrs.attr + ':' + ev.attrs.value;
+}
+
+function addedToken(ev) {
+  /* Apply the filter */
+  var data = ev.attrs.label.split(':');
+  data = [data[0], data.slice(1).join(':')];
+  var attribute = data[0];
+  var value = data[1];
+  requests.filters[attribute].unionQuery(value);
+}
+
+function removedToken(ev) {
+  /* Remove the filter */
+  var data = ev.attrs.label.split(':');
+  data = [data[0], data.slice(1).join(':')];
+  var attribute = data[0];
+  var value = data[1];
+  requests.filters[attribute].removeSingleQuery(value);
+}
 
 function attachTokenfield(bloodhounds) {
   /* Create the typeahead arguments */
@@ -165,12 +187,14 @@ function attachTokenfield(bloodhounds) {
       source: bloodhounds[attr].ttAdapter()
     });
   }
-  /* Create the tokenfield */
+  /* Create the tokenfield and listeners */
   $('.filter-tokenfield').tokenfield({
     typeahead: typeahead_args
-  });
+  })
+  .on('tokenfield:createtoken', modifyToken)
+  .on('tokenfield:createdtoken', addedToken)
+  .on('tokenfield:removetoken', removedToken);
 }
-
 
 /* Add filters for each request attribute */
 function addRequestFilters(columns, collection, bloodhound_collection) {
