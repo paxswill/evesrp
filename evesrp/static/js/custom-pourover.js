@@ -153,7 +153,13 @@ function addRequestSorts(collection) {
 function modifyToken(ev) {
   /* format the value and label */
   function _modify(attr) {
-    attr.label = attr.attr + ':' + attr.value;
+    if (attr.attr === undefined) {
+      var data = attr.label.split(':');
+      attr.attr = data[0];
+      attr.real_value = data.slice(1).join(':');
+    }
+    attr.value = attr.attr + ':' + attr.real_value;
+    attr.label = attr.value;
   }
   if (ev.attrs instanceof Array) {
     for (var i = 0; i < ev.attrs.length; ++i) {
@@ -167,11 +173,7 @@ function modifyToken(ev) {
 function addedToken(ev) {
   /* Apply the filter */
   function _add(attr) {
-    var data = attr.label.split(':');
-    data = [data[0], data.slice(1).join(':')];
-    var attribute = data[0];
-    var value = data[1];
-    requests.filters[attribute].unionQuery(value);
+    requests.filters[attr.attr].unionQuery(attr.real_value);
   }
   if (ev.attrs instanceof Array) {
     for (var i = 0; i < ev.attrs.length; ++i) {
@@ -185,11 +187,7 @@ function addedToken(ev) {
 function removedToken(ev) {
   /* Remove the filter */
   function _remove(attr) {
-    var data = attr.label.split(':');
-    data = [data[0], data.slice(1).join(':')];
-    var attribute = data[0];
-    var value = data[1];
-    requests.filters[attribute].removeSingleQuery(value);
+    requests.filters[attr.attr].removeSingleQuery(attr.real_value);
   }
   if (ev.attrs instanceof Array) {
     for (var i = 0; i < ev.attrs.length; ++i) {
@@ -243,7 +241,7 @@ function attachTokenfield(bloodhounds) {
   typeahead_args.push({
     name: 'all_args',
     displayKey: function(value) {
-      return value.attr + ':' + value.value;
+      return value.attr + ':' + value.real_value;
     },
     source: superBloodhound
   });
@@ -269,13 +267,13 @@ function addRequestFilters(columns, collection, bloodhound_collection) {
   function addBloodhound(attribute, values) {
     var source = $.map(values, function(v) {
       return {
-        value: v,
+        real_value: v,
         attr: attribute
       };
     });
     bloodhound_collection[attribute] = new Bloodhound({
       name: attribute,
-      datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+      datumTokenizer: Bloodhound.tokenizers.obj.whitespace('real_value'),
       queryTokenizer: Bloodhound.tokenizers.whitespace,
       local: source
     });

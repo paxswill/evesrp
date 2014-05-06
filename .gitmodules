@@ -18,4 +18,4 @@
 	url = https://github.com/twitter/typeahead.js
 [submodule "thirdparty/bootstrap-tokenfield"]
 	path = thirdparty/bootstrap-tokenfield
-	url = https://github.com/sliptree/bootstrap-tokenfield.git
+	url = https://github.com/paxswill/bootstrap-tokenfield.git
