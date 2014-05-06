@@ -1,5 +1,6 @@
+**************
 Authentication
-==============
+**************
 
 .. py:currentmodule:: evesrp.auth
 
@@ -118,7 +119,7 @@ the GET and POST HTTP verbs. ::
             return render_template('form.html', form=form)
 
 API Documentation
-*****************
+=================
 
 .. py:module:: evesrp.auth
 

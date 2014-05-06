@@ -2,6 +2,7 @@ import datetime as dt
 from decimal import Decimal
 import locale
 from sqlalchemy.types import DateTime
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from . import db
 
@@ -20,6 +21,10 @@ class Timestamped(object):
             default=dt.datetime.utcnow())
 
 
+action_type = db.Enum('evaluating', 'approved', 'paid', 'rejected',
+        'incomplete', 'comment', name='action_type')
+
+
 class Action(db.Model, AutoID, Timestamped):
     """Actions change the state of a Request.
     
@@ -32,9 +37,7 @@ class Action(db.Model, AutoID, Timestamped):
     #: The action being taken. Must be one of: ``'evaluating'``,
     #: ``'approved'``, ``'paid'``, ``'rejected'``, ``'incomplete'``,
     #: or ``'comment'``.
-    type_ = db.Column(db.Enum('evaluating', 'approved', 'paid',
-            'rejected', 'incomplete', 'comment', name='action_type'),
-            nullable=False)
+    _type = db.Column(action_type, nullable=False)
 
     #: The ID of the :py:class:`Request` this action applies to.
     request_id = db.Column(db.Integer, db.ForeignKey('request.id'))
@@ -57,8 +60,19 @@ class Action(db.Model, AutoID, Timestamped):
         self.note = note
         self.timestamp = dt.datetime.utcnow()
 
+    @property
+    def type_(self):
+        return self._type
+
+    @type_.setter
+    def type_(self, type_):
+        if type_ != 'comment' and self.timestamp >=\
+                self.request.actions[0].timestamp:
+            self.request.status = type_
+        self._type = type_
+
     def __repr__(self):
-        return "{x.__class__.__name__}({x.request}, {x.user}, {x.type_}".\
+        return "{x.__class__.__name__}({x.request}, {x.user}, {x.type_})".\
                 format(x=self)
 
 
@@ -112,11 +126,18 @@ class Modifier(db.Model, AutoID, Timestamped):
     #: was voided.
     voided_timestamp = db.Column(DateTime)
 
-    @property
+    @hybrid_property
     def voided(self):
         """Boolean of whether this modifier has been voided or not."""
         return self.voided_user is not None and \
                 self.voided_timestamp is not None
+
+    @voided.expression
+    def voided(cls):
+        return db.and_(
+                cls.voided_user_id != None,
+                cls.voided_timestamp != None
+        )
 
     def __init__(self, request, user, note):
         self.request = request
@@ -128,8 +149,8 @@ class Modifier(db.Model, AutoID, Timestamped):
             value = "{}M ISK".format(self.value)
         else:
             value = "{}%".format(self.value)
-        return """{x.__class__.__name__}({x.request}, {x.user}, {value},
-        {x.voided})""".format(x=self, value=value)
+        return ("{x.__class__.__name__}({x.request}, {x.user}, {value},"
+                "{x.voided})".format(x=self, value=value))
 
     def void(self, user):
         """Mark this modifier as void.
@@ -168,7 +189,7 @@ class Request(db.Model, AutoID, Timestamped):
     #: request, regardless of wether they have been voided or not. They're
     #: sorted in the order they were added.
     modifiers = db.relationship('Modifier', back_populates='request',
-            order_by='desc(Modifier.timestamp)')
+            order_by='desc(Modifier.timestamp)', lazy='dynamic')
 
     #: The URL of the source killmail.
     killmail_url = db.Column(db.String(512), nullable=False)
@@ -199,7 +220,19 @@ class Request(db.Model, AutoID, Timestamped):
     base_payout = db.Column(db.Float, default=0.0)
 
     #: Supporting information for the request.
-    details = db.Column(db.Text)
+    details = db.deferred(db.Column(db.Text))
+
+    #: The current status of this request
+    status = db.Column(action_type, nullable=False, default='evaluating')
+
+    #: The solar system this loss occured in.
+    system = db.Column(db.String(25), nullable=False, index=True)
+
+    #: The constellation this loss occured in.
+    constellation = db.Column(db.String(25), nullable=False, index=True)
+
+    #: The region this loss occured in.
+    region = db.Column(db.String(25), nullable=False, index=True)
 
     @property
     def payout(self):
@@ -213,17 +246,21 @@ class Request(db.Model, AutoID, Timestamped):
         millions of ISK, and :py:func:`ints`\s will be the total ISK value
         (equivalent to the string representation).
         """
-        payout = self.base_payout
-        for modifier in self.modifiers:
-            if modifier.voided:
-                continue
-            if modifier.type_ == 'absolute':
-                payout += modifier.value
-            elif modifier.type_ == 'percentage':
-                if modifier.value > 0:
-                    payout += payout * modifier.value / 100
-                else:
-                    payout -= payout * modifier.value / 100
+        modifier_sum = db.session.query(db.func.sum(Modifier.value))\
+                .join(Request)\
+                .filter(Modifier.request_id==self.id)\
+                .filter(~Modifier.voided)
+
+        abs_mods = modifier_sum.filter(Modifier.type_=='absolute')
+        per_mods = modifier_sum.filter(Modifier.type_=='percentage')
+        absolute = abs_mods.one()[0]
+        if absolute is None:
+            absolute = 0
+        percentage = per_mods.one()[0]
+        if percentage is None:
+            percentage = 0
+        payout = self.base_payout + absolute
+        payout = payout + (payout * percentage / 100)
 
         class _Payout(object):
             def __init__(self, payout):
@@ -243,28 +280,16 @@ class Request(db.Model, AutoID, Timestamped):
 
         return _Payout(payout)
 
-    @property
-    def status(self):
-        """The current status of this request.
-
-        The status is modified by :py:class:`Action`\s. The default status for
-        requests with no actions is ``'evaluating'``. Possible values are the
-        same as :py:attr:`Action.type_` with the exception of ``'comment'``.
-        """
-        for action in self.actions:
-            if action.type_ == 'comment':
-                continue
-            else:
-                return action.type_
-        else:
-            return 'evaluating'
-
-    @property
+    @hybrid_property
     def finalized(self):
         """If this request is in a finalized status (``'paid'`` or
         ``'rejected'``).
         """
-        return self.status in ('paid', 'rejected')
+        return self.status == 'paid' or self.status == 'rejected'
+
+    @finalized.expression
+    def finalized(cls):
+        return db.or_(cls.status == 'paid', cls.status == 'rejected')
 
     def __init__(self, submitter, details, division, killmail):
         """Create a :py:class:`Request`.
@@ -294,5 +319,5 @@ class Request(db.Model, AutoID, Timestamped):
             pass
 
     def __repr__(self):
-        return "{x.__class__.__name__}({x.submitter, {x.division}, {x.id})".\
+        return "{x.__class__.__name__}({x.submitter}, {x.division}, {x.id})".\
                 format(x=self)

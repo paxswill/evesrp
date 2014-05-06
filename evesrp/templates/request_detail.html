@@ -23,6 +23,8 @@
       <dd>{{ srp_request.corporation }}</dd>
       <dt>Alliance</dt>
       <dd>{{ srp_request.alliance|default(' ') }}
+      <dt>Location</dt>
+      <dd>{{ srp_request.region }} / {{ srp_request.constellation }} / {{ srp_request.system }}</dd>
       <dt>Ship</dt>
       {% if srp_request.ship_url %}
       <dd><a href="{{ srp_request.ship_url }}">{{ srp_request.ship_type }}</a></dd>
@@ -49,7 +51,7 @@
             <span class="caret"></span>
             <span class="sr-only">Toggle Dropdown</span>
           </button>
-          <ul class="dropdown-menu" id="action-type" role="menu">
+          <ul class="dropdown-menu" id="request-action-type" role="menu">
             {% if srp_request.status == 'evaluating' %}
             {{ '<li><a href="#" id="approved">Approve</a></li>'|safe if current_user.has_permission('review', srp_request.division) }}
             {{ '<li><a href="#" id="incomplete">Incomplete</a></li>'|safe if current_user.has_permission('review', srp_request.division) }}
@@ -143,8 +145,3 @@
   </div>
 </div>
 {% endblock content %}
-
-{% block scripts %}
-{{ super() }}
-<script src="{{ url_for('static', filename='js/custom.js') }}"></script>
-{% endblock scripts %}

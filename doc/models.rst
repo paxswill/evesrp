@@ -1,5 +1,6 @@
+******
 Models
-======
+******
 
 .. py:module:: evesrp.models
 

@@ -1,51 +1,21 @@
 from flask import url_for, redirect, abort, request, jsonify, Blueprint
-from flask.json import JSONEncoder
-from flask.ext.login import login_required
+from flask.ext.login import login_required, current_user
 from sqlalchemy.orm.exc import NoResultFound
 
-from .. import ships
+from .. import ships, systems, db
 from ..models import db, Request
 from ..auth import admin_permission
-from ..auth.models import Division, User, Group
+from ..auth.models import Division, User, Group, Pilot
+from .requests import PermissionRequestListing, SubmittedRequestListing
 
 
-blueprint = Blueprint('api', __name__)
+api = Blueprint('api', __name__)
 
 
-class SRPEncoder(JSONEncoder):
-    def default(self, o):
-        try:
-            ret = {
-                    'name': o.name,
-                    'id': o.id,
-            }
-        except AttributeError:
-            try:
-                ret = {
-                        'id': o.id,
-                }
-            except AttributeError:
-                # There is nothing I can do for you...
-                pass
-            else:
-                if isinstance(o, Request):
-                    ret['href'] = url_for('api.request_detail',
-                            request_id=o.id)
-                return ret
-        else:
-            if isinstance(o, User):
-                ret['href'] = url_for('api.user_detail', user_id=o.id)
-            elif isinstance(o, Group):
-                ret['href'] = url_for('api.group_detail', group_id=o.id)
-            elif isinstance(o, Division):
-                ret['href'] = url_for('api.division_detail', division_id=o.id)
-            elif isinstance(o, Request):
-                ret['href'] = url_for('api.request_detail', request_id=o.id)
-            return ret
-        return super(SRPEncoder, self).default(o)
+filters = Blueprint('filters', __name__)
 
 
-@blueprint.route('/<entity_type>/')
+@api.route('/<entity_type>/')
 @login_required
 @admin_permission.require()
 def list_entities(entity_type):
@@ -67,18 +37,20 @@ def list_entities(entity_type):
     :param str entity_type: Either ``'user'`` or ``'group'``.
     """
     if entity_type == 'user':
-        query = User.query
+        query = db.session.query(User.id, User.name)
     elif entity_type == 'group':
-        query = Group.query
+        query = db.session.query(Group.id, Group.name)
     else:
         abort(404)
     json_obj = {
-        entity_type + 's': query.all(),
+            entity_type + 's': map(
+                lambda e: {'id': e.id, 'name': e.name},
+                query)
     }
-    return jsonify(**json_obj)
+    return jsonify(json_obj)
 
 
-@blueprint.route('/user/<int:user_id>/')
+@api.route('/user/<int:user_id>/')
 def user_detail(user_id):
     user = User.query.get_or_404(user_id)
     # Set up divisions
@@ -99,10 +71,10 @@ def user_detail(user_id):
         'admin': user.admin,
         'requests': user.requests,
     }
-    return jsonify(**resp)
+    return jsonify(resp)
 
 
-@blueprint.route('/group/<int:group_id>/')
+@api.route('/group/<int:group_id>/')
 def group_detail(group_id):
     group = Group.query.get_or_404(group_id)
     submit = map(lambda p: p.division,
@@ -120,10 +92,10 @@ def group_detail(group_id):
             'pay': list(set(pay)),
         },
     }
-    return jsonify(**resp)
+    return jsonify(resp)
 
 
-@blueprint.route('/request/<int:request_id>/')
+@api.route('/request/<int:request_id>/')
 @login_required
 def request_detail(request_id):
     """Get the details of a request.
@@ -132,23 +104,29 @@ def request_detail(request_id):
     attrs = ('killmail_url', 'kill_timestamp', 'pilot', 'alliance',
         'corporation', 'submitter', 'division', 'status', 'base_payout',
         'payout', 'details', 'actions', 'modifiers', 'id')
-    json_obj = []
+    json = {}
     for attr in attrs:
-        json_obj[attr] = getattr(request, attr)
-    json_obj['submit_timestamp'] = request.timestamp
-    return jsonify(json_obj)
+        if attr == 'payout':
+            json[attr] = int(request.payout)
+        elif attr == 'pilot':
+            json[attr] = request.pilot.name
+        else:
+            json[attr] = getattr(request, attr)
+    json['submit_timestamp'] = request.timestamp
+    return jsonify(json)
 
 
-@blueprint.route('/division/')
+@api.route('/division/')
 @login_required
 @admin_permission.require()
 def list_divisions():
     """List all divisions.
     """
-    return jsonify(divisions=Division.query.all())
+    divisions = db.session.query(Division.id, Division.name)
+    return jsonify(divisions=divisions)
 
 
-@blueprint.route('/division/<int:division_id>/')
+@api.route('/division/<int:division_id>/')
 @login_required
 @admin_permission.require()
 def division_detail(division_id):
@@ -168,10 +146,10 @@ def division_detail(division_id):
                 'users': permission.individuals,
                 'groups': permission.groups,
         }
-    return jsonify(**div_obj)
+    return jsonify(div_obj)
 
 
-@blueprint.route('/ships/')
+@api.route('/ships/')
 @login_required
 def ship_list():
     """Get an array of objects corresponding to every ship type.
@@ -185,29 +163,133 @@ def ship_list():
     return jsonify(ships=ship_objs)
 
 
+class FiltersRequestListing(object):
+    @property
+    def _load_options(self):
+        """Returns a sequence of
+        :py:class:`~sqlalchemy.orm.strategy_options.Load` objects specifying
+        which attributes to load.
+        """
+        return (
+                db.Load(Request).load_only(
+                    'id',
+                    'pilot_id',
+                    'corporation',
+                    'alliance',
+                    'ship_type',
+                    'status',
+                    'base_payout',
+                    'kill_timestamp',
+                    'timestamp',
+                    'division_id',
+                    'submitter_id',
+                    'system',
+                ),
+                db.Load(Division).joinedload('name'),
+                db.Load(Pilot).joinedload('name'),
+                db.Load(User).joinedload('id')
+        )
+
+
+    def dispatch_request(self, division_id=None):
+        def request_dict(request):
+            payout = request.payout
+            return {
+                'id': request.id,
+                'href': url_for('requests.request_detail',
+                    request_id=request.id),
+                'pilot': request.pilot.name,
+                'corporation': request.corporation,
+                'alliance': request.alliance,
+                'ship': request.ship_type,
+                'status': request.status,
+                'payout': int(payout),
+                'payout_str': str(payout),
+                'kill_timestamp': request.kill_timestamp,
+                'submit_timestamp': request.timestamp,
+                'division': request.division.name,
+                'submitter_id': request.submitter.id,
+                'system': request.system,
+            }
+
+        return jsonify(requests=map(request_dict, self.requests()))
+
+
+class APIRequestListing(FiltersRequestListing, PermissionRequestListing): pass
+
+
+class APISubmittedListing(FiltersRequestListing, SubmittedRequestListing): pass
+
+
+@filters.record
+def register_request_lists(state):
+    # Create the views
+    all_requests = APIRequestListing.as_view('filter_requests_all',
+            ('submit', 'review', 'pay'),
+            ('evaluating', 'approved', 'paid', 'rejected', 'incomplete'))
+    submitted_requests = APISubmittedListing.as_view('filter_requests_own')
+    review_requests = APIRequestListing.as_view('filter_requests_review',
+            ('review',), ('evaluating', 'approved', 'incomplete'))
+    pay_requests = APIRequestListing.as_view('filter_requests_pay',
+            ('pay',), ('approved',))
+    completed_requests = APIRequestListing.as_view('filter_requests_completed',
+            ('review', 'pay'), ('paid', 'rejected'))
+    # Attach the views to paths
+    state.add_url_rule('/requests/', view_func=all_requests)
+    state.add_url_rule('/requests/<int:division_id>/', view_func=all_requests)
+    state.add_url_rule('/requests/submit/', view_func=submitted_requests)
+    state.add_url_rule('/requests/submit/<int:division_id>/',
+            view_func=submitted_requests)
+    state.add_url_rule('/requests/review/', view_func=review_requests)
+    state.add_url_rule('/requests/review/<int:division_id>/',
+            view_func=review_requests)
+    state.add_url_rule('/requests/pay/', view_func=pay_requests)
+    state.add_url_rule('/requests/pay/<int:division_id>/',
+            view_func=pay_requests)
+    state.add_url_rule('/requests/complete/', view_func=completed_requests)
+    state.add_url_rule('/requests/complete/<int:division_id>/',
+            view_func=completed_requests)
+
+
+@filters.route('/ship/')
 @login_required
-@admin_permission.require()
-def division_permission(division_id, permission):
-    # external API method. It's the only one implemented so far, so just ignore
-    # it for now.
-    division = Division.query.get_or_404(division_id)
-    users = []
-    for user in division.permissions[permission].individuals:
-        user_dict = {
-                'name': user.name,
-                'id': user.id
-                }
-        users.append(user_dict)
-    groups = []
-    for group in division.permissions[permission].groups:
-        group_dict = {
-                'name': group.name,
-                'id': group.id,
-                'size': len(group.individuals)
-                }
-        groups.append(group_dict)
-    return jsonify(name=division.name,
-            groups=groups,
-            users=users)
+def filter_ships():
+    return jsonify(ship=list(ships.ships.values()))
 
 
+@filters.route('/system/')
+@login_required
+def filter_systems():
+    return jsonify(system=list(systems.system_names.values()))
+
+
+def _first(o):
+    return o[0]
+
+
+@filters.route('/pilot/')
+@login_required
+def filter_pilots():
+    pilots = db.session.query(Pilot.name)
+    return jsonify(pilot=map(_first, pilots))
+
+
+@filters.route('/corporation/')
+@login_required
+def filter_corps():
+    corps = db.session.query(Request.corporation).distinct()
+    return jsonify(corporation=map(_first, corps))
+
+
+@filters.route('/alliance/')
+@login_required
+def filter_alliances():
+    alliances = db.session.query(Request.alliance).distinct()
+    return jsonify(alliance=map(_first, alliances))
+
+
+@filters.route('/division/')
+@login_required
+def filter_divisions():
+    div_names = db.session.query(Division.name)
+    return jsonify(division=map(_first, div_names))

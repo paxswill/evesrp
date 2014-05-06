@@ -7,10 +7,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}EVE SRP{% endblock %}</title>
+    <link href="{{ url_for('static', filename='css/custom.css') }}" rel="stylesheet">
     <!-- Bootstrap -->
-    <link href="{{ url_for('static', filename='css/bootstrap.css') }}" rel="stylesheet">
-    <!-- For now, use the default theme -->
-    <link href="{{ url_for('static', filename='css/bootstrap-theme.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="{{ url_for('static', filename='css/font-awesome.min.css') }}" rel="stylesheet">
+    <!-- Bootstrap-tokenfield -->
+    <link href="{{ url_for('static', filename='css/bootstrap-tokenfield.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/tokenfield-typeahead.min.css') }}" rel="stylesheet">
     {% endblock head %}
   </head>
   <body>
@@ -92,11 +96,11 @@
     {% block scripts %}
     <!-- Jquery from CDNJS. Need to use 1.x to support the IGB -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.js"></script>
-    <!-- Include all templates for now -->
-    <script src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>
+    <!-- $SCRIPT_ROOT is the root of this application, wherever it it -->
     <script type="text/javascript">
       $SCRIPT_ROOT = {{ request.script_root|tojson }};
     </script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/evesrp.min.js') }}"></script>
     {% endblock scripts %}
   </body>
 </html>

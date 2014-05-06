@@ -28,7 +28,7 @@
 <script type=text/javascript>
 {% for method in forms %}
 $("li a[href=#{{ method[1].__class__.__name__|lower }}]").click(function (e) {
-    e.reventDefault()
+    e.preventDefault()
     $(this).tab('show')
 });
 {% endfor %}

@@ -17,6 +17,10 @@ locale.setlocale(locale.LC_ALL, '')
 
 db = SQLAlchemy()
 
+# Ensure models are declared
+from . import models
+from .auth import models
+
 
 def create_app(**kwargs):
     app = Flask('evesrp', **kwargs)
@@ -38,9 +42,11 @@ def create_app(**kwargs):
     app.register_blueprint(divisions.blueprint, url_prefix='/divisions')
     app.register_blueprint(login.blueprint)
     app.register_blueprint(requests.blueprint, url_prefix='/requests')
-    app.register_blueprint(api.blueprint, url_prefix='/api')
+    app.register_blueprint(api.api, url_prefix='/api')
+    app.register_blueprint(api.filters, url_prefix='/api/filter')
 
-    app.json_encoder=api.SRPEncoder
+    from .json import SRPEncoder
+    app.json_encoder=SRPEncoder
 
     from .auth import load_user_permissions
     identity_loaded.connect(load_user_permissions, app)

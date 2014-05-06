@@ -1,5 +1,6 @@
+###########################
 Developers Guide to EVE-SRP
-===========================
+###########################
 
 .. toctree::
 
@@ -7,3 +8,4 @@ Developers Guide to EVE-SRP
     killmail
     views
     models
+    javascript

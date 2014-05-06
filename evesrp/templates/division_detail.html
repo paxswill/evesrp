@@ -1,10 +1,5 @@
 {% extends "base.html" %}
 
-{% block head %}
-{{ super() }}
-<link href="{{ url_for('static', filename='css/custom.css') }}" rel="stylesheet">
-{% endblock head %}
-
 {% block content %}
 {% for permission in ('submit', 'review', 'pay') %}
 <div class="row" id="{{ permission }}">
@@ -69,9 +64,3 @@
 </div>
 {% endfor %}
 {% endblock content %}
-
-{% block scripts %}
-{{ super() }}
-<script src="//cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.10.2/typeahead.bundle.min.js"></script>
-<script src="{{ url_for('static', filename='js/custom.js') }}"></script>
-{% endblock scripts %}
