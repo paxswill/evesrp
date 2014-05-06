@@ -207,13 +207,46 @@ function attachTokenfield(bloodhounds) {
     hint: false,
     highlight: true
   });
-  for (attr in bloodhounds) {
-    typeahead_args.push({
-      name: attr,
-      displayKey: 'value',
-      source: bloodhounds[attr].ttAdapter()
-    });
+  function superBloodhound(query, cb) {
+    var category_query = query.split(':');
+    attribute = category_query[0];
+    real_query = category_query.slice(1).join(':');
+    if (real_query === '') {
+      real_query = attribute;
+      attribute = '';
+    }
+    if (bloodhounds[attribute] !== undefined) {
+      bloodhounds[attribute].get(real_query, cb);
+    } else {
+      var results = new Object;
+      for (attr in bloodhounds) {
+        bloodhounds[attr].get(real_query, function(matches) {
+          results[attr] = matches;
+          var all_back = true;
+          for (attr2 in bloodhounds) {
+            if (results[attr2] === undefined) {
+              all_back = false;
+              break;
+            }
+          }
+          if (all_back) {
+            var all_matches = [];
+            $.each(results, function(key) {
+              Array.prototype.push.apply(all_matches, results[key]);
+            });
+            cb(all_matches);
+          }
+        });
+      }
+    }
   }
+  typeahead_args.push({
+    name: 'all_args',
+    displayKey: function(value) {
+      return value.attr + ':' + value.value;
+    },
+    source: superBloodhound
+  });
   /* Create the tokenfield and listeners */
   $('.filter-tokenfield').tokenfield({
     typeahead: typeahead_args
