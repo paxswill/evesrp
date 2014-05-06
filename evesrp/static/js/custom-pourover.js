@@ -273,7 +273,11 @@ function addRequestFilters(columns, collection, bloodhound_collection) {
     });
     bloodhound_collection[attribute] = new Bloodhound({
       name: attribute,
-      datumTokenizer: Bloodhound.tokenizers.obj.whitespace('real_value'),
+      datumTokenizer: function(datum) {
+        var tokens = datum.real_value.split(/\s+/);
+        tokens.push(datum.attr + ':' + tokens[0]);
+        return tokens;
+      },
       queryTokenizer: Bloodhound.tokenizers.whitespace,
       local: source
     });
