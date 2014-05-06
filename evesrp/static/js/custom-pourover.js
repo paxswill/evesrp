@@ -150,23 +150,67 @@ function addRequestSorts(collection) {
   collection.addSorts(sorts);
 }
 
+
+function attachTokenfield(bloodhounds) {
+  /* Create the typeahead arguments */
+  var typeahead_args = [];
+  typeahead_args.push({
+    hint: false,
+    highlight: true
+  });
+  for (attr in bloodhounds) {
+    typeahead_args.push({
+      name: attr,
+      displayKey: 'value',
+      source: bloodhounds[attr].ttAdapter()
+    });
+  }
+  /* Create the tokenfield */
+  $('.filter-tokenfield').tokenfield({
+    typeahead: typeahead_args
+  });
+}
+
+
 /* Add filters for each request attribute */
 function addRequestFilters(columns, collection, bloodhound_collection) {
+  var filtered_columns = columns.filter(function (i, val){
+    return val !== 'payout' && val !== 'submit_timestamp' && val !=='id';
+  });
+  var column_checkin = new Object;
+  for (var i = 0; i < filtered_columns.length; ++i) {
+    column_checkin[filtered_columns[i]] = false;
+  }
   function addBloodhound(attribute, values) {
     /* Create Bloodhound sources for Typeahead */
+    var source = $.map(values, function(v) {
+      return {
+        value: v,
+        attr: attribute
+      };
+    });
     bloodhound_collection[attribute] = new Bloodhound({
       name: attribute,
       datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
       queryTokenizer: Bloodhound.tokenizers.whitespace,
-      local: $.map(values, function(v){ return {value: v};})
+      local: source
     });
     bloodhound_collection[attribute].initialize();
+    column_checkin[attribute] = true;
+    var all_true = true;
+    for (var i = 0; i < filtered_columns.length; ++i) {
+      if (!column_checkin[filtered_columns[i]]) {
+        all_true = false;
+        break;
+      }
+    }
+    if (all_true) {
+      attachTokenfield(bloodhound_collection);
+    }
   }
   /* Create filters (and Bloodhounds) for each column */
   $.map(
-    columns.filter(function (i, val){
-      return val !== 'payout' && val !== 'submit_timestamp' && val !=='id';
-    }),
+    filtered_columns,
     function (attribute) {
       if (attribute === 'status') {
         var statusFilter = PourOver.makeExactFilter('status', ['evaluating',
@@ -386,96 +430,10 @@ if ($('div#request-list').length) {
     }
     request_view.setSort(newSort);
   });
-  /* Make popovers for the filter buttons/links */
-  function renderQueries(filter) {
-    /* List the queries on the current filter */
-    filter_selection = [];
-    if (filter.current_query !== false && filter.current_query !== undefined) {
-      var stack = filter.current_query.stack;
-      for (var i = 0; i < stack.length; ++i) {
-        if (i === 0) {
-          filter_selection.push(stack[i][1]);
-        } else {
-          // Magic path through the arrays for unioned queries
-          filter_selection.push(stack[i][1][0][1]);
-        }
-      }
-    }
-    var current_table = $('<table class="table table-condensed"></table>');
-    for (var i = 0; i < filter_selection.length; ++i) {
-      var row = $('<tr></tr>');
-      var row_name = $('<td></td>').append(filter_selection[i]);
-      var delete_button = $('<button class="close">&times;</button>');
-      var row_delete = $('<td></td>').append(delete_button);
-      /* Remove this query from the filter */
-      delete_button.click(function () {
-        var row = $(this).parents('.popover tr');
-        var value = row.find('td').contents()[0].data;
-        filter.removeSingleQuery(value);
-        row.remove();
-      });
-      row.append(row_name);
-      row.append(row_delete);
-      current_table.append(row);
-    }
-    return current_table;
+  /* Fancy multi-dataset typeahead dataset
+   * It's different than just using multiple dataset, I swear
+   */
+  function prefixTypeahead(query, cb) {
+
   }
-  $('th a.filter').popover({
-    placement: 'bottom',
-    html: true,
-    content: function () {
-      var attr = $(this).parent('th').attr('id').substring(4);
-      var filter = requests.filters[attr];
-      /* create the search box */
-      var input_group = $('<div class="input-group"></div>');
-      var text_box = $('<input type="text" class="form-control">');
-      input_group.append(text_box);
-      var button_span = $('<span class="input-group-btn"></span>');
-      var input_button = $('<button class="btn btn-default"><i class="fa fa-search"></i></button>');
-      button_span.append(input_button);
-      input_group.append(button_span);
-      /* Add a table after the text box for the current queries */
-      var query_table = renderQueries(filter);
-      /* Attach fanciness to the input group */
-      input_button.click(function() {
-        var popover = $(this).parents('.popover-content');
-        var text_box = popover.find('input.tt-input');
-        var attr = $(this).parents('th').attr('id').substring(4);
-        var filter = requests.filters[attr];
-        filter.unionQuery(text_box.val());
-        var table = renderQueries(filter);
-        var old_table = popover.find('table');
-        if (old_table.length === 0) {
-          popover.append(table);
-        } else {
-          old_table.replaceWith(table);
-        }
-      });
-      text_box.typeahead(
-        {
-          hint: false,
-          highlight: true
-        },
-        {
-          source: column_bloodhounds[attr].ttAdapter(),
-          name: attr,
-          displayKey: 'value'
-        }
-      );
-      /* wrapp it all up */
-      var wrapper = $('<div></div>');
-      wrapper.append(input_group);
-      wrapper.append(query_table);
-      return wrapper;
-    }
-  }).on('show.bs.popover', function(e) {
-    /* hide any other popovers */
-    $(this).parent('th').siblings('th').find('a.filter').popover('hide');
-    /* set up the buttons and table on the popover */
-    var attr = $(this).parents('th').attr('id').substring(4);
-    var filter = requests.filters[attr];
-    var popover = $(this).find('popover');
-    var textbox = $(this).find('input');
-    var button = popover.find('button');
-  });
 }
