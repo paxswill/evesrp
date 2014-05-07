@@ -15,3 +15,5 @@ $("ul#request-modifier-type li a").click( function(e) {
   form.submit();
   return false;
 });
+
+$('dd#payout span').tooltip()

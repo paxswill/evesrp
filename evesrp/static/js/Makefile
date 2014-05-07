@@ -10,7 +10,6 @@ SOURCE_NAMES := \
 	$(BOOTSTRAP)/transition \
 	$(BOOTSTRAP)/collapse \
 	$(BOOTSTRAP)/tooltip \
-	$(BOOTSTRAP)/popover \
 	custom-requests \
 	$(THIRDPARTY)/underscore/underscore \
 	$(THIRDPARTY)/pourover/pourover \
