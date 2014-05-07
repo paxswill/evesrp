@@ -1,4 +1,4 @@
-from .killmail import CRESTMail
+from .killmail import CRESTMail, ZKillmail
 
 CSRF_ENABLE = True
 
@@ -9,4 +9,4 @@ AUTH_METHODS = []
 SQLALCHEMY_DATABASE_URI = 'sqlite://'
 
 # CREST killmails don't have any external dependencies
-KILLMAIL_SOURCES = [CRESTMail]
+KILLMAIL_SOURCES = [ZKillmail, CRESTMail]

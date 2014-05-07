@@ -3,12 +3,22 @@ from setuptools import setup
 
 setup(
     name='EVE-SRP',
-    version='0.2dev',
+    version='0.3',
     description='EVE Ship Replacement Program Helper',
     author='Will Ross',
     author_email='paxswill@paxswill.com',
     url='https://github.com/evesrp',
-    packages=['evesrp', 'evesrp.auth'],
+    packages=['evesrp', 'evesrp.auth', 'evesrp.views'],
+    package_data={
+        'evesrp': [
+            'static/css/*.css',
+            'static/css/*.css.map',
+            'static/js/evesrp.min.js',
+            'static/js/evesrp.min.js.map',
+            'static/fonts/fontawesome-webfont.*',
+            'templates/*.html',
+        ],
+    },
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Framework :: Flask',
@@ -25,5 +35,6 @@ setup(
         'SQLAlchemy==0.9.3',
         'WTForms==1.0.5',
         'requests==2.2.1',
+        'ecdsa==0.11',
     ],
 )

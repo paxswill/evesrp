@@ -8,6 +8,9 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from .sqlstats import DB_STATS
 
 
+__version__ = '0.3'
+
+
 requests_session = requests.Session()
 
 
