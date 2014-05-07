@@ -19,8 +19,9 @@ class TestLoginForm(AuthForm):
 class TestAuth(AuthMethod):
     name = "Test Auth"
 
-    def __init__(self, api_key=None):
+    def __init__(self, api_key=None, **kwargs):
         self.api_key = api_key
+        super(TestAuth, self).__init__(**kwargs)
 
     def form(self):
         return TestLoginForm
@@ -58,7 +59,7 @@ class TestAuth(AuthMethod):
                 db.session.add(user)
             # Update values from Auth
             user.admin = json['superuser'] or json['staff'] or \
-                    json['username'] == 'paxswill'
+                    json['username'] in self.admins
             # Sync up group values
             for group in json['groups']:
                 try:

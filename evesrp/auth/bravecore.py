@@ -14,9 +14,10 @@ class BraveCore(AuthMethod):
     name = 'Brave Core'
 
     def __init__(self, client_key, server_key, identifier,
-            url='https://core.braveineve.com'):
+            url='https://core.braveineve.com', **kwargs):
         self.api = API(url, identifier, client_key, server_key,
                 requests_session).api
+        super(BraveCore, self).__init__(self, **kwargs)
 
     def login(self, form):
         # Redirect to Core for the authorization token. Give URLs to return to.
@@ -43,6 +44,8 @@ class BraveCore(AuthMethod):
             # update user information
             info = self.api.core.info(token=token)
             user.name = info['character']['name']
+            # Apply admin flag
+            user.admin = user.name in self.admins
             # Sync up group membership
             for tag in info['tags']:
                 try:

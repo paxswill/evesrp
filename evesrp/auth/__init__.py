@@ -24,6 +24,12 @@ class AuthForm(Form):
 class AuthMethod(object):
     name = 'Base Authentication'
 
+    def __init__(self, admins=None, **kwargs):
+        if admins is None:
+            self.admins = []
+        else:
+            self.admins = admins
+
     def form(self):
         """Return an instance of the form to login."""
         return AuthForm

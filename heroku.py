@@ -36,7 +36,7 @@ def configure_app(app, config):
     app.config['USER_AGENT_EMAIL'] = 'paxswill@paxswill.com'
     app.config['SQLALCHEMY_DATABASE_URI'] = config.get('DATABASE_URL',
             'sqlite:///')
-    app.config['AUTH_METHODS'] = [TestAuth(), ]
+    app.config['AUTH_METHODS'] = [TestAuth(admins=['paxswill',]), ]
     app.config['KILLMAIL_SOURCES'] = [
             EveWikiZKillmail,
             EveWikiCRESTMail
