@@ -63,6 +63,7 @@ def create_app(**kwargs):
     app.before_first_request(_copy_config_to_authmethods)
     app.before_first_request(_config_requests_session)
     app.before_first_request(_config_killmails)
+    app.before_first_request(_copy_url_converter_config)
 
     return app
 
@@ -76,6 +77,20 @@ def sqlalchemy_before():
 # Auth setup
 def _copy_config_to_authmethods():
     current_app.auth_methods = current_app.config['AUTH_METHODS']
+
+
+# Request detail URL setup
+def _copy_url_converter_config():
+    current_app.ship_urls = {}
+    ship_transformers = current_app.config.get('SRP_SHIP_URL_TRANSFORMERS')
+    if ship_transformers is not None:
+        for transformer in ship_transformers:
+            current_app.ship_urls[transformer.name] = transformer
+    current_app.pilot_urls = {}
+    pilot_transformers = current_app.config.get('SRP_PILOT_URL_TRANSFORMERS')
+    if pilot_transformers is not None:
+        for transformer in pilot_transformers:
+            current_app.pilot_urls[transformer.name] = transformer
 
 
 # Requests session setup

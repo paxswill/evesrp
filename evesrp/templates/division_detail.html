@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "macros.html" as macros %}
 
 {% block content %}
 {% for permission in ('submit', 'review', 'pay') %}
@@ -31,10 +32,11 @@
         <td>{{ entity.authmethod().name }}</td>
         <td>
           <form method="post">
-            {{ form.csrf_token() }}
-            {{ form.id_(value=entity.id) }}
-            {{ form.permission(value=permission) }}
-            {{ form.action(value='delete') }}
+            {{ entity_form.csrf_token() }}
+            {{ entity_form.id_(value=entity.id) }}
+            {{ entity_form.permission(value=permission) }}
+            {{ entity_form.action(value='delete') }}
+            {{ entity_form.form_id }}
             <button class="close" type="submit">&times;</button>
           </form>
         </td>
@@ -55,12 +57,35 @@
           <button type="submit" class="btn btn-default">Add {{ entity|capitalize }}</button>
         </div>
       </div>
-      {{ form.csrf_token() }}
-      {{ form.action(value="add") }}
-      {{ form.permission(value=permission) }}
-      {{ form.id_() }}
+      {{ entity_form.csrf_token() }}
+      {{ entity_form.action(value="add") }}
+      {{ entity_form.permission(value=permission) }}
+      {{ entity_form.id_() }}
+      {{ entity_form.form_id }}
     </form>
   </div>
 </div>
 {% endfor %}
+<div class="row">
+  <div class="col-md-6">
+    <h2>Ship URL Transformer</h2>
+    <form method="post">
+      {{ ship_form.form_id }}
+      {{ ship_form.kind(value='ship') }}
+      {{ ship_form.csrf_token }}
+      {{ macros.render_input(ship_form.name) }}
+      <button type="submit" class="btn btn-default">Save</button>
+    </form>
+  </div>
+  <div class="col-md-6">
+    <h2>Pilot URL Transformer</h2>
+    <form method="post">
+      {{ pilot_form.form_id }}
+      {{ pilot_form.kind(value='pilot') }}
+      {{ pilot_form.csrf_token }}
+      {{ macros.render_input(pilot_form.name) }}
+      <button type="submit" class="btn btn-default">Save</button>
+    </form>
+  </div>
+</div>
 {% endblock content %}

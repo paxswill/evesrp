@@ -209,9 +209,6 @@ class Request(db.Model, AutoID, Timestamped):
     #: The type of ship that was destroyed.
     ship_type = db.Column(db.String(75), nullable=False, index=True)
 
-    #: An optional URL to use as the target for a link from the ship name
-    ship_url = db.Column(db.String(500), nullable=True)
-
     #: The date and time of when the ship was destroyed.
     kill_timestamp = db.Column(DateTime, nullable=False, index=True)
 
@@ -310,13 +307,6 @@ class Request(db.Model, AutoID, Timestamped):
         # of Request attributes and values for those attributes
         for attr, value in killmail:
             setattr(self, attr, value)
-        # This ship URL attribute is special, as it gets process by the request
-        # before being assigned. It's also not required to exist.
-        division_norm = division.name.replace(' ', '_').lower()
-        try:
-            self.ship_url = killmail.ship_url.format(division=division_norm)
-        except AttributeError:
-            pass
 
     def __repr__(self):
         return "{x.__class__.__name__}({x.submitter}, {x.division}, {x.id})".\

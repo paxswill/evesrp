@@ -270,6 +270,13 @@ class Division(db.Model, AutoID):
     division_permissions = db.relationship(Permission, collection_class=set,
             back_populates='division')
 
+    #: :py:class:`Request` s filed under this division.
+    requests = db.relationship(Request, back_populates='division')
+
+    ship_transformer = db.Column(db.PickleType, nullable=True, default=None)
+
+    pilot_transformer = db.Column(db.PickleType, nullable=True, default=None)
+
     @property
     def permissions(self):
         """The permissions objects for this division, mapped via their
@@ -281,9 +288,6 @@ class Division(db.Model, AutoID):
             def __getitem__(self, key):
                 return set(filter(lambda x: x.permission == key, self.perms))
         return _PermProxy(self.division_permissions)
-
-    #: :py:class:`Request` s filed under this division.
-    requests = db.relationship(Request, back_populates='division')
 
     def __init__(self, name):
         self.name = name

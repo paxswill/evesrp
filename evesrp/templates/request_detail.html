@@ -18,7 +18,11 @@
         <p class="panel-body">{{ srp_request.details }}</p>
       </dd>
       <dt>Pilot</dt>
+      {% if srp_request.division.pilot_transformer %}
+      <dd><a href="{{ srp_request.division.pilot_transformer(srp_request.pilot) }}">{{ srp_request.pilot.name }}</a></dd>
+      {% else %}
       <dd>{{ srp_request.pilot.name }}</dd>
+      {% endif %}
       <dt>Corporation</dt>
       <dd>{{ srp_request.corporation }}</dd>
       <dt>Alliance</dt>
@@ -26,8 +30,8 @@
       <dt>Location</dt>
       <dd>{{ srp_request.region }} / {{ srp_request.constellation }} / {{ srp_request.system }}</dd>
       <dt>Ship</dt>
-      {% if srp_request.ship_url %}
-      <dd><a href="{{ srp_request.ship_url }}">{{ srp_request.ship_type }}</a></dd>
+      {% if srp_request.division.ship_transformer %}
+      <dd><a href="{{ srp_request.division.ship_transformer(ship_name=srp_request.ship_type) }}">{{ srp_request.ship_type }}</a></dd>
       {% else %}
       <dd>{{ srp_request.ship_type }}</dd>
       {% endif %}
