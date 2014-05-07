@@ -1,5 +1,27 @@
 {% extends "list_requests.html" %}
 
 {% block content %}
+<div class="row">
+  <div class="col-md-10 col-md-offset-1">
+    <table class="table">
+      <tr>
+        <th>Division</th>
+        <th>Permission</th>
+        <th>Type</th>
+      </tr>
+      {% for permission in current_user.permissions %}
+      <tr>
+        <td>{{ permission.division.name }}</td>
+        <td>{{ permission.permission }}</td>
+        {% if permission.entity == current_user %}
+        <td>Individual</td>
+        {% else %}
+        <td>through {{ permission.entity.name }}</td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
 {{ super() }}
 {% endblock content %}

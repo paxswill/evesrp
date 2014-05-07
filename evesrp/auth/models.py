@@ -255,6 +255,7 @@ class Permission(db.Model, AutoID):
         return ("{x.__class__.__name__}('{x.permission}', {x.entity}, "
                "{x.division})").format(x=self)
 
+
 class Division(db.Model, AutoID):
     """A reimbursement division.
 

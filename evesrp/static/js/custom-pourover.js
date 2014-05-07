@@ -418,7 +418,7 @@ if ($('div#request-list').length) {
     page_size: 20,
     render: function () {
       /* Start with a clean slate (keep header separate from data rows) */
-      var rows = $('table tr').not($('.popover tr'));
+      var rows = $('table#requests tr').not($('.popover tr'));
       var rowsParent = rows.parent();
       var headers = rows.first().find('th');
       var columns = get_columns(rows);
@@ -559,7 +559,7 @@ if ($('div#request-list').length) {
         column_bloodhounds = new Object;
         /* Create filters and sorts for columns */
         addRequestFilters(
-          get_columns($('tr').not($('.popover tr'))),
+          get_columns($('table#requests tr')),
           requests,
           column_bloodhounds
         );
