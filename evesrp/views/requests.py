@@ -478,3 +478,27 @@ def request_detail(request_id):
             payout_form=PayoutForm(formdata=None),
             action_form=ActionForm(formdata=None),
             void_form=VoidModifierForm(formdata=None))
+
+
+class DetailForm(Form):
+    details = TextAreaField('Details', validators=[InputRequired()])
+    submit = SubmitField('Submit')
+
+
+@blueprint.route('/<int:request_id>/update/', methods=['GET', 'POST'])
+@login_required
+def request_detail_update(request_id):
+    srp_request = Request.query.get_or_404(request_id)
+    # Only the submitter can change the details, and only if it isn't finalized
+    if current_user != srp_request.submitter or srp_request.finalized:
+        abort(403)
+    form = DetailForm()
+    if form.validate_on_submit():
+        archive_note = 'Old Details: ' + srp_request.details
+        archive_action = Action(srp_request, current_user, archive_note)
+        archive_action.type_ = 'evaluating'
+        srp_request.details = form.details.data
+        db.session.commit()
+        return redirect(url_for('.request_detail', request_id=request_id))
+    form.details.data = srp_request.details
+    return render_template('form.html', form=form)
