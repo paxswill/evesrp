@@ -134,6 +134,14 @@ class PayoutListing(PermissionRequestListing):
         # Just a special case of PermissionRequestListing
         super(PayoutListing, self).__init__(('pay',), ('approved',))
 
+    def dispatch_request(self, division_id=None, page=1):
+        """Returns the response to requests.
+
+        Part of the :py:class:`flask.views.View` interface.
+        """
+        pager = self.requests(division_id).paginate(page, per_page=20)
+        return render_template(self.template, form=ActionForm(), pager=pager)
+
 
 def register_perm_request_listing(app, endpoint, path, permissions, statuses):
     """Utility function for creating :py:class:`PermissionRequestListing`

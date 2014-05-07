@@ -5,6 +5,10 @@
 <th id="col-{{ attr }}"{{ (' class="' ~ class ~ '"')|safe if class }}><a href="#" class="heading">{{ title }} <i></i></a></th>
 {% endmacro %}
 
+{% macro request_cell(attr, content) %}
+<td class="col-{{ attr }}">{{ content }}</td>
+{% endmacro %}
+
 {% block content %}
 <div class="row">
   <div id="request-list" class="col-md-10 col-md-offset-1">
@@ -28,14 +32,14 @@
       {% for request in pager.items %}
       <tr class="{{ macros.status_color(request.status) }}">
         {% block table_row scoped %}
-        <td><a href="{{ url_for('requests.request_detail', request_id=request.id) }}">{{ request.id }}</a></td>
-        <td>{{ request.pilot.name }}</td>
-        <td>{{ request.ship_type }}</td>
-        <td>{{ request.system }}</td>
-        <td>{{ request.status|capitalize }}</td>
-        <td>{{ request.payout }}</td>
-        <td>{{ request.timestamp.strftime('%d %b %Y @ %H:%M') }}</td>
-        <td>{{ request.division.name }}</td>
+        <td class="col-id"><a href="{{ url_for('requests.request_detail', request_id=request.id) }}">{{ request.id }}</a></td>
+        {{ request_cell('pilot', request.pilot.name) }}
+        {{ request_cell('ship', request.ship_type) }}
+        {{ request_cell('system', request.system) }}
+        {{ request_cell('status', request.status|capitalize) }}
+        {{ request_cell('payout', request.payout) }}
+        {{ request_cell('submit_timestamp', request.timestamp.strftime('%d %b %Y @ %H:%M')) }}
+        {{ request_cell('division', request.division.name) }}
         {% endblock table_row %}
       </tr>
       {% endfor %}

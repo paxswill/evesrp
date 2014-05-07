@@ -345,11 +345,34 @@ function addRequestFilters(columns, collection, bloodhound_collection) {
   );
 }
 
+function payoutButton(ev){
+  var form = $(this).closest('form');
+  $.post(
+    form.attr('action'),
+    {
+      id_: form.find('#id_').val(),
+      type_: form.find('#type_').val(),
+      csrf_token: form.find('#csrf_token').val()
+    },
+    function() {
+      var row = form.parents('tr');
+      var item_id = row.find('.col-id').last().text();
+      item_id = parseInt(item_id, 10);
+      var item = requests.getBy('id', item_id)[0];
+      requests.updateItem(item.cid, 'status', 'paid');
+      row.find('button').attr('disabled', 'disabled');
+    }
+  );
+  return false;
+}
+
 if ($('.copy-btn').length) {
   ZeroClipboard.config({
     moviePath: $SCRIPT_ROOT + '/static/ZeroClipboard.swf'
   })
   clipboard_client = new ZeroClipboard($('.copy-btn'));
+  /* Add paid button events */
+  $('.paid-btn').click(payoutButton);
 }
 
 if ($('div#request-list').length) {
@@ -425,6 +448,36 @@ if ($('div#request-list').length) {
                   .attr('data-clipboard-text', value)
                   .addClass('btn btn-default btn-sm copy-btn')
                   .text(value);
+                if (request.status !== 'approved') {
+                  content.attr('disabled', 'disabled');
+                }
+              } else if ($(header).hasClass('paid')) {
+                content = $('<form></form')
+                  .attr('method', 'post')
+                  .attr('action', $SCRIPT_ROOT + '/requests/' + request.id + '/');
+                var fields = {
+                  id_: 'action',
+                  type_: 'paid',
+                  csrf_token: $('meta[name=csrf_token]').attr('content')
+                };
+                for (field in fields) {
+                  $('<input>')
+                    .attr('id', field)
+                    .attr('name', field)
+                    .attr('value', fields[field])
+                    .attr('type', 'hidden')
+                    .appendTo(content);
+                }
+                var button = $('<button></button>')
+                  .attr('type', 'submit')
+                  .addClass('btn btn-success btn-sm paid-btn')
+                  .text('Paid')
+                if (request.status !== 'approved') {
+                  button.attr('disabled', 'disabled');
+                } else {
+                  button.click(payoutButton)
+                }
+                button.appendTo(content);
               } else if (key === 'id') {
                 content = $('<a></a>', { href: request['href'] }).append(request['id']);
               } else if (key === 'submit_timestamp') {
@@ -441,7 +494,7 @@ if ($('div#request-list').length) {
               } else {
                 content = request[key];
               }
-              $('<td></td>').append(content).appendTo(row);
+              $('<td></td>').addClass('col-' + key).append(content).appendTo(row);
             }
           );
           row.appendTo(rowsParent);
