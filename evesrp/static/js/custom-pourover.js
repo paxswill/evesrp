@@ -276,9 +276,14 @@ function addRequestFilters(columns, collection, bloodhound_collection) {
     'status',
     'division'
   ];
-  var filtered_columns = supported_columns.filter(function (val, i){
-    return (collection.items[0][val] !== undefined);
-  });
+  var filtered_columns;
+  if (collection.items.length) {
+    filtered_columns = supported_columns.filter(function (val, i){
+      return (collection.items[0][val] !== undefined);
+    });
+  } else {
+    filtered_columns = supported_columns;
+  }
   var column_checkin = new Object;
   for (var i = 0; i < filtered_columns.length; ++i) {
     column_checkin[filtered_columns[i]] = false;
