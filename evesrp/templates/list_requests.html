@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% import "macros.html" as macros %}
 
+{% macro request_header(attr, title) %}
+<th id="col-{{ attr }}"><a href="#" class="heading">{{ title }} <i></i></a></th>
+{% endmacro %}
+
 {% block content %}
 <div class="row">
   <div id="request-list" class="col-md-10 col-md-offset-1">
@@ -10,16 +14,19 @@
     </div>
     <table class="table table-condensed">
       <tr>
-        <th id="col-id"><a href="#" class="heading">Request ID <i></i></a></th>
-        <th id="col-pilot"><a href="#" class="heading">Pilot <i></i></a></th>
-        <th id="col-ship"><a href="#" class="heading">Ship <i></i></a></th>
-        <th id="col-system"><a href="#" class="heading">System <i></i></a></th>
-        <th id="col-status"><a href="#" class="heading">Status <i></i></a></th>
-        <th id="col-payout"><a href="#" class="heading">Payout <i></i></a></th>
-        <th id="col-submit_timestamp"><a href="#" class="heading">Submit Time <i></i></a></th>
-        <th id="col-division"><a href="#" class="heading">Division <i></i></a></th>
+        {% block table_headers %}
+        {{ request_header("id", "Request ID") }}
+        {{ request_header("pilot", "Pilot") }}
+        {{ request_header("ship", "Ship") }}
+        {{ request_header("system", "System") }}
+        {{ request_header("status", "Status") }}
+        {{ request_header("payout", "Payout") }}
+        {{ request_header("submit_timestamp", "Submit Time") }}
+        {{ request_header("division", "Division") }}
+        {% endblock table_headers %}
       </tr>
       {% for request in pager.items %}
+      {% block table_row scoped %}
       <tr class="{{ macros.status_color(request.status) }}">
         <td><a href="{{ url_for('requests.request_detail', request_id=request.id) }}">{{ request.id }}</a></td>
         <td>{{ request.pilot.name }}</td>
@@ -30,6 +37,7 @@
         <td>{{ request.timestamp.strftime('%d %b %Y @ %H:%M') }}</td>
         <td>{{ request.division.name }}</td>
       </tr>
+      {% endblock table_row %}
       {% endfor %}
     </table>
     {% if pager.pages > 1 %}

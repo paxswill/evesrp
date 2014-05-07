@@ -126,6 +126,15 @@ class PermissionRequestListing(RequestListing):
         return requests
 
 
+class PayoutListing(PermissionRequestListing):
+
+    template = 'payout.html'
+
+    def __init__(self):
+        # Just a special case of PermissionRequestListing
+        super(PayoutListing, self).__init__(('pay',), ('approved',))
+
+
 def register_perm_request_listing(app, endpoint, path, permissions, statuses):
     """Utility function for creating :py:class:`PermissionRequestListing`
     views.
@@ -154,10 +163,14 @@ def register_class_views(state):
     state.add_url_rule('/submit/', view_func=submit_view)
     state.add_url_rule('/submit/<int:page>/', view_func=submit_view)
     state.add_url_rule('/submit/<int:page>/<int:division_id>', view_func=submit_view)
+    payout_view = PayoutListing.as_view('list_approved_requests')
+    payout_url_stub = '/pay/'
+    state.add_url_rule(payout_url_stub, view_func=payout_view)
+    state.add_url_rule(payout_url_stub + '<int:page>/', view_func=payout_view)
+    state.add_url_rule(payout_url_stub + '<int:page>/<int:division_id>/',
+            view_func=payout_view)
     register_perm_request_listing(state, 'list_review_requests',
             '/review/', ('review',), ('evaluating', 'incomplete', 'approved'))
-    register_perm_request_listing(state, 'list_approved_requests',
-            '/pay/', ('pay',), ('approved',))
     register_perm_request_listing(state, 'list_completed_requests',
             '/complete/', ('review', 'pay'), ('rejected', 'paid'))
 
