@@ -19,3 +19,7 @@
 [submodule "thirdparty/bootstrap-tokenfield"]
 	path = thirdparty/bootstrap-tokenfield
 	url = https://github.com/paxswill/bootstrap-tokenfield.git
+[submodule "thirdparty/zeroclipboard"]
+	path = thirdparty/zeroclipboard
+	url = https://github.com/zeroclipboard/zeroclipboard.git
+	branch = 1.x-master

@@ -4,6 +4,7 @@ import requests
 from flask import Flask, current_app, g
 from flask.ext.principal import identity_loaded
 from flask.ext.sqlalchemy import SQLAlchemy
+from flask.ext.wtf.csrf import CsrfProtect
 
 from .sqlstats import DB_STATS
 
@@ -25,6 +26,9 @@ from . import models
 from .auth import models
 
 
+csrf = CsrfProtect()
+
+
 def create_app(**kwargs):
     app = Flask('evesrp', **kwargs)
     app.config.from_object('evesrp.default_config')
@@ -39,6 +43,8 @@ def create_app(**kwargs):
 
     from .auth import principal
     principal.init_app(app)
+
+    csrf.init_app(app)
 
     from .views import index, divisions, login, requests, api
     app.add_url_rule(rule='/', view_func=index)
