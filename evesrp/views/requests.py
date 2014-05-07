@@ -228,6 +228,19 @@ class RequestForm(Form):
             raise ValidationError([str(e) for e in failures])
 
 
+def submit_divisions(user):
+    submit_perms = user.permissions\
+            .filter_by(permission='submit')\
+            .subquery()
+    divisions = db.session.query(Division).join(submit_perms)\
+            .order_by(Division.name)
+    # Remove duplicates and sort divisions by name
+    choices = []
+    for name, group in groupby(divisions, lambda d: d.name):
+        choices.append((next(group).id, name))
+    return choices
+
+
 @blueprint.route('/add/', methods=['GET', 'POST'])
 @login_required
 def submit_request():
@@ -243,17 +256,7 @@ def submit_request():
         abort(403)
     form = RequestForm()
     # Create a list of divisions this user can submit to
-    submit_perms = current_user.permissions\
-            .filter_by(permission='submit')\
-            .subquery()
-    divisions = db.session.query(Division).join(submit_perms)
-    # Remove duplicates and sort divisions by name
-    keyfunc = lambda d: d.name
-    divisions = sorted(divisions, key=keyfunc)
-    choices = []
-    for name, group in groupby(divisions, keyfunc):
-        choices.append((next(group).id, name))
-    form.division.choices = choices
+    form.division.choices = submit_divisions(current_user)
     if form.validate_on_submit():
         mail = form.killmail
         # Prevent submitting other people's killmails
@@ -478,3 +481,35 @@ def request_detail(request_id):
             payout_form=PayoutForm(formdata=None),
             action_form=ActionForm(formdata=None),
             void_form=VoidModifierForm(formdata=None))
+
+
+class DivisionChange(Form):
+    division = SelectField('Divisions', coerce=int)
+    submit = SubmitField('Submit')
+
+
+@blueprint.route('/<int:request_id>/division', methods=['GET', 'POST'])
+@login_required
+def request_change_division(request_id):
+    srp_request = Request.query.get_or_404(request_id)
+    review_perm = ReviewRequestsPermission(srp_request)
+    if not review_perm.can() and \
+            current_user != srp_request.submitter or \
+            srp_request.finalized:
+        abort(403)
+    form = DivisionChange()
+    form.division.choices = submit_divisions(srp_request.submitter)
+    if form.validate_on_submit():
+        new_division = Division.query.get(form.division.data)
+        archive_note = "Moving from division '{}' to division '{}'.".format(
+                srp_request.division.name,
+                new_division.name)
+        archive_action = Action(srp_request, current_user, archive_note)
+        archive_action.type_ = 'evaluating'
+        srp_request.division = new_division
+        db.session.commit()
+        return redirect(url_for('.request_detail', request_id=request_id))
+    form.division.data = srp_request.division.id
+    return render_template('form.html', form=form)
+
+
