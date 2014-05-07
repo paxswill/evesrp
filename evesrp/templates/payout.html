@@ -1,0 +1,23 @@
+{% extends "list_requests.html" %}
+
+{% block table_headers %}
+{{ request_header('pilot', 'Pilot', 'paste') }}
+{{ request_header('id', 'Request ID (copy)', 'paste') }}
+{{ request_header('payout', 'Payout', 'paste') }}
+{{ request_header('id', 'Request ID (link)') }}
+{{ request_header('status', 'Status') }}
+{{ request_header('division', 'Division') }}
+{% endblock table_headers %}
+
+{% macro clipboard_button(value) %}
+<button class="btn btn-default btn-sm copy-btn" data-clipboard-text="{{ value }}" title="Copy {{ value }}">{{ value }}</i></button>
+{% endmacro %}
+
+{% block table_row %}
+<td>{{ clipboard_button(request.pilot.name) }}</td>
+<td>{{ clipboard_button(request.id) }}</td>
+<td>{{ clipboard_button(request.payout) }}</td>
+<td><a href="{{ url_for('requests.request_detail', request_id=request.id) }}">{{ request.id }}</a></td>
+<td>{{ request.status|capitalize }}</td>
+<td>{{ request.division.name }}</td>
+{% endblock table_row %}

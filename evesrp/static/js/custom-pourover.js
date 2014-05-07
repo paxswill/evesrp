@@ -345,6 +345,13 @@ function addRequestFilters(columns, collection, bloodhound_collection) {
   );
 }
 
+if ($('.copy-btn').length) {
+  ZeroClipboard.config({
+    moviePath: $SCRIPT_ROOT + '/static/ZeroClipboard.swf'
+  })
+  clipboard_client = new ZeroClipboard($('.copy-btn'));
+}
+
 if ($('div#request-list').length) {
   /* Event callback for pager links */
   function pager_a_click(ev) {
@@ -385,7 +392,7 @@ if ($('div#request-list').length) {
       /* Start with a clean slate (keep header separate from data rows) */
       var rows = $('table tr').not($('.popover tr'));
       var rowsParent = rows.parent();
-      var headerRow = rows.first();
+      var headers = rows.first().find('th');
       var columns = get_columns(rows);
       var oldRows = rows.not(':first');
       if (oldRows.length != 0) {
@@ -410,7 +417,15 @@ if ($('div#request-list').length) {
             columns,
             function (index, key) {
               var content;
-              if (key === 'id') {
+              var header = headers.get(index);
+              if ($(header).hasClass('paste')) {
+                var value = key === 'payout' ? request.payout_str : request[key];
+                content = $('<button></button>')
+                  .attr('title', "Copy '" + value + "'")
+                  .attr('data-clipboard-text', value)
+                  .addClass('btn btn-default btn-sm copy-btn')
+                  .text(value);
+              } else if (key === 'id') {
                 content = $('<a></a>', { href: request['href'] }).append(request['id']);
               } else if (key === 'submit_timestamp') {
                 var date = request[key];

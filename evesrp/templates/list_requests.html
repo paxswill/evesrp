@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% import "macros.html" as macros %}
 
-{% macro request_header(attr, title) %}
-<th id="col-{{ attr }}"><a href="#" class="heading">{{ title }} <i></i></a></th>
+{% macro request_header(attr, title, class=None) %}
+<th id="col-{{ attr }}"{{ (' class="' ~ class ~ '"')|safe if class }}><a href="#" class="heading">{{ title }} <i></i></a></th>
 {% endmacro %}
 
 {% block content %}
@@ -26,8 +26,8 @@
         {% endblock table_headers %}
       </tr>
       {% for request in pager.items %}
-      {% block table_row scoped %}
       <tr class="{{ macros.status_color(request.status) }}">
+        {% block table_row scoped %}
         <td><a href="{{ url_for('requests.request_detail', request_id=request.id) }}">{{ request.id }}</a></td>
         <td>{{ request.pilot.name }}</td>
         <td>{{ request.ship_type }}</td>
@@ -36,8 +36,8 @@
         <td>{{ request.payout }}</td>
         <td>{{ request.timestamp.strftime('%d %b %Y @ %H:%M') }}</td>
         <td>{{ request.division.name }}</td>
+        {% endblock table_row %}
       </tr>
-      {% endblock table_row %}
       {% endfor %}
     </table>
     {% if pager.pages > 1 %}
