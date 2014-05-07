@@ -12,7 +12,12 @@
       <dt>Time of Loss</dt>
       <dd>{{ srp_request.kill_timestamp.strftime('%d %b %Y %H:%M') }}</dd>
       <dt>Division</dt>
-      <dd>{{ srp_request.division.name }}</dd>
+      <dd>
+        {{ srp_request.division.name }}
+        <form method="get" action="{{ url_for('requests.request_change_division', request_id=srp_request.id) }}">
+          <button class="btn btn-default btn-xs" type="submit">Change Division</button>
+        </form>
+      </dd>
       <dt>Details</dt>
       <dd class="panel panel-default">
         <p class="panel-body">{{ srp_request.details }}</p>
