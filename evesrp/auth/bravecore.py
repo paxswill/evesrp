@@ -17,7 +17,7 @@ class BraveCore(AuthMethod):
             url='https://core.braveineve.com', **kwargs):
         self.api = API(url, identifier, client_key, server_key,
                 requests_session).api
-        super(BraveCore, self).__init__(self, **kwargs)
+        super(BraveCore, self).__init__(**kwargs)
 
     def login(self, form):
         # Redirect to Core for the authorization token. Give URLs to return to.

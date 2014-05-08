@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from evesrp import create_app
-from evesrp.killmail import CRESTMail, ZKillmail, ShipURLMixin
+from evesrp.killmail import CRESTMail, ZKillmail
+from evesrp.transformers import ShipTransformer, PilotTransformer
 from evesrp.auth.testauth import TestAuth
 from evesrp.auth.bravecore import BraveCore
 from os import environ as env
@@ -9,15 +10,15 @@ from ecdsa import SigningKey, VerifyingKey, NIST256p
 from hashlib import sha256
 
 
-eve_wiki_url = 'https://wiki.eveonline.com/en/wiki/{name}'
-EveWikiMixin = ShipURLMixin(eve_wiki_url)
+class TestZKillboard(ZKillmail):
+    def __init__(self, *args, **kwargs):
+        super(TestZKillboard, self).__init__(*args, **kwargs)
+        if self.domain not in ('zkb.pleaseignore.com', 'kb.pleaseignore.com'):
+            raise ValueError("This killmail is from the wrong killboard")
 
-class EveWikiCRESTMail(CRESTMail, EveWikiMixin): pass
-
-class EveWikiZKillmail(ZKillmail, EveWikiMixin): pass
-
-
-
+    @property
+    def value(self):
+        return 0
 
 
 def hex2key(hex_key):

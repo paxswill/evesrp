@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='EVE-SRP',
-    version='0.3',
+    version='0.4.5',
     description='EVE Ship Replacement Program Helper',
     author='Will Ross',
     author_email='paxswill@paxswill.com',
@@ -27,6 +27,9 @@ setup(
         'Programming Language :: Python :: 3',
         'Topic :: Games/Entertainment'
     ],
+    dependency_links= [
+        'https://github.com/bravecollective/api/tarball/develop#egg=brave.api'
+    ],
     install_requires=[
         'Flask==0.10.1',
         'Flask-Login==0.2.10',
@@ -37,5 +40,6 @@ setup(
         'WTForms==1.0.5',
         'requests==2.2.1',
         'ecdsa==0.11',
+        'brave.api'
     ],
 )
