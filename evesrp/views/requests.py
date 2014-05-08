@@ -67,14 +67,14 @@ class RequestListing(View):
         )
 
 
-class SubmittedRequestListing(RequestListing):
-    """A requests listing with a button for submitting requests at the bottom.
+class PersonalRequests(RequestListing):
+    """Shows a list of all personally submitted requests and divisions they
+    have permissions in.
 
-    It will show all requests the current user has submitted. The button links
-    to :py:func:`submit_request`.
+    It will show all requests the current user has submitted.
     """
 
-    template = 'list_submit.html'
+    template = 'personal.html'
 
     def requests(self, division_id=None):
         requests = Request.query\
@@ -167,10 +167,11 @@ def register_perm_request_listing(app, endpoint, path, permissions, statuses):
 @blueprint.record
 def register_class_views(state):
     """Register class based views onto the requests blueprint."""
-    submit_view = SubmittedRequestListing.as_view('list_submit_requests')
-    state.add_url_rule('/submit/', view_func=submit_view)
-    state.add_url_rule('/submit/<int:page>/', view_func=submit_view)
-    state.add_url_rule('/submit/<int:page>/<int:division_id>', view_func=submit_view)
+    personal_view = PersonalRequests.as_view('personal_requests')
+    state.add_url_rule('/personal/', view_func=personal_view)
+    state.add_url_rule('/personal/<int:page>/', view_func=personal_view)
+    state.add_url_rule('/personal/<int:page>/<int:division_id>',
+            view_func=personal_view)
     payout_view = PayoutListing.as_view('list_approved_requests')
     payout_url_stub = '/pay/'
     state.add_url_rule(payout_url_stub, view_func=payout_view)

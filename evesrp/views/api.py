@@ -6,7 +6,7 @@ from .. import ships, systems, db
 from ..models import db, Request
 from ..auth import admin_permission
 from ..auth.models import Division, User, Group, Pilot
-from .requests import PermissionRequestListing, SubmittedRequestListing
+from .requests import PermissionRequestListing, PersonalRequests
 
 
 api = Blueprint('api', __name__)
@@ -220,7 +220,7 @@ class FiltersRequestListing(object):
 class APIRequestListing(FiltersRequestListing, PermissionRequestListing): pass
 
 
-class APISubmittedListing(FiltersRequestListing, SubmittedRequestListing): pass
+class APIPersonalRequests(FiltersRequestListing, PersonalRequests): pass
 
 
 @filters.record
@@ -229,7 +229,7 @@ def register_request_lists(state):
     all_requests = APIRequestListing.as_view('filter_requests_all',
             ('submit', 'review', 'pay'),
             ('evaluating', 'approved', 'paid', 'rejected', 'incomplete'))
-    submitted_requests = APISubmittedListing.as_view('filter_requests_own')
+    user_requests = APIPersonalRequests.as_view('filter_requests_own')
     review_requests = APIRequestListing.as_view('filter_requests_review',
             ('review',), ('evaluating', 'approved', 'incomplete'))
     pay_requests = APIRequestListing.as_view('filter_requests_pay',
@@ -239,9 +239,9 @@ def register_request_lists(state):
     # Attach the views to paths
     state.add_url_rule('/requests/', view_func=all_requests)
     state.add_url_rule('/requests/<int:division_id>/', view_func=all_requests)
-    state.add_url_rule('/requests/submit/', view_func=submitted_requests)
-    state.add_url_rule('/requests/submit/<int:division_id>/',
-            view_func=submitted_requests)
+    state.add_url_rule('/requests/personal/', view_func=user_requests)
+    state.add_url_rule('/requests/personal/<int:division_id>/',
+            view_func=user_requests)
     state.add_url_rule('/requests/review/', view_func=review_requests)
     state.add_url_rule('/requests/review/<int:division_id>/',
             view_func=review_requests)

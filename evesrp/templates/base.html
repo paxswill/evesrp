@@ -57,7 +57,7 @@
             {% if current_user.has_permission('submit') %}
             {{ macros.navbar_button('Submit', 'requests.submit_request') }}
             {% endif %}
-            {{ macros.navbar_button('Personal', 'requests.list_submit_requests') }}
+            {{ macros.navbar_button('Personal', 'requests.personal_requests') }}
             {% if current_user.admin -%}
             {{ macros.navbar_button('Admin', 'divisions.list_divisions') }}
             {% endif %}
