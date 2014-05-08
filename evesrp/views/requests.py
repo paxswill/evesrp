@@ -171,7 +171,7 @@ def register_class_views(state):
     except AttributeError:
         prefixes = []
         state.app.request_prefixes = prefixes
-    prefixes.append(state.url_prefix)
+    prefixes.append(state.url_prefix if state.url_prefix is not None else '')
     """Register class based views onto the requests blueprint."""
     personal_view = PersonalRequests.as_view('personal_requests')
     state.add_url_rule('/personal/', view_func=personal_view)

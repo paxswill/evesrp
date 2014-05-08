@@ -50,7 +50,7 @@ def create_app(**kwargs):
     app.add_url_rule(rule='/', view_func=index)
     app.register_blueprint(divisions.blueprint, url_prefix='/divisions')
     app.register_blueprint(login.blueprint)
-    app.register_blueprint(requests.blueprint, url_prefix='/requests')
+    app.register_blueprint(requests.blueprint)
     app.register_blueprint(api.api, url_prefix='/api')
     app.register_blueprint(api.filters, url_prefix='/api/filter')
 
