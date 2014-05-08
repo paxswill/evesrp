@@ -178,8 +178,8 @@ def register_class_views(state):
     state.add_url_rule(payout_url_stub + '<int:page>/', view_func=payout_view)
     state.add_url_rule(payout_url_stub + '<int:page>/<int:division_id>/',
             view_func=payout_view)
-    register_perm_request_listing(state, 'list_review_requests',
-            '/review/', ('review',), ('evaluating', 'incomplete', 'approved'))
+    register_perm_request_listing(state, 'list_pending_requests',
+            '/pending/', ('review',), ('evaluating', 'incomplete', 'approved'))
     register_perm_request_listing(state, 'list_completed_requests',
             '/complete/', ('review', 'pay'), ('rejected', 'paid'))
 

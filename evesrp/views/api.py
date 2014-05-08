@@ -225,31 +225,35 @@ class APIPersonalRequests(FiltersRequestListing, PersonalRequests): pass
 
 @filters.record
 def register_request_lists(state):
+    requests_prefix = '/requests'
     # Create the views
     all_requests = APIRequestListing.as_view('filter_requests_all',
             ('submit', 'review', 'pay'),
             ('evaluating', 'approved', 'paid', 'rejected', 'incomplete'))
     user_requests = APIPersonalRequests.as_view('filter_requests_own')
-    review_requests = APIRequestListing.as_view('filter_requests_review',
+    pending_requests = APIRequestListing.as_view('filter_requests_pending',
             ('review',), ('evaluating', 'approved', 'incomplete'))
     pay_requests = APIRequestListing.as_view('filter_requests_pay',
             ('pay',), ('approved',))
     completed_requests = APIRequestListing.as_view('filter_requests_completed',
             ('review', 'pay'), ('paid', 'rejected'))
     # Attach the views to paths
-    state.add_url_rule('/requests/', view_func=all_requests)
-    state.add_url_rule('/requests/<int:division_id>/', view_func=all_requests)
-    state.add_url_rule('/requests/personal/', view_func=user_requests)
-    state.add_url_rule('/requests/personal/<int:division_id>/',
+    state.add_url_rule(requests_prefix + '/', view_func=all_requests)
+    state.add_url_rule(requests_prefix + '/<int:division_id>/',
+            view_func=all_requests)
+    state.add_url_rule(requests_prefix + '/personal/', view_func=user_requests)
+    state.add_url_rule(requests_prefix + '/personal/<int:division_id>/',
             view_func=user_requests)
-    state.add_url_rule('/requests/review/', view_func=review_requests)
-    state.add_url_rule('/requests/review/<int:division_id>/',
-            view_func=review_requests)
-    state.add_url_rule('/requests/pay/', view_func=pay_requests)
-    state.add_url_rule('/requests/pay/<int:division_id>/',
+    state.add_url_rule(requests_prefix + '/pending/',
+            view_func=pending_requests)
+    state.add_url_rule(requests_prefix + '/pending/<int:division_id>/',
+            view_func=pending_requests)
+    state.add_url_rule(requests_prefix + '/pay/', view_func=pay_requests)
+    state.add_url_rule(requests_prefix + '/pay/<int:division_id>/',
             view_func=pay_requests)
-    state.add_url_rule('/requests/complete/', view_func=completed_requests)
-    state.add_url_rule('/requests/complete/<int:division_id>/',
+    state.add_url_rule(requests_prefix + '/completed/',
+            view_func=completed_requests)
+    state.add_url_rule(requests_prefix + '/completed/<int:division_id>/',
             view_func=completed_requests)
 
 

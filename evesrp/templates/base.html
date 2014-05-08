@@ -38,10 +38,10 @@
             {% block navitems %}
             {% if current_user.is_authenticated() -%}
             {% if current_user.has_permission('review') -%}
-            {{ macros.navbar_button('Pending', 'requests.list_review_requests') }}
+            {{ macros.navbar_button('Pending', 'requests.list_pending_requests') }}
             {%- endif %}
             {% if current_user.has_permission('pay') -%}
-            {{ macros.navbar_button('Pay Out', 'requests.list_approved_requests') }}
+            {{ macros.navbar_button('Pay Outs', 'requests.list_approved_requests') }}
             {%- endif %}
             {% if current_user.has_permission('pay') or current_user.has_permission('review') -%}
             {{ macros.navbar_button('Completed', 'requests.list_completed_requests') }}
