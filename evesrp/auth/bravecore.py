@@ -49,15 +49,13 @@ class BraveCore(AuthMethod):
             # Sync up group membership
             for tag in info['tags']:
                 try:
-                    group = CoreGroup.query.filter_by(core_id=tag).one()
+                    group = CoreGroup.query.filter_by(name=tag).one()
                 except NoResultFound:
-                    group = CoreGroup()
-                    group.core_id = tag
-                    # TODO: Figure out how to get the Group name
+                    group = CoreGroup(tag)
                     db.session.add(group)
                 user.groups.append(group)
             for tag in user.groups.difference(info['tags']):
-                group = CoreGroup.query.filter_by(core_id=tag).one()
+                group = CoreGroup.query.filter_by(name=tag).one()
                 user.groups.remove(group)
             db.session.commit()
             self.login_user(user)
@@ -79,7 +77,6 @@ class CoreUser(User):
 
 class CoreGroup(Group):
     id = db.Column(db.Integer, db.ForeignKey('group.id'), primary_key=True)
-    core_id = db.Column(db.Integer, index=True)
     description = db.Column(db.Text)
 
     @classmethod

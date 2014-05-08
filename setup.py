@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='EVE-SRP',
-    version='0.4.5',
+    version='0.4.7',
     description='EVE Ship Replacement Program Helper',
     author='Will Ross',
     author_email='paxswill@paxswill.com',
