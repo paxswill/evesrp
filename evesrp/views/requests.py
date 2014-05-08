@@ -166,6 +166,12 @@ def register_perm_request_listing(app, endpoint, path, permissions, statuses):
 
 @blueprint.record
 def register_class_views(state):
+    try:
+        prefixes = state.app.request_prefixes
+    except AttributeError:
+        prefixes = []
+        state.app.request_prefixes = prefixes
+    prefixes.append(state.url_prefix)
     """Register class based views onto the requests blueprint."""
     personal_view = PersonalRequests.as_view('personal_requests')
     state.add_url_rule('/personal/', view_func=personal_view)
@@ -181,7 +187,7 @@ def register_class_views(state):
     register_perm_request_listing(state, 'list_pending_requests',
             '/pending/', ('review',), ('evaluating', 'incomplete', 'approved'))
     register_perm_request_listing(state, 'list_completed_requests',
-            '/complete/', ('review', 'pay'), ('rejected', 'paid'))
+            '/completed/', ('review', 'pay'), ('rejected', 'paid'))
 
 
 class ValidKillmail(URL):
