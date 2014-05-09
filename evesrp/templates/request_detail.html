@@ -30,11 +30,14 @@
         {% endif %}
       </dd>
       <dt>Pilot</dt>
-      {% if srp_request.division.pilot_transformer %}
-      <dd><a href="{{ srp_request.division.pilot_transformer(srp_request.pilot) }}">{{ srp_request.pilot.name }}</a></dd>
-      {% else %}
-      <dd>{{ srp_request.pilot.name }}</dd>
-      {% endif %}
+      <dd>
+        {% if srp_request.division.pilot_transformer %}
+        <a href="{{ srp_request.division.pilot_transformer(srp_request.pilot) }}">{{ srp_request.pilot.name }}</a>
+        {% else %}
+        {{ srp_request.pilot.name }}
+        {% endif %}
+        &bull; <a href="{{ url_for('requests.user_notes', user_id=srp_request.submitter.id) }}">User Notes</a>
+      </dd>
       <dt>Corporation</dt>
       <dd>{{ srp_request.corporation }}</dd>
       <dt>Alliance</dt>

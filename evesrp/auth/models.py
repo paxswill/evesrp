@@ -172,6 +172,11 @@ class Note(db.Model, AutoID, Timestamped):
     noter = db.relationship(User, back_populates='notes_made',
             foreign_keys=[noter_id])
 
+    def __init__(self, user, noter, note):
+        self.user = user
+        self.noter = noter
+        self.content = note
+
 
 class Pilot(db.Model, AutoID):
     """Represents an in-game character."""

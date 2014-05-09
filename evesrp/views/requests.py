@@ -1,8 +1,9 @@
 from collections import OrderedDict
 from itertools import groupby
+import re
 
 from flask import render_template, abort, url_for, flash, Markup, request,\
-    redirect, current_app, Blueprint
+    redirect, current_app, Blueprint, Markup
 from flask.views import View
 from flask.ext.login import login_required, current_user
 from flask.ext.wtf import Form
@@ -15,7 +16,7 @@ from .. import db
 from ..models import Request, Modifier, Action
 from ..auth import SubmitRequestsPermission, ReviewRequestsPermission, \
         PayoutRequestsPermission, admin_permission
-from ..auth.models import Division, Pilot, Permission, User, Group
+from ..auth.models import Division, Pilot, Permission, User, Group, Note
 
 
 blueprint = Blueprint('requests', __name__)
@@ -544,3 +545,50 @@ def request_change_division(request_id):
     return render_template('form.html', form=form)
 
 
+@blueprint.route('/notes/<int:user_id>/', methods=['GET', 'POST'])
+@login_required
+def user_notes(user_id):
+    if not current_user.has_permission(('review', 'pay')):
+        abort(403)
+    user = User.query.get_or_404(user_id)
+    return render_template('notes.html', user=user)
+
+
+class AddNote(Form):
+    note = TextAreaField('Note',
+            description=("If you have something like '#{Kill ID}', it will be "
+                         "linkified to the corresponding request "
+                         "(if it exists)."),
+            validators=[InputRequired()])
+    submit = SubmitField('Submit')
+
+
+killmail_re = re.compile(r'#(\d+)')
+
+
+@blueprint.route('/notes/<int:user_id>/add/', methods=['GET', 'POST'])
+@login_required
+def add_user_note(user_id):
+    if not current_user.has_permission(('review', 'pay')):
+        abort(403)
+    user = User.query.get_or_404(user_id)
+    form = AddNote()
+    if form.validate_on_submit():
+        # Linkify killmail IDs
+        note_content = Markup.escape(form.note.data)
+        for match in killmail_re.findall(note_content):
+            kill_id = int(match)
+            srp_request = db.session.query(Request.id).filter_by(id=kill_id)
+            print(kill_id, srp_request.all())
+            if db.session.query(srp_request.exists()):
+                link = '<a href="{url}">#{kill_id}</a>'.format(
+                        url=url_for('.request_detail', request_id=kill_id),
+                        kill_id=kill_id)
+                link = Markup(link)
+                note_content = note_content.replace('#' + match, link)
+        # Create the note
+        note = Note(user, current_user, note_content)
+        db.session.add(note)
+        db.session.commit()
+        return redirect(url_for('.user_notes', user_id=user_id))
+    return render_template('form.html', form=form)

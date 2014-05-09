@@ -19,19 +19,22 @@
           {{ field.label }}
         {% endif %}
         {{ field(class="form-control") }}
+        {% if field.description %}
+          <span class="help-block">{{ field.description }}</span>
+          {% endif %}
         {% if field.errors %}
-        <i class="fa fa-times form-control-feedback"></i>
-        {% for error in field.errors %}
-        {% if error is iterable %}
-        <ul class="help-block">
-        {% for sub_error in error %}
-        <li>{{ sub_error }}</li>
-        {% endfor %}
-      </ul>
-        {% else %}
-        <span class="help-block">{{ error }}</span>
-        {% endif %}
-        {% endfor %}
+          <i class="fa fa-times form-control-feedback"></i>
+          {% for error in field.errors %}
+            {% if error is iterable %}
+              <ul class="help-block">
+              {% for sub_error in error %}
+              <li>{{ sub_error }}</li>
+              {% endfor %}
+              </ul>
+            {% else %}
+              <span class="help-block">{{ error }}</span>
+            {% endif %}
+          {% endfor %}
         {% endif %}
       {% endif %}
     {% endif %}

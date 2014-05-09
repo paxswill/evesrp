@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% import "macros.html" as macros %}
+
+{% block content %}
+<div class="col-md-8 col-md-offset-2">
+  <div class="row">
+  <a class="pull-right btn btn-default" href="{{ url_for('requests.add_user_note', user_id=user.id) }}">Add Note</a>
+  </div>
+  {% if user.notes %}
+    {% for note in user.notes %}
+  <blockquote>
+    <p>{{ note.content|safe }}</p>
+    <footer>{{ note.noter.name }} on {{ note.timestamp.strftime('%d %b %Y @ %H:%M') }}</footer>
+  </blockquote>
+    {% endfor %}
+  {% else %}
+  <p>This user doesn't have any notes.</p>
+  {% endif %}
+</div>
+{% endblock content %}
