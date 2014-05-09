@@ -9,7 +9,7 @@ from flask.ext.wtf.csrf import CsrfProtect
 from .sqlstats import DB_STATS
 
 
-__version__ = '0.4.6'
+__version__ = '0.4.9'
 
 
 requests_session = requests.Session()

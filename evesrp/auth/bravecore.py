@@ -53,10 +53,10 @@ class BraveCore(AuthMethod):
                 except NoResultFound:
                     group = CoreGroup(tag)
                     db.session.add(group)
-                user.groups.append(group)
-            for tag in user.groups.difference(info['tags']):
-                group = CoreGroup.query.filter_by(name=tag).one()
-                user.groups.remove(group)
+                user.groups.add(group)
+            for group in user.groups:
+                if group.name not in info['tags']:
+                    user.groups.remove(group)
             db.session.commit()
             self.login_user(user)
             # TODO Have a meaningful redirect for this
