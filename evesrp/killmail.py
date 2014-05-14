@@ -110,7 +110,7 @@ class Killmail(object):
         for attr in ('kill_id', 'ship_id', 'ship', 'pilot_id', 'pilot',
                 'corp_id', 'corp', 'alliance_id', 'alliance', 'verified',
                 'url', 'value', 'timestamp', 'system', 'constellation',
-                'region'):
+                'region', 'system_id'):
             try:
                 setattr(self, attr, kwargs[attr])
             except KeyError:
@@ -217,7 +217,7 @@ class RequestsSessionMixin(object):
         if requests_session is None:
             self.requests_session = requests.Session()
         else:
-            self.requests_session = request_session
+            self.requests_session = requests_session
         super(RequestsSessionMixin, self).__init__(**kwargs)
 
 

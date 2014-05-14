@@ -32,14 +32,49 @@ class TestKillmail(TestCase):
 
 
 class TestNameMixin(TestCase):
-    pass
+
+    def setUp(self):
+        self.NameMixed = type('NameMixed', (killmail.Killmail,
+                killmail.ShipNameMixin), dict())
+
+    def test_devoter_id(self):
+        km = self.NameMixed(ship_id=12017)
+        self.assertEqual(km.ship, 'Devoter')
+
 
 class TestLocationMixin(TestCase):
-    pass
+
+    def setUp(self):
+        self.LocationMixed = type('LocationMixed', (killmail.Killmail,
+                killmail.LocationMixin), dict())
+
+    def test_system(self):
+        km = self.LocationMixed(system_id=30000142)
+        self.assertEqual(km.system, 'Jita')
+
+    def test_constellation(self):
+        km = self.LocationMixed(system_id=30000142)
+        self.assertEqual(km.constellation, 'Kimotoro')
+
+    def test_region(self):
+        km = self.LocationMixed(system_id=30000142)
+        self.assertEqual(km.region, 'The Forge')
 
 
 class TestRequestsMixin(TestCase):
-    pass
+
+    def setUp(self):
+        self.SessionMixed = type('SessionMixed', (killmail.Killmail,
+                killmail.RequestsSessionMixin), dict())
+
+    def test_default_creation(self):
+        km = self.SessionMixed()
+        self.assertTrue(km.requests_session is not None)
+
+    def test_provided_session(self):
+        session = object()
+        km = self.SessionMixed(requests_session=session)
+        self.assertTrue(km.requests_session is session)
 
 
 class TestZkillmail(TestCase):
