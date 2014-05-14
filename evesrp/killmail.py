@@ -107,7 +107,6 @@ class Killmail(object):
         :param: keyword arguments corresponding to attributes.
         """
         self._data = defaultdict(lambda: None)
-        super(Killmail, self).__init__(**kwargs)
         for attr in ('kill_id', 'ship_id', 'ship', 'pilot_id', 'pilot',
                 'corp_id', 'corp', 'alliance_id', 'alliance', 'verified',
                 'url', 'value', 'timestamp', 'system', 'constellation',
@@ -116,6 +115,9 @@ class Killmail(object):
                 setattr(self, attr, kwargs[attr])
             except KeyError:
                 pass
+            else:
+                del kwargs[attr]
+        super(Killmail, self).__init__(**kwargs)
 
     # Any attribute not starting with an underscore will now be stored in a
     # separate, private attribute. This is to allow attribute on Killmail to be
