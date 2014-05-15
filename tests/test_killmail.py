@@ -1,8 +1,8 @@
 from unittest import TestCase
 try:
-    from unittest.mock import Mock, MagicMock
+    from unittest.mock import patch, MagicMock
 except ImportError:
-    from mock import Mock, MagicMock
+    from mock import patch, MagicMock
 
 from evesrp import killmail
 
@@ -77,8 +77,79 @@ class TestRequestsMixin(TestCase):
         self.assertTrue(km.requests_session is session)
 
 
-class TestZkillmail(TestCase):
-    pass
+class TestZKillmail(TestCase):
+
+    paxswill_resp = [{
+        'killID': '37637533',
+        'solarSystemID': '30001228',
+        'killTime': '2014-03-20 02:32:00',
+        'moonID': '0',
+        'victim': {
+            'shipTypeID': '12017',
+            'damageTaken': '25198',
+            'factionName': 'Caldari State',
+            'factionID': '500001',
+            'allianceName': 'Test Alliance Please Ignore',
+            'allianceID': '498125261',
+            'corporationName': 'Dreddit',
+            'corporationID': '1018389948',
+            'characterName': 'Paxswill',
+            'characterID': '570140137',
+            'victim': '',
+        },
+        'zkb': {
+            'totalValue': '273816945.63',
+            'points': '22',
+            'involved': 42,
+        }
+    }]
+
+    no_alliance_resp = [{
+        'killID': '38862043',
+        'solarSystemID': '30002811',
+        'killTime': '2014-05-15 03:11:00',
+        'moonID': '0',
+        'victim': {
+            'shipTypeID': '598',
+            'damageTaken': '1507',
+            'factionName': '',
+            'factionID': '0',
+            'allianceName': '',
+            'allianceID': '0',
+            'corporationName': 'Omega LLC',
+            'corporationID': '98070272',
+            'characterName': 'Dave Duclas',
+            'characterID': '90741463',
+            'victim': '',
+        },
+        'zkb': {
+            'totalValue': '10432408.70',
+            'points': '8',
+            'involved': 1,
+        }
+    }]
+
+    def test_fw_killmail(self):
+        with patch('requests.Session') as mock_session:
+            # Set up mocks
+            mock_response = MagicMock()
+            mock_response.json.return_value = self.paxswill_resp
+            session_instance = mock_session.return_value
+            session_instance.get.return_value = mock_response
+            # Actual testing
+            km = killmail.ZKillmail('https://zkillboard.com/kill/37637533/')
+            session_instance.get.assert_called_with(
+                    'https://zkillboard.com/api/killID/37637533')
+            expected_values = {
+                'pilot': 'Paxswill',
+                'ship': 'Devoter',
+                'corp': 'Dreddit',
+                'alliance': 'Test Alliance Please Ignore',
+                'system': 'TA3T-3',
+                'domain': 'zkillboard.com'
+            }
+            for attr, value in expected_values.items():
+                self.assertEqual(getattr(km, attr), value)
 
 
 class TestCRESTmail(TestCase):

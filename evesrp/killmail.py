@@ -224,7 +224,7 @@ class RequestsSessionMixin(object):
 class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
     """A killmail sourced from a zKillboard based killboard."""
 
-    zkb_regex = re.compile(r'/detail/(?P<kill_id>\d+)/?')
+    zkb_regex = re.compile(r'/(detail|kill)/(?P<kill_id>\d+)/?')
 
     def __init__(self, url, **kwargs):
         """Create a killmail from the given URL.
