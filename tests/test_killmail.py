@@ -16,7 +16,7 @@ class TestKillmail(TestCase):
             'url', 'value', 'timestamp', 'system', 'constellation',
             'region')
         for attr in attrs:
-            self.assertTrue(getattr(km, attr) is None)
+            self.assertIsNone(getattr(km, attr))
 
     def test_hidden_data(self):
         km = killmail.Killmail()
@@ -24,11 +24,12 @@ class TestKillmail(TestCase):
         km.foo = 'bar'
         new_dir = dir(km)
         self.assertEqual(old_dir, new_dir)
-        self.assertTrue('foo' in km._data)
+        self.assertIn('foo', km._data)
         self.assertEqual(km.foo, 'bar')
 
     def test_keyword_arguments(self):
         km = killmail.Killmail(kill_id=123456)
+        self.assertEqual(km.kill_id, 123456)
 
 
 class TestNameMixin(TestCase):
@@ -69,12 +70,12 @@ class TestRequestsMixin(TestCase):
 
     def test_default_creation(self):
         km = self.SessionMixed()
-        self.assertTrue(km.requests_session is not None)
+        self.assertIsNotNone(km.requests_session)
 
     def test_provided_session(self):
         session = object()
         km = self.SessionMixed(requests_session=session)
-        self.assertTrue(km.requests_session is session)
+        self.assertIs(km.requests_session, session)
 
 
 class TestRemoteKillmail(TestCase):
