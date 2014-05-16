@@ -240,7 +240,7 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
         if match:
             self.kill_id = int(match.group('kill_id'))
         else:
-            raise ValueError("'{}' is not a valid zKillboad killmail".
+            raise ValueError("'{}' is not a valid zKillboard killmail".
                     format(self.url))
         parsed = urlparse(self.url, scheme='https')
         if parsed.netloc == '':
