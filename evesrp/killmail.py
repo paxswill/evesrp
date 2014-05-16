@@ -259,12 +259,12 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
             raise LookupError("Error retrieving killmail data: {}"
                     .format(resp.status_code)) from e
         victim = json['victim']
-        self.pilot_id = victim['characterID']
+        self.pilot_id = int(victim['characterID'])
         self.pilot = victim['characterName']
-        self.corp_id = victim['corporationID']
+        self.corp_id = int(victim['corporationID'])
         self.corp = victim['corporationName']
         if victim['allianceID'] != '0':
-            self.alliance_id = victim['allianceID']
+            self.alliance_id = int(victim['allianceID'])
             self.alliance = victim['allianceName']
         self.ship_id = int(victim['shipTypeID'])
         self.system_id = int(json['solarSystemID'])
