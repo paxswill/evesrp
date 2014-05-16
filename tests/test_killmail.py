@@ -77,7 +77,17 @@ class TestRequestsMixin(TestCase):
         self.assertTrue(km.requests_session is session)
 
 
-class TestZKillmail(TestCase):
+class TestRemoteKillmail(TestCase):
+
+    @staticmethod
+    def _configure_mock_session(mock_session, resp):
+        mock_response = MagicMock()
+        mock_response.json.return_value = resp
+        session_instance = mock_session.return_value
+        session_instance.get.return_value = mock_response
+        return session_instance
+
+class TestZKillmail(TestRemoteKillmail):
 
     paxswill_resp = [{
         'killID': '37637533',
@@ -129,13 +139,6 @@ class TestZKillmail(TestCase):
         }
     }]
 
-    @staticmethod
-    def _configure_mock_session(mock_session, resp):
-        mock_response = MagicMock()
-        mock_response.json.return_value = resp
-        session_instance = mock_session.return_value
-        session_instance.get.return_value = mock_response
-        return session_instance
 
     def test_fw_killmail(self):
         with patch('requests.Session') as mock_session:
@@ -178,8 +181,50 @@ class TestZKillmail(TestCase):
                         msg='{} is not {}'.format(attr, value))
 
 
-class TestCRESTmail(TestCase):
-    pass
+class TestCRESTmail(TestRemoteKillmail):
 
+    foxfour_example = {
+        'solarSystem': {
+            'id': 30002062,
+            'name': 'Todifrauan',
+        },
+        'killTime': '2013.05.05 18:09:00',
+        'victim': {
+            'alliance': {
+                'id': 434243723,
+                'name': 'C C P Alliance',
+            },
+            'character': {
+                'id': 92168909,
+                'name': 'CCP FoxFour',
+            },
+            'corporation': {
+                'id': 109299958,
+                'name': 'C C P',
+            },
+            'shipType': {
+                'id': 670,
+                'name': 'Capsule'
+            },
+        },
+    }
 
-
+    def test_crest_killmails(self):
+        with patch('requests.Session') as mock_session:
+            session = self._configure_mock_session(mock_session,
+                    self.foxfour_example)
+            # Actual testing
+            url = ''.join(('http://public-crest.eveonline.com/killmails/',
+                    '30290604/787fb3714062f1700560d4a83ce32c67640b1797/'))
+            km = killmail.CRESTMail(url)
+            session.get.assert_called_with(url)
+            expected_values = {
+                'pilot': 'CCP FoxFour',
+                'ship': 'Capsule',
+                'corp': 'C C P',
+                'alliance': 'C C P Alliance',
+                'system': 'Todifrauan',
+            }
+            for attr, value in expected_values.items():
+                self.assertEqual(getattr(km, attr), value,
+                        msg='{} is not {}'.format(attr, value))
