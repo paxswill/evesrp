@@ -181,6 +181,23 @@ class TestZKillmail(TestRemoteKillmail):
                 self.assertEqual(getattr(km, attr), value,
                         msg='{} is not {}'.format(attr, value))
 
+    def test_invalid_zkb_url(self):
+        with self.assertRaisesRegexp(ValueError,
+                "'.*' is not a valid zKillboard killmail"):
+            killmail.ZKillmail('foobar')
+
+    def test_invalid_zkb_response(self):
+        with patch('requests.Session') as session_class:
+            session = session_class.return_value
+            response = MagicMock()
+            session.get.return_value = response
+            response.json.side_effect = ValueError()
+            response.status_code.return_value = 418
+            url = 'https://zkillboard.com/kill/38862043/'
+            with self.assertRaisesRegexp(LookupError,
+                    "Error retrieving killmail data:.*"):
+                killmail.ZKillmail(url)
+
 
 class TestCRESTmail(TestRemoteKillmail):
 
@@ -229,3 +246,21 @@ class TestCRESTmail(TestRemoteKillmail):
             for attr, value in expected_values.items():
                 self.assertEqual(getattr(km, attr), value,
                         msg='{} is not {}'.format(attr, value))
+
+    def test_invalid_crest_url(self):
+        with self.assertRaisesRegexp(ValueError,
+                "'.*' is not a valid CREST killmail"):
+            killmail.CRESTMail('foobar')
+
+    def test_invalid_crest_response(self):
+        with patch('requests.Session') as session_class:
+            session = session_class.return_value
+            response = MagicMock()
+            session.get.return_value = response
+            response.json.side_effect = ValueError()
+            response.status_code.return_value = 418
+            url = ''.join(('http://public-crest.eveonline.com/killmails/',
+                    '30290604/787fb3714062f1700560d4a83ce32c67640b1797/'))
+            with self.assertRaisesRegexp(LookupError,
+                    "Error retrieving killmail data:.*"):
+                killmail.CRESTMail(url)
