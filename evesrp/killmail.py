@@ -263,8 +263,9 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
         self.pilot = victim['characterName']
         self.corp_id = victim['corporationID']
         self.corp = victim['corporationName']
-        self.alliance_id = victim['allianceID']
-        self.alliance = victim['allianceName']
+        if victim['allianceID'] != '0':
+            self.alliance_id = victim['allianceID']
+            self.alliance = victim['allianceName']
         self.ship_id = int(victim['shipTypeID'])
         self.system_id = int(json['solarSystemID'])
         # For consistency, store self.value in millions. Decimal is being used
@@ -282,6 +283,7 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
 
     @property
     def verified(self):
+        # zKillboard assigns unverified IDs negative numbers
         return self.kill_id > 0
 
     def __str__(self):

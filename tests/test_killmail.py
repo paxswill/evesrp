@@ -129,16 +129,21 @@ class TestZKillmail(TestCase):
         }
     }]
 
+    @staticmethod
+    def _configure_mock_session(mock_session, resp):
+        mock_response = MagicMock()
+        mock_response.json.return_value = resp
+        session_instance = mock_session.return_value
+        session_instance.get.return_value = mock_response
+        return session_instance
+
     def test_fw_killmail(self):
         with patch('requests.Session') as mock_session:
-            # Set up mocks
-            mock_response = MagicMock()
-            mock_response.json.return_value = self.paxswill_resp
-            session_instance = mock_session.return_value
-            session_instance.get.return_value = mock_response
+            session = self._configure_mock_session(mock_session,
+                    self.paxswill_resp)
             # Actual testing
             km = killmail.ZKillmail('https://zkillboard.com/kill/37637533/')
-            session_instance.get.assert_called_with(
+            session.get.assert_called_with(
                     'https://zkillboard.com/api/killID/37637533')
             expected_values = {
                 'pilot': 'Paxswill',
@@ -149,7 +154,28 @@ class TestZKillmail(TestCase):
                 'domain': 'zkillboard.com'
             }
             for attr, value in expected_values.items():
-                self.assertEqual(getattr(km, attr), value)
+                self.assertEqual(getattr(km, attr), value,
+                        msg='{} is not {}'.format(attr, value))
+
+    def test_no_alliance_killmail(self):
+        with patch('requests.Session') as mock_session:
+            session = self._configure_mock_session(mock_session,
+                    self.no_alliance_resp)
+            # Actual testing
+            km = killmail.ZKillmail('https://zkillboard.com/kill/38862043/')
+            session.get.assert_called_with(
+                    'https://zkillboard.com/api/killID/38862043')
+            expected_values = {
+                'pilot': 'Dave Duclas',
+                'ship': 'Breacher',
+                'corp': 'Omega LLC',
+                'alliance': None,
+                'system': 'Onatoh',
+                'domain': 'zkillboard.com'
+            }
+            for attr, value in expected_values.items():
+                self.assertEqual(getattr(km, attr), value,
+                        msg='{} is not {}'.format(attr, value))
 
 
 class TestCRESTmail(TestCase):
