@@ -16,12 +16,12 @@ class Transformer(object):
 
 class ShipTransformer(Transformer):
 
-    def __call__(self, ship_id=None, ship_name=None, division=None):
+    def __call__(self, ship_id='', ship_name='', division=''):
         return self.slug.format(name=ship_name, id_=ship_id, division=division)
 
 
 class PilotTransformer(Transformer):
 
-    def __call__(self, pilot, division=None):
+    def __call__(self, pilot, division=''):
         return self.slug.format(name=pilot.name, id_=pilot.id,
                 division=division)
