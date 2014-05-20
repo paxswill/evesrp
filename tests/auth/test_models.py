@@ -1,14 +1,6 @@
-from unittest import TestCase
-from evesrp import create_app, db
+from ..util import TestApp
+from evesrp import db
 from evesrp.auth.models import Entity, User, Group, Permission, Division
-
-
-class TestApp(TestCase):
-
-    def setUp(self):
-        self.app = create_app()
-        self.app.testing = True
-        db.create_all(app=self.app)
 
 
 class TestGroups(TestApp):

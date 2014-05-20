@@ -23,4 +23,4 @@ upload: $(SUBDIRS) setup.py
 	python setup.py sdist upload
 
 test:
-	python -m unittest discover -s tests/
+	python -m unittest discover
