@@ -1,7 +1,6 @@
 from unittest import TestCase
 from evesrp import create_app, db
-from evesrp.auth.models import Entity, User, Group, Permission, Division,\
-        Note, Pilot
+from evesrp.auth.models import Entity, User, Group, Permission, Division
 
 
 class TestApp(TestCase):
