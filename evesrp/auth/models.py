@@ -87,7 +87,9 @@ class Entity(db.Model, AutoID):
         if permissions in ('submit', 'review', 'pay'):
             permissions = (permissions,)
         perms = self.permissions.filter(Permission.permission.in_(permissions))
-        return db.session.query(perms.exists()).all()[0]
+        if division is not None:
+            perms = perms.filter_by(division=division)
+        return db.session.query(perms.exists()).all()[0][0]
 
 
 class User(Entity):
