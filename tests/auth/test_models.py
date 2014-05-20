@@ -180,3 +180,22 @@ class TestPermissions(TestGroups):
                                             user=user,
                                             perm=permission,
                                             div=division))
+
+    def test_division_permissions(self):
+        with self.app.test_request_context():
+            # Get users and divisions
+            odd = Division.query.filter_by(name='Odd').one().permissions
+            even = Division.query.filter_by(name='Even').one().permissions
+            prime = Division.query.filter_by(name='Prime').one().permissions
+            # Tests
+            self.assertEqual(len(odd['submit']), 2)
+            self.assertEqual(len(odd['review']), 1)
+            self.assertEqual(len(odd['pay']), 0)
+
+            self.assertEqual(len(even['submit']), 1)
+            self.assertEqual(len(even['review']), 0)
+            self.assertEqual(len(even['pay']), 1)
+
+            self.assertEqual(len(prime['submit']), 2)
+            self.assertEqual(len(prime['review']), 0)
+            self.assertEqual(len(prime['pay']), 1)
