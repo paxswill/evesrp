@@ -21,12 +21,13 @@ locale.setlocale(locale.LC_ALL, '')
 
 db = SQLAlchemy()
 
+
+csrf = CsrfProtect()
+
+
 # Ensure models are declared
 from . import models
 from .auth import models
-
-
-csrf = CsrfProtect()
 
 
 def create_app(**kwargs):
