@@ -8,12 +8,12 @@ class TestGroups(TestApp):
     def setUp(self):
         super(TestGroups, self).setUp()
         with self.app.test_request_context():
-            u1 = User('User One', id=1)
-            u2 = User('User Two', id=2)
-            u3 = User('User Three', id=3)
-            u4 = User('User Four', id=4)
-            g1 = Group('Group One', id=10)
-            g2 = Group('Group Two', id=20)
+            u1 = User('User One', 'AuthMethod', id=1)
+            u2 = User('User Two', 'AuthMethod', id=2)
+            u3 = User('User Three', 'AuthMethod', id=3)
+            u4 = User('User Four', 'AuthMethod', id=4)
+            g1 = Group('Group One', 'AuthMethod', id=10)
+            g2 = Group('Group Two', 'AuthMethod', id=20)
             db.session.add_all((u1, u2, u3, u4, g1, g2))
             # Users 1 and 2 belong to Groups 1 and 2. User 3 belongs to both,
             # User 4 belongs to no groups
