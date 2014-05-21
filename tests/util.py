@@ -9,4 +9,5 @@ class TestApp(TestCase):
         self.app.testing = True
         self.app.config['SECRET_KEY'] = 'testing'
         self.app.config['USER_AGENT_EMAIL'] = 'testing@example.com'
+        self.app.config['WTF_CSRF_ENABLED'] = False
         db.create_all(app=self.app)
