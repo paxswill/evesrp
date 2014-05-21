@@ -30,7 +30,7 @@ class AuthMethod(object):
         self.name = name
 
     def form(self):
-        """Return an instance of the form to login."""
+        """Return a form class to login with."""
         return AuthForm
 
     def login(self, form):
@@ -46,12 +46,13 @@ class AuthMethod(object):
     def view(self):
         """Optional method for providing secondary views.
 
-        :py:func:`evesrp.views.login.auth_method_login` is configured to allow both
-        GET and POST requests, and will call this method as soon as it is known
-        which auth method is meant to be called. The path for this view is
-        ``/login/self.__class__.__name__.lower()/``, and can be generated with
-        ``url_for('login.auth_method_login',
-        auth_method=self.__class__.__name__.lower())``.
+        :py:func:`evesrp.views.login.auth_method_login` is configured to allow
+        both GET and POST requests, and will call this method as soon as it is
+        known which auth method is meant to be called. The path for this view
+        is ``/login/self.safe_name/``, and can be generated with
+        ``url_for('login.auth_method_login', auth_method=self.safe_name)``.
+
+        The default implementation redirects to the main login view.
         """
         return redirect(url_for('login.login'))
 
@@ -68,6 +69,24 @@ class AuthMethod(object):
         flask_login.login_user(user)
         identity_changed.send(current_app._get_current_object(),
                 identity=Identity(user.id))
+
+    @property
+    def safe_name(self):
+        """Normalizes a string to be a valid Python identifier (along with a few
+        other things).
+
+        Specifically, all letters are lower cased, only ASCII characters, and
+        whitespace replaced by underscores.
+
+        :returns: The normalized string.
+        :rtype str:
+        """
+        # Turn 'fancy' characters into '?'s
+        ascii_rep = self.name.encode('ascii', 'replace').decode('utf-8')
+        # Whitespace and '?' to underscores
+        no_space = re.sub(r'[\s\?]', '_', ascii_rep)
+        lowered = no_space.lower()
+        return lowered
 
 
 # Work around some circular imports
