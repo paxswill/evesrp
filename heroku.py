@@ -56,6 +56,8 @@ def configure_app(app, config):
 
     if config.get('DEBUG') is not None:
         app.debug = True
+        if config.get('SQLALCHEMY_ECHO') is not None:
+            app.config['SQLALCHEMY_ECHO'] = True
 
     secret_key = config.get('SECRET_KEY')
     if secret_key is not None:
