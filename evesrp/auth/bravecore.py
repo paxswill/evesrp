@@ -24,7 +24,7 @@ class BraveCore(AuthMethod):
         # Sidenote: At this time, Brave has nearly 0 API documentation. The
         # kinda-sorta hidden TEST Auth API documentation is more complete.
         result_url = url_for('login.auth_method_login', _external=True,
-                auth_method=self.__class__.__name__.lower())
+                auth_method=self.safe_name)
         response = self.api.core.authorize(success=result_url,
                 failure=result_url)
         core_url = response['location']
