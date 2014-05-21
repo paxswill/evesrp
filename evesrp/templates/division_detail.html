@@ -29,7 +29,7 @@
         {% else %}
         <td>User</td>
         {% endif %}
-        <td>{{ entity.authmethod().name }}</td>
+        <td>{{ entity.authmethod }}</td>
         <td>
           <form method="post">
             {{ entity_form.csrf_token() }}

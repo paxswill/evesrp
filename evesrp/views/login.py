@@ -17,12 +17,16 @@ def login():
     When a POST request is recieved, this function passes control to the
     appropriate :py:meth:`login <evesrp.auth.AuthMethod.login>` method.
     """
+    # forms is a list of tuples. The tuples are
+    # (AuthMethod instance, AuthForm instance)
     forms = []
     for auth_method in current_app.auth_methods:
-        prefix = auth_method.__class__.__name__.lower()
+        prefix = auth_method.safe_name
         form = auth_method.form()
         forms.append((auth_method, form(prefix=prefix)))
     if request.method == 'POST':
+        # Find the form that was submitted. The unique prefix for each form
+        # means only one form.submit is going to be valid.
         for auth_tuple in forms:
             if auth_tuple[1].submit.data:
                 auth_method, form = auth_tuple
@@ -44,7 +48,7 @@ def auth_method_login(auth_method):
     See :py:meth:`Authmethod.view <evesrp.auth.AuthMethod.view>` for more
     details.
     """
-    method_map = dict(map(lambda m: (m.__class__.__name__.lower(), m),
+    method_map = dict(map((lambda m: (m.safe_name, m)),
         current_app.auth_methods))
     return method_map[auth_method].view()
 
