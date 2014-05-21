@@ -39,8 +39,15 @@ def configure_app(app, config):
             'sqlite:///')
     app.config['AUTH_METHODS'] = [TestAuth(admins=['paxswill',]), ]
     app.config['KILLMAIL_SOURCES'] = [
-            EveWikiZKillmail,
-            EveWikiCRESTMail
+            TestZKillboard,
+    ]
+    app.config['SRP_SHIP_URL_TRANSFORMERS'] = [
+        ShipTransformer('TEST Reimbursement Wiki',
+            'https://wiki.pleaseignore.com/wiki/Reimbursement:{name}'),
+    ]
+    app.config['SRP_PILOT_URL_TRANSFORMERS'] = [
+        PilotTransformer('TEST Auth page',
+            'https://auth.pleaseignore.com/eve/character/{id_}/'),
     ]
 
     # Configure Brave Core if all the needed things are there
