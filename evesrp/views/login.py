@@ -42,6 +42,10 @@ def login():
 login_manager.login_view = 'login.login'
 
 
+# 302 redirects let the request method change to GET if it started as POST.
+# By defining routes for both of these paths, the implicit redirect for the
+# first route is skipped.
+@blueprint.route('/login/<string:auth_method>', methods=['GET', 'POST'])
 @blueprint.route('/login/<string:auth_method>/', methods=['GET', 'POST'])
 @csrf.exempt
 def auth_method_login(auth_method):
