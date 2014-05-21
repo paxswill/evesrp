@@ -17,10 +17,10 @@ class TestLoginForm(AuthForm):
 
 
 class TestAuth(AuthMethod):
-    name = "Test Auth"
-
     def __init__(self, api_key=None, **kwargs):
         self.api_key = api_key
+        if 'name' not in kwargs:
+            kwargs['name'] = 'Test Auth'
         super(TestAuth, self).__init__(**kwargs)
 
     def form(self):

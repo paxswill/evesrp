@@ -11,12 +11,12 @@ from .models import User, Group
 
 
 class BraveCore(AuthMethod):
-    name = 'Brave Core'
-
     def __init__(self, client_key, server_key, identifier,
             url='https://core.braveineve.com', **kwargs):
         self.api = API(url, identifier, client_key, server_key,
                 requests_session).api
+        if 'name' not in kwargs:
+            kwargs['name'] = 'Brave Core'
         super(BraveCore, self).__init__(**kwargs)
 
     def login(self, form):
