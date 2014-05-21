@@ -35,6 +35,9 @@ class Entity(db.Model, AutoID):
     entity_permissions = db.relationship('Permission', collection_class=set,
             back_populates='entity', lazy='dynamic')
 
+    #: The name of the :py:class:`AuthMethod` for this entity.
+    authmethod = db.Column(db.String(50), nullable=False)
+
     @declared_attr
     def __tablename__(cls):
         """SQLAlchemy late-binding attribute to set the table name.
@@ -55,15 +58,9 @@ class Entity(db.Model, AutoID):
             args['polymorphic_on'] = cls.type_
         return args
 
-    @classmethod
-    def authmethod(cls):
-        """:rtype: class
-        :returns: The :py:class:`AuthMethod` for this entity class.
-        """
-        return AuthMethod
-
-    def __init__(self, name, **kwargs):
+    def __init__(self, name, authmethod, **kwargs):
         self.name = name
+        self.authmethod = authmethod
         super(Entity, self).__init__(**kwargs)
 
     def __repr__(self):

@@ -49,13 +49,11 @@ class TestAuth(AuthMethod):
             return redirect(url_for('login.login'))
         elif json['auth'] == 'ok':
             try:
-                user = TestUser.query.filter_by(auth_id=json['id']).one()
+                user = TestUser.query.filter_by(auth_id=json['id'],
+                        authmethod=self.name).one()
             except NoResultFound:
                 # Create new User
-                user_args = {}
-                user_args['username'] = json['username']
-                user_args['auth_id'] = json['id']
-                user = TestUser(**user_args)
+                user = TestUser(json['username'], json['id'], self.name)
                 db.session.add(user)
             # Update values from Auth
             user.admin = json['superuser'] or json['staff'] or \
@@ -64,18 +62,20 @@ class TestAuth(AuthMethod):
             for group in json['groups']:
                 try:
                     db_group = TestGroup.query.\
-                            filter_by(auth_id=group['id']).one()
+                            filter_by(auth_id=group['id'],
+                                    authmethod=self.name).one()
                 except NoResultFound:
-                    db_group = TestGroup(name=group['name'],
-                            auth_id=group['id'])
+                    db_group = TestGroup(group['name'], group['id'], self.name)
                     db.session.add(db_group)
                 user.groups.add(db_group)
+                # TODO: Remove old groups
             # Sync pilot associations
             pilot = Pilot.query.get(json['primarycharacter']['id'])
             if not pilot:
                 pilot = Pilot(user, json['primarycharacter']['name'],
                         json['primarycharacter']['id'])
             pilot.user = user
+            # Getting all pilots requires an Auth API key.
             if self.api_key:
                 resp_user = requests_session.get(
                         'https://auth.pleaseignore.com/api/1.0/user', params=
@@ -137,13 +137,10 @@ class TestUser(User):
     id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     auth_id = db.Column(db.Integer, nullable=False, index=True)
 
-    def __init__(self, username, auth_id, groups=None, **kwargs):
+    def __init__(self, username, auth_id, authmethod, groups=None, **kwargs):
         self.name = username
         self.auth_id = auth_id
-
-    @classmethod
-    def authmethod(cls):
-        return TestAuth
+        self.authmethod = authmethod
 
 
 class TestGroup(Group):
@@ -151,10 +148,7 @@ class TestGroup(Group):
     auth_id = db.Column(db.Integer, nullable=False, index=True)
     description = db.Column(db.Text)
 
-    def __init__(self, name, auth_id):
+    def __init__(self, name, auth_id, authmethod):
         self.name = name
         self.auth_id = auth_id
-
-    @classmethod
-    def authmethod(cls):
-        return TestAuth
+        self.authmethod = authmethod

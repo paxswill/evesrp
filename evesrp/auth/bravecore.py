@@ -37,9 +37,10 @@ class BraveCore(AuthMethod):
         token = request.args.get('token')
         if token is not None:
             try:
-                user = CoreUser.query.filter_by(token=token).one()
+                user = CoreUser.query.filter_by(token=token,
+                        authmethod=self.name).one()
             except NoResultFound:
-                user = CoreUser(name=None, token=token)
+                user = CoreUser(name=None, authmethod=self.name, token=token)
                 db.session.add(user)
             # update user information
             info = self.api.core.info(token=token)
@@ -49,9 +50,10 @@ class BraveCore(AuthMethod):
             # Sync up group membership
             for tag in info['tags']:
                 try:
-                    group = CoreGroup.query.filter_by(name=tag).one()
+                    group = CoreGroup.query.filter_by(name=tag,
+                            authmethod=self.name).one()
                 except NoResultFound:
-                    group = CoreGroup(tag)
+                    group = CoreGroup(tag, self.name)
                     db.session.add(group)
                 user.groups.add(group)
             for group in user.groups:
@@ -70,15 +72,7 @@ class CoreUser(User):
     id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     token = db.Column(db.String(100))
 
-    @classmethod
-    def authmethod(cls):
-        return BraveCore
-
 
 class CoreGroup(Group):
     id = db.Column(db.Integer, db.ForeignKey('group.id'), primary_key=True)
     description = db.Column(db.Text)
-
-    @classmethod
-    def authmethod(cls):
-        return BraveCore
