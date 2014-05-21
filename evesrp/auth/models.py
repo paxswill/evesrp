@@ -231,6 +231,9 @@ class Group(Entity):
 
 class Permission(db.Model, AutoID):
     __tablename__ = 'permission'
+    __table_args__ = (
+        db.UniqueConstraint('division_id', 'entity_id', 'permission'),
+    )
 
     division_id = db.Column(db.Integer, db.ForeignKey('division.id'),
             nullable=False)
