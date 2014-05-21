@@ -107,15 +107,17 @@ class Killmail(object):
         :param: keyword arguments corresponding to attributes.
         """
         self._data = defaultdict(lambda: None)
-        super(Killmail, self).__init__(**kwargs)
         for attr in ('kill_id', 'ship_id', 'ship', 'pilot_id', 'pilot',
                 'corp_id', 'corp', 'alliance_id', 'alliance', 'verified',
                 'url', 'value', 'timestamp', 'system', 'constellation',
-                'region'):
+                'region', 'system_id'):
             try:
                 setattr(self, attr, kwargs[attr])
             except KeyError:
                 pass
+            else:
+                del kwargs[attr]
+        super(Killmail, self).__init__(**kwargs)
 
     # Any attribute not starting with an underscore will now be stored in a
     # separate, private attribute. This is to allow attribute on Killmail to be
@@ -215,14 +217,14 @@ class RequestsSessionMixin(object):
         if requests_session is None:
             self.requests_session = requests.Session()
         else:
-            self.requests_session = request_session
+            self.requests_session = requests_session
         super(RequestsSessionMixin, self).__init__(**kwargs)
 
 
 class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
     """A killmail sourced from a zKillboard based killboard."""
 
-    zkb_regex = re.compile(r'/detail/(?P<kill_id>\d+)/?')
+    zkb_regex = re.compile(r'/(detail|kill)/(?P<kill_id>\d+)/?')
 
     def __init__(self, url, **kwargs):
         """Create a killmail from the given URL.
@@ -238,7 +240,7 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
         if match:
             self.kill_id = int(match.group('kill_id'))
         else:
-            raise ValueError("'{}' is not a valid zKillboad killmail".
+            raise ValueError("'{}' is not a valid zKillboard killmail".
                     format(self.url))
         parsed = urlparse(self.url, scheme='https')
         if parsed.netloc == '':
@@ -257,12 +259,13 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
             raise LookupError("Error retrieving killmail data: {}"
                     .format(resp.status_code)) from e
         victim = json['victim']
-        self.pilot_id = victim['characterID']
+        self.pilot_id = int(victim['characterID'])
         self.pilot = victim['characterName']
-        self.corp_id = victim['corporationID']
+        self.corp_id = int(victim['corporationID'])
         self.corp = victim['corporationName']
-        self.alliance_id = victim['allianceID']
-        self.alliance = victim['allianceName']
+        if victim['allianceID'] != '0':
+            self.alliance_id = int(victim['allianceID'])
+            self.alliance = victim['allianceName']
         self.ship_id = int(victim['shipTypeID'])
         self.system_id = int(json['solarSystemID'])
         # For consistency, store self.value in millions. Decimal is being used
@@ -280,6 +283,7 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
 
     @property
     def verified(self):
+        # zKillboard assigns unverified IDs negative numbers
         return self.kill_id > 0
 
     def __str__(self):

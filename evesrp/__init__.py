@@ -99,8 +99,9 @@ def _config_requests_session():
         ua_string = current_app.config['USER_AGENT_STRING']
     except KeyError as outer_exc:
         try:
-            ua_string = 'EVE-SRP/0.1 ({})'.format(
-                    current_app.config['USER_AGENT_EMAIL'])
+            ua_string = 'EVE-SRP/{version} ({email})'.format(
+                    email=current_app.config['USER_AGENT_EMAIL'],
+                    version=__version__)
         except KeyError as inner_exc:
             raise inner_exc from outer_exc
     requests_session.headers.update({'User-Agent': ua_string})

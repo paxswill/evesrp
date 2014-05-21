@@ -1,6 +1,6 @@
 SUBDIRS := evesrp/static
 
-.PHONY: all clean build-deps $(SUBDIRS)
+.PHONY: all clean build-deps test $(SUBDIRS)
 
 all: $(SUBDIRS)
 
@@ -21,3 +21,6 @@ sdist: $(SUBDIRS) setup.py
 
 upload: $(SUBDIRS) setup.py
 	python setup.py sdist upload
+
+test:
+	python -m unittest discover
