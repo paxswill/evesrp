@@ -5,12 +5,8 @@ config = {}
 with open('.env', 'r') as f:
     for line in f:
         key, value = line.split('=', 1)
-        # remove quoting and trailing newlines
-        value = value.strip('"')
-        value = value.rstrip('"')
-        value = value.rstrip()
-        # Trim newline
-        value = value[:-1]
+        if value[-1] == '\n':
+            value = value[:-1]
         config[key] = value
 
 configure_app(app, config)
