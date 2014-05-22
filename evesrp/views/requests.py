@@ -560,7 +560,13 @@ def request_change_division(request_id):
         archive_action.type_ = 'evaluating'
         srp_request.division = new_division
         db.session.commit()
-        return redirect(url_for('.request_detail', request_id=request_id))
+        flash('Request #{} moved to {} division'.format(srp_request.id,
+                new_division.name), 'success')
+        if current_user.has_permission(('review', 'pay'), new_division) or\
+                current_user == srp_request.submitter:
+            return redirect(url_for('.request_detail', request_id=request_id))
+        else:
+            return redirect(url_for('.list_pending_requests'))
     form.division.data = srp_request.division.id
     return render_template('form.html', form=form)
 
