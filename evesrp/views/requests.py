@@ -584,7 +584,9 @@ class AddNote(Form):
     note = TextAreaField('Note',
             description=("If you have something like '#{Kill ID}', it will be "
                          "linkified to the corresponding request "
-                         "(if it exists)."),
+                         "(if it exists). For example, #1234567 would be "
+                         "linked to the request for the kill with ID "
+                         "1234567."),
             validators=[InputRequired()])
     submit = SubmitField('Submit')
 
