@@ -65,9 +65,11 @@ class TestLogin(TestApp):
         self.app.config['AUTH_METHODS'] = self.auth_methods
         self.normal_name = 'Normal User'
         self.admin_name = 'Admin User'
+        self.default_authmethod = self.auth_methods[0]
         with self.app.test_request_context():
-            db.session.add(User(self.normal_name, self.auth_methods[0].name))
-            admin_user = User(self.admin_name, self.auth_methods[0].name)
+            db.session.add(User(self.normal_name,
+                self.default_authmethod.name))
+            admin_user = User(self.admin_name, self.default_authmethod.name)
             admin_user.admin = True
             db.session.add(admin_user)
             db.session.commit()

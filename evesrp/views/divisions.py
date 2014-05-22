@@ -86,7 +86,7 @@ def division_detail(division_id):
         if request.form['form_id'] == 'entity':
             form = ChangeEntity()
             if form.validate():
-                if form.id_.data is not None:
+                if form.id_.data != '':
                     entity = Entity.query.get(form.id_.data)
                     if entity is None:
                         flash("No entity with ID #{}.".format(form.id_.data), 'error')

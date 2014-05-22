@@ -2,6 +2,7 @@ from ..util import TestLogin
 from evesrp import db
 from evesrp.views.divisions import AddDivisionForm
 from evesrp.auth.models import User, Group, Division, Permission
+from evesrp.transformers import ShipTransformer
 from flask.ext.wtf.csrf import generate_csrf
 try:
     from unittest.mock import patch, MagicMock
@@ -56,6 +57,9 @@ class TestDivisionDetails(TestLogin):
             db.session.add(Group('Group 3', self.default_authmethod.name,
                     id=30))
             db.session.commit()
+        self.app.config['SRP_SHIP_URL_TRANSFORMERS'] = [
+            ShipTransformer('Test Transformer', '')
+        ]
 
     def test_add_entity_by_id(self):
         client = self.login(self.admin_name)
@@ -84,3 +88,33 @@ class TestDivisionDetails(TestLogin):
         with self.app.test_request_context():
             self.assertIsNotNone(Permission.query.filter_by(division_id=1,
                     entity_id=10, permission='submit').first())
+
+    def test_set_url_transformer(self):
+        client = self.login(self.admin_name)
+        resp = client.post('/divisions/1/', follow_redirects=True, data={
+                'name': 'Test Transformer',
+                'kind': 'ship',
+                'form_id': 'transformer',
+        })
+        self.assertEqual(resp.status_code, 200)
+        with self.app.test_request_context():
+            division = Division.query.get(1)
+            self.assertEqual(division.ship_transformer,
+                    self.app.config['SRP_SHIP_URL_TRANSFORMERS'][0])
+
+    def test_unset_url_transformer(self):
+        client = self.login(self.admin_name)
+        with self.app.test_request_context():
+            division = Division.query.get(1)
+            division.ship_transformer = \
+                    self.app.config['SRP_SHIP_URL_TRANSFORMERS'][0]
+            db.session.commit()
+        resp = client.post('/divisions/1/', follow_redirects=True, data={
+                'name': 'none',
+                'kind': 'ship',
+                'form_id': 'transformer',
+        })
+        self.assertEqual(resp.status_code, 200)
+        with self.app.test_request_context():
+            division = Division.query.get(1)
+            self.assertIsNone(division.ship_transformer)
