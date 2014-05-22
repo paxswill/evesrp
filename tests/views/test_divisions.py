@@ -1,13 +1,7 @@
 from ..util import TestLogin
 from evesrp import db
-from evesrp.views.divisions import AddDivisionForm
 from evesrp.auth.models import User, Group, Division, Permission
 from evesrp.transformers import ShipTransformer
-from flask.ext.wtf.csrf import generate_csrf
-try:
-    from unittest.mock import patch, MagicMock
-except ImportError:
-    from mock import patch, MagicMock
 
 
 class TestAddDivision(TestLogin):
@@ -52,10 +46,6 @@ class TestDivisionDetails(TestLogin):
             db.session.add(Division('Test Division'))
             db.session.add(Group('Group 1', self.default_authmethod.name,
                     id=10))
-            db.session.add(Group('Group 2', self.default_authmethod.name,
-                    id=20))
-            db.session.add(Group('Group 3', self.default_authmethod.name,
-                    id=30))
             db.session.commit()
         self.app.config['SRP_SHIP_URL_TRANSFORMERS'] = [
             ShipTransformer('Test Transformer', '')
