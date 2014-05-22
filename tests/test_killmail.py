@@ -198,6 +198,17 @@ class TestZKillmail(TestRemoteKillmail):
                     "Error retrieving killmail data:.*"):
                 killmail.ZKillmail(url)
 
+    def test_invalid_kill_ids(self):
+        with patch('requests.Session') as session_class:
+            session = session_class.return_value
+            response = MagicMock()
+            session.get.return_value = response
+            response.json.return_value = []
+            response.status_code.return_value = 200
+            url = 'https://zkillboard.com/kill/0/'
+            with self.assertRaisesRegexp(LookupError, "Invalid killmail: .*"):
+                killmail.ZKillmail(url)
+
 
 class TestCRESTmail(TestRemoteKillmail):
 

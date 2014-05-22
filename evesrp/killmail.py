@@ -254,10 +254,15 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
         api_url[2] = '/api/killID/{}'.format(self.kill_id)
         resp = self.requests_session.get(urlunparse(api_url))
         try:
-            json = resp.json()[0]
+            json = resp.json()
         except ValueError as e:
             raise LookupError("Error retrieving killmail data: {}"
                     .format(resp.status_code)) from e
+        try:
+            json = json[0]
+        except IndexError as e:
+            raise LookupError("Invalid killmail: {}"
+                    .format(url)) from e
         victim = json['victim']
         self.pilot_id = int(victim['characterID'])
         self.pilot = victim['characterName']
