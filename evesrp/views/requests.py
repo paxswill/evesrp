@@ -242,6 +242,8 @@ class RequestForm(Form):
             else:
                 continue
         else:
+            # If execution reached here, it means a StopValidation exception
+            # wasn't raised (meaning the killmail isn't valid).
             raise ValidationError([str(e) for e in failures])
 
 
