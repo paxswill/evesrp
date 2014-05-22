@@ -33,9 +33,9 @@ class TestListDivisions(TestLogin):
     def test_list_divisions(self):
         client = self.login(self.admin_name)
         resp = client.get('/divisions/', follow_redirects=True)
-        self.assertIn(b'Division One', resp.data)
-        self.assertIn(b'Division Two', resp.data)
-        self.assertIn(b'Division Three', resp.data)
+        self.assertIn('Division One', resp.get_data(as_text=True))
+        self.assertIn('Division Two', resp.get_data(as_text=True))
+        self.assertIn('Division Three', resp.get_data(as_text=True))
 
 
 class TestDivisionDetails(TestLogin):
@@ -60,7 +60,7 @@ class TestDivisionDetails(TestLogin):
                 'form_id': 'entity',
         })
         self.assertEqual(resp.status_code, 200)
-        self.assertIn(b'Group 1', resp.data)
+        self.assertIn('Group 1', resp.get_data(as_text=True))
         with self.app.test_request_context():
             self.assertIsNotNone(Permission.query.filter_by(division_id=1,
                     entity_id=10, permission='submit').first())
@@ -74,7 +74,7 @@ class TestDivisionDetails(TestLogin):
                 'form_id': 'entity',
         })
         self.assertEqual(resp.status_code, 200)
-        self.assertIn(b'Group 1', resp.data)
+        self.assertIn('Group 1', resp.get_data(as_text=True))
         with self.app.test_request_context():
             self.assertIsNotNone(Permission.query.filter_by(division_id=1,
                     entity_id=10, permission='submit').first())

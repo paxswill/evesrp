@@ -16,7 +16,7 @@ class TestTrampolineView(TestLogin):
                 'name': 'Unique User',
                 'submit': 'true',
             })
-            self.assertIn(b'Log Out', resp.data)
+            self.assertIn('Log Out', resp.get_data(as_text=True))
             self.assertIsNotNone(User.query.filter_by(name='Normal User')
                     .first())
 
@@ -39,13 +39,13 @@ class TestLoginView(TestLogin):
         data = {auth_method.safe_name + '-' + field: value for field, value in
                 data.items()}
         resp = client.post('/login/', follow_redirects=True, data=data)
-        self.assertIn(b'Log Out', resp.data)
+        self.assertIn('Log Out', resp.get_data(as_text=True))
 
     def test_logout(self):
         # Get a test client that's logged in
         client = self.login()
         resp = client.get('/logout/', follow_redirects=True)
-        self.assertIn(b'Log In', resp.data)
+        self.assertIn('Log In', resp.get_data(as_text=True))
 
 
 class TestMethodTabs(TestLogin):
@@ -55,10 +55,10 @@ class TestMethodTabs(TestLogin):
         self.app.config['AUTH_METHODS'].pop()
         # Test
         resp = self.app.test_client().get('/login', follow_redirects=True)
-        self.assertIn(b'Null Auth 1', resp.data)
-        self.assertNotIn(b'Null Auth 2', resp.data)
+        self.assertIn('Null Auth 1', resp.get_data(as_text=True))
+        self.assertNotIn('Null Auth 2', resp.get_data(as_text=True))
 
     def test_multiple_auth_methods(self):
         resp = self.app.test_client().get('/login', follow_redirects=True)
-        self.assertIn(b'Null Auth 1', resp.data)
-        self.assertIn(b'Null Auth 2', resp.data)
+        self.assertIn('Null Auth 1', resp.get_data(as_text=True))
+        self.assertIn('Null Auth 2', resp.get_data(as_text=True))
