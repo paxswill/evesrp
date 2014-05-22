@@ -13,6 +13,12 @@ class Transformer(object):
     def __call__(self, **kwargs):
         pass
 
+    def __hash__(self):
+        return hash(self.name + self.slug) ^ hash(self.__class__)
+
+    def __eq__(self, other):
+        return hash(self) == hash(other)
+
 
 class ShipTransformer(Transformer):
 

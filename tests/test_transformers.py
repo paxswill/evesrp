@@ -6,6 +6,18 @@ except ImportError:
     from mock import MagicMock
 
 
+class TestTransformer(TestCase):
+
+    def test_equality(self):
+        t1 = ShipTransformer('Foo', 'Bar')
+        t2 = ShipTransformer('Foo', 'Bar')
+        t3 = ShipTransformer('Bar', 'Foo')
+        t4 = PilotTransformer('Foo', 'Bar')
+        self.assertEqual(t1, t2)
+        self.assertNotEqual(t1, t3)
+        self.assertNotEqual(t1, t4)
+
+
 class TestShipTransformer(TestCase):
 
     def setUp(self):
