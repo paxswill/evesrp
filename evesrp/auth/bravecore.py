@@ -7,7 +7,7 @@ from binascii import unhexlify
 
 from .. import db, requests_session
 from . import AuthMethod, AuthForm
-from .models import User, Group
+from .models import User, Group, Pilot
 
 
 class BraveCore(AuthMethod):
@@ -36,29 +36,37 @@ class BraveCore(AuthMethod):
     def view(self):
         token = request.args.get('token')
         if token is not None:
-            try:
-                user = CoreUser.query.filter_by(token=token,
-                        authmethod=self.name).one()
-            except NoResultFound:
-                user = CoreUser(name=None, authmethod=self.name, token=token)
-                db.session.add(user)
-            # update user information
             info = self.api.core.info(token=token)
-            user.name = info['character']['name']
+            char_name = info.character.name
+            try:
+                user = CoreUser.query.filter_by(name=char_name,
+                        authmethod=self.name).one()
+                user.token = token
+            except NoResultFound:
+                user = CoreUser(name=char_name, authmethod=self.name,
+                        token=token)
+                db.session.add(user)
             # Apply admin flag
             user.admin = user.name in self.admins
             # Sync up group membership
-            for tag in info['tags']:
+            for group_name in info['tags']:
                 try:
-                    group = CoreGroup.query.filter_by(name=tag,
+                    group = CoreGroup.query.filter_by(name=group_name,
                             authmethod=self.name).one()
                 except NoResultFound:
-                    group = CoreGroup(tag, self.name)
+                    group = CoreGroup(group_name, self.name)
                     db.session.add(group)
                 user.groups.add(group)
             for group in user.groups:
                 if group.name not in info['tags']:
                     user.groups.remove(group)
+            # Sync pilot (just the primary for now)
+            pilot = Pilot.query.get(info.character.id)
+            if not pilot:
+                pilot = Pilot(user, char_name, info.character.id)
+                db.session.add(pilot)
+            else:
+                pilot.user = user
             db.session.commit()
             self.login_user(user)
             # TODO Have a meaningful redirect for this
