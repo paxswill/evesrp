@@ -208,10 +208,19 @@ class ValidKillmail(URL):
             if mail.verified:
                 form.killmail = mail
                 raise StopValidation
+            else:
+                raise ValidationError(
+                        '{} cannot be verified.'.format(field.data))
 
 
 def get_killmail_validators():
-    """Delay accessing current_app until in a request context."""
+    """Get a list of :py:class:`ValidKillmail`\s for each killmail source.
+
+    This method is used to delay accessing `current_app` until we're in a
+    request context.
+    :returns: a list of :py:class:`ValidKillmail`\s
+    :rtype list:
+    """
     validators = [ValidKillmail(s) for s in current_app.killmail_sources]
     validators.append(InputRequired())
     return validators
@@ -237,6 +246,15 @@ class RequestForm(Form):
 
 
 def submit_divisions(user):
+    """Get a list of the divisions the given user is able to submit requests
+    to.
+
+    :param user: The user to evaluate.
+    :type user: :py:class:`~.models.User`
+    :returns: A list of tuples. The tuples are in the form (division.id,
+        division.name)
+    :rtype: list
+    """
     submit_perms = user.permissions\
             .filter_by(permission='submit')\
             .subquery()
