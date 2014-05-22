@@ -47,7 +47,6 @@ login_manager.login_view = 'login.login'
 # first route is skipped.
 @blueprint.route('/login/<string:auth_method>', methods=['GET', 'POST'])
 @blueprint.route('/login/<string:auth_method>/', methods=['GET', 'POST'])
-@csrf.exempt
 def auth_method_login(auth_method):
     """Trampoline for :py:class:`~evesrp.auth.AuthMethod`\-specific views.
 

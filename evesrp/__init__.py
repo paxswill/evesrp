@@ -45,7 +45,11 @@ def create_app(**kwargs):
     from .auth import principal
     principal.init_app(app)
 
+    before_csrf = list(app.before_request_funcs[None])
     csrf.init_app(app)
+    # Remove the context processor that checks CSRF values. All it is used for
+    # is the template function.
+    app.before_request_funcs[None] = before_csrf
 
     from .views import index, divisions, login, requests, api
     app.add_url_rule(rule='/', view_func=index)
