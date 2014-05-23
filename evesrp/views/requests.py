@@ -388,7 +388,7 @@ def request_detail(request_id):
     that change, and P means payers can make that change. Solid borders are
     terminal states.
     """
-    srp_request = Request.query.get(request_id)
+    srp_request = Request.query.get_or_404(request_id)
     review_perm = ReviewRequestsPermission(srp_request)
     pay_perm = PayoutRequestsPermission(srp_request)
     if request.method == 'POST':
