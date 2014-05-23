@@ -243,6 +243,9 @@ class Request(db.Model, AutoID, Timestamped):
         millions of ISK, and :py:func:`ints`\s will be the total ISK value
         (equivalent to the string representation).
         """
+        # Evaluation method for payout:
+        # almost_payout = (sum(absolute_modifiers) + base_payout)
+        # payout = almost_payout + (sum(percentage_modifiers) * almost_payout)
         modifier_sum = db.session.query(db.func.sum(Modifier.value))\
                 .join(Request)\
                 .filter(Modifier.request_id==self.id)\
@@ -307,6 +310,11 @@ class Request(db.Model, AutoID, Timestamped):
         # of Request attributes and values for those attributes
         for attr, value in killmail:
             setattr(self, attr, value)
+
+    @db.validates('base_payout')
+    def validate_payout(self, attr, value):
+        """Ensures that base_payout is positive. The value is clamped to 0."""
+        return value if value >= 0 else 0
 
     def __repr__(self):
         return "{x.__class__.__name__}({x.submitter}, {x.division}, {x.id})".\
