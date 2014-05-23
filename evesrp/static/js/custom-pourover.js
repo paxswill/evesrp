@@ -433,10 +433,16 @@ if ($('div#request-list').length) {
       var columns = get_columns(rows);
       var oldRows = rows.not(':first');
       if (oldRows.length != 0) {
-        clipboard_client.unclip(oldRows.find('button.copy-btn'));
-        oldRows.find('button.copy-btn').each(function(i, element) {
-          $(element).tooltip('destroy');
-        });
+        /* Remove the tooltips and unattach the clipboard client from any
+         * buttons
+         * */
+        old_copy_buttons = oldRows.find('.copy-btn');
+        if (old_copy_buttons.length != 0) {
+          clipboard_client.unclip(old_copy_buttons);
+          old_copy_buttons.each(function (i, element) {
+            $(element).tooltip('destroy');
+          });
+        }
         oldRows.remove();
       }
       /* Rebuild the table */
