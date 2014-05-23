@@ -51,8 +51,10 @@ def create_app(**kwargs):
     # is the template function.
     app.before_request_funcs[None] = before_csrf
 
-    from .views import index, divisions, login, requests, api
+    from .views import index, error_page, divisions, login, requests, api
     app.add_url_rule(rule='/', view_func=index)
+    for error_code in (400, 403, 404, 500):
+        app.register_error_handler(error_code, error_page)
     app.register_blueprint(divisions.blueprint, url_prefix='/divisions')
     app.register_blueprint(login.blueprint)
     app.register_blueprint(requests.blueprint)

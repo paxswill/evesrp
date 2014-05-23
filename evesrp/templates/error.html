@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}{{ super() }}&mdash;{{ error.name }}{% endblock title %}
+
+{% block content %}
+<div class="jumbotron">
+  <div class="container">
+    <h1>{{ error.code }}</h1>
+    <p>{{ error.description }}</p>
+  </div>
+</div>
+{% endblock content %}
