@@ -375,9 +375,18 @@ if ($('.copy-btn').length) {
   ZeroClipboard.config({
     moviePath: $SCRIPT_ROOT + '/static/ZeroClipboard.swf'
   })
-  clipboard_client = new ZeroClipboard($('.copy-btn'));
+  /* Attach the pastboard object */
+  var clipboard_client = new ZeroClipboard($('.copy-btn'));
+  /* Initialize tooltips */
+  $('.copy-btn').tooltip({trigger: 'manual'});
   /* Add paid button events */
   $('.paid-btn').click(payoutButton);
+  clipboard_client.on('mouseover', function (ev) {
+    $(this).tooltip('show');
+  })
+  .on('mouseout', function(ev) {
+    $(this).tooltip('hide');
+  });
 }
 
 if ($('div#request-list').length) {
@@ -424,6 +433,10 @@ if ($('div#request-list').length) {
       var columns = get_columns(rows);
       var oldRows = rows.not(':first');
       if (oldRows.length != 0) {
+        clipboard_client.unclip(oldRows.find('button.copy-btn'));
+        oldRows.find('button.copy-btn').each(function(i, element) {
+          $(element).tooltip('destroy');
+        });
         oldRows.remove();
       }
       /* Rebuild the table */
@@ -456,6 +469,8 @@ if ($('div#request-list').length) {
                 if (request.status !== 'approved') {
                   content.attr('disabled', 'disabled');
                 }
+                clipboard_client.clip(content)
+                content.tooltip({trigger: 'manual focus'});
               } else if ($(header).hasClass('paid')) {
                 content = $('<form></form')
                   .attr('method', 'post')

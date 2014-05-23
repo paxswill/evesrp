@@ -16,7 +16,7 @@
 {% endblock table_headers %}
 
 {% macro clipboard_button(value) %}
-<button class="btn btn-default btn-sm copy-btn" data-clipboard-text="{{ value }}" title="Copy {{ value }}">{{ value }}</i></button>
+<button class="btn btn-default btn-sm copy-btn" data-clipboard-text="{{ value }}" data-toggle="tooltip" title="Copy {{ value }} to clipboard">{{ value }}</button>
 {% endmacro %}
 
 {% block table_row %}
