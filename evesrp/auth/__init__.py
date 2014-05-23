@@ -9,6 +9,7 @@ from flask.ext.principal import Permission, UserNeed, RoleNeed,\
         identity_loaded, identity_changed, Identity, Principal
 from flask.ext.wtf import Form
 from wtforms.fields import SubmitField, HiddenField
+from ..enum import DeclEnum, classproperty
 
 
 principal = Principal()
@@ -86,6 +87,20 @@ class AuthMethod(object):
         return lowered
 
 
+class PermissionType(DeclEnum):
+    submit = 'submit', 'Submitter'
+    review = 'review', 'Reviewer'
+    pay = 'pay', 'Payer'
+
+    @classproperty
+    def elevated(cls):
+        return frozenset((cls.review, cls.pay))
+
+    @classproperty
+    def all(cls):
+        return frozenset((cls.submit, cls.review, cls.pay))
+
+
 # Work around circular imports
 from .models import Division
 
@@ -94,9 +109,9 @@ from .models import Division
 # some unspecified (but known) length. So, we create named tuples, and then to
 # make creating them easier freeze the first argument using partial.
 ReimbursementNeed = namedtuple('ReimbursementNeed', ['method', 'division'])
-SubmitRequestsNeed = partial(ReimbursementNeed, 'submit')
-ReviewRequestsNeed = partial(ReimbursementNeed, 'review')
-PayoutRequestsNeed = partial(ReimbursementNeed, 'pay')
+SubmitRequestsNeed = partial(ReimbursementNeed, PermissionType.submit)
+ReviewRequestsNeed = partial(ReimbursementNeed, PermissionType.review)
+PayoutRequestsNeed = partial(ReimbursementNeed, PermissionType.pay)
 
 
 # Now, create Permission classes for these kinds of needs.

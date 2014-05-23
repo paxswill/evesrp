@@ -69,26 +69,26 @@
         {{ action_form.note(class="form-control") }}
         <div class="input-group-btn">
           <button type="submit" class="btn btn-default">Comment</button>
-          {% if current_user.has_permission(('review', 'pay'), srp_request.division) %}
+          {% if current_user.has_permission(PermissionType.elevated, srp_request.division) %}
           <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
             <span class="caret"></span>
             <span class="sr-only">Toggle Dropdown</span>
           </button>
           <ul class="dropdown-menu" id="request-action-type" role="menu">
             {% if srp_request.status == ActionType.evaluating %}
-            {{ '<li><a href="#" id="approved">Approve</a></li>'|safe if current_user.has_permission('review', srp_request.division) }}
-            {{ '<li><a href="#" id="incomplete">Incomplete</a></li>'|safe if current_user.has_permission('review', srp_request.division) }}
-            {{ '<li><a href="#" id="rejected">Reject</a></li>'|safe if current_user.has_permission('review', srp_request.division) }}
+            {{ '<li><a href="#" id="approved">Approve</a></li>'|safe if current_user.has_permission(PermissionType.review, srp_request.division) }}
+            {{ '<li><a href="#" id="incomplete">Incomplete</a></li>'|safe if current_user.has_permission(PermissionType.review, srp_request.division) }}
+            {{ '<li><a href="#" id="rejected">Reject</a></li>'|safe if current_user.has_permission(PermissionType.review, srp_request.division) }}
             {% elif srp_request.status == ActionType.paid %}
-            {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if current_user.has_permission('pay', srp_request.division) }}
+            {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if current_user.has_permission(PermissionType.pay, srp_request.division) }}
             {% elif srp_request.status == ActionType.approved %}
-            {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if current_user.has_permission('review', srp_request.division) }}
-            {{ '<li><a href="#" id="paid">Paid</a></li>'|safe if current_user.has_permission('pay', srp_request.division) }}
+            {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if current_user.has_permission(PermissionType.review, srp_request.division) }}
+            {{ '<li><a href="#" id="paid">Paid</a></li>'|safe if current_user.has_permission(PermissionType.pay, srp_request.division) }}
             {% elif srp_request.status == ActionType.incomplete %}
-            {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if current_user.has_permission(('review', 'submit'), srp_request.division) }}
-            {{ '<li><a href="#" id="rejected">Reject</a></li>'|safe if current_user.has_permission('review', srp_request.division) }}
+            {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if current_user.has_permission((PermissionType.review, PermissionType.submit), srp_request.division) }}
+            {{ '<li><a href="#" id="rejected">Reject</a></li>'|safe if current_user.has_permission(PermissionType.review, srp_request.division) }}
             {% elif srp_request.status == ActionType.rejected %}
-            {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if current_user.has_permission('review', srp_request.division) }}
+            {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if current_user.has_permission(PermissionType.review, srp_request.division) }}
             {% endif %}
           {% endif %}
           </ul>

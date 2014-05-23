@@ -72,10 +72,13 @@ def create_app(**kwargs):
     app.before_first_request(_config_killmails)
     app.before_first_request(_copy_url_converter_config)
 
+    from .auth import PermissionType
+
     @app.context_processor
     def inject_enums():
         return {
             'ActionType': models.ActionType,
+            'PermissionType': PermissionType,
         }
 
     return app

@@ -4,7 +4,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm.collections import attribute_mapped_collection, collection
 
 from .. import db
-from . import AuthMethod
+from . import AuthMethod, PermissionType
 from ..models import Action, Modifier, Request, AutoID, Timestamped
 
 
@@ -81,7 +81,7 @@ class Entity(db.Model, AutoID):
         :type division: :py:class:`Division`
         :rtype bool:
         """
-        if permissions in ('submit', 'review', 'pay'):
+        if permissions in PermissionType.all:
             permissions = (permissions,)
         perms = self.permissions.filter(Permission.permission.in_(permissions))
         if division is not None:
@@ -248,8 +248,7 @@ class Permission(db.Model, AutoID):
     entity = db.relationship(Entity, back_populates='entity_permissions')
 
     #: The permission being granted.
-    permission = db.Column(db.Enum('submit', 'review', 'pay',
-            name='division_permission'), nullable=False)
+    permission = db.Column(PermissionType.db_type(), nullable=False)
 
     def __init__(self, division, permission, entity):
         """Create a Permission object granting an entity access to a division.

@@ -13,9 +13,9 @@
       {% for division in divisions %}
       <tr>
         <td><a href="{{ url_for('divisions.division_detail', division_id=division.id) }}">{{ division.name }}</a></td>
-        <td><a href="{{ url_for('divisions.division_detail', division_id=division.id)}}#submit">{{ division.permissions['submit']|length }}</a></td>
-        <td><a href="{{ url_for('divisions.division_detail', division_id=division.id)}}#review">{{ division.permissions['review']|length }}</a></td>
-        <td><a href="{{ url_for('divisions.division_detail', division_id=division.id)}}#pay">{{ division.permissions['pay']|length }}</a></td>
+        <td><a href="{{ url_for('divisions.division_detail', division_id=division.id)}}#submit">{{ division.permissions[PermissionType.submit]|length }}</a></td>
+        <td><a href="{{ url_for('divisions.division_detail', division_id=division.id)}}#review">{{ division.permissions[PermissionType.review]|length }}</a></td>
+        <td><a href="{{ url_for('divisions.division_detail', division_id=division.id)}}#pay">{{ division.permissions[PermissionType.pay]|length }}</a></td>
       </tr>
       {% endfor %}
       {% endif %}

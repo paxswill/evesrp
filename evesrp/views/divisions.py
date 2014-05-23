@@ -8,7 +8,7 @@ from wtforms.validators import InputRequired, AnyOf, NumberRange
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from ..models import db
-from ..auth import admin_permission
+from ..auth import admin_permission, PermissionType
 from ..auth.models import Division, Permission, Entity
 
 
@@ -52,7 +52,7 @@ class ChangeEntity(Form):
     form_id = HiddenField(default='entity')
     id_ = HiddenField()
     name = StringField()
-    permission = HiddenField(validators=[AnyOf(('submit', 'review', 'pay'))])
+    permission = HiddenField(validators=[AnyOf(PermissionType.values())])
     action = HiddenField(validators=[AnyOf(('add', 'delete'))])
 
 
@@ -99,15 +99,16 @@ def division_detail(division_id):
                     except MultipleResultsFound:
                         flash("Multiple entities eith the name '{}' found.".
                                 format(form.name.data), category='error')
+                permission = PermissionType.from_string(form.permission.data)
                 if form.action.data == 'add':
-                    perm = Permission(division, form.permission.data, entity)
-                    db.session.add(perm)
-                    flash("Added '{}'.".format(entity))
+                    db.session.add(Permission(division, permission, entity))
+                    flash("'{}' is now a {}.".format(entity,
+                            permission.description.lower()), "info")
                 elif form.action.data == 'delete':
                     Permission.query.filter_by(division=division,
-                            permission=form.permission.data, entity=entity).delete()
-                    flash("Removed '{}' from '{}'.".format(form.permission.data,
-                            entity))
+                            permission=permission, entity=entity).delete()
+                    flash("'{}' is no longer a {}.".format(entity,
+                            permission.description.lower()), "info")
         elif request.form['form_id'] == 'transformer':
             form = SetTransformer()
             if form.kind.data == 'ship':

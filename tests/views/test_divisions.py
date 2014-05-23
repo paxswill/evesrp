@@ -1,5 +1,6 @@
 from ..util import TestLogin
 from evesrp import db
+from evesrp.auth import PermissionType
 from evesrp.auth.models import User, Group, Division, Permission
 from evesrp.transformers import ShipTransformer
 
@@ -63,7 +64,7 @@ class TestDivisionDetails(TestLogin):
         self.assertIn('Group 1', resp.get_data(as_text=True))
         with self.app.test_request_context():
             self.assertIsNotNone(Permission.query.filter_by(division_id=1,
-                    entity_id=10, permission='submit').first())
+                    entity_id=10, permission=PermissionType.submit).first())
 
     def test_add_entity_by_name(self):
         client = self.login(self.admin_name)
@@ -77,7 +78,7 @@ class TestDivisionDetails(TestLogin):
         self.assertIn('Group 1', resp.get_data(as_text=True))
         with self.app.test_request_context():
             self.assertIsNotNone(Permission.query.filter_by(division_id=1,
-                    entity_id=10, permission='submit').first())
+                    entity_id=10, permission=PermissionType.submit).first())
 
     def test_set_url_transformer(self):
         client = self.login(self.admin_name)

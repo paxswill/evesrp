@@ -1,5 +1,6 @@
 from ..util import TestApp
 from evesrp import db
+from evesrp.auth import PermissionType
 from evesrp.auth.models import Entity, User, Group, Permission, Division
 
 
@@ -68,18 +69,18 @@ class TestPermissions(TestGroups):
             odd = Division('Odd')
             prime = Division('Prime')
             db.session.add_all((even, odd, prime))
-            # Grant 'submit' for the even, odd and prime groups to the
+            # Grant submit for the even, odd and prime groups to the
             # individual users (except user 4)
-            Permission(odd, 'submit', u1)
-            Permission(even, 'submit', u2)
-            Permission(odd, 'submit', u3)
-            Permission(prime, 'submit', u2)
-            Permission(prime, 'submit', u3)
-            # Grant 'review' for odd to group 1
-            Permission(odd, 'review', g1)
-            # Grant 'pay' to user 4 for prime and to user 3 for even
-            Permission(even, 'pay', u3)
-            Permission(prime, 'pay', u4)
+            Permission(odd, PermissionType.submit, u1)
+            Permission(even, PermissionType.submit, u2)
+            Permission(odd, PermissionType.submit, u3)
+            Permission(prime, PermissionType.submit, u2)
+            Permission(prime, PermissionType.submit, u3)
+            # Grant review for odd to group 1
+            Permission(odd, PermissionType.review, g1)
+            # Grant pay to user 4 for prime and to user 3 for even
+            Permission(even, PermissionType.pay, u3)
+            Permission(prime, PermissionType.pay, u4)
             # In summary:
             # User 1 can submit to odd, and review odd (through Group 1)
             # User 2 can submit to even and prime
@@ -96,21 +97,21 @@ class TestPermissions(TestGroups):
             u3 = User.query.get(3)
             u4 = User.query.get(4)
             # Actual tests
-            self.assertTrue(u1.has_permission('submit'))
-            self.assertTrue(u1.has_permission('review'))
-            self.assertFalse(u1.has_permission('pay'))
+            self.assertTrue(u1.has_permission(PermissionType.submit))
+            self.assertTrue(u1.has_permission(PermissionType.review))
+            self.assertFalse(u1.has_permission(PermissionType.pay))
 
-            self.assertTrue(u2.has_permission('submit'))
-            self.assertFalse(u2.has_permission('review'))
-            self.assertFalse(u2.has_permission('pay'))
+            self.assertTrue(u2.has_permission(PermissionType.submit))
+            self.assertFalse(u2.has_permission(PermissionType.review))
+            self.assertFalse(u2.has_permission(PermissionType.pay))
 
-            self.assertTrue(u3.has_permission('submit'))
-            self.assertTrue(u3.has_permission('review'))
-            self.assertTrue(u3.has_permission('pay'))
+            self.assertTrue(u3.has_permission(PermissionType.submit))
+            self.assertTrue(u3.has_permission(PermissionType.review))
+            self.assertTrue(u3.has_permission(PermissionType.pay))
 
-            self.assertFalse(u4.has_permission('submit'))
-            self.assertFalse(u4.has_permission('review'))
-            self.assertTrue(u4.has_permission('pay'))
+            self.assertFalse(u4.has_permission(PermissionType.submit))
+            self.assertFalse(u4.has_permission(PermissionType.review))
+            self.assertTrue(u4.has_permission(PermissionType.pay))
 
     def test_has_permission_in_division(self):
         with self.app.test_request_context():
@@ -125,22 +126,22 @@ class TestPermissions(TestGroups):
             # Tests
             users = (u1, u2, u3, u4)
             divisions = (odd, even, prime)
-            permissions = ('submit', 'review', 'pay')
+            permissions = PermissionType.all
             passing = {
                 u1: {
-                    odd: ('submit', 'review'),
+                    odd: (PermissionType.submit, PermissionType.review),
                 },
                 u2: {
-                    even: ('submit',),
-                    prime: ('submit',),
+                    even: (PermissionType.submit,),
+                    prime: (PermissionType.submit,),
                 },
                 u3: {
-                    odd: ('submit', 'review'),
-                    even: ('pay',),
-                    prime: ('submit',),
+                    odd: (PermissionType.submit, PermissionType.review),
+                    even: (PermissionType.pay,),
+                    prime: (PermissionType.submit,),
                 },
                 u4: {
-                    prime: ('pay',),
+                    prime: (PermissionType.pay,),
                 },
             }
             for user in users:
@@ -179,14 +180,14 @@ class TestPermissions(TestGroups):
             even = Division.query.filter_by(name='Even').one().permissions
             prime = Division.query.filter_by(name='Prime').one().permissions
             # Tests
-            self.assertEqual(len(odd['submit']), 2)
-            self.assertEqual(len(odd['review']), 1)
-            self.assertEqual(len(odd['pay']), 0)
+            self.assertEqual(len(odd[PermissionType.submit]), 2)
+            self.assertEqual(len(odd[PermissionType.review]), 1)
+            self.assertEqual(len(odd[PermissionType.pay]), 0)
 
-            self.assertEqual(len(even['submit']), 1)
-            self.assertEqual(len(even['review']), 0)
-            self.assertEqual(len(even['pay']), 1)
+            self.assertEqual(len(even[PermissionType.submit]), 1)
+            self.assertEqual(len(even[PermissionType.review]), 0)
+            self.assertEqual(len(even[PermissionType.pay]), 1)
 
-            self.assertEqual(len(prime['submit']), 2)
-            self.assertEqual(len(prime['review']), 0)
-            self.assertEqual(len(prime['pay']), 1)
+            self.assertEqual(len(prime[PermissionType.submit]), 2)
+            self.assertEqual(len(prime[PermissionType.review]), 0)
+            self.assertEqual(len(prime[PermissionType.pay]), 1)

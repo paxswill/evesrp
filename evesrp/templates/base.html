@@ -37,13 +37,13 @@
           <ul class="nav navbar-nav">
             {% block navitems %}
             {% if current_user.is_authenticated() -%}
-            {% if current_user.has_permission('review') -%}
+            {% if current_user.has_permission(PermissionType.review) -%}
             {{ macros.navbar_button('Pending', 'requests.list_pending_requests') }}
             {%- endif %}
-            {% if current_user.has_permission('pay') -%}
+            {% if current_user.has_permission(PermissionType.pay) -%}
             {{ macros.navbar_button('Pay Outs', 'requests.list_approved_requests') }}
             {%- endif %}
-            {% if current_user.has_permission('pay') or current_user.has_permission('review') -%}
+            {% if current_user.has_permission(PermissionType.pay) or current_user.has_permission(PermissionType.review) -%}
             {{ macros.navbar_button('Completed', 'requests.list_completed_requests') }}
             {%- endif %}
             {%- endif %}
@@ -54,7 +54,7 @@
             {% if current_user.is_anonymous() -%}
             {{ macros.navbar_button('Log In', 'login.login') }}
             {%- else -%}
-            {% if current_user.has_permission('submit') %}
+            {% if current_user.has_permission(PermissionType.submit) %}
             {{ macros.navbar_button('Submit', 'requests.submit_request') }}
             {% endif %}
             {{ macros.navbar_button('Personal', 'requests.personal_requests') }}

@@ -4,7 +4,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from .. import ships, systems, db
 from ..models import Request, ActionType
-from ..auth import admin_permission
+from ..auth import admin_permission, PermissionType
 from ..auth.models import Division, User, Group, Pilot
 from .requests import PermissionRequestListing, PersonalRequests
 
@@ -55,11 +55,14 @@ def user_detail(user_id):
     user = User.query.get_or_404(user_id)
     # Set up divisions
     submit = map(lambda p: p.division,
-            filter(lambda p: p.permission == 'submit', user.permissions))
+            filter(lambda p: p.permission == PermissionType.submit,
+                user.permissions))
     review = map(lambda p: p.division,
-            filter(lambda p: p.permission == 'review', user.permissions))
+            filter(lambda p: p.permission == PermissionType.review,
+                user.permissions))
     pay = map(lambda p: p.division,
-            filter(lambda p: p.permission == 'pay', user.permissions))
+            filter(lambda p: p.permission == PermissionType.pay,
+                user.permissions))
     resp = {
         'name': user.name,
         'groups': list(user.groups),
@@ -78,11 +81,14 @@ def user_detail(user_id):
 def group_detail(group_id):
     group = Group.query.get_or_404(group_id)
     submit = map(lambda p: p.division,
-            filter(lambda p: p.permission == 'submit', group.permissions))
+            filter(lambda p: p.permission == PermissionType.submit,
+                group.permissions))
     review = map(lambda p: p.division,
-            filter(lambda p: p.permission == 'review', group.permissions))
+            filter(lambda p: p.permission == PermissionType.review,
+                group.permissions))
     pay = map(lambda p: p.division,
-            filter(lambda p: p.permission == 'pay', group.permissions))
+            filter(lambda p: p.permission == PermissionType.pay,
+                group.permissions))
     resp = {
         'name': group.name,
         'users': list(group.users),
@@ -140,7 +146,7 @@ def division_detail(division_id):
             'requests': division.requests,
     }
     permissions = {}
-    for perm in ('submit', 'review', 'pay'):
+    for perm in PermissionType.all:
         permission = division.permissions[perm]
         permissions[perm] = {
                 'users': permission.individuals,
@@ -227,14 +233,14 @@ class APIPersonalRequests(FiltersRequestListing, PersonalRequests): pass
 def register_request_lists(state):
     # Create the views
     all_requests = APIRequestListing.as_view('filter_requests_all',
-            ('submit', 'review', 'pay'), ActionType.statuses)
+            PermissionType.all, ActionType.statuses)
     user_requests = APIPersonalRequests.as_view('filter_requests_own')
     pending_requests = APIRequestListing.as_view('filter_requests_pending',
-            ('review',), ActionType.pending)
+            (PermissionType.review,), ActionType.pending)
     pay_requests = APIRequestListing.as_view('filter_requests_pay',
-            ('pay',), (ActionType.approved,))
+            (PermissionType.pay,), (ActionType.approved,))
     completed_requests = APIRequestListing.as_view('filter_requests_completed',
-            ('review', 'pay'), ActionType.finalized)
+            PermissionType.elevated, ActionType.finalized)
     # Attach the views to paths
     for prefix in state.app.request_prefixes:
         state.add_url_rule(prefix + '/', view_func=all_requests)

@@ -2,16 +2,10 @@
 {% import "macros.html" as macros with context %}
 
 {% block content %}
-{% for permission in ('submit', 'review', 'pay') %}
+{% for permission in (PermissionType.submit, PermissionType.review, PermissionType.pay) %}
 <div class="row" id="{{ permission }}">
   <div class="col-md-12">
-    {% if permission == 'submit' %}
-    <h2>Submitters</h2>
-    {% elif permission == 'review' %}
-    <h2>Reviewers</h2>
-    {% elif permission == 'pay' %}
-    <h2>Payers</h2>
-    {% endif %}
+    <h2>{{ permission }}s</h2>
   </div>
   <div class="col-md-8">
     <table class="table table-condensed">
@@ -34,7 +28,7 @@
           <form method="post">
             {{ entity_form.csrf_token() }}
             {{ entity_form.id_(value=entity.id) }}
-            {{ entity_form.permission(value=permission) }}
+            {{ entity_form.permission(value=permission.value) }}
             {{ entity_form.action(value='delete') }}
             {{ entity_form.form_id }}
             <button class="close" type="submit">&times;</button>
@@ -47,9 +41,9 @@
   <div class="col-md-4">
     <form class="form-horizontal" role="form" method="post" autocomplete="off">
       <div class="form-group">
-        <label class="col-md-2 control-label" for="add-{{ permission }}-name">Name</label>
+        <label class="col-md-2 control-label" for="add-{{ permission.value }}-name">Name</label>
         <div class="col-md-10">
-          <input type="text" class="form-control entity-typeahead typeahead" id="add-{{ permission }}-name" name="name" autocomplete="off" placeholder="Name">
+          <input type="text" class="form-control entity-typeahead typeahead" id="add-{{ permission.value }}-name" name="name" autocomplete="off" placeholder="Name">
         </div>
       </div>
       <div class="form-group">
@@ -59,7 +53,7 @@
       </div>
       {{ entity_form.csrf_token() }}
       {{ entity_form.action(value="add") }}
-      {{ entity_form.permission(value=permission) }}
+      {{ entity_form.permission(value=permission.name) }}
       {{ entity_form.id_() }}
       {{ entity_form.form_id }}
     </form>

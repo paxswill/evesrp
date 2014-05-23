@@ -15,7 +15,7 @@ from wtforms.validators import InputRequired, AnyOf, URL, ValidationError,\
 from .. import db
 from ..models import Request, Modifier, Action, ActionType
 from ..auth import SubmitRequestsPermission, ReviewRequestsPermission, \
-        PayoutRequestsPermission, admin_permission
+        PayoutRequestsPermission, admin_permission, PermissionType
 from ..auth.models import Division, Pilot, Permission, User, Group, Note
 
 
@@ -133,7 +133,8 @@ class PayoutListing(PermissionRequestListing):
 
     def __init__(self):
         # Just a special case of PermissionRequestListing
-        super(PayoutListing, self).__init__(('pay',), (ActionType.approved,))
+        super(PayoutListing, self).__init__((PermissionType.pay,),
+                (ActionType.approved,))
 
     def dispatch_request(self, division_id=None, page=1):
         """Returns the response to requests.
@@ -186,9 +187,9 @@ def register_class_views(state):
     state.add_url_rule(payout_url_stub + '<int:page>/<int:division_id>/',
             view_func=payout_view)
     register_perm_request_listing(state, 'list_pending_requests',
-            '/pending/', ('review',), ActionType.pending)
+            '/pending/', (PermissionType.review,), ActionType.pending)
     register_perm_request_listing(state, 'list_completed_requests',
-            '/completed/', ('review', 'pay'), ActionType.finalized)
+            '/completed/', PermissionType.elevated, ActionType.finalized)
 
 
 class ValidKillmail(URL):
@@ -258,7 +259,7 @@ def submit_divisions(user):
     :rtype: list
     """
     submit_perms = user.permissions\
-            .filter_by(permission='submit')\
+            .filter_by(permission=PermissionType.submit)\
             .subquery()
     divisions = db.session.query(Division).join(submit_perms)\
             .order_by(Division.name)
@@ -280,7 +281,7 @@ def submit_request():
     valid. Also enforces that the user submitting this requests controls the
     character from the killmail and prevents duplicate requests.
     """
-    if not current_user.has_permission('submit'):
+    if not current_user.has_permission(PermissionType.submit):
         abort(403)
     form = RequestForm()
     # Create a list of divisions this user can submit to
@@ -572,7 +573,7 @@ def request_change_division(request_id):
         db.session.commit()
         flash('Request #{} moved to {} division'.format(srp_request.id,
                 new_division.name), 'success')
-        if current_user.has_permission(('review', 'pay'), new_division) or\
+        if current_user.has_permission(PermissionType.elevated, new_division) or\
                 current_user == srp_request.submitter:
             return redirect(url_for('.request_detail', request_id=request_id))
         else:
@@ -584,7 +585,7 @@ def request_change_division(request_id):
 @blueprint.route('/notes/<int:user_id>/', methods=['GET', 'POST'])
 @login_required
 def user_notes(user_id):
-    if not current_user.has_permission(('review', 'pay')):
+    if not current_user.has_permission(PermissionType.elevated):
         abort(403)
     user = User.query.get_or_404(user_id)
     return render_template('notes.html', user=user)
@@ -607,7 +608,7 @@ killmail_re = re.compile(r'#(\d+)')
 @blueprint.route('/notes/<int:user_id>/add/', methods=['GET', 'POST'])
 @login_required
 def add_user_note(user_id):
-    if not current_user.has_permission(('review', 'pay')):
+    if not current_user.has_permission(PermissionType.elevated):
         abort(403)
     user = User.query.get_or_404(user_id)
     form = AddNote()

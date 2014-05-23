@@ -2,6 +2,7 @@ import re
 from ..util import TestLogin
 from evesrp import db
 from evesrp.models import Request, Action, Modifier
+from evesrp.auth import PermissionType
 from evesrp.auth.models import User, Pilot, Division, Permission
 from evesrp import views
 from wtforms.validators import StopValidation, ValidationError
@@ -36,13 +37,13 @@ class TestSubmitRequest(TestLogin):
             # D4: review, pay
             # D5: pay
             # D6: none
-            db.session.add(Permission(d1, 'submit', user))
-            db.session.add(Permission(d1, 'review', user))
-            db.session.add(Permission(d2, 'review', user))
-            db.session.add(Permission(d3, 'submit', user))
-            db.session.add(Permission(d4, 'review', user))
-            db.session.add(Permission(d4, 'pay', user))
-            db.session.add(Permission(d5, 'pay', user))
+            db.session.add(Permission(d1, PermissionType.submit, user))
+            db.session.add(Permission(d1, PermissionType.review, user))
+            db.session.add(Permission(d2, PermissionType.review, user))
+            db.session.add(Permission(d3, PermissionType.submit, user))
+            db.session.add(Permission(d4, PermissionType.review, user))
+            db.session.add(Permission(d4, PermissionType.pay, user))
+            db.session.add(Permission(d5, PermissionType.pay, user))
             db.session.commit()
         # Python 3 and Python 2.7 have different names for the same method
         try:
