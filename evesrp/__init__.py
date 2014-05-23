@@ -61,6 +61,9 @@ def create_app(**kwargs):
     app.register_blueprint(api.api, url_prefix='/api')
     app.register_blueprint(api.filters, url_prefix='/api/filter')
 
+    from .views import request_count
+    app.add_template_global(request_count)
+
     from .json import SRPEncoder
     app.json_encoder=SRPEncoder
 

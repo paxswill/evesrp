@@ -50,10 +50,12 @@
 </form>
 {%- endmacro %}
 
-{% macro navbar_button(text, view=None) %}
+{% macro navbar_button(text, view=None, count=None) %}
 {% if view %}
 {% with url = url_for(view) %}
-<li{{ ' class="active"'|safe if url == request.path }}><a href="{{ url }}">{{ text }}</a></li>
+<li{{ ' class="active"'|safe if url == request.path }}>
+<a href="{{ url }}">{{ text }}{{ (' <span class="badge">' ~ count ~ '</span>')|safe if count is not none and count != 0 }}</a>
+</li>
 {% endwith %}
 {% else %}
 <li><a href="#">{{ text }}</a></li>

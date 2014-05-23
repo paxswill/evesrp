@@ -327,7 +327,7 @@ class Request(db.Model, AutoID, Timestamped):
         return db.or_(cls.status == ActionType.paid,
                 cls.status == ActionType.rejected)
 
-    def __init__(self, submitter, details, division, killmail):
+    def __init__(self, submitter, details, division, killmail, **kwargs):
         """Create a :py:class:`Request`.
 
         :param submitter: The user submitting this request
@@ -346,6 +346,7 @@ class Request(db.Model, AutoID, Timestamped):
         # of Request attributes and values for those attributes
         for attr, value in killmail:
             setattr(self, attr, value)
+        super(Request, self).__init__(**kwargs)
 
     @db.validates('base_payout')
     def validate_payout(self, attr, value):

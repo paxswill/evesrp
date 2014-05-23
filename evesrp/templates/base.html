@@ -38,10 +38,10 @@
             {% block navitems %}
             {% if current_user.is_authenticated() -%}
             {% if current_user.has_permission(PermissionType.review) -%}
-            {{ macros.navbar_button('Pending', 'requests.list_pending_requests') }}
+            {{ macros.navbar_button('Pending', 'requests.list_pending_requests', request_count(PermissionType.review)) }}
             {%- endif %}
             {% if current_user.has_permission(PermissionType.pay) -%}
-            {{ macros.navbar_button('Pay Outs', 'requests.list_approved_requests') }}
+            {{ macros.navbar_button('Pay Outs', 'requests.list_approved_requests', request_count(PermissionType.pay)) }}
             {%- endif %}
             {% if current_user.has_permission(PermissionType.pay) or current_user.has_permission(PermissionType.review) -%}
             {{ macros.navbar_button('Completed', 'requests.list_completed_requests') }}
@@ -57,7 +57,7 @@
             {% if current_user.has_permission(PermissionType.submit) %}
             {{ macros.navbar_button('Submit', 'requests.submit_request') }}
             {% endif %}
-            {{ macros.navbar_button('Personal', 'requests.personal_requests') }}
+            {{ macros.navbar_button('Personal', 'requests.personal_requests', request_count(PermissionType.submit)) }}
             {% if current_user.admin -%}
             {{ macros.navbar_button('Admin', 'divisions.list_divisions') }}
             {% endif %}
