@@ -1,6 +1,7 @@
 from unittest import TestCase
 from evesrp import create_app, db
-from evesrp.auth import AuthMethod, AuthForm, User
+from evesrp.auth import AuthMethod, AuthForm
+from evesrp.auth.models import User
 from wtforms.fields import StringField
 from sqlalchemy.orm.exc import NoResultFound
 from flask import redirect, url_for, request, render_template

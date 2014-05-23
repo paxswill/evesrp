@@ -10,9 +10,6 @@ from flask.ext.principal import Permission, UserNeed, RoleNeed,\
 from flask.ext.wtf import Form
 from wtforms.fields import SubmitField, HiddenField
 
-from ..models import db
-from ..views.login import login_manager
-
 
 principal = Principal()
 
@@ -89,17 +86,8 @@ class AuthMethod(object):
         return lowered
 
 
-# Work around some circular imports
-from .models import User, Group, Division
-
-
-@login_manager.user_loader
-def login_loader(userid):
-    """Pull a user object from the database.
-
-    This is used for loading users from existing sessions.
-    """
-    return User.query.get(int(userid))
+# Work around circular imports
+from .models import Division
 
 
 # This can be confusing, so here goes. Needs really only need to be tuples, of

@@ -3,12 +3,22 @@ from flask import render_template, url_for, abort, session, redirect, request,\
 from flask.ext.login import login_required, logout_user, LoginManager
 from flask.ext.principal import identity_changed, AnonymousIdentity
 from .. import csrf
+from ..auth.models import User
 
 
 blueprint = Blueprint('login', __name__)
 
 
 login_manager = LoginManager()
+
+
+@login_manager.user_loader
+def login_loader(userid):
+    """Pull a user object from the database.
+
+    This is used for loading users from existing sessions.
+    """
+    return User.query.get(int(userid))
 
 
 @blueprint.route('/login/', methods=['GET', 'POST'])
