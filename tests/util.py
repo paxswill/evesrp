@@ -88,3 +88,11 @@ class TestLogin(TestApp):
                 data.items()}
         client.post('/login/', follow_redirects=True, data=data)
         return client
+
+    @property
+    def normal_user(self):
+        return User.query.filter_by(name=self.normal_name).one()
+
+    @property
+    def admin_user(self):
+        return User.query.filter_by(name==self.admin_name).one()

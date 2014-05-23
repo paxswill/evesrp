@@ -28,7 +28,7 @@ class TestSubmitRequest(TestLogin):
             d4 = Division('Division 4')
             d5 = Division('Division 5')
             d6 = Division('Division 6')
-            user = User.query.filter_by(name=self.normal_name).one()
+            user = self.normal_user
             db.session.add_all((d1, d2, d3, d4, d5, d6))
             # D1: submit, review
             # D2: review
@@ -61,7 +61,7 @@ class TestSubmitRequest(TestLogin):
     def test_submit_divisions(self):
         client = self.login()
         with self.app.test_request_context():
-            user = User.query.filter_by(name=self.normal_name).one()
+            user = self.normal_user
             divisions = views.requests.submit_divisions(user)
             division_names = [d[1] for d in divisions]
             self.assertEqual(len(division_names), 2)
@@ -73,7 +73,7 @@ class TestSubmitRequest(TestLogin):
         with self.app.test_client() as c:
             c.get('/add/')
             # RequestsForm needs a list of divisions
-            user = User.query.filter_by(name=self.normal_name).one()
+            user = self.normal_user
             divisions = views.requests.submit_divisions(user)
             # Tests
             division = Division.query.filter_by(name='Division 1').one()
@@ -106,7 +106,7 @@ class TestSubmitRequest(TestLogin):
 
     def test_submit_killmail(self):
         with self.app.test_request_context():
-            user = User.query.filter_by(name=self.normal_name).one()
+            user = self.normal_user
             pilot = Pilot(user, 'Paxswill', 570140137)
             db.session.add(pilot)
             db.session.commit()
@@ -125,7 +125,7 @@ class TestSubmitRequest(TestLogin):
 
     def test_submit_non_personal_killmail(self):
         with self.app.test_request_context():
-            user = User.query.filter_by(name=self.normal_name).one()
+            user = self.normal_user
             pilot = Pilot(user, 'The Mittani', 443630591)
             db.session.add(pilot)
             db.session.commit()
