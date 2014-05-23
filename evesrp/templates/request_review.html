@@ -4,7 +4,7 @@
   <dt>Set Base Payout</dt>
   <dd>
     <form class="form" method="post">
-      <fieldset{{ ' disabled'|safe if srp_request.status != 'evaluating' }}>
+      <fieldset{{ ' disabled'|safe if srp_request.status != ActionType.evaluating }}>
         {{ payout_form.csrf_token() }}
         {{ payout_form.id_() }}
         {{ payout_form.value.label(class="sr-only") }}
@@ -22,7 +22,7 @@
 
 {% block list_modifiers %}
   <form method="post">
-    <fieldset{{ ' disabled'|safe if srp_request.status != 'evaluating' }}>
+    <fieldset{{ ' disabled'|safe if srp_request.status != ActionType.evaluating }}>
       {{ macros.render_input(modifier_form.csrf_token) }}
       {{ macros.render_input(modifier_form.id_) }}
       {{ macros.render_input(modifier_form.type_) }}
@@ -45,7 +45,7 @@
 {% endblock list_modifiers %}
 
 {% block modifier_header %}
-  {% if not modifier.voided and srp_request.status == 'evaluating' %}
+  {% if not modifier.voided and srp_request.status == ActionType.evaluating %}
   <form class="form" method="post" action="{{ url_for('requests.request_detail', request_id=srp_request.id) }}">
     {{ macros.render_input(void_form.csrf_token) }}
     {{ macros.render_input(void_form.id_) }}

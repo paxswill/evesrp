@@ -32,6 +32,6 @@
   </form>
 </td>
 <td class="col-id"><a href="{{ url_for('requests.request_detail', request_id=request.id) }}">{{ request.id }}</a></td>
-{{ request_cell('status', request.status|capitalize) }}
+{{ request_cell('status', request.status) }}
 {{ request_cell('division', request.division.name) }}
 {% endblock table_row %}

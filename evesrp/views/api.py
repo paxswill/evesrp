@@ -3,7 +3,7 @@ from flask.ext.login import login_required, current_user
 from sqlalchemy.orm.exc import NoResultFound
 
 from .. import ships, systems, db
-from ..models import db, Request
+from ..models import Request, ActionType
 from ..auth import admin_permission
 from ..auth.models import Division, User, Group, Pilot
 from .requests import PermissionRequestListing, PersonalRequests
@@ -202,7 +202,7 @@ class FiltersRequestListing(object):
                 'corporation': request.corporation,
                 'alliance': request.alliance,
                 'ship': request.ship_type,
-                'status': request.status,
+                'status': request.status.name,
                 'payout': int(payout),
                 'payout_str': str(payout),
                 'kill_timestamp': request.kill_timestamp,
@@ -227,15 +227,14 @@ class APIPersonalRequests(FiltersRequestListing, PersonalRequests): pass
 def register_request_lists(state):
     # Create the views
     all_requests = APIRequestListing.as_view('filter_requests_all',
-            ('submit', 'review', 'pay'),
-            ('evaluating', 'approved', 'paid', 'rejected', 'incomplete'))
+            ('submit', 'review', 'pay'), ActionType.statuses)
     user_requests = APIPersonalRequests.as_view('filter_requests_own')
     pending_requests = APIRequestListing.as_view('filter_requests_pending',
-            ('review',), ('evaluating', 'approved', 'incomplete'))
+            ('review',), ActionType.pending)
     pay_requests = APIRequestListing.as_view('filter_requests_pay',
-            ('pay',), ('approved',))
+            ('pay',), (ActionType.approved,))
     completed_requests = APIRequestListing.as_view('filter_requests_completed',
-            ('review', 'pay'), ('paid', 'rejected'))
+            ('review', 'pay'), ActionType.finalized)
     # Attach the views to paths
     for prefix in state.app.request_prefixes:
         state.add_url_rule(prefix + '/', view_func=all_requests)

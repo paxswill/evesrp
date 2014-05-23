@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% import "macros.html" as macros %}
+{% import "macros.html" as macros with context %}
 
 {% block content %}
 {% for permission in ('submit', 'review', 'pay') %}

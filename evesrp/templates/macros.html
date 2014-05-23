@@ -60,14 +60,14 @@
 {% endif %}
 {% endmacro %}
 
-{% macro status_color(state_string) %}
-{%- if state_string == 'evaluating' -%}
+{% macro status_color(action_type) %}
+{%- if action_type == ActionType.evaluating -%}
 warning
-{%- elif state_string == 'approved' -%}
+{%- elif action_type == ActionType.approved -%}
 info
-{%- elif state_string == 'paid' -%}
+{%- elif action_type == ActionType.paid -%}
 success
-{%- elif state_string == 'incomplete' or state_string == 'rejected' -%}
+{%- elif action_type == ActionType.incomplete or state_string == ActionType.rejected -%}
 danger
 {%- endif -%}
 {% endmacro %}

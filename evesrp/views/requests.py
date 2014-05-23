@@ -13,7 +13,7 @@ from wtforms.validators import InputRequired, AnyOf, URL, ValidationError,\
         StopValidation
 
 from .. import db
-from ..models import Request, Modifier, Action
+from ..models import Request, Modifier, Action, ActionType
 from ..auth import SubmitRequestsPermission, ReviewRequestsPermission, \
         PayoutRequestsPermission, admin_permission
 from ..auth.models import Division, Pilot, Permission, User, Group, Note
@@ -133,7 +133,7 @@ class PayoutListing(PermissionRequestListing):
 
     def __init__(self):
         # Just a special case of PermissionRequestListing
-        super(PayoutListing, self).__init__(('pay',), ('approved',))
+        super(PayoutListing, self).__init__(('pay',), (ActionType.approved,))
 
     def dispatch_request(self, division_id=None, page=1):
         """Returns the response to requests.
@@ -154,7 +154,7 @@ def register_perm_request_listing(app, endpoint, path, permissions, statuses):
     :param str path: The URL path for the view
     :param tuple permissions: Passed to
         :py:meth:`PermissionRequestListing.__init__`
-    :param callable statuses: Passed to
+    :param iterable statuses: Passed to
         :py:meth:`PermissionRequestListing.__init__`
     """
     view = PermissionRequestListing.as_view(endpoint, permissions=permissions,
@@ -186,9 +186,9 @@ def register_class_views(state):
     state.add_url_rule(payout_url_stub + '<int:page>/<int:division_id>/',
             view_func=payout_view)
     register_perm_request_listing(state, 'list_pending_requests',
-            '/pending/', ('review',), ('evaluating', 'incomplete', 'approved'))
+            '/pending/', ('review',), ActionType.pending)
     register_perm_request_listing(state, 'list_completed_requests',
-            '/completed/', ('review', 'pay'), ('rejected', 'paid'))
+            '/completed/', ('review', 'pay'), ActionType.finalized)
 
 
 class ValidKillmail(URL):
@@ -341,8 +341,8 @@ class PayoutForm(Form):
 class ActionForm(Form):
     id_ = HiddenField(default='action')
     note = TextAreaField('Note')
-    type_ = HiddenField(default='comment', validators=[AnyOf(('rejected',
-            'evaluating', 'approved', 'incomplete', 'paid', 'comment'))])
+    type_ = HiddenField(default='comment',
+            validators=[AnyOf(ActionType.values())])
 
 
 @blueprint.route('/<int:request_id>/', methods=['GET', 'POST'])
@@ -403,7 +403,7 @@ def request_detail(request_id):
         else:
             abort(400)
         if form.validate():
-            if srp_request.status == 'evaluating':
+            if srp_request.status == ActionType.evaluating:
                 if form.id_.data == 'modifier':
                     if review_perm.can():
                         mod = Modifier(srp_request, current_user, form.note.data)
@@ -440,51 +440,61 @@ def request_detail(request_id):
             if form.id_.data == 'action':
                 # For serious, look at the diagram in the documentation before
                 # tinkering around in here.
-                type_ = form.type_.data
+                type_ = ActionType.from_string(form.type_.data)
                 invalid = False
-                if srp_request.status == 'evaluating':
-                    if type_ not in ('approved', 'rejected', 'incomplete',
-                            'comment'):
+                if srp_request.status == ActionType.evaluating:
+                    if type_ not in\
+                            (ActionType.approved, ActionType.rejected,
+                             ActionType.incomplete, ActionType.comment):
                         flash("Cannot go from Evaluating to Paid", 'error')
                         invalid = True
-                    elif type_ != 'comment' and not review_perm.can():
+                    elif type_ != ActionType.comment and not review_perm.can():
                         flash("You are not a reviewer.", 'error')
                         invalid = True
-                elif srp_request.status == 'incomplete':
-                    if type_ not in ('evaluating', 'rejected', 'comment'):
+                elif srp_request.status == ActionType.incomplete:
+                    if type_ not in\
+                            (ActionType.evaluating, ActionType.rejected,
+                             ActionType.comment):
                         flash("Can only reject or re-evaluate.", 'error')
                         invalid = True
-                    elif type_ == 'evaluating' and not (review_perm.can() or
-                            srp_request.submitter == current_user):
+                    elif type_ == ActionType.evaluating\
+                            and not (review_perm.can()\
+                            or srp_request.submitter == current_user):
                         flash(("You must be a reviewer or own this request to"
                                "re-evaluate."), 'error')
                         invalid = True
-                    elif type_ == 'rejected' and not review_perm.can():
+                    elif type_ == ActionType.rejected\
+                            and not review_perm.can():
                         flash("You are not a reviewer.", 'error')
                         invalid = True
-                elif srp_request.status == 'rejected':
-                    if type_ not in ('evaluating', 'comment'):
+                elif srp_request.status == ActionType.rejected:
+                    if type_ not in\
+                            (ActionType.evaluating, ActionType.comment):
                         flash("Can only change to Evaluating.", 'error')
                         invalid = True
-                    elif type_ != 'comment' and not review_perm.can():
+                    elif type_ != ActionType.comment and not review_perm.can():
                         flash("You are not a reviewer.", 'error')
                         invalid = True
-                elif srp_request.status == 'approved':
-                    if type_ not in ('paid', 'evaluating', 'comment'):
+                elif srp_request.status == ActionType.approved:
+                    if type_ not in\
+                            (ActionType.paid, ActionType.evaluating,
+                             ActionType.comment):
                         flash("Can only set to Evaluating or Paid.", 'error')
                         invalid = True
-                    elif type_ == 'paid' and not pay_perm.can():
+                    elif type_ == ActionType.paid and not pay_perm.can():
                         flash("You are not a payer.", 'error')
                         invalid = True
-                    elif type_ == 'evaluating' and not review_perm.can():
+                    elif type_ == ActionType.evaluating\
+                            and not review_perm.can():
                         flash("You are not a reviewer.", 'error')
                         invalid = True
-                elif srp_request.status == 'paid':
-                    if type_ not in ('comment', 'approved', 'evaluating'):
+                elif srp_request.status == ActionType.paid:
+                    if type_ not in (ActionType.comment, ActionType.approved,
+                            ActionType.evaluating):
                         flash("""Can only move to Approved or Evaluating from
                                 Paid.""", 'error')
                         invalid = True
-                    elif type_ != 'comment' and not pay_perm.can():
+                    elif type_ != ActionType.comment and not pay_perm.can():
                         flash("You are not a payer.", 'error')
                         invalid = True
                 if not invalid:
@@ -527,7 +537,7 @@ def request_detail_update(request_id):
     if form.validate_on_submit():
         archive_note = 'Old Details: ' + srp_request.details
         archive_action = Action(srp_request, current_user, archive_note)
-        archive_action.type_ = 'evaluating'
+        archive_action.type_ = ActionType.evaluating
         srp_request.details = form.details.data
         db.session.commit()
         return redirect(url_for('.request_detail', request_id=request_id))
@@ -557,7 +567,7 @@ def request_change_division(request_id):
                 srp_request.division.name,
                 new_division.name)
         archive_action = Action(srp_request, current_user, archive_note)
-        archive_action.type_ = 'evaluating'
+        archive_action.type_ = ActionType.evaluating
         srp_request.division = new_division
         db.session.commit()
         flash('Request #{} moved to {} division'.format(srp_request.id,

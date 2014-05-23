@@ -27,7 +27,7 @@ csrf = CsrfProtect()
 
 # Ensure models are declared
 from . import models
-from .auth import models
+from .auth import models as auth_models
 
 
 def create_app(**kwargs):
@@ -71,6 +71,12 @@ def create_app(**kwargs):
     app.before_first_request(_config_requests_session)
     app.before_first_request(_config_killmails)
     app.before_first_request(_copy_url_converter_config)
+
+    @app.context_processor
+    def inject_enums():
+        return {
+            'ActionType': models.ActionType,
+        }
 
     return app
 

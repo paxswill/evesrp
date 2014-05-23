@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% import "macros.html" as macros %}
+{% import "macros.html" as macros with context %}
 
 {% block content %}
 <div class="row">
@@ -51,7 +51,7 @@
       <dd>{{ srp_request.ship_type }}</dd>
       {% endif %}
       <dt>Status</dt>
-      <dd><span class="label label-{{ macros.status_color(srp_request.status) }}">{{ srp_request.status|capitalize }}</span></dd>
+      <dd><span class="label label-{{ macros.status_color(srp_request.status) }}">{{ srp_request.status }}</span></dd>
       <dt>Payout</dt>
       <dd id="payout">
         <span data-toggle="tooltip" data-placement="bottom" title="Base Payout: {{ srp_request.base_payout * 1000000 }}">
@@ -75,19 +75,19 @@
             <span class="sr-only">Toggle Dropdown</span>
           </button>
           <ul class="dropdown-menu" id="request-action-type" role="menu">
-            {% if srp_request.status == 'evaluating' %}
+            {% if srp_request.status == ActionType.evaluating %}
             {{ '<li><a href="#" id="approved">Approve</a></li>'|safe if current_user.has_permission('review', srp_request.division) }}
             {{ '<li><a href="#" id="incomplete">Incomplete</a></li>'|safe if current_user.has_permission('review', srp_request.division) }}
             {{ '<li><a href="#" id="rejected">Reject</a></li>'|safe if current_user.has_permission('review', srp_request.division) }}
-            {% elif srp_request.status == 'paid' %}
+            {% elif srp_request.status == ActionType.paid %}
             {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if current_user.has_permission('pay', srp_request.division) }}
-            {% elif srp_request.status == 'approved' %}
+            {% elif srp_request.status == ActionType.approved %}
             {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if current_user.has_permission('review', srp_request.division) }}
             {{ '<li><a href="#" id="paid">Paid</a></li>'|safe if current_user.has_permission('pay', srp_request.division) }}
-            {% elif srp_request.status == 'incomplete' %}
+            {% elif srp_request.status == ActionType.incomplete %}
             {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if current_user.has_permission(('review', 'submit'), srp_request.division) }}
             {{ '<li><a href="#" id="rejected">Reject</a></li>'|safe if current_user.has_permission('review', srp_request.division) }}
-            {% elif srp_request.status == 'rejected' %}
+            {% elif srp_request.status == ActionType.rejected %}
             {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if current_user.has_permission('review', srp_request.division) }}
             {% endif %}
           {% endif %}
@@ -102,7 +102,7 @@
       {% with %}
         {% set item_class = 'text-' ~ macros.status_color(action.type_) if macros.status_color(action.type_) != '' %}
         <div class="list-group-item">
-          <h4 class="list-group-item-heading{{ ' ' ~ item_class if item_class is defined }}">{{ action.type_|capitalize if action.type_ != 'comment' }}</h4>
+          <h4 class="list-group-item-heading{{ ' ' ~ item_class if item_class is defined }}">{{ action.type_ if action.type_ != ActionType.comment }}</h4>
           <blockquote class="list-group-item-text">
             <p>{{ action.note }}</p>
             <footer>{{ action.user.name }} ({{ action.timestamp.strftime('%d %b %Y @ %H:%M:%S') }})</footer>

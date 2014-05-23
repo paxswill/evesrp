@@ -5,6 +5,7 @@ from sqlalchemy.types import DateTime
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from . import db
+from .enum import DeclEnum, classproperty
 
 
 class AutoID(object):
@@ -21,8 +22,43 @@ class Timestamped(object):
             default=dt.datetime.utcnow())
 
 
-action_type = db.Enum('evaluating', 'approved', 'paid', 'rejected',
-        'incomplete', 'comment', name='action_type')
+class ActionType(DeclEnum):
+
+    # The actual stored values are single character to make it easier on
+    # engines that don't support native enum types.
+
+    #: Status for a request being evaluated.
+    evaluating = 'evaluating', 'Evaluating'
+
+    #: Status for a request that has been evaluated and is awaitng payment.
+    approved = 'approved', 'Approved'
+
+    #: Status for a request that has been paid. This is a terminatint state.
+    paid = 'paid', 'Paid'
+
+    #: Status for a requests that has been rejected. This is a terminating
+    #: state.
+    rejected = 'rejected', 'Rejected'
+
+    #: Status for a request that is missing details and needs further action.
+    incomplete = 'incomplete', 'Incomplete'
+
+    #: A special type of :py:class:`Action` representing a comment made on the
+    #: request.
+    comment = 'comment', 'Comment'
+
+    @classproperty
+    def finalized(cls):
+        return frozenset((cls.paid, cls.rejected))
+
+    @classproperty
+    def pending(cls):
+        return frozenset((cls.evaluating, cls.approved, cls.incomplete))
+
+    @classproperty
+    def statuses(cls):
+        return frozenset((cls.evaluating, cls.approved, cls.paid, cls.rejected,
+                cls.incomplete))
 
 
 class Action(db.Model, AutoID, Timestamped):
@@ -34,10 +70,8 @@ class Action(db.Model, AutoID, Timestamped):
 
     __tablename__ = 'action'
 
-    #: The action being taken. Must be one of: ``'evaluating'``,
-    #: ``'approved'``, ``'paid'``, ``'rejected'``, ``'incomplete'``,
-    #: or ``'comment'``.
-    _type = db.Column(action_type, nullable=False)
+    #: The action be taken. See :py:class:`ActionType` for possible values.
+    _type = db.Column(ActionType.db_type(), nullable=False)
 
     #: The ID of the :py:class:`Request` this action applies to.
     request_id = db.Column(db.Integer, db.ForeignKey('request.id'))
@@ -66,7 +100,7 @@ class Action(db.Model, AutoID, Timestamped):
 
     @type_.setter
     def type_(self, type_):
-        if type_ != 'comment' and self.timestamp >=\
+        if type_ != ActionType.comment and self.timestamp >=\
                 self.request.actions[0].timestamp:
             self.request.status = type_
         self._type = type_
@@ -220,7 +254,8 @@ class Request(db.Model, AutoID, Timestamped):
     details = db.deferred(db.Column(db.Text))
 
     #: The current status of this request
-    status = db.Column(action_type, nullable=False, default='evaluating')
+    status = db.Column(ActionType.db_type(), nullable=False,
+            default=ActionType.evaluating)
 
     #: The solar system this loss occured in.
     system = db.Column(db.String(25), nullable=False, index=True)
@@ -285,11 +320,12 @@ class Request(db.Model, AutoID, Timestamped):
         """If this request is in a finalized status (``'paid'`` or
         ``'rejected'``).
         """
-        return self.status == 'paid' or self.status == 'rejected'
+        return self.status in ActionType.finalized
 
     @finalized.expression
     def finalized(cls):
-        return db.or_(cls.status == 'paid', cls.status == 'rejected')
+        return db.or_(cls.status == ActionType.paid,
+                cls.status == ActionType.rejected)
 
     def __init__(self, submitter, details, division, killmail):
         """Create a :py:class:`Request`.
