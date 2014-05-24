@@ -1,5 +1,6 @@
 import re
 import datetime as dt
+from unittest import expectedFailure
 from bs4 import BeautifulSoup
 from ..util import TestLogin
 from evesrp import db
@@ -215,3 +216,143 @@ class TestRequestList(TestLogin):
     def test_personal(self):
         self.accessible_list_checker(self.normal_name, '/personal/', 7)
         self.accessible_list_checker(self.admin_name, '/personal/', 7)
+
+
+class TestRequest(TestLogin):
+
+    def setUp(self):
+        super(TestRequest, self).setUp()
+        with self.app.test_request_context():
+            d1 = Division('Division One')
+            d2 = Division('Division Two')
+            db.session.add(d1)
+            db.session.add(d2)
+            # Yup, the Gyrobus killmail
+            mock_killmail = dict(
+                    id=12842852,
+                    ship_type='Erebus',
+                    corporation='Ever Flow',
+                    alliance='Northern Coalition.',
+                    killmail_url=('http://eve-kill.net/?a=kill_detail'
+                        '&kll_id=12842852'),
+                    base_payout=73957.9,
+                    kill_timestamp=dt.datetime(2012, 3, 25, 0, 44, 0,
+                        tzinfo=dt.timezone.utc),
+                    system='92D-OI',
+                    constellation='XHYS-O',
+                    region='Venal',
+                    pilot_id=133741,
+            )
+            Pilot(self.normal_user, 'eLusi0n', 133741)
+            Request(self.normal_user, 'Original details', d1,
+                    mock_killmail.items())
+            db.session.commit()
+        self.request_path = '/12842852/'
+
+    def _add_permission(self, user_name, permission,
+            division_name='Division One'):
+        """Helper to grant permissions to the division the request is in."""
+        with self.app.test_request_context():
+            division = Division.query.filter_by(name=division_name).one()
+            user = User.query.filter_by(name=user_name).one()
+            Permission(division, permission, user)
+            db.session.commit()
+
+    @property
+    def request(self):
+        return Request.query.get(12842852)
+
+class TestRequestAccess(TestRequest):
+
+    def test_basic_request_access(self):
+        # Grab some clients
+        # The normal user is the submitter
+        norm_client = self.login(self.normal_name)
+        admin_client = self.login(self.admin_name)
+        # Users always have access to requests they've submitted
+        resp = norm_client.get(self.request_path)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Lossmail', resp.get_data(as_text=True))
+        resp = admin_client.get(self.request_path)
+        self.assertEqual(resp.status_code, 403)
+
+    def _test_permission_access(self, user_name, permission,
+            division_name, accessible=True):
+        self._add_permission(user_name, permission, division_name)
+        # Get a client and fire off the request
+        client = self.login(user_name)
+        resp = client.get(self.request_path)
+        if accessible:
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('Lossmail', resp.get_data(as_text=True))
+        else:
+            self.assertEqual(resp.status_code, 403)
+
+    def test_review_same_division_access(self):
+        self._test_permission_access(self.admin_name, PermissionType.review,
+                'Division One')
+
+    def test_review_other_division_access(self):
+        self._test_permission_access(self.admin_name, PermissionType.review,
+                'Division Two', False)
+
+    def test_pay_same_division_access(self):
+        self._test_permission_access(self.admin_name, PermissionType.pay,
+                'Division One')
+
+    def test_pay_other_division_access(self):
+        self._test_permission_access(self.admin_name, PermissionType.pay,
+                'Division Two', False)
+
+
+class TestRequestSetPayout(TestRequest):
+
+    def _test_set_payout(self, user_name, permission, permissable=True):
+        if permission is not None:
+            self._add_permission(user_name, permission)
+        client = self.login(user_name)
+        test_payout = 42
+        with client as c:
+            resp = client.post(self.request_path, follow_redirects=True, data={
+                    'id_': 'payout',
+                    'value': test_payout})
+            self.assertEqual(resp.status_code, 200)
+            if permissable:
+                self.assertIn('{},000,000'.format(test_payout),
+                        resp.get_data(as_text=True))
+                self.assertEqual(self.request.base_payout, test_payout)
+                self.assertEqual(int(self.request.payout),
+                        test_payout * 1000000)
+            else:
+                self.assertIn('Insufficient permissions.',
+                        resp.get_data(as_text=True))
+                self.assertEqual(self.request.base_payout, 73957.9)
+
+    def test_reviewer_set_base_payout(self):
+        self._test_set_payout(self.admin_name, PermissionType.review)
+
+    def test_payer_set_base_payout(self):
+        self._test_set_payout(self.admin_name, PermissionType.pay, False)
+
+    def test_submitter_set_base_payout(self):
+        self._test_set_payout(self.normal_name, None, False)
+
+    @expectedFailure
+    def test_set_payout_invalid_request_state(self):
+        statuses = (
+            ActionType.approved,
+            ActionType.paid,
+            ActionType.rejected,
+            ActionType.incomplete,
+        )
+        self._add_permission(self.normal_name, PermissionType.review)
+        client = self.login()
+        for status in statuses:
+            with self.app.test_request_context():
+                self.request.status = status
+                db.session.commit()
+            resp = client.post(self.request_path, follow_redirects=True, data={
+                    'id_': 'payout',
+                    'value': '42'})
+            self.assertIn('Cannot set the base payout when the request is not '
+                    'in the evaluating state.', resp.get_data(as_text=True))
