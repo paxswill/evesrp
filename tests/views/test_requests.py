@@ -1,7 +1,9 @@
 import re
+import datetime as dt
+from bs4 import BeautifulSoup
 from ..util import TestLogin
 from evesrp import db
-from evesrp.models import Request, Action, Modifier
+from evesrp.models import Request, Action, Modifier, ActionType
 from evesrp.auth import PermissionType
 from evesrp.auth.models import User, Pilot, Division, Permission
 from evesrp import views
@@ -143,3 +145,82 @@ class TestSubmitRequest(TestLogin):
         with self.app.test_request_context():
             request = Request.query.get(38905408)
             self.assertIsNone(request)
+
+
+class TestRequestList(TestLogin):
+
+    def setUp(self):
+        super(TestRequestList, self).setUp()
+        with self.app.test_request_context():
+            d1 = Division('Division 1')
+            d2 = Division('Division 2')
+            user1 = self.normal_user
+            user2 = self.admin_user
+            # user1 can submit to division 1, user2 to division 2
+            # user2 can review and pay out both divisions
+            Permission(d1, PermissionType.submit, user1)
+            Permission(d2, PermissionType.submit, user2)
+            for permission in PermissionType.elevated:
+                for division in (d1, d2):
+                    Permission(division, permission, user2)
+            request_data = {
+                'ship_type': 'Revenant',
+                'corporation': 'Center of Applied Studies',
+                'kill_timestamp': dt.datetime.utcnow(),
+                'system': 'Jita',
+                'constellation': 'Kimotoro',
+                'region': 'The Forge',
+                'pilot_id': 1,
+            }
+            for division, user in ((d1, user1), (d2, user2)):
+                # 2 evaluating, 1 incomplete, 2 approved, 1 rejected,
+                # and 1 paid.
+                Request(user, 'First', division, request_data.items(),
+                        killmail_url='http://paxswill.com',
+                        status=ActionType.evaluating)
+                Request(user, 'Second', division, request_data.items(),
+                        killmail_url='http://paxswill.com',
+                        status=ActionType.evaluating)
+                Request(user, 'Third', division, request_data.items(),
+                        killmail_url='http://paxswill.com',
+                        status=ActionType.incomplete)
+                Request(user, 'Fourth', division, request_data.items(),
+                        killmail_url='http://paxswill.com',
+                        status=ActionType.approved)
+                Request(user, 'Fifth', division, request_data.items(),
+                        killmail_url='http://paxswill.com',
+                        status=ActionType.approved)
+                Request(user, 'Sixth', division, request_data.items(),
+                        killmail_url='http://paxswill.com',
+                        status=ActionType.rejected)
+                Request(user, 'Sixth', division, request_data.items(),
+                        killmail_url='http://paxswill.com',
+                        status=ActionType.paid)
+            db.session.commit()
+
+    def accessible_list_checker(self, user_name, path, expected):
+        client = self.login(user_name)
+        resp = client.get(path, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+        soup = BeautifulSoup(resp.get_data())
+        request_id_cols = soup.find_all('td', class_='col-status')
+        self.assertEquals(len(request_id_cols), expected)
+
+    def elevated_list_checker(self, path, expected):
+        norm_client = self.login(self.normal_name)
+        norm_resp = norm_client.get(path, follow_redirects=True)
+        self.assertEqual(norm_resp.status_code, 403)
+        self.accessible_list_checker(self.admin_name, path, expected)
+
+    def test_pending(self):
+        self.elevated_list_checker('/pending/', 10)
+
+    def test_payout(self):
+        self.elevated_list_checker('/pay/', 4)
+
+    def test_complete(self):
+        self.elevated_list_checker('/completed/', 4)
+
+    def test_personal(self):
+        self.accessible_list_checker(self.normal_name, '/personal/', 7)
+        self.accessible_list_checker(self.admin_name, '/personal/', 7)

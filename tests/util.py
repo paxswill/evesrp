@@ -95,4 +95,4 @@ class TestLogin(TestApp):
 
     @property
     def admin_user(self):
-        return User.query.filter_by(name==self.admin_name).one()
+        return User.query.filter_by(name=self.admin_name).one()
