@@ -204,7 +204,7 @@ class TestRequestList(TestLogin):
         self.assertEqual(resp.status_code, 200)
         soup = BeautifulSoup(resp.get_data())
         request_id_cols = soup.find_all('td', class_='col-status')
-        self.assertEquals(len(request_id_cols), expected)
+        self.assertEqual(len(request_id_cols), expected)
 
     def elevated_list_checker(self, path, expected):
         norm_client = self.login(self.normal_name)
