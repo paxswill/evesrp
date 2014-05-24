@@ -10,15 +10,6 @@ from evesrp import views
 from wtforms.validators import StopValidation, ValidationError
 
 
-class TestRequest(TestLogin):
-
-    def setUp(self):
-        super(TestRequest, self).setUp()
-        with self.app.test_request_context():
-            db.session.add(Division('Test Division'))
-            db.session.commit()
-
-
 class TestSubmitRequest(TestLogin):
 
     def setUp(self):
