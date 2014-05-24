@@ -104,6 +104,13 @@ class PermissionRequestListing(RequestListing):
         self.permissions = permissions
         self.statuses = statuses
 
+    def dispatch_request(self, division_id=None, page=1):
+        if not current_user.has_permission(self.permissions):
+            abort(403)
+        else:
+            return super(PermissionRequestListing, self).dispatch_request(
+                    division_id, page)
+
     def requests(self, division_id=None):
         user_perms = db.session.query(Permission.id.label('permission_id'),
                 Permission.division_id.label('division_id'),
@@ -141,6 +148,8 @@ class PayoutListing(PermissionRequestListing):
 
         Part of the :py:class:`flask.views.View` interface.
         """
+        if not current_user.has_permission(self.permissions):
+            abort(403)
         pager = self.requests(division_id).paginate(page, per_page=20)
         return render_template(self.template, form=ActionForm(), pager=pager)
 
