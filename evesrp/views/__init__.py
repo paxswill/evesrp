@@ -1,4 +1,4 @@
-from flask import redirect, url_for, render_template
+from flask import redirect, url_for, render_template, make_response
 from flask.ext.login import login_required, current_user
 from .. import db
 from ..models import Request, ActionType
@@ -13,7 +13,8 @@ def index():
 
 
 def error_page(error):
-    return render_template('error.html', error=error)
+    return  make_response(render_template('error.html', error=error),
+            error.code)
 
 
 def request_count(permission, statuses=None):
