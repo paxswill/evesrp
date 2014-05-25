@@ -173,10 +173,11 @@ class Modifier(db.Model, AutoID, Timestamped):
                 cls.voided_timestamp != None
         )
 
-    def __init__(self, request, user, note):
+    def __init__(self, request, user, note, **kwargs):
         self.request = request
         self.user = user
         self.note = note
+        super(Modifier, self).__init__(**kwargs)
 
     def __repr__(self):
         if self.type_ == 'absolute':
