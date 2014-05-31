@@ -100,6 +100,9 @@
       </small></p>
       {% if current_user.admin %}
       <p class="text-muted text-center"><small>{{ g.DB_STATS.total_queries }} queries in {{ (g.DB_STATS.total_time * 1000)|round(3)}} ms</small></p>
+      {% with info = cache_info() %}
+      <p class="text-muted text-center"><small>Cache status: {{ info.hits }} hits, {{info.misses }} misses, {{ info.currsize }}/{{ info.maxsize }}</small></p>
+      {% endwith %}
       {% endif %}
     </footer>
     {% endblock stats %}
