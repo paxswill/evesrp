@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% import "macros.html" as macros %}
 
-{% macro request_header(attr, title, class=None) %}
+{% macro request_header(attr, title, class=None) -%}
 <th id="col-{{ attr }}"{{ (' class="' ~ class ~ '"')|safe if class }}><a href="#" class="heading">{{ title }} <i></i></a></th>
-{% endmacro %}
+{%- endmacro %}
 
-{% macro request_cell(attr, content) %}
+{% macro request_cell(attr, content) -%}
 <td class="col-{{ attr }}">{{ content }}</td>
-{% endmacro %}
+{%- endmacro %}
 
 {% block content %}
 <div class="row">
