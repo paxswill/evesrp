@@ -14,9 +14,7 @@
       <dt>Division</dt>
       <dd>
         {{ srp_request.division.name }}
-        <form method="get" action="{{ url_for('requests.request_change_division', request_id=srp_request.id) }}">
-          <button class="btn btn-default btn-xs" type="submit">Change Division</button>
-        </form>
+        <a class="btn btn-default btn-xs" href="{{ url_for('requests.request_change_division', request_id=srp_request.id) }}">Change Division</a>
       </dd>
       <dt>Details</dt>
       <dd>
@@ -24,9 +22,7 @@
           <p class="panel-body">{{ srp_request.details }}</p>
         </div>
         {% if not srp_request.finalized and srp_request.submitter == current_user %}
-        <form method="get" action="{{ url_for('requests.request_detail_update', request_id=srp_request.id) }}">
-          <button class="btn btn-default btn-sm" type="submit">Update Details</button>
-        </form>
+        <a class="btn btn-default btn-sm" href="{{ url_for('requests.request_detail_update', request_id=srp_request.id) }}">Update Details</a>
         {% endif %}
       </dd>
       <dt>Pilot</dt>
