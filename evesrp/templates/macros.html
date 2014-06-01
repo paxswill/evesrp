@@ -1,4 +1,31 @@
-{% macro render_input(field, inline=False) %}
+{% macro render_select(field) -%}
+{# Renders selects. If there's only one choice, it hides the input. #}
+{% if field.iter_choices()|list|length == 1 %}
+{{ field(style="display: none;") }}
+{% else %}
+{{ field.label }}
+{{ field(class="form-control") }}
+{% endif %}
+{%- endmacro %}
+
+{% macro render_errors(field) -%}
+{% if field.errors %}
+<i class="fa fa-times form-control-feedback"></i>
+  {% for error in field.errors %}
+    {% if error is string %}
+<span class="help-block">{{ error }}</span>
+    {% elif error is iterable %}
+<ul class="help-block">
+      {% for sub_error in error %}
+  <li>{{ sub_error }}</li>
+      {% endfor %}
+</ul>
+    {% endif %}
+  {% endfor %}
+{% endif %}
+{%- endmacro %}
+
+{% macro render_input(field, inline=False) -%}
 <div class="form-group{{ " has-error has-feedback" if field.errors }}">
   {% if inline %}
   {{ field.label(class="sr-only") }}
@@ -8,12 +35,7 @@
       {{ field(class="btn btn-default") }}
     {% else %}
       {% if field.iter_choices is defined %}
-        {% if field.iter_choices()|list|length == 1 %}
-          {{ field(style="display: none;") }}
-        {% else %}
-          {{ field.label }}
-          {{ field(class="form-control") }}
-        {% endif %}
+      {{ render_select(field) }}
       {% else %}
         {% if field.widget.input_type != 'hidden' %}
           {{ field.label }}
@@ -21,26 +43,13 @@
         {{ field(class="form-control") }}
         {% if field.description %}
           <span class="help-block">{{ field.description }}</span>
-          {% endif %}
-        {% if field.errors %}
-          <i class="fa fa-times form-control-feedback"></i>
-          {% for error in field.errors %}
-            {% if error is iterable %}
-              <ul class="help-block">
-              {% for sub_error in error %}
-              <li>{{ sub_error }}</li>
-              {% endfor %}
-              </ul>
-            {% else %}
-              <span class="help-block">{{ error }}</span>
-            {% endif %}
-          {% endfor %}
         {% endif %}
-      {% endif %}
+        {{ render_errors(field) }}
+      {%- endif %}
     {% endif %}
   {% endif %}
 </div>
-{% endmacro %}
+{%- endmacro %}
 
 {% macro render_form(form, inline=False) %}
 <form class="form" method="post">
