@@ -36,33 +36,33 @@
           {% block collapsed_navitems %}
           <ul class="nav navbar-nav">
             {% block navitems %}
-            {% if current_user.is_authenticated() -%}
-            {% if current_user.has_permission(PermissionType.review) -%}
-            {{ macros.navbar_button('Pending', 'requests.list_pending_requests', request_count(PermissionType.review)) }}
-            {%- endif %}
-            {% if current_user.has_permission(PermissionType.pay) -%}
-            {{ macros.navbar_button('Pay Outs', 'requests.list_approved_requests', request_count(PermissionType.pay)) }}
-            {%- endif %}
-            {% if current_user.has_permission(PermissionType.pay) or current_user.has_permission(PermissionType.review) -%}
-            {{ macros.navbar_button('Completed', 'requests.list_completed_requests') }}
-            {%- endif %}
-            {%- endif %}
+            {% if current_user.is_authenticated() %}
+            {% if current_user.has_permission(PermissionType.review) %}
+            {{ macros.navbar_button('Pending', 'requests.list_pending_requests', request_count(PermissionType.review))|indent(12)|safe }}
+            {% endif %}
+            {% if current_user.has_permission(PermissionType.pay) %}
+            {{ macros.navbar_button('Pay Outs', 'requests.list_approved_requests', request_count(PermissionType.pay))|indent(12)|safe }}
+            {% endif %}
+            {% if current_user.has_permission(PermissionType.pay) or current_user.has_permission(PermissionType.review) %}
+            {{ macros.navbar_button('Completed', 'requests.list_completed_requests')|indent(12)|safe }}
+            {% endif %}
+            {% endif %}
             {% endblock navitems %}
           </ul>
           <ul class="nav navbar-nav navbar-right">
             {% block navitems_right %}
-            {% if current_user.is_anonymous() -%}
-            {{ macros.navbar_button('Log In', 'login.login') }}
-            {%- else -%}
+            {% if current_user.is_anonymous() %}
+            {{ macros.navbar_button('Log In', 'login.login')|indent(12)|safe }}
+            {% else %}
             {% if current_user.has_permission(PermissionType.submit) %}
-            {{ macros.navbar_button('Submit', 'requests.submit_request') }}
+            {{ macros.navbar_button('Submit', 'requests.submit_request')|indent(12)|safe }}
             {% endif %}
-            {{ macros.navbar_button('Personal', 'requests.personal_requests', request_count(PermissionType.submit)) }}
-            {% if current_user.admin -%}
-            {{ macros.navbar_button('Admin', 'divisions.list_divisions') }}
+            {{ macros.navbar_button('Personal', 'requests.personal_requests', request_count(PermissionType.submit))|indent(12)|safe }}
+            {% if current_user.admin %}
+            {{ macros.navbar_button('Admin', 'divisions.list_divisions')|indent(12)|safe }}
             {% endif %}
-            {{ macros.navbar_button('Log Out', 'login.logout') }}
-            {%- endif %}
+            {{ macros.navbar_button('Log Out', 'login.logout')|indent(12)|safe }}
+            {% endif %}
             {% endblock navitems_right %}
           </ul>
           {% endblock collapsed_navitems %}

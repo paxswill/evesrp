@@ -1,4 +1,4 @@
-{% macro render_input(field, inline=False) -%}
+{% macro render_input(field, inline=False) %}
 <div class="form-group{{ " has-error has-feedback" if field.errors }}">
   {% if inline %}
   {{ field.label(class="sr-only") }}
@@ -15,7 +15,7 @@
           {{ field(class="form-control") }}
         {% endif %}
       {% else %}
-        {% if field.widget.input_type != 'hidden' -%}
+        {% if field.widget.input_type != 'hidden' %}
           {{ field.label }}
         {% endif %}
         {{ field(class="form-control") }}
@@ -40,21 +40,21 @@
     {% endif %}
   {% endif %}
 </div>
-{%- endmacro %}
+{% endmacro %}
 
-{% macro render_form(form, inline=False) -%}
+{% macro render_form(form, inline=False) %}
 <form class="form" method="post">
-  {% for field in form -%}
+  {% for field in form %}
   {{ render_input(field, inline) }}
-  {%- endfor %}
+  {% endfor %}
 </form>
-{%- endmacro %}
+{% endmacro %}
 
 {% macro navbar_button(text, view=None, count=None) %}
 {% if view %}
 {% with url = url_for(view) %}
 <li{{ ' class="active"'|safe if url == request.path }}>
-<a href="{{ url }}">{{ text }}{{ (' <span class="badge">' ~ count ~ '</span>')|safe if count is not none and count != 0 }}</a>
+  <a href="{{ url }}">{{ text }}{{ (' <span class="badge">' ~ count ~ '</span>')|safe if count is not none and count != 0 }}</a>
 </li>
 {% endwith %}
 {% else %}
@@ -63,13 +63,13 @@
 {% endmacro %}
 
 {% macro status_color(action_type) %}
-{%- if action_type == ActionType.evaluating -%}
+{% if action_type == ActionType.evaluating %}
 warning
-{%- elif action_type == ActionType.approved -%}
+{% elif action_type == ActionType.approved %}
 info
-{%- elif action_type == ActionType.paid -%}
+{% elif action_type == ActionType.paid %}
 success
-{%- elif action_type == ActionType.incomplete or state_string == ActionType.rejected -%}
+{% elif action_type == ActionType.incomplete or state_string == ActionType.rejected %}
 danger
-{%- endif -%}
+{% endif %}
 {% endmacro %}

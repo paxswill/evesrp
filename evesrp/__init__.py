@@ -75,14 +75,18 @@ def create_app(**kwargs):
     app.before_first_request(_config_killmails)
     app.before_first_request(_copy_url_converter_config)
 
+    # Configure the Jinja context
+    # Inject variables into the context
     from .auth import PermissionType
-
     @app.context_processor
     def inject_enums():
         return {
             'ActionType': models.ActionType,
             'PermissionType': PermissionType,
         }
+    # Auto-trim whitespace
+    app.jinja_env.trim_blocks = True
+    app.jinja_env.lstrip_blocks = True
 
     return app
 
