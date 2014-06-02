@@ -325,6 +325,9 @@ class CRESTMail(Killmail, RequestsSessionMixin, LocationMixin):
             self.url = urlunparse(parsed)
         # Check if it's a valid CREST URL
         resp = self.requests_session.get(self.url)
+        if resp.status_code != 200:
+            raise LookupError("Error retrieving CREST killmail: {}".format(
+                resp.json()['message']))
         try:
             json = resp.json()
         except ValueError as e:
