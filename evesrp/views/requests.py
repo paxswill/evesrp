@@ -368,35 +368,6 @@ def request_detail(request_id):
 
     :param int request_id: the ID of the request
 
-    .. digraph:: request_workflow
-
-        rankdir="LR";
-
-        sub [label="submitted", shape=plaintext];
-
-        node [style="dashed, filled"];
-
-        eval [label="evaluating", fillcolor="#fcf8e3"];
-        rej [label="rejected", style="solid, filled", fillcolor="#f2dede"];
-        app [label="approved", fillcolor="#d9edf7"];
-        inc [label="incomplete", fillcolor="#f2dede"];
-        paid [label="paid", style="solid, filled", fillcolor="#dff0d8"];
-
-        sub -> eval;
-        eval -> rej [label="R"];
-        eval -> app [label="R"];
-        eval -> inc [label="R"];
-        rej -> eval [label="R"];
-        inc -> eval [label="R, S"];
-        inc -> rej [label="R"];
-        app -> paid [label="P"];
-        app -> eval [label="R"];
-        paid -> eval [label="P"];
-        paid -> app [label="P"];
-
-    R means a reviewer can make that change, S means the submitter can make
-    that change, and P means payers can make that change. Solid borders are
-    terminal states.
     """
     srp_request = Request.query.get_or_404(request_id)
     review_perm = ReviewRequestsPermission(srp_request)

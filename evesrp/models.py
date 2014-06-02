@@ -61,6 +61,11 @@ class ActionType(DeclEnum):
                 cls.incomplete))
 
 
+class ActionError(ValueError):
+    """Error raised for invalid state changes for a :py:class:`Request`."""
+    pass
+
+
 class Action(db.Model, AutoID, Timestamped):
     """Actions change the state of a Request.
     
@@ -71,7 +76,7 @@ class Action(db.Model, AutoID, Timestamped):
     __tablename__ = 'action'
 
     #: The action be taken. See :py:class:`ActionType` for possible values.
-    _type = db.Column(ActionType.db_type(), nullable=False)
+    type_ = db.Column(ActionType.db_type(), nullable=False)
 
     #: The ID of the :py:class:`Request` this action applies to.
     request_id = db.Column(db.Integer, db.ForeignKey('request.id'))
@@ -88,22 +93,21 @@ class Action(db.Model, AutoID, Timestamped):
     #: Any additional notes for this action.
     note = db.Column(db.Text)
 
-    def __init__(self, request, user, note):
+    def __init__(self, request, user, note=None, type_=None):
+        if type_ is not None:
+            self.type_ = type_
         self.request = request
         self.user = user
         self.note = note
         self.timestamp = dt.datetime.utcnow()
 
-    @property
-    def type_(self):
-        return self._type
-
-    @type_.setter
-    def type_(self, type_):
-        if type_ != ActionType.comment and self.timestamp >=\
-                self.request.actions[0].timestamp:
-            self.request.status = type_
-        self._type = type_
+    @db.validates('type_')
+    def set_request_type(self, attr, type_):
+        if self.request is not None:
+            if type_ != ActionType.comment and self.timestamp >=\
+                    self.request.actions[0].timestamp:
+                self.request.status = type_
+        return type_
 
     def __repr__(self):
         return "{x.__class__.__name__}({x.request}, {x.user}, {x.type_})".\
@@ -212,7 +216,7 @@ class Request(db.Model, AutoID, Timestamped):
     division_id = db.Column(db.Integer, db.ForeignKey('division.id'),
             nullable=False)
 
-    #: The :py:class`~.Division` this request was submitted to.
+    #: The :py:class:`~.Division` this request was submitted to.
     division = db.relationship('Division', back_populates='requests')
 
     #: A list of :py:class:`Action`\s that have been applied to this request,
@@ -353,6 +357,77 @@ class Request(db.Model, AutoID, Timestamped):
     def validate_payout(self, attr, value):
         """Ensures that base_payout is positive. The value is clamped to 0."""
         return value if value >= 0 else 0
+
+    @db.validates('status')
+    def validate_status(self, attr, new_status):
+        """Enforces that status changes follow the status state diagram below.
+        When an invalid change is attempted, :py:class:`ActionError` is
+        raised.
+
+        .. digraph:: request_workflow
+
+            rankdir="LR";
+
+            sub [label="submitted", shape=plaintext];
+
+            node [style="dashed, filled"];
+
+            eval [label="evaluating", fillcolor="#fcf8e3"];
+            rej [label="rejected", style="solid, filled", fillcolor="#f2dede"];
+            app [label="approved", fillcolor="#d9edf7"];
+            inc [label="incomplete", fillcolor="#f2dede"];
+            paid [label="paid", style="solid, filled", fillcolor="#dff0d8"];
+
+            sub -> eval;
+            eval -> rej [label="R"];
+            eval -> app [label="R"];
+            eval -> inc [label="R"];
+            rej -> eval [label="R"];
+            inc -> eval [label="R, S"];
+            inc -> rej [label="R"];
+            app -> paid [label="P"];
+            app -> eval [label="R"];
+            paid -> eval [label="P"];
+            paid -> app [label="P"];
+
+        R means a reviewer can make that change, S means the submitter can make
+        that change, and P means payers can make that change. Solid borders are
+        terminal states.
+        """
+
+        def check_status(*valid_states):
+            if new_status not in valid_states:
+                raise ActionError("{} is not a valid status to change "
+                        "to from {} (valid options: {})".format(new_status,
+                                self.status, valid_states))
+
+        if self.status == ActionType.comment:
+            raise ValueError("ActionType.comment is not a valid status")
+        elif self.status == ActionType.evaluating:
+            check_status(ActionType.incomplete, ActionType.rejected,
+                         ActionType.approved)
+        elif self.status == ActionType.incomplete:
+            check_status(ActionType.rejected, ActionType.evaluating)
+        elif self.status == ActionType.rejected:
+            check_status(ActionType.evaluating)
+        elif self.status == ActionType.approved:
+            check_status(ActionType.evaluating, ActionType.paid)
+        elif self.status == ActionType.paid:
+            check_status(ActionType.approved, ActionType.evaluating)
+        return new_status
+
+    @db.validates('actions')
+    def update_status_from_action(self, attr, action):
+        """Updates :py:attr:`status` whenever a new :py:class:`~.Action`
+        is added.
+        """
+        if action.type_ is None:
+            # Action.type_ are not nullable, so rely on the fact that it will
+            # be set later to let it slide now.
+            return action
+        elif action.type_ != ActionType.comment:
+            self.status = action.type_
+        return action
 
     def __repr__(self):
         return "{x.__class__.__name__}({x.submitter}, {x.division}, {x.id})".\
