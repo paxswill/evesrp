@@ -1,10 +1,7 @@
 from unittest import TestCase
+from httmock import HTTMock, all_requests
 from evesrp import killmail
-try:
-    from unittest.mock import patch, MagicMock
-except ImportError:
-    from mock import patch, MagicMock
-
+from .util import all_mocks, response
 
 
 class TestKillmail(TestCase):
@@ -78,77 +75,12 @@ class TestRequestsMixin(TestCase):
         self.assertIs(km.requests_session, session)
 
 
-class TestRemoteKillmail(TestCase):
-
-    @staticmethod
-    def _configure_mock_session(mock_session, resp):
-        mock_response = MagicMock()
-        mock_response.json.return_value = resp
-        session_instance = mock_session.return_value
-        session_instance.get.return_value = mock_response
-        return session_instance
-
-class TestZKillmail(TestRemoteKillmail):
-
-    paxswill_resp = [{
-        'killID': '37637533',
-        'solarSystemID': '30001228',
-        'killTime': '2014-03-20 02:32:00',
-        'moonID': '0',
-        'victim': {
-            'shipTypeID': '12017',
-            'damageTaken': '25198',
-            'factionName': 'Caldari State',
-            'factionID': '500001',
-            'allianceName': 'Test Alliance Please Ignore',
-            'allianceID': '498125261',
-            'corporationName': 'Dreddit',
-            'corporationID': '1018389948',
-            'characterName': 'Paxswill',
-            'characterID': '570140137',
-            'victim': '',
-        },
-        'zkb': {
-            'totalValue': '273816945.63',
-            'points': '22',
-            'involved': 42,
-        }
-    }]
-
-    no_alliance_resp = [{
-        'killID': '38862043',
-        'solarSystemID': '30002811',
-        'killTime': '2014-05-15 03:11:00',
-        'moonID': '0',
-        'victim': {
-            'shipTypeID': '598',
-            'damageTaken': '1507',
-            'factionName': '',
-            'factionID': '0',
-            'allianceName': '',
-            'allianceID': '0',
-            'corporationName': 'Omega LLC',
-            'corporationID': '98070272',
-            'characterName': 'Dave Duclas',
-            'characterID': '90741463',
-            'victim': '',
-        },
-        'zkb': {
-            'totalValue': '10432408.70',
-            'points': '8',
-            'involved': 1,
-        }
-    }]
-
+class TestZKillmail(TestCase):
 
     def test_fw_killmail(self):
-        with patch('requests.Session') as mock_session:
-            session = self._configure_mock_session(mock_session,
-                    self.paxswill_resp)
+        with HTTMock(*all_mocks):
             # Actual testing
             km = killmail.ZKillmail('https://zkillboard.com/kill/37637533/')
-            session.get.assert_called_with(
-                    'https://zkillboard.com/api/killID/37637533')
             expected_values = {
                 'pilot': 'Paxswill',
                 'ship': 'Devoter',
@@ -162,13 +94,9 @@ class TestZKillmail(TestRemoteKillmail):
                         msg='{} is not {}'.format(attr, value))
 
     def test_no_alliance_killmail(self):
-        with patch('requests.Session') as mock_session:
-            session = self._configure_mock_session(mock_session,
-                    self.no_alliance_resp)
+        with HTTMock(*all_mocks):
             # Actual testing
             km = killmail.ZKillmail('https://zkillboard.com/kill/38862043/')
-            session.get.assert_called_with(
-                    'https://zkillboard.com/api/killID/38862043')
             expected_values = {
                 'pilot': 'Dave Duclas',
                 'ship': 'Breacher',
@@ -187,66 +115,34 @@ class TestZKillmail(TestRemoteKillmail):
             killmail.ZKillmail('foobar')
 
     def test_invalid_zkb_response(self):
-        with patch('requests.Session') as session_class:
-            session = session_class.return_value
-            response = MagicMock()
-            session.get.return_value = response
-            response.json.side_effect = ValueError()
-            response.status_code.return_value = 418
+        @all_requests
+        def bad_response(url, request):
+            return response(status_code=403, content='')
+
+        with HTTMock(bad_response):
             url = 'https://zkillboard.com/kill/38862043/'
             with self.assertRaisesRegexp(LookupError,
                     "Error retrieving killmail data:.*"):
                 killmail.ZKillmail(url)
 
     def test_invalid_kill_ids(self):
-        with patch('requests.Session') as session_class:
-            session = session_class.return_value
-            response = MagicMock()
-            session.get.return_value = response
-            response.json.return_value = []
-            response.status_code.return_value = 200
+        @all_requests
+        def empty_response(url, request):
+            return response(content='[]')
+
+        with HTTMock(empty_response):
             url = 'https://zkillboard.com/kill/0/'
             with self.assertRaisesRegexp(LookupError, "Invalid killmail: .*"):
                 killmail.ZKillmail(url)
 
 
-class TestCRESTmail(TestRemoteKillmail):
-
-    foxfour_example = {
-        'solarSystem': {
-            'id': 30002062,
-            'name': 'Todifrauan',
-        },
-        'killTime': '2013.05.05 18:09:00',
-        'victim': {
-            'alliance': {
-                'id': 434243723,
-                'name': 'C C P Alliance',
-            },
-            'character': {
-                'id': 92168909,
-                'name': 'CCP FoxFour',
-            },
-            'corporation': {
-                'id': 109299958,
-                'name': 'C C P',
-            },
-            'shipType': {
-                'id': 670,
-                'name': 'Capsule'
-            },
-        },
-    }
+class TestCRESTmail(TestCase):
 
     def test_crest_killmails(self):
-        with patch('requests.Session') as mock_session:
-            session = self._configure_mock_session(mock_session,
-                    self.foxfour_example)
-            # Actual testing
-            url = ''.join(('http://public-crest.eveonline.com/killmails/',
-                    '30290604/787fb3714062f1700560d4a83ce32c67640b1797/'))
-            km = killmail.CRESTMail(url)
-            session.get.assert_called_with(url)
+        with HTTMock(*all_mocks):
+            km = killmail.CRESTMail('http://public-crest.eveonline.com/'
+                    'killmails/30290604/'
+                    '787fb3714062f1700560d4a83ce32c67640b1797/')
             expected_values = {
                 'pilot': 'CCP FoxFour',
                 'ship': 'Capsule',
@@ -264,14 +160,17 @@ class TestCRESTmail(TestRemoteKillmail):
             killmail.CRESTMail('foobar')
 
     def test_invalid_crest_response(self):
-        with patch('requests.Session') as session_class:
-            session = session_class.return_value
-            response = MagicMock()
-            session.get.return_value = response
-            response.json.side_effect = ValueError()
-            response.status_code.return_value = 418
+        @all_requests
+        def bad_hash(url, request):
+            return response(
+                content=('{"message": "Invalid killmail ID or hash",'
+                        '"isLocalized": false, "key": "noSuchKill",'
+                        '"exceptionType": "ForbiddenError"}').encode('utf-8'),
+                status_code=403)
+
+        with HTTMock(bad_hash):
             url = ''.join(('http://public-crest.eveonline.com/killmails/',
                     '30290604/787fb3714062f1700560d4a83ce32c67640b1797/'))
             with self.assertRaisesRegexp(LookupError,
-                    "Error retrieving killmail data:.*"):
+                    "Error retrieving CREST killmail:.*"):
                 killmail.CRESTMail(url)
