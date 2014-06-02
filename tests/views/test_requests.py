@@ -1,8 +1,9 @@
 import re
 import datetime as dt
 from unittest import expectedFailure
+from httmock import HTTMock
 from bs4 import BeautifulSoup
-from ..util import TestLogin
+from ..util import TestLogin, all_mocks
 from evesrp import db
 from evesrp.models import Request, Action, Modifier, ActionType
 from evesrp.auth import PermissionType
@@ -71,16 +72,19 @@ class TestSubmitRequest(TestLogin):
             user = self.normal_user
             divisions = views.requests.submit_divisions(user)
             # Tests
+            # ZKillboard
             division = Division.query.filter_by(name='Division 1').one()
             zkb_form = views.requests.RequestForm(
-                    url='https://zkillboard.com/kill/38905408/',
+                    url='https://zkillboard.com/kill/37637533/',
                     details='Foo',
                     division=division.id,
                     submit=True)
             zkb_form.division.choices = divisions
             # Fool InputRequired
             zkb_form.details.raw_data = zkb_form.details.data
-            self.assertTrue(zkb_form.validate())
+            with HTTMock(*all_mocks):
+                self.assertTrue(zkb_form.validate())
+            # CREST
             crest_form = views.requests.RequestForm(
                     url=('http://public-crest.eveonline.com/killmails/'
                          '30290604/787fb3714062f1700560d4a83ce32c67640b1797/'),
@@ -89,7 +93,8 @@ class TestSubmitRequest(TestLogin):
                     submit=True)
             crest_form.division.choices = divisions
             crest_form.details.raw_data = crest_form.details.data
-            self.assertTrue(crest_form.validate())
+            with HTTMock(*all_mocks):
+                self.assertTrue(crest_form.validate())
             fail_form = views.requests.RequestForm(
                     url='http://google.com',
                     details='Foo',
@@ -107,15 +112,16 @@ class TestSubmitRequest(TestLogin):
             db.session.commit()
             division = Division.query.filter_by(name='Division 1').one()
         client = self.login()
-        resp = client.post('/add/', follow_redirects=True, data=dict(
-                    url='https://zkillboard.com/kill/38905408/',
-                    details='Foo',
-                    division=division.id,
-                    submit=True))
+        with HTTMock(*all_mocks):
+            resp = client.post('/add/', follow_redirects=True, data=dict(
+                        url='https://zkillboard.com/kill/37637533/',
+                        details='Foo',
+                        division=division.id,
+                        submit=True))
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('38905408', resp.get_data(as_text=True))
+        self.assertIn('37637533', resp.get_data(as_text=True))
         with self.app.test_request_context():
-            request = Request.query.get(38905408)
+            request = Request.query.get(37637533)
             self.assertIsNotNone(request)
 
     def test_submit_non_personal_killmail(self):
@@ -127,7 +133,7 @@ class TestSubmitRequest(TestLogin):
             division = Division.query.filter_by(name='Division 1').one()
         client = self.login()
         resp = client.post('/add/', follow_redirects=True, data=dict(
-                    url='https://zkillboard.com/kill/38905408/',
+                    url='https://zkillboard.com/kill/37637533/',
                     details='Foo',
                     division=division.id,
                     submit=True))
@@ -135,7 +141,7 @@ class TestSubmitRequest(TestLogin):
         self.assertIn('You can only submit killmails of characters you',
                 resp.get_data(as_text=True))
         with self.app.test_request_context():
-            request = Request.query.get(38905408)
+            request = Request.query.get(37637533)
             self.assertIsNone(request)
 
 
