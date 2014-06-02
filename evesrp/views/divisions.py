@@ -8,7 +8,8 @@ from wtforms.validators import InputRequired, AnyOf, NumberRange
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from ..models import db
-from ..auth import admin_permission, PermissionType
+from ..auth.permissions import admin_permission
+from ..auth import PermissionType
 from ..auth.models import Division, Permission, Entity
 
 

@@ -14,8 +14,9 @@ from wtforms.validators import InputRequired, AnyOf, URL, ValidationError,\
 
 from .. import db
 from ..models import Request, Modifier, Action, ActionType
-from ..auth import SubmitRequestsPermission, ReviewRequestsPermission, \
-        PayoutRequestsPermission, admin_permission, PermissionType
+from ..auth.permissions import SubmitRequestsPermission,\
+        ReviewRequestsPermission, PayoutRequestsPermission, admin_permission
+from ..auth import PermissionType
 from ..auth.models import Division, Pilot, Permission, User, Group, Note
 
 

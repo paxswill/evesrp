@@ -42,8 +42,9 @@ def create_app(**kwargs):
     from .views.login import login_manager
     login_manager.init_app(app)
 
-    from .auth import principal
+    from .auth.permissions import principal, load_user_permissions
     principal.init_app(app)
+    identity_loaded.connect(load_user_permissions, app)
 
     before_csrf = list(app.before_request_funcs[None])
     csrf.init_app(app)
@@ -66,9 +67,6 @@ def create_app(**kwargs):
 
     from .json import SRPEncoder
     app.json_encoder=SRPEncoder
-
-    from .auth import load_user_permissions
-    identity_loaded.connect(load_user_permissions, app)
 
     app.before_first_request(_copy_config_to_authmethods)
     app.before_first_request(_config_requests_session)

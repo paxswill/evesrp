@@ -4,7 +4,8 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from .. import ships, systems, db
 from ..models import Request, ActionType
-from ..auth import admin_permission, PermissionType
+from ..auth import PermissionType
+from ..auth.permissions import admin_permission
 from ..auth.models import Division, User, Group, Pilot
 from .requests import PermissionRequestListing, PersonalRequests
 
