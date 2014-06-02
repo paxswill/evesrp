@@ -254,11 +254,14 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
         api_url[2] = '/api/no-attackers/no-items/killID/{}'.format(
                 self.kill_id)
         resp = self.requests_session.get(urlunparse(api_url))
+        retrieval_error = LookupError("Error retrieving killmail data: {}"
+                    .format(resp.status_code))
+        if resp.status_code != 200:
+            raise retrieval_error
         try:
             json = resp.json()
         except ValueError as e:
-            raise LookupError("Error retrieving killmail data: {}"
-                    .format(resp.status_code)) from e
+            raise retrieval_error from e
         try:
             json = json[0]
         except IndexError as e:
