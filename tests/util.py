@@ -1,4 +1,8 @@
 from unittest import TestCase
+import json
+from urllib.parse import urlparse
+import httmock
+from httmock import urlmatch
 from evesrp import create_app, db
 from evesrp.auth import AuthMethod, AuthForm
 from evesrp.auth.models import User
@@ -96,3 +100,105 @@ class TestLogin(TestApp):
     @property
     def admin_user(self):
         return User.query.filter_by(name=self.admin_name).one()
+
+
+def response(*args, **kwargs):
+    resp = httmock.response(*args, **kwargs)
+    if isinstance(resp._content, str):
+        resp._content = resp._content.encode('utf-8')
+    return resp
+
+
+@urlmatch(path=r'/killID/((.*)/)*37637533/?')
+def paxswill_zkillboard(url, request):
+    resp = [{
+        'killID': '37637533',
+        'solarSystemID': '30001228',
+        'killTime': '2014-03-20 02:32:00',
+        'moonID': '0',
+        'victim': {
+            'shipTypeID': '12017',
+            'damageTaken': '25198',
+            'factionName': 'Caldari State',
+            'factionID': '500001',
+            'allianceName': 'Test Alliance Please Ignore',
+            'allianceID': '498125261',
+            'corporationName': 'Dreddit',
+            'corporationID': '1018389948',
+            'characterName': 'Paxswill',
+            'characterID': '570140137',
+            'victim': '',
+        },
+        'zkb': {
+            'totalValue': '273816945.63',
+            'points': '22',
+            'involved': 42,
+        }
+    }]
+    return response(content=json.dumps(resp))
+
+
+@urlmatch(path=r'/killID/((.*)/)*38862043/?')
+def no_alliance_zkillboard(url, request):
+    resp = [{
+        'killID': '38862043',
+        'solarSystemID': '30002811',
+        'killTime': '2014-05-15 03:11:00',
+        'moonID': '0',
+        'victim': {
+            'shipTypeID': '598',
+            'damageTaken': '1507',
+            'factionName': '',
+            'factionID': '0',
+            'allianceName': '',
+            'allianceID': '0',
+            'corporationName': 'Omega LLC',
+            'corporationID': '98070272',
+            'characterName': 'Dave Duclas',
+            'characterID': '90741463',
+            'victim': '',
+        },
+        'zkb': {
+            'totalValue': '10432408.70',
+            'points': '8',
+            'involved': 1,
+        }
+    }]
+    return response(content=json.dumps(resp))
+
+
+_parsed_crest_url = urlparse('http://public-crest.eveonline.com/killmails/30290604/'
+                             '787fb3714062f1700560d4a83ce32c67640b1797/')
+@urlmatch(scheme=_parsed_crest_url.scheme,
+          netloc=_parsed_crest_url.netloc,
+          path=_parsed_crest_url.path)
+def foxfour_crest(url, request):
+    resp = {
+        'solarSystem': {
+            'id': 30002062,
+            'name': 'Todifrauan',
+        },
+        'killTime': '2013.05.05 18:09:00',
+        'victim': {
+            'alliance': {
+                'id': 434243723,
+                'name': 'C C P Alliance',
+            },
+            'character': {
+                'id': 92168909,
+                'name': 'CCP FoxFour',
+            },
+            'corporation': {
+                'id': 109299958,
+                'name': 'C C P',
+            },
+            'shipType': {
+                'id': 670,
+                'name': 'Capsule'
+            },
+        },
+    }
+    return response(content=json.dumps(resp))
+
+
+all_mocks = (paxswill_zkillboard, no_alliance_zkillboard, foxfour_crest)
