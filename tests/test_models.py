@@ -2,7 +2,7 @@ import datetime as dt
 from .util import TestLogin
 from evesrp import db
 from evesrp.models import ActionType, ActionError, Action, Modifier,\
-        Request
+        Request, ModifierError
 from evesrp.auth.models import Pilot, Division
 
 
@@ -58,7 +58,22 @@ class TestModels(TestLogin):
 
     def test_add_modifier_failure(self):
         with self.app.test_request_context():
-            pass
+            self.add_action(ActionType.approved)
+            with self.assertRaises(ModifierError):
+                Modifier(self.request, self.normal_user, '', type_='absolute',
+                        value=10.0)
+                db.session.commit()
+
+    def test_void_modifier_failure(self):
+        start_payout = self.test_add_modifier()
+        with self.app.test_request_context():
+            self.add_action(ActionType.approved)
+            mod = self.request.modifiers[0]
+            with self.assertRaises(ModifierError):
+                mod.void(self.normal_user)
+                db.session.commit()
+            self.assertNotEqual(float(self.request.payout), start_payout)
+
 
     def test_default_status(self):
         with self.app.test_request_context():

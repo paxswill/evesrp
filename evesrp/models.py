@@ -66,6 +66,13 @@ class ActionError(ValueError):
     pass
 
 
+class ModifierError(ValueError):
+    """Error raised when a modification is attempted to a :py:class:`Request`
+    when it's in an invalid state.
+    """
+    pass
+
+
 class Action(db.Model, AutoID, Timestamped):
     """Actions change the state of a Request.
     
@@ -197,6 +204,9 @@ class Modifier(db.Model, AutoID, Timestamped):
         :param user: The user voiding this modifier
         :type user: :py:class:`~.User`
         """
+        if self.request.status != ActionType.evaluating:
+            raise ModifierError("Modifiers can only be voided when the request"
+                                " is in the evaluating state.")
         self.voided_user = user
         self.voided_timestamp = dt.datetime.utcnow()
 
@@ -351,12 +361,27 @@ class Request(db.Model, AutoID, Timestamped):
         # of Request attributes and values for those attributes
         for attr, value in killmail:
             setattr(self, attr, value)
+        # Set default values before a flush
+        if self.base_payout is None and 'base_payout' not in kwargs:
+            self.base_payout = 0.0
         super(Request, self).__init__(**kwargs)
 
     @db.validates('base_payout')
     def validate_payout(self, attr, value):
         """Ensures that base_payout is positive. The value is clamped to 0."""
-        return value if value >= 0 else 0
+        if self.status == ActionType.evaluating or self.status is None:
+            return value if value >= 0 else 0
+        else:
+            print(self.status)
+            raise ModifierError("The request must be in the evaluating state "
+                                "to change the base payout.")
+
+    @db.validates('modifiers')
+    def validate_add_modifier(self, attr, modifier):
+        if self.status != ActionType.evaluating:
+            raise ModifierError("Modifiers can only be added when the request "
+                                "is in an evaluating state.")
+        return modifier
 
     @db.validates('status')
     def validate_status(self, attr, new_status):
