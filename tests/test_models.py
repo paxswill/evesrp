@@ -3,7 +3,8 @@ from .util import TestLogin
 from evesrp import db
 from evesrp.models import ActionType, ActionError, Action, Modifier,\
         Request, ModifierError
-from evesrp.auth.models import Pilot, Division
+from evesrp.auth import PermissionType
+from evesrp.auth.models import Pilot, Division, Permission
 
 
 class TestModels(TestLogin):
@@ -30,6 +31,8 @@ class TestModels(TestLogin):
             Pilot(self.normal_user, 'eLusi0n', 133741)
             Request(self.normal_user, 'Original details', div,
                     mock_killmail.items())
+            Permission(div, PermissionType.review, self.normal_user)
+            Permission(div, PermissionType.pay, self.normal_user)
             db.session.commit()
 
     @property

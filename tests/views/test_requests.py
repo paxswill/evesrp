@@ -330,7 +330,7 @@ class TestRequestSetPayout(TestRequest):
                 self.assertEqual(int(self.request.payout),
                         test_payout * 1000000)
             else:
-                self.assertIn('Insufficient permissions.',
+                self.assertIn('Only reviewers can change the base payout.',
                         resp.get_data(as_text=True))
                 self.assertEqual(self.request.base_payout, 73957.9)
 

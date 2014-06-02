@@ -13,7 +13,8 @@ from wtforms.validators import InputRequired, AnyOf, URL, ValidationError,\
         StopValidation
 
 from .. import db
-from ..models import Request, Modifier, Action, ActionType
+from ..models import Request, Modifier, Action, ActionType, ActionError,\
+        ModifierError
 from ..auth.permissions import SubmitRequestsPermission,\
         ReviewRequestsPermission, PayoutRequestsPermission, admin_permission
 from ..auth import PermissionType
@@ -370,137 +371,99 @@ def request_detail(request_id):
     :param int request_id: the ID of the request
 
     """
+    def render_details():
+        # Different templates are used for different roles
+        if review_perm.can():
+            template = 'request_review.html'
+        elif pay_perm.can():
+            template = 'request_detail.html'
+        elif current_user == srp_request.submitter:
+            template = 'request_detail.html'
+        else:
+            abort(403)
+        return render_template(template, srp_request=srp_request,
+                modifier_form=ModifierForm(formdata=None),
+                payout_form=PayoutForm(formdata=None),
+                action_form=ActionForm(formdata=None),
+                void_form=VoidModifierForm(formdata=None))
+
     srp_request = Request.query.get_or_404(request_id)
     review_perm = ReviewRequestsPermission(srp_request)
     pay_perm = PayoutRequestsPermission(srp_request)
     if request.method == 'POST':
+        failed = False
         if request.form['id_'] == 'modifier':
+            if not review_perm.can():
+                flash("Only reviewers can add modifiers.", 'error')
+                return render_details()
             form = ModifierForm()
         elif request.form['id_'] == 'payout':
+            if not review_perm.can():
+                flash("Only reviewers can change the base payout.", 'error')
+                return render_details()
             form = PayoutForm()
         elif request.form['id_'] == 'action':
             form = ActionForm()
         elif request.form['id_'] == 'void':
+            if not review_perm.can():
+                flash("Only reviewers can void modifiers.", 'error')
+                return render_details()
             form = VoidModifierForm()
         else:
             abort(400)
         if form.validate():
-            if srp_request.status == ActionType.evaluating:
-                if form.id_.data == 'modifier':
-                    if review_perm.can():
-                        mod = Modifier(srp_request, current_user, form.note.data)
-                        if form.type_.data == 'rel-bonus':
-                            mod.type_ = 'percentage'
-                            mod.value = form.value.data
-                        elif form.type_.data == 'rel-deduct':
-                            mod.type_ = 'percentage'
-                            mod.value = form.value.data * -1
-                        elif form.type_.data == 'abs-bonus':
-                            mod.type_ = 'absolute'
-                            mod.value = form.value.data
-                        elif form.type_.data == 'abs-deduct':
-                            mod.type_ = 'absolute'
-                            mod.value = form.value.data * -1
-                        db.session.add(mod)
-                        db.session.commit()
-                    else:
-                        flash("Insufficient permissions.", 'error')
-                elif form.id_.data == 'payout':
-                    if review_perm.can():
-                        srp_request.base_payout = form.value.data
-                        db.session.commit()
-                    else:
-                        flash("Insufficient permissions.", 'error')
-                elif form.id_.data == 'void':
-                    if review_perm.can():
-                        modifier = Modifier.query.get(
-                                int(form.modifier_id.data))
-                        modifier.void(current_user)
-                        db.session.commit()
-                    else:
-                        flash("Insufficient permissions.", 'error')
-            if form.id_.data == 'action':
-                # For serious, look at the diagram in the documentation before
-                # tinkering around in here.
-                type_ = ActionType.from_string(form.type_.data)
-                invalid = False
-                if srp_request.status == ActionType.evaluating:
-                    if type_ not in\
-                            (ActionType.approved, ActionType.rejected,
-                             ActionType.incomplete, ActionType.comment):
-                        flash("Cannot go from Evaluating to Paid", 'error')
-                        invalid = True
-                    elif type_ != ActionType.comment and not review_perm.can():
-                        flash("You are not a reviewer.", 'error')
-                        invalid = True
-                elif srp_request.status == ActionType.incomplete:
-                    if type_ not in\
-                            (ActionType.evaluating, ActionType.rejected,
-                             ActionType.comment):
-                        flash("Can only reject or re-evaluate.", 'error')
-                        invalid = True
-                    elif type_ == ActionType.evaluating\
-                            and not (review_perm.can()\
-                            or srp_request.submitter == current_user):
-                        flash(("You must be a reviewer or own this request to"
-                               "re-evaluate."), 'error')
-                        invalid = True
-                    elif type_ == ActionType.rejected\
-                            and not review_perm.can():
-                        flash("You are not a reviewer.", 'error')
-                        invalid = True
-                elif srp_request.status == ActionType.rejected:
-                    if type_ not in\
-                            (ActionType.evaluating, ActionType.comment):
-                        flash("Can only change to Evaluating.", 'error')
-                        invalid = True
-                    elif type_ != ActionType.comment and not review_perm.can():
-                        flash("You are not a reviewer.", 'error')
-                        invalid = True
-                elif srp_request.status == ActionType.approved:
-                    if type_ not in\
-                            (ActionType.paid, ActionType.evaluating,
-                             ActionType.comment):
-                        flash("Can only set to Evaluating or Paid.", 'error')
-                        invalid = True
-                    elif type_ == ActionType.paid and not pay_perm.can():
-                        flash("You are not a payer.", 'error')
-                        invalid = True
-                    elif type_ == ActionType.evaluating\
-                            and not review_perm.can():
-                        flash("You are not a reviewer.", 'error')
-                        invalid = True
-                elif srp_request.status == ActionType.paid:
-                    if type_ not in (ActionType.comment, ActionType.approved,
-                            ActionType.evaluating):
-                        flash("""Can only move to Approved or Evaluating from
-                                Paid.""", 'error')
-                        invalid = True
-                    elif type_ != ActionType.comment and not pay_perm.can():
-                        flash("You are not a payer.", 'error')
-                        invalid = True
-                if not invalid:
-                    action = Action(srp_request, current_user,
-                            form.note.data)
-                    action.type_ = type_
+            if form.id_.data == 'modifier':
+                try:
+                    mod = Modifier(srp_request, current_user, form.note.data)
+                except ModifierError as e:
+                    flash(e, 'error')
+                    return render_details()
+                if form.type_.data == 'rel-bonus':
+                    mod.type_ = 'percentage'
+                    mod.value = form.value.data
+                elif form.type_.data == 'rel-deduct':
+                    mod.type_ = 'percentage'
+                    mod.value = form.value.data * -1
+                elif form.type_.data == 'abs-bonus':
+                    mod.type_ = 'absolute'
+                    mod.value = form.value.data
+                elif form.type_.data == 'abs-deduct':
+                    mod.type_ = 'absolute'
+                    mod.value = form.value.data * -1
+                db.session.add(mod)
+                db.session.commit()
+            elif form.id_.data == 'payout':
+                try:
+                    srp_request.base_payout = form.value.data
+                except ModifierError as e:
+                    flash(e, 'error')
+                    return render_details()
+            elif form.id_.data == 'void':
+                modifier_id = int(form.modifier_id.data)
+                modifier = Modifier.query.get(modifier_id)
+                if modifier is None:
+                    flash("Invalid modifier ID {}.".format(modifier_id),
+                            'error')
+                    return render_details()
+                try:
+                    modifier.void(current_user)
                     db.session.commit()
+                except ModifierError:
+                    flash(e, 'error')
+                    return render_details()
+            elif form.id_.data == 'action':
+                type_ = ActionType.from_string(form.type_.data)
+                try:
+                    Action(srp_request, current_user, form.note.data, type_)
+                    db.session.commit()
+                except ActionError as e:
+                    flash(e, 'error')
+                    return render_details()
         else:
             # TODO: Actual error handling, probably using flash()
             print(form.errors)
     # Different templates are used for different roles
-    if review_perm.can():
-        template = 'request_review.html'
-    elif pay_perm.can():
-        template = 'request_detail.html'
-    elif current_user == srp_request.submitter:
-        template = 'request_detail.html'
-    else:
-        abort(403)
-    return render_template(template, srp_request=srp_request,
-            modifier_form=ModifierForm(formdata=None),
-            payout_form=PayoutForm(formdata=None),
-            action_form=ActionForm(formdata=None),
-            void_form=VoidModifierForm(formdata=None))
+    return render_details()
 
 
 class DetailForm(Form):

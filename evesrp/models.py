@@ -6,6 +6,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 from . import db
 from .enum import DeclEnum, classproperty
+from .auth import PermissionType
 
 
 class AutoID(object):
@@ -103,10 +104,10 @@ class Action(db.Model, AutoID, Timestamped):
     def __init__(self, request, user, note=None, type_=None):
         if type_ is not None:
             self.type_ = type_
-        self.request = request
         self.user = user
         self.note = note
         self.timestamp = dt.datetime.utcnow()
+        self.request = request
 
     @db.validates('type_')
     def set_request_type(self, attr, type_):
@@ -370,9 +371,8 @@ class Request(db.Model, AutoID, Timestamped):
     def validate_payout(self, attr, value):
         """Ensures that base_payout is positive. The value is clamped to 0."""
         if self.status == ActionType.evaluating or self.status is None:
-            return value if value >= 0 else 0
+            return float(value) if value >= 0 else 0.0
         else:
-            print(self.status)
             raise ModifierError("The request must be in the evaluating state "
                                 "to change the base payout.")
 
@@ -382,6 +382,30 @@ class Request(db.Model, AutoID, Timestamped):
             raise ModifierError("Modifiers can only be added when the request "
                                 "is in an evaluating state.")
         return modifier
+
+    state_rules = {
+        ActionType.evaluating: {
+            ActionType.incomplete: (PermissionType.review,),
+            ActionType.rejected: (PermissionType.review,),
+            ActionType.approved: (PermissionType.review,),
+        },
+        ActionType.incomplete: {
+            ActionType.rejected: (PermissionType.review,),
+            ActionType.evaluating: (PermissionType.review,
+                PermissionType.submit),
+        },
+        ActionType.rejected: {
+            ActionType.evaluating: (PermissionType.review,),
+        },
+        ActionType.approved: {
+            ActionType.evaluating: (PermissionType.review,),
+            ActionType.paid: (PermissionType.pay,),
+        },
+        ActionType.paid: {
+            ActionType.approved: (PermissionType.pay,),
+            ActionType.evaluating: (PermissionType.pay,),
+        },
+    }
 
     @db.validates('status')
     def validate_status(self, attr, new_status):
@@ -426,32 +450,41 @@ class Request(db.Model, AutoID, Timestamped):
                         "to from {} (valid options: {})".format(new_status,
                                 self.status, valid_states))
 
-        if self.status == ActionType.comment:
+
+        if new_status == ActionType.comment:
             raise ValueError("ActionType.comment is not a valid status")
-        elif self.status == ActionType.evaluating:
-            check_status(ActionType.incomplete, ActionType.rejected,
-                         ActionType.approved)
-        elif self.status == ActionType.incomplete:
-            check_status(ActionType.rejected, ActionType.evaluating)
-        elif self.status == ActionType.rejected:
-            check_status(ActionType.evaluating)
-        elif self.status == ActionType.approved:
-            check_status(ActionType.evaluating, ActionType.paid)
-        elif self.status == ActionType.paid:
-            check_status(ActionType.approved, ActionType.evaluating)
+        # Initial status
+        if self.status is None:
+            return new_status
+        rules = self.state_rules[self.status]
+        if new_status not in rules:
+            raise ActionError("{} is not a valid status to change to from {} "
+                    "(valid options: {})".format(new_status,
+                            self.status, list(rules.keys())))
         return new_status
 
     @db.validates('actions')
     def update_status_from_action(self, attr, action):
         """Updates :py:attr:`status` whenever a new :py:class:`~.Action`
-        is added.
+        is added and verifies permissions.
         """
         if action.type_ is None:
             # Action.type_ are not nullable, so rely on the fact that it will
             # be set later to let it slide now.
             return action
         elif action.type_ != ActionType.comment:
+            rules = self.state_rules[self.status]
             self.status = action.type_
+            permissions = rules[action.type_]
+            if not action.user.has_permission(permissions, self.division):
+                raise ActionError("Insufficient permissions to perform that "
+                                  "action.")
+        elif action.type_ == ActionType.comment:
+            if action.user != self.submitter \
+                    and not action.user.has_permission(PermissionType.elevated,
+                            self.division):
+                raise ActionError("You must either own or have special"
+                                  "privileges to comment on this request.")
         return action
 
     def __repr__(self):
