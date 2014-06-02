@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/paxswill/evesrp.svg?branch=tests)](https://travis-ci.org/paxswill/evesrp)
+[![Build Status](https://travis-ci.org/paxswill/evesrp.svg?branch=master)](https://travis-ci.org/paxswill/evesrp)
 
 So, this is still in-progress, and I'm putting off writing a real readme until
 it's closer to a real release. IN the mean time, here're some
