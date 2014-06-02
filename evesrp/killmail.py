@@ -251,7 +251,8 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
         self.domain = parsed.netloc
         # Check API
         api_url = [a for a in parsed]
-        api_url[2] = '/api/killID/{}'.format(self.kill_id)
+        api_url[2] = '/api/no-attackers/no-items/killID/{}'.format(
+                self.kill_id)
         resp = self.requests_session.get(urlunparse(api_url))
         try:
             json = resp.json()
