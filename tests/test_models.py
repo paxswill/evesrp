@@ -31,8 +31,8 @@ class TestModels(TestLogin):
             Pilot(self.normal_user, 'eLusi0n', 133741)
             Request(self.normal_user, 'Original details', div,
                     mock_killmail.items())
-            Permission(div, PermissionType.review, self.normal_user)
-            Permission(div, PermissionType.pay, self.normal_user)
+            Permission(div, PermissionType.review, self.admin_user)
+            Permission(div, PermissionType.pay, self.admin_user)
             db.session.commit()
 
     @property
@@ -40,7 +40,7 @@ class TestModels(TestLogin):
         return Request.query.first()
 
     def add_action(self, type_):
-        Action(self.request, self.normal_user, type_=type_)
+        Action(self.request, self.admin_user, type_=type_)
         db.session.commit()
 
 
@@ -49,7 +49,7 @@ class TestModifiers(TestModels):
     def test_add_modifier(self):
         with self.app.test_request_context():
             start_payout = float(self.request.payout)
-            Modifier(self.request, self.normal_user, '', type_='absolute',
+            Modifier(self.request, self.admin_user, '', type_='absolute',
                     value=10.0)
             db.session.commit()
             self.assertEqual(float(self.request.payout), start_payout + 10.0)
@@ -58,22 +58,38 @@ class TestModifiers(TestModels):
     def test_void_modifier(self):
         start_payout = self.test_add_modifier()
         with self.app.test_request_context():
-            mod = self.request.modifiers[0].void(self.normal_user)
+            mod = self.request.modifiers[0].void(self.admin_user)
             db.session.commit()
             self.assertEqual(float(self.request.payout), start_payout)
 
-    def test_add_modifier_failure(self):
+    def test_add_modifier_bad_status(self):
         with self.app.test_request_context():
             self.add_action(ActionType.approved)
+            with self.assertRaises(ModifierError):
+                Modifier(self.request, self.admin_user, '', type_='absolute',
+                        value=10.0)
+                db.session.commit()
+
+    def test_void_modifier_bad_status(self):
+        start_payout = self.test_add_modifier()
+        with self.app.test_request_context():
+            self.add_action(ActionType.approved)
+            mod = self.request.modifiers[0]
+            with self.assertRaises(ModifierError):
+                mod.void(self.admin_user)
+                db.session.commit()
+            self.assertNotEqual(float(self.request.payout), start_payout)
+
+    def test_add_modifier_bad_permissions(self):
+        with self.app.test_request_context():
             with self.assertRaises(ModifierError):
                 Modifier(self.request, self.normal_user, '', type_='absolute',
                         value=10.0)
                 db.session.commit()
 
-    def test_void_modifier_failure(self):
+    def test_void_modifier_bad_permissions(self):
         start_payout = self.test_add_modifier()
         with self.app.test_request_context():
-            self.add_action(ActionType.approved)
             mod = self.request.modifiers[0]
             with self.assertRaises(ModifierError):
                 mod.void(self.normal_user)
@@ -90,7 +106,7 @@ class TestActionStatus(TestModels):
 
     def test_status_updating(self):
         with self.app.test_request_context():
-            Action(self.request, self.normal_user, type_=ActionType.approved)
+            Action(self.request, self.admin_user, type_=ActionType.approved)
             db.session.commit()
             self.assertEqual(self.request.status, ActionType.approved)
 

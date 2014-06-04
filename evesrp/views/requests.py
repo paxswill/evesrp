@@ -393,9 +393,6 @@ def request_detail(request_id):
     if request.method == 'POST':
         failed = False
         if request.form['id_'] == 'modifier':
-            if not review_perm.can():
-                flash("Only reviewers can add modifiers.", 'error')
-                return render_details()
             form = ModifierForm()
         elif request.form['id_'] == 'payout':
             if not review_perm.can():
@@ -405,9 +402,6 @@ def request_detail(request_id):
         elif request.form['id_'] == 'action':
             form = ActionForm()
         elif request.form['id_'] == 'void':
-            if not review_perm.can():
-                flash("Only reviewers can void modifiers.", 'error')
-                return render_details()
             form = VoidModifierForm()
         else:
             abort(400)
@@ -435,6 +429,7 @@ def request_detail(request_id):
             elif form.id_.data == 'payout':
                 try:
                     srp_request.base_payout = form.value.data
+                    db.session.commit()
                 except ModifierError as e:
                     flash(e, 'error')
                     return render_details()
@@ -448,7 +443,7 @@ def request_detail(request_id):
                 try:
                     modifier.void(current_user)
                     db.session.commit()
-                except ModifierError:
+                except ModifierError as e:
                     flash(e, 'error')
                     return render_details()
             elif form.id_.data == 'action':

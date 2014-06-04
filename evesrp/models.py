@@ -186,9 +186,9 @@ class Modifier(db.Model, AutoID, Timestamped):
         )
 
     def __init__(self, request, user, note, **kwargs):
-        self.request = request
         self.user = user
         self.note = note
+        self.request = request
         super(Modifier, self).__init__(**kwargs)
 
     def __repr__(self):
@@ -208,6 +208,10 @@ class Modifier(db.Model, AutoID, Timestamped):
         if self.request.status != ActionType.evaluating:
             raise ModifierError("Modifiers can only be voided when the request"
                                 " is in the evaluating state.")
+        if not user.has_permission(PermissionType.review,
+                self.request.division):
+            raise ModifierError("You must be a reviewer to be able to void "
+                                "modifiers.")
         self.voided_user = user
         self.voided_timestamp = dt.datetime.utcnow()
 
@@ -376,13 +380,6 @@ class Request(db.Model, AutoID, Timestamped):
             raise ModifierError("The request must be in the evaluating state "
                                 "to change the base payout.")
 
-    @db.validates('modifiers')
-    def validate_add_modifier(self, attr, modifier):
-        if self.status != ActionType.evaluating:
-            raise ModifierError("Modifiers can only be added when the request "
-                                "is in an evaluating state.")
-        return modifier
-
     state_rules = {
         ActionType.evaluating: {
             ActionType.incomplete: (PermissionType.review,),
@@ -490,3 +487,13 @@ class Request(db.Model, AutoID, Timestamped):
     def __repr__(self):
         return "{x.__class__.__name__}({x.submitter}, {x.division}, {x.id})".\
                 format(x=self)
+
+    @db.validates('modifiers')
+    def validate_add_modifier(self, attr, modifier):
+        if self.status != ActionType.evaluating:
+            raise ModifierError("Modifiers can only be added when the request "
+                                "is in an evaluating state.")
+        if not modifier.user.has_permission(PermissionType.review,
+                self.division):
+            raise ModifierError("Only reviewers can add modifiers.")
+        return modifier

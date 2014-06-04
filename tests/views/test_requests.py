@@ -323,16 +323,17 @@ class TestRequestSetPayout(TestRequest):
                     'id_': 'payout',
                     'value': test_payout})
             self.assertEqual(resp.status_code, 200)
+            with self.app.test_request_context():
+                payout = self.request.payout
+                base_payout = self.request.base_payout
             if permissable:
                 self.assertIn('{},000,000'.format(test_payout),
                         resp.get_data(as_text=True))
-                self.assertEqual(self.request.base_payout, test_payout)
-                self.assertEqual(int(self.request.payout),
-                        test_payout * 1000000)
+                self.assertEqual(int(payout), test_payout * 1000000)
             else:
                 self.assertIn('Only reviewers can change the base payout.',
                         resp.get_data(as_text=True))
-                self.assertEqual(self.request.base_payout, 73957.9)
+                self.assertEqual(base_payout, 73957.9)
 
     def test_reviewer_set_base_payout(self):
         self._test_set_payout(self.admin_name, PermissionType.review)
@@ -343,7 +344,6 @@ class TestRequestSetPayout(TestRequest):
     def test_submitter_set_base_payout(self):
         self._test_set_payout(self.normal_name, None, False)
 
-    @expectedFailure
     def test_set_payout_invalid_request_state(self):
         statuses = (
             ActionType.approved,
@@ -352,19 +352,56 @@ class TestRequestSetPayout(TestRequest):
             ActionType.incomplete,
         )
         self._add_permission(self.normal_name, PermissionType.review)
+        self._add_permission(self.normal_name, PermissionType.pay)
         client = self.login()
         for status in statuses:
             with self.app.test_request_context():
+                if status == ActionType.paid:
+                    self.request.status = ActionType.approved
                 self.request.status = status
                 db.session.commit()
             resp = client.post(self.request_path, follow_redirects=True, data={
                     'id_': 'payout',
                     'value': '42'})
-            self.assertIn('Cannot set the base payout when the request is not '
-                    'in the evaluating state.', resp.get_data(as_text=True))
+            self.assertIn('The request must be in the evaluating state '
+                    'to change the base payout.', resp.get_data(as_text=True))
+            with self.app.test_request_context():
+                self.request.status = ActionType.evaluating
+                db.session.commit()
 
 
-class TestRequestModifiers(TestRequest):
+class TestRequestAddModifiers(TestRequest):
+
+    def _test_add_modifier(self, user_name, permissible=True):
+        client = self.login(user_name)
+        resp = client.post(self.request_path, follow_redirects=True, data={
+                'id_': 'modifier',
+                'value': '10',
+                'type_': 'abs-bonus',})
+        self.assertEqual(resp.status_code, 200)
+        with self.app.test_request_context():
+            modifiers = self.request.modifiers.all()
+        if permissible:
+            self.assertEqual(len(modifiers), 1)
+            self.assertEqual(modifiers[0].value, 10)
+        else:
+            self.assertEqual(len(modifiers), 0)
+            self.assertIn('Only reviewers can add modifiers.',
+                    resp.get_data(as_text=True))
+
+    def test_reviewer_add_modifier(self):
+        self._add_permission(self.admin_name, PermissionType.review)
+        self._test_add_modifier(self.admin_name)
+
+    def test_payer_add_modifier(self):
+        self._add_permission(self.admin_name, PermissionType.pay)
+        self._test_add_modifier(self.admin_name, False)
+
+    def test_submitter_add_modifier(self):
+        self._test_add_modifier(self.normal_name, False)
+
+
+class TestRequestVoidModifiers(TestRequest):
 
     def _add_modifier(self, user_name, value, absolute=True):
         with self.app.test_request_context():
@@ -374,61 +411,31 @@ class TestRequestModifiers(TestRequest):
             db.session.commit()
             return mod.id
 
-    def _test_add_modifier(self, user_name, permissible=True):
-        client = self.login(user_name)
-        with client as c:
-            resp = c.post(self.request_path, follow_redirects=True, data={
-                    'id_': 'modifier',
-                    'value': '10',
-                    'type_': 'abs-bonus',})
-            self.assertEqual(resp.status_code, 200)
-            modifiers = self.request.modifiers.all()
-            if permissible:
-                self.assertEqual(len(modifiers), 1)
-                self.assertEqual(modifiers[0].value, 10)
-            else:
-                self.assertEqual(len(modifiers), 0)
-                self.assertIn('Insufficient permissions to add a modifier.',
-                        resp.get_data(as_text=True))
-
-    def test_reviewer_add_modifier(self):
-        self._add_permission(self.admin_name, PermissionType.review)
-        self._test_add_modifier(self.admin_name)
-
-    @expectedFailure
-    def test_payer_add_modifier(self):
-        self._add_permission(self.admin_name, PermissionType.pay)
-        self._test_add_modifier(self.admin_name, False)
-
-    @expectedFailure
-    def test_submitter_add_modifier(self):
-        self._test_add_modifier(self.normal_name, False)
-
     def _test_void_modifier(self, user_name, permissible=True):
-        mod_id = self._add_modifier(self.normal_name, 10)
+        self._add_permission(self.admin_name, PermissionType.review)
+        mod_id = self._add_modifier(self.admin_name, 10)
         client = self.login(user_name)
-        with client as c:
-            resp = c.post(self.request_path, follow_redirects=True, data={
-                    'id_': 'void',
-                    'modifier_id': mod_id})
-            self.assertEqual(resp.status_code, 200)
-            if permissible:
-                self.assertEqual(float(self.request.payout), 73957.9)
-            else:
-                self.assertEqual(float(self.request.payout), 73957.9 + 10)
-                self.assertIn('Insufficient permissions to void modifiers.',
-                        resp.get_data(as_text=True))
+        resp = client.post(self.request_path, follow_redirects=True, data={
+                'id_': 'void',
+                'modifier_id': mod_id})
+        self.assertEqual(resp.status_code, 200)
+        with self.app.test_request_context():
+            payout = self.request.payout
+        if permissible:
+            self.assertEqual(float(payout), 73957.9)
+        else:
+            self.assertEqual(float(payout), 73957.9 + 10)
+            self.assertIn('You must be a reviewer to be able to void',
+                    resp.get_data(as_text=True))
 
     def test_reviewer_void_modifier(self):
-        self._add_permission(self.admin_name, PermissionType.review)
-        self._test_void_modifier(self.admin_name)
+        self._add_permission(self.normal_name, PermissionType.review)
+        self._test_void_modifier(self.normal_name)
 
-    @expectedFailure
     def test_payer_void_modifier(self):
-        self._add_permission(self.admin_name, PermissionType.pay)
-        self._test_void_modifier(self.admin_name, False)
+        self._add_permission(self.normal_name, PermissionType.pay)
+        self._test_void_modifier(self.normal_name, False)
 
-    @expectedFailure
     def test_submitter_void_modifier(self):
         self._test_void_modifier(self.normal_name, False)
 
