@@ -43,6 +43,9 @@ class TestModels(TestLogin):
         Action(self.request, self.normal_user, type_=type_)
         db.session.commit()
 
+
+class TestModifiers(TestModels):
+
     def test_add_modifier(self):
         with self.app.test_request_context():
             start_payout = float(self.request.payout)
@@ -77,6 +80,8 @@ class TestModels(TestLogin):
                 db.session.commit()
             self.assertNotEqual(float(self.request.payout), start_payout)
 
+
+class TestActionStatus(TestModels):
 
     def test_default_status(self):
         with self.app.test_request_context():
