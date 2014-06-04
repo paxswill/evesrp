@@ -5,7 +5,8 @@ from sqlalchemy.orm.collections import attribute_mapped_collection, collection
 
 from .. import db
 from . import AuthMethod, PermissionType
-from ..models import Action, Modifier, Request, AutoID, Timestamped
+from ..model_util import AutoID, Timestamped, AutoName
+from ..models import Action, Modifier, Request
 
 
 users_groups = db.Table('users_groups', db.Model.metadata,
@@ -13,7 +14,7 @@ users_groups = db.Table('users_groups', db.Model.metadata,
         db.Column('group_id', db.Integer, db.ForeignKey('group.id')))
 
 
-class Entity(db.Model, AutoID):
+class Entity(db.Model, AutoID, AutoName):
     """Private class for shared functionality between :py:class:`User` and
     :py:class:`Group`.
 
@@ -37,15 +38,6 @@ class Entity(db.Model, AutoID):
 
     #: The name of the :py:class:`AuthMethod` for this entity.
     authmethod = db.Column(db.String(50), nullable=False)
-
-    @declared_attr
-    def __tablename__(cls):
-        """SQLAlchemy late-binding attribute to set the table name.
-
-        Implemented this way so subclasses do not need to specify a table name
-        themselves.
-        """
-        return cls.__name__.lower()
 
     @declared_attr
     def __mapper_args__(cls):
@@ -161,8 +153,7 @@ class User(Entity):
         return str(self.id)
 
 
-class Note(db.Model, AutoID, Timestamped):
-    __tablename__ = 'note'
+class Note(db.Model, AutoID, Timestamped, AutoName):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship(User, back_populates='notes',
             foreign_keys=[user_id])
@@ -177,9 +168,8 @@ class Note(db.Model, AutoID, Timestamped):
         self.content = note
 
 
-class Pilot(db.Model, AutoID):
+class Pilot(db.Model, AutoID, AutoName):
     """Represents an in-game character."""
-    __tablename__ = 'pilot'
 
     #: The name of the character
     name = db.Column(db.String(150), nullable=False)
@@ -228,8 +218,7 @@ class Group(Entity):
     permissions = db.synonym('entity_permissions')
 
 
-class Permission(db.Model, AutoID):
-    __tablename__ = 'permission'
+class Permission(db.Model, AutoID, AutoName):
     __table_args__ = (
         db.UniqueConstraint('division_id', 'entity_id', 'permission'),
     )
@@ -262,13 +251,12 @@ class Permission(db.Model, AutoID):
                "{x.division})").format(x=self)
 
 
-class Division(db.Model, AutoID):
+class Division(db.Model, AutoID, AutoName):
     """A reimbursement division.
 
     A division has (possibly non-intersecting) groups of people that can submit
     requests, review requests, and pay out requests.
     """
-    __tablename__ = 'division'
 
     #: The name of this division.
     name = db.Column(db.String(128), nullable=False)

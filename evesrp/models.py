@@ -5,22 +5,9 @@ from sqlalchemy.types import DateTime
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from . import db
+from .model_util import AutoID, Timestamped, AutoName
 from .enum import DeclEnum, classproperty
 from .auth import PermissionType
-
-
-class AutoID(object):
-    """Mixin adding a primary key integer column named 'id'."""
-    id = db.Column(db.Integer, primary_key=True)
-
-
-class Timestamped(object):
-    """Mixin adding a timestamp column.
-
-    The timestamp defaults to the current time.
-    """
-    timestamp = db.Column(DateTime, nullable=False,
-            default=dt.datetime.utcnow())
 
 
 class ActionType(DeclEnum):
@@ -74,14 +61,12 @@ class ModifierError(ValueError):
     pass
 
 
-class Action(db.Model, AutoID, Timestamped):
+class Action(db.Model, AutoID, Timestamped, AutoName):
     """Actions change the state of a Request.
     
     With the exception of the comment action (which does nothing), actions
     change the state of a Request.
     """
-
-    __tablename__ = 'action'
 
     #: The action be taken. See :py:class:`ActionType` for possible values.
     type_ = db.Column(ActionType.db_type(), nullable=False)
@@ -122,7 +107,7 @@ class Action(db.Model, AutoID, Timestamped):
                 format(x=self)
 
 
-class Modifier(db.Model, AutoID, Timestamped):
+class Modifier(db.Model, AutoID, Timestamped, AutoName):
     """Modifiers apply bonuses or penalties to Requests.
 
     Modifiers come in two varieties, absolute and percentage. Absolue modifiers
@@ -131,8 +116,6 @@ class Modifier(db.Model, AutoID, Timestamped):
     tank" or "15% alliance logistics bonus". They can also be voided at a later
     date. The user who voided a modifier and when they did are recorded.
     """
-
-    __tablename__ = 'modifier'
 
     #: What kind of modifier this is, either ``'absolute'`` or
     #: ``'percentage'``.
@@ -216,10 +199,8 @@ class Modifier(db.Model, AutoID, Timestamped):
         self.voided_timestamp = dt.datetime.utcnow()
 
 
-class Request(db.Model, AutoID, Timestamped):
+class Request(db.Model, AutoID, Timestamped, AutoName):
     """Requests represent SRP requests."""
-
-    __tablename__ = 'request'
 
     #: The ID of the :py:class:`~.User` who submitted this request.
     submitter_id = db.Column(db.Integer, db.ForeignKey('user.id'))
