@@ -2,12 +2,40 @@ import datetime as dt
 from decimal import Decimal
 import locale
 from sqlalchemy.types import DateTime
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
+from flask import Markup
 
 from . import db
 from .model_util import AutoID, Timestamped, AutoName
 from .enum import DeclEnum, classproperty
 from .auth import PermissionType
+
+
+class PrettyDecimal(Decimal):
+    """:py:class:`~.Decimal` subclass that pretty-prints its string
+    representation.
+
+    It also returns that string representation for templating engines that
+    support the ``__html__`` protocol.
+    """
+
+    def __str__(self):
+        return locale.currency(self, symbol=False, grouping=True)
+
+    def __html__(self):
+        return Markup(str(self))
+
+
+class PrettyNumeric(db.TypeDecorator):
+    """Type Decorator for :py:class:`~.Numeric` that reformats the userland
+    values into :py:class:`PrettyDecimal`\s.
+    """
+
+    impl = db.Numeric
+
+    def process_result_value(self, value, dialect):
+        return PrettyDecimal(value) if value is not None else None
 
 
 class ActionType(DeclEnum):
@@ -110,30 +138,19 @@ class Action(db.Model, AutoID, Timestamped, AutoName):
 class Modifier(db.Model, AutoID, Timestamped, AutoName):
     """Modifiers apply bonuses or penalties to Requests.
 
-    Modifiers come in two varieties, absolute and percentage. Absolue modifiers
-    are things like "2m ISK cyno bonus" or "5m reduction for meta guns".
-    Percentage modifiers apply as a percentage, such as "25% reduction for nerf
-    tank" or "15% alliance logistics bonus". They can also be voided at a later
-    date. The user who voided a modifier and when they did are recorded.
+    This is an abstract base class for the pair of concrete implementations.
+    Modifiers can be voided at a later date. The user who voided a modifier and
+    when they did are recorded.
     """
 
-    #: What kind of modifier this is, either ``'absolute'`` or
-    #: ``'percentage'``.
-    type_ = db.Column(db.Enum('absolute', 'percentage',
-            name='modifier_type'), nullable=False)
+    #: Discriminator column for SQLAlchemy
+    _type = db.Column(db.String(20), nullable=False)
 
     #: The ID of the :py:class:`Request` this modifier applies to.
     request_id = db.Column(db.Integer, db.ForeignKey('request.id'))
 
     #: The :py:class:`Request` this modifier applies to.
     request = db.relationship('Request', back_populates='modifiers')
-
-    #: The value of this modifier. If this is an absolute modifier (
-    #: :py:attr:`type_` is ``'absolute'``) this is in millions of ISK. If
-    #: :py:attr:`type_` is ``'percentage'``, this is the percentage of the
-    #: bonus or deduction. If it's a bonus, still only set the value between
-    #: 1.0 and 0.0. For example: a 20% bonus would be 0.20.
-    value = db.Column(db.Float)
 
     #: The ID of the :py:class`~.User` who added this modifier.
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -168,19 +185,26 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
                 cls.voided_timestamp != None
         )
 
-    def __init__(self, request, user, note, **kwargs):
+    @declared_attr
+    def __mapper_args__(cls):
+        """SQLAlchemy late-binding attribute to set mapper arguments.
+
+        Obviates subclasses from having to specify polymorphic identities.
+        """
+        args = {'polymorphic_identity': cls.__name__}
+        if cls.__name__ == 'Modifier':
+            args['polymorphic_on'] = cls._type
+        return args
+
+    def __init__(self, request, user, note, value):
         self.user = user
         self.note = note
+        self.value = value
         self.request = request
-        super(Modifier, self).__init__(**kwargs)
 
     def __repr__(self):
-        if self.type_ == 'absolute':
-            value = "{}M ISK".format(self.value)
-        else:
-            value = "{}%".format(self.value)
-        return ("{x.__class__.__name__}({x.request}, {x.user}, {value},"
-                "{x.voided})".format(x=self, value=value))
+        return ("{x.__class__.__name__}({x.request}, {x.user},"
+                "{x.pretty_value}, {x.voided})".format(x=self, value=self))
 
     def void(self, user):
         """Mark this modifier as void.
@@ -197,6 +221,43 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
                                 "modifiers.")
         self.voided_user = user
         self.voided_timestamp = dt.datetime.utcnow()
+
+
+class AbsoluteModifier(Modifier):
+    """Subclass of :py:class:`Modifier` for representing absolute
+    modifications.
+
+    Absolute modifications are those that are not dependent on the value of
+    :py:attr:`Request.base_payout`.
+    """
+
+    id = db.Column(db.Integer, db.ForeignKey('modifier.id'), primary_key=True)
+
+    #: How much ISK to add or remove from the payout
+    value = db.Column(PrettyNumeric, nullable=False, default=0.0)
+
+    @property
+    def pretty_value(self):
+        return '{} ISK {}'.format(self.value, 'bonus' if self.value >= 0 else
+                'penalty')
+
+
+class RelativeModifier(Modifier):
+    """Subclass of :py:class:`Modifier` for representing relative modifiers.
+
+    Relative modifiers depend on the value of :py:attr:`Modifier.base_payout`
+    to calculate their effect.
+    """
+
+    id = db.Column(db.Integer, db.ForeignKey('modifier.id'), primary_key=True)
+
+    #: What percentage of the payout to add or remove
+    value = db.Column(db.Float, nullable=False, default=0.0)
+
+    @property
+    def pretty_value(self):
+        return '{}% {}'.format(self.value, 'bonus' if self.value >= 0 else
+                'penalty')
 
 
 class Request(db.Model, AutoID, Timestamped, AutoName):
@@ -249,7 +310,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
 
     #: The base payout for this request in millions of ISK.
     #: :py:attr:`modifiers` apply to this value.
-    base_payout = db.Column(db.Float, default=0.0)
+    base_payout = db.Column(PrettyNumeric, default=0.0)
 
     #: Supporting information for the request.
     details = db.deferred(db.Column(db.Text))
@@ -282,39 +343,24 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         # Evaluation method for payout:
         # almost_payout = (sum(absolute_modifiers) + base_payout)
         # payout = almost_payout + (sum(percentage_modifiers) * almost_payout)
-        modifier_sum = db.session.query(db.func.sum(Modifier.value))\
+        abs_mods = db.session.query(db.func.sum(AbsoluteModifier.value))\
                 .join(Request)\
                 .filter(Modifier.request_id==self.id)\
                 .filter(~Modifier.voided)
-
-        abs_mods = modifier_sum.filter(Modifier.type_=='absolute')
-        per_mods = modifier_sum.filter(Modifier.type_=='percentage')
+        rel_mods = db.session.query(db.func.sum(RelativeModifier.value))\
+                .join(Request)\
+                .filter(Modifier.request_id==self.id)\
+                .filter(~Modifier.voided)
         absolute = abs_mods.one()[0]
         if absolute is None:
             absolute = 0
-        percentage = per_mods.one()[0]
-        if percentage is None:
-            percentage = 0
+        relative = rel_mods.one()[0]
+        if relative is None:
+            relative = 0
         payout = self.base_payout + absolute
-        payout = payout + (payout * percentage / 100)
+        payout = payout + (payout * relative)
 
-        class _Payout(object):
-            def __init__(self, payout):
-                self.raw_payout = payout
-                scaled = Decimal.from_float(self.raw_payout)
-                scaled *= 1000000
-                self.scaled_payout = scaled
-
-            def __str__(self):
-                return locale.format('%d', int(self), grouping=True)
-
-            def __int__(self):
-                return int(self.scaled_payout)
-
-            def __float__(self):
-                return self.raw_payout
-
-        return _Payout(payout)
+        return payout
 
     @hybrid_property
     def finalized(self):

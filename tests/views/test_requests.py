@@ -1,11 +1,13 @@
 import re
 import datetime as dt
+from decimal import Decimal
 from unittest import expectedFailure
 from httmock import HTTMock
 from bs4 import BeautifulSoup
 from ..util import TestLogin, all_mocks
 from evesrp import db
-from evesrp.models import Request, Action, Modifier, ActionType
+from evesrp.models import Request, Action, AbsoluteModifier, RelativeModifier,\
+        ActionType, PrettyDecimal
 from evesrp.auth import PermissionType
 from evesrp.auth.models import User, Pilot, Division, Permission
 from evesrp import views
@@ -317,7 +319,7 @@ class TestRequestSetPayout(TestRequest):
         if permission is not None:
             self._add_permission(user_name, permission)
         client = self.login(user_name)
-        test_payout = 42
+        test_payout = 42000000
         with client as c:
             resp = client.post(self.request_path, follow_redirects=True, data={
                     'id_': 'payout',
@@ -327,13 +329,13 @@ class TestRequestSetPayout(TestRequest):
                 payout = self.request.payout
                 base_payout = self.request.base_payout
             if permissable:
-                self.assertIn('{},000,000'.format(test_payout),
+                self.assertIn(str(PrettyDecimal(test_payout)),
                         resp.get_data(as_text=True))
-                self.assertEqual(int(payout), test_payout * 1000000)
+                self.assertEqual(payout, test_payout)
             else:
                 self.assertIn('Only reviewers can change the base payout.',
                         resp.get_data(as_text=True))
-                self.assertEqual(base_payout, 73957.9)
+                self.assertEqual(base_payout, Decimal('73957.9'))
 
     def test_reviewer_set_base_payout(self):
         self._test_set_payout(self.admin_name, PermissionType.review)
@@ -362,7 +364,7 @@ class TestRequestSetPayout(TestRequest):
                 db.session.commit()
             resp = client.post(self.request_path, follow_redirects=True, data={
                     'id_': 'payout',
-                    'value': '42'})
+                    'value': '42000000'})
             self.assertIn('The request must be in the evaluating state '
                     'to change the base payout.', resp.get_data(as_text=True))
             with self.app.test_request_context():
@@ -381,11 +383,14 @@ class TestRequestAddModifiers(TestRequest):
         self.assertEqual(resp.status_code, 200)
         with self.app.test_request_context():
             modifiers = self.request.modifiers.all()
+            modifiers_length = len(modifiers)
+            if modifiers_length > 0:
+                first_value = modifiers[0].value
         if permissible:
-            self.assertEqual(len(modifiers), 1)
-            self.assertEqual(modifiers[0].value, 10)
+            self.assertEqual(modifiers_length, 1)
+            self.assertEqual(first_value, 10)
         else:
-            self.assertEqual(len(modifiers), 0)
+            self.assertEqual(modifiers_length, 0)
             self.assertIn('Only reviewers can add modifiers.',
                     resp.get_data(as_text=True))
 
@@ -406,8 +411,10 @@ class TestRequestVoidModifiers(TestRequest):
     def _add_modifier(self, user_name, value, absolute=True):
         with self.app.test_request_context():
             user = User.query.filter_by(name=user_name).one()
-            type_ = 'absolute' if absolute else 'percentage'
-            mod = Modifier(self.request, user, '', type_=type_, value=value)
+            if absolute:
+                mod = AbsoluteModifier(self.request, user, '', value)
+            else:
+                mod = RelativeModifier(self.request, user, '', value)
             db.session.commit()
             return mod.id
 

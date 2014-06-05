@@ -1,8 +1,8 @@
 import datetime as dt
 from .util import TestLogin
 from evesrp import db
-from evesrp.models import ActionType, ActionError, Action, Modifier,\
-        Request, ModifierError
+from evesrp.models import ActionType, ActionError, Action, Request,\
+        AbsoluteModifier, RelativeModifier, ModifierError
 from evesrp.auth import PermissionType
 from evesrp.auth.models import Pilot, Division, Permission
 
@@ -49,10 +49,9 @@ class TestModifiers(TestModels):
     def test_add_modifier(self):
         with self.app.test_request_context():
             start_payout = float(self.request.payout)
-            Modifier(self.request, self.admin_user, '', type_='absolute',
-                    value=10.0)
+            AbsoluteModifier(self.request, self.admin_user, '', 10)
             db.session.commit()
-            self.assertEqual(float(self.request.payout), start_payout + 10.0)
+            self.assertEqual(float(self.request.payout), start_payout + 10)
         return start_payout
 
     def test_void_modifier(self):
@@ -66,8 +65,7 @@ class TestModifiers(TestModels):
         with self.app.test_request_context():
             self.add_action(ActionType.approved)
             with self.assertRaises(ModifierError):
-                Modifier(self.request, self.admin_user, '', type_='absolute',
-                        value=10.0)
+                AbsoluteModifier(self.request, self.admin_user, '', 10)
                 db.session.commit()
 
     def test_void_modifier_bad_status(self):
@@ -83,8 +81,7 @@ class TestModifiers(TestModels):
     def test_add_modifier_bad_permissions(self):
         with self.app.test_request_context():
             with self.assertRaises(ModifierError):
-                Modifier(self.request, self.normal_user, '', type_='absolute',
-                        value=10.0)
+                AbsoluteModifier(self.request, self.normal_user, '', 10)
                 db.session.commit()
 
     def test_void_modifier_bad_permissions(self):

@@ -14,7 +14,7 @@ from wtforms.validators import InputRequired, AnyOf, URL, ValidationError,\
 
 from .. import db
 from ..models import Request, Modifier, Action, ActionType, ActionError,\
-        ModifierError
+        ModifierError, AbsoluteModifier, RelativeModifier
 from ..auth.permissions import SubmitRequestsPermission,\
         ReviewRequestsPermission, PayoutRequestsPermission, admin_permission
 from ..auth import PermissionType
@@ -407,8 +407,17 @@ def request_detail(request_id):
             abort(400)
         if form.validate():
             if form.id_.data == 'modifier':
+                if 'bonus' in form.type_.data:
+                    value = form.value.data
+                elif 'deduct' in form.type_.data:
+                    vaue = form.value.data * -1
+                if 'abs' in form.type_.data:
+                    ModClass = AbsoluteModifier
+                elif 'rel' in form.type_.data:
+                    ModClass = RelativeModifier
                 try:
-                    mod = Modifier(srp_request, current_user, form.note.data)
+                    mod = ModClass(srp_request, current_user, form.note.data,
+                            value)
                 except ModifierError as e:
                     flash(e, 'error')
                     return render_details()
