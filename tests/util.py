@@ -1,6 +1,7 @@
 from unittest import TestCase
 import json
 from urllib.parse import urlparse
+from os import environ as env
 import httmock
 from httmock import urlmatch
 from evesrp import create_app, db
@@ -19,7 +20,13 @@ class TestApp(TestCase):
         self.app.config['SECRET_KEY'] = 'testing'
         self.app.config['USER_AGENT_EMAIL'] = 'testing@example.com'
         self.app.config['WTF_CSRF_ENABLED'] = False
+        if 'DB' in env:
+            # Default is an in-memroy SQLite database
+            self.app.config['SQLALCHEMY_DATABASE_URI'] = env['DB']
         db.create_all(app=self.app)
+
+    def tearDown(self):
+        db.drop_all(app=self.app)
 
 
 class NullAuthForm(AuthForm):

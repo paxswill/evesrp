@@ -163,6 +163,7 @@ class TestRequestList(TestLogin):
             for permission in PermissionType.elevated:
                 for division in (d1, d2):
                     Permission(division, permission, user2)
+            Pilot(user1, 'Generic Pilot', 1)
             request_data = {
                 'ship_type': 'Revenant',
                 'corporation': 'Center of Applied Studies',

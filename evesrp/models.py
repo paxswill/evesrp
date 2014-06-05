@@ -234,7 +234,7 @@ class AbsoluteModifier(Modifier):
     id = db.Column(db.Integer, db.ForeignKey('modifier.id'), primary_key=True)
 
     #: How much ISK to add or remove from the payout
-    value = db.Column(PrettyNumeric, nullable=False, default=0.0)
+    value = db.Column(PrettyNumeric(precision=15, scale=2), nullable=False, default=0.0)
 
     @property
     def pretty_value(self):
@@ -310,7 +310,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
 
     #: The base payout for this request in millions of ISK.
     #: :py:attr:`modifiers` apply to this value.
-    base_payout = db.Column(PrettyNumeric, default=0.0)
+    base_payout = db.Column(PrettyNumeric(precision=15, scale=2), default=0.0)
 
     #: Supporting information for the request.
     details = db.deferred(db.Column(db.Text))
