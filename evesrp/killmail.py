@@ -74,9 +74,8 @@ class Killmail(object):
 
         The extimated ISK loss for the ship destroyed in this killmail. This is
         an optional attribute, and is ``None`` if unsupported. If this
-        attribute is set, it should be a floating point number (or something
-        like it, like :py:class:`decimal.Decimal`) representing millions of
-        ISK.
+        attribute is set, it should be a :py:class:`~.Decimal` or a type that
+        can be used as the value for the Decimal constructor.
 
     .. py:attribute:: timestamp
 
@@ -281,10 +280,9 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
         # for precision at large values.
         # Old versions of zKB don't give the ISK value
         try:
-            value = Decimal(json['zkb']['totalValue'])
+            self.value = Decimal(json['zkb']['totalValue'])
         except KeyError:
-            value = 0
-        self.value = value / 1000000
+            self.value = Decimal(0)
         # Parse the timestamp
         time_struct = time.strptime(json['killTime'], '%Y-%m-%d %H:%M:%S')
         self.timestamp = dt.datetime(*(time_struct[0:6]),

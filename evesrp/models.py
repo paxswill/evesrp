@@ -353,10 +353,10 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
                 .filter(~Modifier.voided)
         absolute = abs_mods.one()[0]
         if absolute is None:
-            absolute = 0
+            absolute = Decimal(0)
         relative = rel_mods.one()[0]
         if relative is None:
-            relative = 0
+            relative = Decimal(0)
         payout = self.base_payout + absolute
         payout = payout + (payout * relative)
 
@@ -395,14 +395,17 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
             setattr(self, attr, value)
         # Set default values before a flush
         if self.base_payout is None and 'base_payout' not in kwargs:
-            self.base_payout = 0.0
+            self.base_payout = Decimal(0)
         super(Request, self).__init__(**kwargs)
 
     @db.validates('base_payout')
     def validate_payout(self, attr, value):
         """Ensures that base_payout is positive. The value is clamped to 0."""
         if self.status == ActionType.evaluating or self.status is None:
-            return float(value) if value >= 0 else 0.0
+            if value is None or value < 0:
+                return Decimal(0.0)
+            else:
+                return Decimal(value)
         else:
             raise ModifierError("The request must be in the evaluating state "
                                 "to change the base payout.")

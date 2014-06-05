@@ -243,7 +243,7 @@ class TestRequest(TestLogin):
                     alliance='Northern Coalition.',
                     killmail_url=('http://eve-kill.net/?a=kill_detail'
                         '&kll_id=12842852'),
-                    base_payout=73957.9,
+                    base_payout=73957900000,
                     kill_timestamp=dt.datetime(2012, 3, 25, 0, 44, 0,
                         tzinfo=dt.timezone.utc),
                     system='92D-OI',
@@ -335,7 +335,7 @@ class TestRequestSetPayout(TestRequest):
             else:
                 self.assertIn('Only reviewers can change the base payout.',
                         resp.get_data(as_text=True))
-                self.assertEqual(base_payout, Decimal('73957.9'))
+                self.assertEqual(base_payout, Decimal('73957900000'))
 
     def test_reviewer_set_base_payout(self):
         self._test_set_payout(self.admin_name, PermissionType.review)
@@ -429,9 +429,9 @@ class TestRequestVoidModifiers(TestRequest):
         with self.app.test_request_context():
             payout = self.request.payout
         if permissible:
-            self.assertEqual(float(payout), 73957.9)
+            self.assertEqual(payout, Decimal(73957900000))
         else:
-            self.assertEqual(float(payout), 73957.9 + 10)
+            self.assertEqual(payout, Decimal(73957900000) + 10)
             self.assertIn('You must be a reviewer to be able to void',
                     resp.get_data(as_text=True))
 

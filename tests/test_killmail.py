@@ -1,4 +1,5 @@
 from unittest import TestCase
+from decimal import Decimal
 from httmock import HTTMock, all_requests
 from evesrp import killmail
 from .util import all_mocks, response
@@ -87,7 +88,8 @@ class TestZKillmail(TestCase):
                 'corp': 'Dreddit',
                 'alliance': 'Test Alliance Please Ignore',
                 'system': 'TA3T-3',
-                'domain': 'zkillboard.com'
+                'domain': 'zkillboard.com',
+                'value': Decimal('273816945.63'),
             }
             for attr, value in expected_values.items():
                 self.assertEqual(getattr(km, attr), value,
@@ -103,7 +105,8 @@ class TestZKillmail(TestCase):
                 'corp': 'Omega LLC',
                 'alliance': None,
                 'system': 'Onatoh',
-                'domain': 'zkillboard.com'
+                'domain': 'zkillboard.com',
+                'value': Decimal('10432408.70'),
             }
             for attr, value in expected_values.items():
                 self.assertEqual(getattr(km, attr), value,
