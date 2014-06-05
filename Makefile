@@ -15,6 +15,13 @@ $(SUBDIRS):
 build-deps:
 	pip install -r requirements.txt
 	npm install -g less uglify-js
+ifneq (,$(findstring psycopg2,$(DB)))
+	pip install psycopg2
+else ifneq (,$(findstring pymysql,$(DB)))
+	pip install pymysql
+else ifneq (,$(findstring cymysql,$(DB)))
+	pip install cython cymysql
+endif
 
 sdist: $(SUBDIRS) setup.py
 	python setup.py sdist
