@@ -6,7 +6,7 @@ import flask.ext.login as flask_login
 from flask.ext.principal import identity_changed, Identity
 from flask.ext.wtf import Form
 from wtforms.fields import SubmitField, HiddenField
-from ..enum import DeclEnum, classproperty
+from ..util import DeclEnum, classproperty
 
 
 class AuthForm(Form):

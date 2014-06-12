@@ -8,7 +8,7 @@ setup(
     author='Will Ross',
     author_email='paxswill@paxswill.com',
     url='https://github.com/evesrp',
-    packages=['evesrp', 'evesrp.auth', 'evesrp.views'],
+    packages=['evesrp', 'evesrp.auth', 'evesrp.views', 'evesrp.util'],
     package_data={
         'evesrp': [
             'static/css/*.css',

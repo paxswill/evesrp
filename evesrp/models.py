@@ -7,8 +7,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from flask import Markup
 
 from . import db
-from .model_util import AutoID, Timestamped, AutoName
-from .enum import DeclEnum, classproperty
+from .util import DeclEnum, classproperty, AutoID, Timestamped, AutoName
 from .auth import PermissionType
 
 

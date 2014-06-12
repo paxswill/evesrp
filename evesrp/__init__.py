@@ -6,7 +6,11 @@ from flask.ext.principal import identity_loaded
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.wtf.csrf import CsrfProtect
 
-from .sqlstats import DB_STATS
+
+db = SQLAlchemy()
+
+
+from .util import DB_STATS
 
 
 __version__ = '0.4.10'
@@ -17,9 +21,6 @@ requests_session = requests.Session()
 
 # Set default locale
 locale.setlocale(locale.LC_ALL, '')
-
-
-db = SQLAlchemy()
 
 
 csrf = CsrfProtect()

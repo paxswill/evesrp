@@ -3,7 +3,7 @@ on 23 May 2014. Specifically, this is a modified version of
 http://techspot.zzzeek.org/files/2011/decl_enum.py
 """
 
-from . import db
+from .. import db
 from sqlalchemy.types import SchemaType
 import re
 
@@ -100,8 +100,3 @@ class DeclEnumType(SchemaType, db.TypeDecorator):
         if value is None:
             return None
         return self.enum.from_string(value.strip())
-
-
-class classproperty(property):
-    def __get__(self, cls, owner):
-        return classmethod(self.fget).__get__(None, owner)()

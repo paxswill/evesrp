@@ -5,7 +5,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection, collection
 
 from .. import db
 from . import AuthMethod, PermissionType
-from ..model_util import AutoID, Timestamped, AutoName
+from ..util import AutoID, Timestamped, AutoName
 from ..models import Action, Modifier, Request
 
 
