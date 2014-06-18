@@ -36,7 +36,7 @@ setup(
         'Programming Language :: Python :: 3',
         'Topic :: Games/Entertainment'
     ],
-    dependency_links= [
+    dependency_links=[
         'https://github.com/bravecollective/api/tarball/develop#egg=brave.api'
     ],
     install_requires=[
@@ -53,4 +53,9 @@ setup(
         'ecdsa==0.11',
         'brave.api'
     ],
+    entry_points={
+        'console_scripts': [
+            'evesrp = evesrp.util.manage:main',
+        ],
+    },
 )

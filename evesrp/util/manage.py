@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin.env python
 
 import os
 import os.path
@@ -6,11 +6,10 @@ import argparse
 import flask
 from flask.ext import script
 from flask.ext.migrate import Migrate, MigrateCommand
+from .. import create_app, migrate
 
-import evesrp
-import evesrp.migrate
 
-manager = script.Manager(evesrp.create_app)
+manager = script.Manager(create_app)
 
 
 class AbsolutePathAction(argparse.Action):
@@ -67,7 +66,7 @@ class MigrateManager(script.Manager):
         return app
 
 
-migrate_path = os.path.dirname(evesrp.migrate.__file__)
+migrate_path = os.path.dirname(migrate.__file__)
 migrate_path = os.path.abspath(migrate_path)
 migrate_manager = MigrateManager(MigrateCommand, migrate_path)
 manager.add_command('db', migrate_manager)
@@ -77,5 +76,9 @@ manager.add_option('-c', '--config', dest='config', required=True,
         action=AbsolutePathAction)
 
 
-if __name__ == '__main__':
+def main():
     manager.run()
+
+
+if __name__ == '__main__':
+    main()
