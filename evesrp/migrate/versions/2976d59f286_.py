@@ -37,8 +37,7 @@ rel_table = table('relative_modifier',
 
 def upgrade():
     # Add discriminator column
-    op.add_column('modifier',
-            sa.Column('_type', sa.String(length=20), nullable=False))
+    op.add_column('modifier', sa.Column('_type', sa.String(length=20)))
     # Create new subclass tables
     op.create_table('absolute_modifier',
             sa.Column('id', sa.Integer,
@@ -81,6 +80,12 @@ def upgrade():
     # Drop the old value and type_ columns from modifier
     op.drop_column('modifier', 'value')
     op.drop_column('modifier', 'type_')
+    # Add the not-null constraint to the _type column
+    op.alter_column('modifier',
+            column_name='_type',
+            nullable=True,
+            existing_type=sa.String(length=20),
+    )
 
 
 def downgrade():
