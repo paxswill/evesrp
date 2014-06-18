@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 from evesrp import create_app
-from evesrp.killmail import CRESTMail, ZKillmail
-from evesrp.transformers import ShipTransformer, PilotTransformer
 from evesrp.auth.testauth import TestAuth
 from evesrp.auth.bravecore import BraveCore
-from os import environ as env
+import os
+import os.path
 from binascii import unhexlify
 from ecdsa import SigningKey, VerifyingKey, NIST256p
 from hashlib import sha256
@@ -33,47 +32,26 @@ def hex2key(hex_key):
         raise ValueError("Key in hex form is of the wrong length.")
 
 
-def configure_app(app, config):
-    app.config['USER_AGENT_EMAIL'] = 'paxswill@paxswill.com'
-    app.config['SQLALCHEMY_DATABASE_URI'] = config.get('DATABASE_URL',
-            'sqlite:///')
-    app.config['AUTH_METHODS'] = [TestAuth(admins=['paxswill',]), ]
-    app.config['KILLMAIL_SOURCES'] = [
-            TestZKillboard,
-    ]
-    app.config['SRP_SHIP_URL_TRANSFORMERS'] = [
-        ShipTransformer('TEST Reimbursement Wiki',
-            'https://wiki.pleaseignore.com/wiki/Reimbursement:{name}'),
-    ]
-    app.config['SRP_PILOT_URL_TRANSFORMERS'] = [
-        PilotTransformer('TEST Auth page',
-            'https://auth.pleaseignore.com/eve/character/{id_}/'),
-    ]
-
+def configure_from_env(app):
     # Configure Brave Core if all the needed things are there
     try:
-        core_private_key = hex2key(config['CORE_AUTH_PRIVATE_KEY'])
-        core_public_key = hex2key(config['CORE_AUTH_PUBLIC_KEY'])
-        core_identifier = config['CORE_AUTH_IDENTIFIER']
+        core_private_key = hex2key(environ['CORE_AUTH_PRIVATE_KEY'])
+        core_public_key = hex2key(environ['CORE_AUTH_PUBLIC_KEY'])
+        core_identifier = environ['CORE_AUTH_IDENTIFIER']
     except KeyError:
         pass
     else:
         app.config['AUTH_METHODS'].append(BraveCore(core_private_key,
                 core_public_key, core_identifier))
 
-    if config.get('DEBUG') is not None:
-        app.debug = True
-        if config.get('SQLALCHEMY_ECHO') is not None:
-            app.config['SQLALCHEMY_ECHO'] = True
-
-    secret_key = config.get('SECRET_KEY')
+    secret_key = environ.get('SECRET_KEY')
     if secret_key is not None:
         app.config['SECRET_KEY'] = unhexlify(secret_key)
 
 
-
-app = create_app()
-configure_app(app, env)
+config_path = os.path.join(os.path.abspath(os.getcwd()), 'config.py')
+app = create_app(config_path)
+configure_from_env(app)
 
 
 if __name__ == '__main__':

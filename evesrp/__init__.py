@@ -31,9 +31,11 @@ from . import models
 from .auth import models as auth_models
 
 
-def create_app(**kwargs):
+def create_app(config=None, **kwargs):
     app = Flask('evesrp', **kwargs)
     app.config.from_object('evesrp.default_config')
+    if config is not None:
+        app.config.from_pyfile(config)
 
     # Register SQLAlchemy monitoring before the DB is connected
     app.before_request(sqlalchemy_before)
