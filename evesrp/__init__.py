@@ -1,5 +1,5 @@
 import locale
-
+import os
 import requests
 from flask import Flask, current_app, g
 from flask.ext.principal import identity_loaded
@@ -36,6 +36,8 @@ def create_app(config=None, **kwargs):
     app.config.from_object('evesrp.default_config')
     if config is not None:
         app.config.from_pyfile(config)
+    if app.config['SECRET_KEY'] is None and 'SECRET_KEY' in os.environ:
+        app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 
     # Register SQLAlchemy monitoring before the DB is connected
     app.before_request(sqlalchemy_before)
