@@ -6,7 +6,7 @@ import argparse
 import flask
 from flask.ext import script
 from flask.ext.migrate import Migrate, MigrateCommand
-from .. import create_app, migrate
+from .. import create_app, db, migrate
 
 
 manager = script.Manager(create_app)
@@ -73,6 +73,11 @@ manager.add_command('db', migrate_manager)
 
 manager.add_option('-c', '--config', dest='config', required=True,
         action=AbsolutePathAction)
+
+
+@manager.command
+def create_tables():
+    db.create_all()
 
 
 def main():
