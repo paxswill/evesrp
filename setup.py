@@ -1,9 +1,23 @@
 #!/usr/bin/env python
 from setuptools import setup
+import re
+
+
+with open('evesrp/__init__.py', 'r') as f:
+    init_contents = ''
+    for line in f:
+        init_contents += line + '\n'
+version = re.search(r'^__version__ *= *[\'"]([^\'"]*)[\'"]', init_contents,
+        re.MULTILINE)
+if version:
+    version = version.group(1)
+else:
+    raise Exception("Unable to find __version__ in evesrp/__init__.py")
+
 
 setup(
     name='EVE-SRP',
-    version='0.4.10',
+    version=version,
     description='EVE Ship Replacement Program Helper',
     author='Will Ross',
     author_email='paxswill@paxswill.com',
@@ -58,4 +72,5 @@ setup(
             'evesrp = evesrp.util.manage:main',
         ],
     },
+    zip_safe=False,
 )
