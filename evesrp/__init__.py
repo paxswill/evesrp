@@ -1,12 +1,16 @@
 import locale
-
+import os
 import requests
 from flask import Flask, current_app, g
 from flask.ext.principal import identity_loaded
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.wtf.csrf import CsrfProtect
 
-from .sqlstats import DB_STATS
+
+db = SQLAlchemy()
+
+
+from .util import DB_STATS
 
 
 __version__ = '0.4.10'
@@ -19,9 +23,6 @@ requests_session = requests.Session()
 locale.setlocale(locale.LC_ALL, '')
 
 
-db = SQLAlchemy()
-
-
 csrf = CsrfProtect()
 
 
@@ -30,9 +31,13 @@ from . import models
 from .auth import models as auth_models
 
 
-def create_app(**kwargs):
+def create_app(config=None, **kwargs):
     app = Flask('evesrp', **kwargs)
     app.config.from_object('evesrp.default_config')
+    if config is not None:
+        app.config.from_pyfile(config)
+    if app.config['SECRET_KEY'] is None and 'SECRET_KEY' in os.environ:
+        app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 
     # Register SQLAlchemy monitoring before the DB is connected
     app.before_request(sqlalchemy_before)

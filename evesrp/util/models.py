@@ -1,7 +1,7 @@
 import datetime as dt
 from sqlalchemy.types import DateTime
 from sqlalchemy.ext.declarative import declared_attr
-from . import db
+from .. import db
 
 
 class AutoID(object):
