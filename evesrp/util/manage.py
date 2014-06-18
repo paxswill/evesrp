@@ -44,7 +44,6 @@ class MigrateManager(script.Manager):
             setattr(self, attr, getattr(old_command, attr))
 
     def __call__(self, app=None, directory='migrations', **kwargs):
-        print(kwargs)
         if app is None:
             app = self.app
             if app is None:
