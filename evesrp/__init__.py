@@ -13,7 +13,7 @@ db = SQLAlchemy()
 from .util import DB_STATS
 
 
-__version__ = '0.5'
+__version__ = '0.5.1'
 
 
 requests_session = requests.Session()

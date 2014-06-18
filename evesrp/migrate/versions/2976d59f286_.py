@@ -58,15 +58,23 @@ def upgrade():
     relatives = []
     for modifier_id, modifier_type, modifier_value in modifiers:
         if modifier_type == 'absolute':
+            discriminator = 'AbsoluteModifier'
             absolutes.append({
                     'id': modifier_id,
                     'value': Decimal.from_float(modifier_value) * 1000000,
             })
         elif modifier_type == 'percentage':
+            discriminator = 'RelativeModifier'
             relatives.append({
                     'id': modifier_id,
                     'value': modifier_value,
             })
+        update_stmt = update(modifier)\
+                .where(modifier.c.id == modifier_id)\
+                .values({
+                        'type_': discriminator,
+                })
+        conn.execute(update_stmt)
     modifiers.close()
     op.bulk_insert(abs_table, absolutes)
     op.bulk_insert(rel_table, relatives)
