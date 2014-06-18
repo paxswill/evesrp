@@ -21,7 +21,8 @@ modifier = table('modifier',
         column('id', sa.Integer),
         column('value', sa.Float),
         column('type_', sa.Enum('absolute', 'percentage',
-                name='modifier_type'))
+                name='modifier_type')),
+        column('_type', sa.String(length=20)),
 )
 
 
@@ -55,7 +56,7 @@ def upgrade():
     modifiers = conn.execute(modifier_sel)
     absolutes = []
     relatives = []
-    for modifier_id, modifier_type, modifier_value in modifiers:
+    for modifier_id, modifier_value, modifier_type in modifiers:
         if modifier_type == 'absolute':
             discriminator = 'AbsoluteModifier'
             absolutes.append({
@@ -66,12 +67,12 @@ def upgrade():
             discriminator = 'RelativeModifier'
             relatives.append({
                     'id': modifier_id,
-                    'value': modifier_value,
+                    'value': modifier_value / 100,
             })
         update_stmt = update(modifier)\
                 .where(modifier.c.id == modifier_id)\
                 .values({
-                        'type_': discriminator,
+                        '_type': discriminator,
                 })
         conn.execute(update_stmt)
     modifiers.close()
@@ -90,7 +91,9 @@ def upgrade():
 
 def downgrade():
     # Add type_ and value columns back
-    op.add_column('modifier', sa.Column('type_', sa.Enum('absolute', 'percentage', name='modifier_type'), nullable=False))
+    op.add_column('modifier',
+            sa.Column('type_', sa.Enum('absolute', 'percentage',
+                    name='modifier_type')))
     op.add_column('modifier', sa.Column('value', sa.Float, nullable=True))
     # populate type_ and value columns with data from the subclass tables
     abs_select = select([abs_table.c.id, abs_table.c.value])
@@ -116,3 +119,9 @@ def downgrade():
     op.drop_column('modifier', '_type')
     op.drop_table('absolute_modifier')
     op.drop_table('relative_modifier')
+    # Add not-null constraint back to type_
+    op.alter_column('modifier',
+            column_name='type_',
+            nullable=False,
+            existing_type=sa.Enum('absolute', 'percentage',
+                    name='modifier_type'))
