@@ -65,7 +65,7 @@
     <h2>Ship URL Transformer</h2>
     <form method="post">
       {{ ship_form.form_id }}
-      {{ ship_form.kind(value='ship') }}
+      {{ ship_form.kind(value='ship_type') }}
       {{ ship_form.csrf_token }}
       {{ macros.render_input(ship_form.name) }}
       <button type="submit" class="btn btn-default">Save</button>

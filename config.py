@@ -1,5 +1,5 @@
 from evesrp.killmail import CRESTMail, ZKillmail
-from evesrp.transformers import ShipTransformer, PilotTransformer
+from evesrp.transformers import Transformer
 from evesrp.auth.testauth import TestAuth
 from evesrp.auth.bravecore import BraveCore
 
@@ -32,11 +32,11 @@ KILLMAIL_SOURCES = [
 ]
 
 SRP_SHIP_URL_TRANSFORMERS = [
-    ShipTransformer('TEST Reimbursement Wiki',
-        'https://wiki.pleaseignore.com/wiki/Reimbursement:{name}'),
+    Transformer('TEST Reimbursement Wiki',
+        'https://wiki.pleaseignore.com/wiki/Reimbursement:{}'),
 ]
 
 SRP_PILOT_URL_TRANSFORMERS = [
-    PilotTransformer('TEST Auth page',
-        'https://auth.pleaseignore.com/eve/character/{id_}/'),
+    Transformer('TEST Auth page',
+        'https://auth.pleaseignore.com/eve/character/{0.id}/'),
 ]

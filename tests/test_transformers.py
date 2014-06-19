@@ -1,5 +1,5 @@
 from unittest import TestCase
-from evesrp.transformers import ShipTransformer, PilotTransformer
+from evesrp.transformers import Transformer
 try:
     from unittest.mock import MagicMock
 except ImportError:
@@ -9,49 +9,18 @@ except ImportError:
 class TestTransformer(TestCase):
 
     def test_equality(self):
-        t1 = ShipTransformer('Foo', 'Bar')
-        t2 = ShipTransformer('Foo', 'Bar')
-        t3 = ShipTransformer('Bar', 'Foo')
-        t4 = PilotTransformer('Foo', 'Bar')
+        t1 = Transformer('Foo', 'Bar')
+        t2 = Transformer('Foo', 'Bar')
+        t3 = Transformer('Bar', 'Foo')
         self.assertEqual(t1, t2)
         self.assertNotEqual(t1, t3)
-        self.assertNotEqual(t1, t4)
+        self.assertNotEqual(t2, t3)
 
 
-class TestShipTransformer(TestCase):
-
-    def setUp(self):
-        self.transformer = ShipTransformer('', '{name}/{id_}/{division}')
-
-    def test_all_ship_tokens(self):
-        self.assertEqual(self.transformer('foo', 'bar', 'baz'), 'bar/foo/baz')
-
-    def test_ship_name_token(self):
-        self.assertEqual(self.transformer(ship_name='foo'), 'foo//')
-
-    def test_ship_id_token(self):
-        self.assertEqual(self.transformer(ship_id='bar'), '/bar/')
-
-    def test_ship_division_token(self):
-        self.assertEqual(self.transformer(division='baz'), '//baz')
-
-
-class TestPilotTransformer(TestCase):
+class TestTransformer(TestCase):
 
     def setUp(self):
-        self.pilot = MagicMock()
-        self.pilot.name = 'foo'
-        self.pilot.id = 'bar'
+        self.transformer = Transformer('', 'foo/{}')
 
-
-    def test_all_pilot_tokens(self):
-        transformer = PilotTransformer('', '{name}/{id_}/{division}')
-        self.assertEqual(transformer(self.pilot, 'baz'), 'foo/bar/baz')
-
-    def test_pilot_name_token(self):
-        transformer = PilotTransformer('', '{name}/{division}')
-        self.assertEqual(transformer(self.pilot, 'baz'), 'foo/baz')
-
-    def test_pilot_id_token(self):
-        transformer = PilotTransformer('', '{id_}/{division}')
-        self.assertEqual(transformer(self.pilot, 'baz'), 'bar/baz')
+    def test_transform(self):
+        self.assertEqual(self.transformer('bar'), 'foo/bar')

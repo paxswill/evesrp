@@ -528,3 +528,26 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
                 self.division):
             raise ModifierError("Only reviewers can add modifiers.")
         return modifier
+
+    @property
+    def transformed(self):
+        """Get a special HTML representation of an attribute.
+
+        Divisions can have a transformer defined on a for attributes that
+        output a URL associated with that attribute. This property provides
+        easy access to the output of any transformed attributes on this
+        request.
+        """
+        class RequestTransformer(object):
+            def __getattr__(self, attr):
+                raw_value = getattr(self._request, attr)
+                if attr in self._request.division.transformers:
+                    transformer = self._request.division.transformers[attr]
+                    return Markup('<a href="{link}">{value}</a>').format(
+                            link=transformer(raw_value), value=str(raw_value))
+                else:
+                    return raw_value
+
+            def __init__(self, request):
+                self._request = request
+        return RequestTransformer(self)

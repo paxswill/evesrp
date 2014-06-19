@@ -27,11 +27,7 @@
       </dd>
       <dt>Pilot</dt>
       <dd>
-        {% if srp_request.division.pilot_transformer %}
-        <a href="{{ srp_request.division.pilot_transformer(srp_request.pilot) }}">{{ srp_request.pilot.name }}</a>
-        {% else %}
-        {{ srp_request.pilot.name }}
-        {% endif %}
+        {{ srp_request.transformed.pilot }}
         &bull; <a href="{{ url_for('requests.user_notes', user_id=srp_request.submitter.id) }}">User Notes</a>
       </dd>
       <dt>Corporation</dt>
@@ -41,11 +37,7 @@
       <dt>Location</dt>
       <dd>{{ srp_request.region }} / {{ srp_request.constellation }} / {{ srp_request.system }}</dd>
       <dt>Ship</dt>
-      {% if srp_request.division.ship_transformer %}
-      <dd><a href="{{ srp_request.division.ship_transformer(ship_name=srp_request.ship_type) }}">{{ srp_request.ship_type }}</a></dd>
-      {% else %}
-      <dd>{{ srp_request.ship_type }}</dd>
-      {% endif %}
+      <dd>{{ srp_request.transformed.ship_type }}</dd>
       <dt>Status</dt>
       <dd><span class="label label-{{ macros.status_color(srp_request.status) }}">{{ srp_request.status }}</span></dd>
       <dt>Payout</dt>

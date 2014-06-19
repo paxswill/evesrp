@@ -219,6 +219,9 @@ class Pilot(db.Model, AutoID, AutoName):
         return "{x.__class__.__name__}({x.user}, '{x.name}', {x.id})".format(
                 x=self)
 
+    def __str__(self):
+        return self.name
+
 
 class Group(Entity):
     """Base class for a group of users.
@@ -270,6 +273,38 @@ class Permission(db.Model, AutoID, AutoName):
                "{x.division})").format(x=self)
 
 
+class TransformerRef(db.Model, AutoID, AutoName):
+    """Stores associations between :py:class:`~.Transformer`\s and
+    :py:class:`.Division`\s.
+    """
+
+    __table_args__ = (
+        db.UniqueConstraint('division_id', 'attribute_name'),
+    )
+
+    #: The attribute this transformer is applied to.
+    attribute_name = db.Column(db.String(50), nullable=False)
+
+    #: The transformer instance.
+    transformer = db.Column(db.PickleType, nullable=True)
+
+    division_id = db.Column(db.Integer, db.ForeignKey('division.id'),
+            nullable=False)
+
+    #: The division the transformer is associated with
+    division = db.relationship('Division',
+            back_populates='division_transformers')
+
+    @db.validates('transformer')
+    def prune_null_transformers(self, attr, transformer):
+        """Removes :py:class:`TransformerRef`\s when :py:attr:`.transformer` is
+        removed.
+        """
+        if transformer is None:
+            self.division = None
+        return transformer
+
+
 class Division(db.Model, AutoID, AutoName):
     """A reimbursement division.
 
@@ -287,9 +322,17 @@ class Division(db.Model, AutoID, AutoName):
     #: :py:class:`Request` s filed under this division.
     requests = db.relationship(Request, back_populates='division')
 
-    ship_transformer = db.Column(db.PickleType, nullable=True, default=None)
+    division_transformers = db.relationship(TransformerRef,
+            collection_class=attribute_mapped_collection('attribute_name'),
+            back_populates='division', cascade='delete,delete-orphan')
 
-    pilot_transformer = db.Column(db.PickleType, nullable=True, default=None)
+    #: A mapping of attribute names to :py:class:`~.transformer.Transformer`
+    #: instances.
+    transformers = association_proxy(
+            'division_transformers',
+            'transformer',
+            creator=lambda attr, trans:
+                    TransformerRef(attribute_name=attr, transformer=trans))
 
     @property
     def permissions(self):

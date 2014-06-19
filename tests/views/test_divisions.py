@@ -2,7 +2,7 @@ from ..util import TestLogin
 from evesrp import db
 from evesrp.auth import PermissionType
 from evesrp.auth.models import User, Group, Division, Permission
-from evesrp.transformers import ShipTransformer
+from evesrp.transformers import Transformer
 
 
 class TestAddDivision(TestLogin):
@@ -49,7 +49,7 @@ class TestDivisionDetails(TestLogin):
                     id=10))
             db.session.commit()
         self.app.config['SRP_SHIP_URL_TRANSFORMERS'] = [
-            ShipTransformer('Test Transformer', '')
+            Transformer('Test Transformer', '')
         ]
 
     def test_add_entity_by_id(self):
@@ -84,13 +84,13 @@ class TestDivisionDetails(TestLogin):
         client = self.login(self.admin_name)
         resp = client.post('/divisions/1/', follow_redirects=True, data={
                 'name': 'Test Transformer',
-                'kind': 'ship',
+                'kind': 'ship_type',
                 'form_id': 'transformer',
         })
         self.assertEqual(resp.status_code, 200)
         with self.app.test_request_context():
             division = Division.query.get(1)
-            self.assertEqual(division.ship_transformer,
+            self.assertEqual(division.transformers['ship_type'],
                     self.app.config['SRP_SHIP_URL_TRANSFORMERS'][0])
 
     def test_unset_url_transformer(self):
@@ -102,10 +102,10 @@ class TestDivisionDetails(TestLogin):
             db.session.commit()
         resp = client.post('/divisions/1/', follow_redirects=True, data={
                 'name': 'none',
-                'kind': 'ship',
+                'kind': 'ship_type',
                 'form_id': 'transformer',
         })
         self.assertEqual(resp.status_code, 200)
         with self.app.test_request_context():
             division = Division.query.get(1)
-            self.assertIsNone(division.ship_transformer)
+            self.assertIsNone(division.transformers.get('ship_type', None))

@@ -112,34 +112,35 @@ def division_detail(division_id):
                             permission.description.lower()), "info")
         elif request.form['form_id'] == 'transformer':
             form = SetTransformer()
-            if form.kind.data == 'ship':
+            if form.kind.data == 'ship_type':
                 form.name.choices = ship_transformers
             elif form.kind.data == 'pilot':
                 form.name.choices = pilot_transformers
             if form.validate():
-                if form.kind.data == 'ship':
-                    if form.name.data == 'none':
-                        division.ship_transformer = None
-                    else:
-                        transformer = current_app.ship_urls[form.name.data]
-                        division.ship_transformer = transformer
-                elif form.kind.data == 'pilot':
-                    if form.name.data == 'none':
-                        division.pilot_transformer = None
-                    else:
-                        transformer = current_app.pilot_urls[form.name.data]
-                        division.pilot_transformer = transformer
+                if form.name.data == 'none':
+                    division.transformers[form.kind.data] = None
+                else:
+                    # Temporary until transformers is more generalized
+                    if form.kind.data == 'ship_type':
+                        source_dict = current_app.ship_urls
+                    elif form.kind.data == 'pilot':
+                        source_dict = current_app.pilot_urls
+                    new_transformer = source_dict[form.name.data]
+                    division.transformers[form.kind.data] = new_transformer
+                    # Explicitly add the TransformerRef to the session
+                    db.session.add(
+                            division.division_transformers[form.kind.data])
         db.session.commit()
     ship_form = SetTransformer(formdata=None)
     ship_form.name.label = Label(ship_form.name.id, 'Ship Transformers')
     ship_form.name.choices = ship_transformers
-    ship_transformer = division.ship_transformer
+    ship_transformer = division.transformers.get('ship_type', None)
     if ship_transformer is not None:
         ship_form.name.data = ship_transformer.name
     pilot_form = SetTransformer(formdata=None)
     pilot_form.name.label = Label(pilot_form.name.id, 'Pilot Transformers')
     pilot_form.name.choices = pilot_transformers
-    pilot_transformer = division.pilot_transformer
+    pilot_transformer = division.transformers.get('pilot', None)
     if pilot_transformer is not None:
         pilot_form.name.data = pilot_transformer.name
     return render_template(
