@@ -13,8 +13,8 @@
       <dd>{{ srp_request.kill_timestamp.strftime('%d %b %Y %H:%M') }}</dd>
       <dt>Division</dt>
       <dd>
-        {{ srp_request.division.name }}
-        <a class="btn btn-default btn-xs" href="{{ url_for('requests.request_change_division', request_id=srp_request.id) }}">Change Division</a>
+        {{ srp_request.division.name }} &bull;
+        <a href="{{ url_for('requests.request_change_division', request_id=srp_request.id) }}">Change Division</a>
       </dd>
       <dt>Details</dt>
       <dd>
