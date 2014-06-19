@@ -391,8 +391,10 @@ def request_detail(request_id):
                     vaue = form.value.data * -1
                 if 'abs' in form.type_.data:
                     ModClass = AbsoluteModifier
+                    value *= 1000000
                 elif 'rel' in form.type_.data:
                     ModClass = RelativeModifier
+                    value /= 100
                 try:
                     mod = ModClass(srp_request, current_user, form.note.data,
                             value)
@@ -415,7 +417,7 @@ def request_detail(request_id):
                 db.session.commit()
             elif form.id_.data == 'payout':
                 try:
-                    srp_request.base_payout = form.value.data
+                    srp_request.base_payout = form.value.data * 1000000
                     db.session.commit()
                 except ModifierError as e:
                     flash(e, 'error')

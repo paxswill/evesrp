@@ -320,7 +320,7 @@ class TestRequestSetPayout(TestRequest):
         if permission is not None:
             self._add_permission(user_name, permission)
         client = self.login(user_name)
-        test_payout = 42000000
+        test_payout = 42
         with client as c:
             resp = client.post(self.request_path, follow_redirects=True, data={
                     'id_': 'payout',
@@ -330,9 +330,10 @@ class TestRequestSetPayout(TestRequest):
                 payout = self.request.payout
                 base_payout = self.request.base_payout
             if permissable:
-                self.assertIn(str(PrettyDecimal(test_payout)),
+                real_test_payout = test_payout * 1000000
+                self.assertIn(str(PrettyDecimal(real_test_payout)),
                         resp.get_data(as_text=True))
-                self.assertEqual(payout, test_payout)
+                self.assertEqual(payout, real_test_payout)
             else:
                 self.assertIn('Only reviewers can change the base payout.',
                         resp.get_data(as_text=True))
