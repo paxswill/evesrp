@@ -390,7 +390,7 @@ class TestRequestAddModifiers(TestRequest):
                 first_value = modifiers[0].value
         if permissible:
             self.assertEqual(modifiers_length, 1)
-            self.assertEqual(first_value, 10)
+            self.assertEqual(first_value, 10000000)
         else:
             self.assertEqual(modifiers_length, 0)
             self.assertIn('Only reviewers can add modifiers.',

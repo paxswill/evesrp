@@ -388,7 +388,7 @@ def request_detail(request_id):
                 if 'bonus' in form.type_.data:
                     value = form.value.data
                 elif 'deduct' in form.type_.data:
-                    vaue = form.value.data * -1
+                    value = form.value.data * -1
                 if 'abs' in form.type_.data:
                     ModClass = AbsoluteModifier
                     value *= 1000000
@@ -401,18 +401,6 @@ def request_detail(request_id):
                 except ModifierError as e:
                     flash(e, 'error')
                     return render_details()
-                if form.type_.data == 'rel-bonus':
-                    mod.type_ = 'percentage'
-                    mod.value = form.value.data
-                elif form.type_.data == 'rel-deduct':
-                    mod.type_ = 'percentage'
-                    mod.value = form.value.data * -1
-                elif form.type_.data == 'abs-bonus':
-                    mod.type_ = 'absolute'
-                    mod.value = form.value.data
-                elif form.type_.data == 'abs-deduct':
-                    mod.type_ = 'absolute'
-                    mod.value = form.value.data * -1
                 db.session.add(mod)
                 db.session.commit()
             elif form.id_.data == 'payout':
