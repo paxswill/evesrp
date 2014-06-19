@@ -354,6 +354,8 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         relative = rel_mods.one()[0]
         if relative is None:
             relative = Decimal(0)
+        else:
+            relative = Decimal.from_float(relative)
         payout = self.base_payout + absolute
         payout = payout + (payout * relative)
 
