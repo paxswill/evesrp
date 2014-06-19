@@ -357,7 +357,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         payout = self.base_payout + absolute
         payout = payout + (payout * relative)
 
-        return payout
+        return PrettyDecimal(payout)
 
     @hybrid_property
     def finalized(self):
