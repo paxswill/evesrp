@@ -13,7 +13,6 @@ down_revision = '4198a248c8a'
 from decimal import Decimal
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 from sqlalchemy.sql import update, select, table, column
 
 
