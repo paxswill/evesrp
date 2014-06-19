@@ -78,26 +78,23 @@ manager.add_option('-c', '--config', dest='config', required=True,
 
 
 @migrate_manager.command
-def create():
+def create(force=False):
     """Create tables if the database has not been configured yet."""
     # Fail if there's an alembic version set
     engine = db.get_engine(flask.current_app)
     conn = engine.connect()
     context = MigrationContext.configure(conn)
     current_rev = context.get_current_revision()
-    if current_rev is None:
-        db.create_all()
-        # Stamp the database
-        stamp()
+    alembic_config = _get_config(directory=migrate_path)
+    script = ScriptDirectory.from_config(alembic_config)
+    latest_rev = script.get_current_head()
+    if current_rev == latest_rev and not force:
+        print("You need to run 'evesrp -c config.py db migrate' to "
+              "migrate to the latest database schema.")
     else:
-        alembic_config = _get_config(directory=migrate_path)
-        script = ScriptDirectory.from_config(alembic_config)
-        latest_rev = script.get_current_head()
-        if latest_rev == current_rev:
-            print("Latest schema revision, no need to create tables.")
-        else:
-            print("You need to run 'evesrp -c config.py db migrate' to "
-                  "migrate to the latest database schema.")
+        db.create_all()
+        if current_rev is None:
+            stamp()
 
 
 def main():
