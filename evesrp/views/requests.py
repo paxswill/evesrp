@@ -1,5 +1,4 @@
 from collections import OrderedDict
-from itertools import groupby
 import re
 
 from flask import render_template, abort, url_for, flash, Markup, request,\
@@ -259,28 +258,6 @@ class RequestForm(Form):
             raise ValidationError([str(e) for e in failures])
 
 
-def submit_divisions(user):
-    """Get a list of the divisions the given user is able to submit requests
-    to.
-
-    :param user: The user to evaluate.
-    :type user: :py:class:`~.models.User`
-    :returns: A list of tuples. The tuples are in the form (division.id,
-        division.name)
-    :rtype: list
-    """
-    submit_perms = user.permissions\
-            .filter_by(permission=PermissionType.submit)\
-            .subquery()
-    divisions = db.session.query(Division).join(submit_perms)\
-            .order_by(Division.name)
-    # Remove duplicates and sort divisions by name
-    choices = []
-    for name, group in groupby(divisions, lambda d: d.name):
-        choices.append((next(group).id, name))
-    return choices
-
-
 @blueprint.route('/add/', methods=['GET', 'POST'])
 @login_required
 def submit_request():
@@ -296,7 +273,8 @@ def submit_request():
         abort(403)
     form = RequestForm()
     # Create a list of divisions this user can submit to
-    form.division.choices = submit_divisions(current_user)
+    form.division.choices = current_user.submit_divisions()
+
     if form.validate_on_submit():
         mail = form.killmail
         # Prevent submitting other people's killmails
@@ -508,8 +486,9 @@ def request_change_division(request_id):
             current_user != srp_request.submitter or \
             srp_request.finalized:
         abort(403)
+    division_choices = srp_request.submitter.submit_divisions()
     form = DivisionChange()
-    form.division.choices = submit_divisions(srp_request.submitter)
+    form.division.choices = division_choices
     if form.validate_on_submit():
         new_division = Division.query.get(form.division.data)
         archive_note = "Moving from division '{}' to division '{}'.".format(

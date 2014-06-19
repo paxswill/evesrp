@@ -60,7 +60,7 @@ class TestSubmitRequest(TestLogin):
         client = self.login()
         with self.app.test_request_context():
             user = self.normal_user
-            divisions = views.requests.submit_divisions(user)
+            divisions = user.submit_divisions()
             division_names = [d[1] for d in divisions]
             self.assertEqual(len(division_names), 2)
             self.assertCountEqual(division_names, ('Division 1', 'Division 3'))
@@ -72,7 +72,7 @@ class TestSubmitRequest(TestLogin):
             c.get('/add/')
             # RequestsForm needs a list of divisions
             user = self.normal_user
-            divisions = views.requests.submit_divisions(user)
+            divisions = user.submit_divisions()
             # Tests
             # ZKillboard
             division = Division.query.filter_by(name='Division 1').one()

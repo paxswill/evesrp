@@ -1,3 +1,4 @@
+from itertools import groupby
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -151,6 +152,24 @@ class User(Entity):
     def get_id(self):
         """Part of the interface for Flask-Login."""
         return str(self.id)
+
+    def submit_divisions(self):
+        """Get a list of the divisions this user is able to submit requests to.
+
+        :returns: A list of tuples. The tuples are in the form (division.id,
+            division.name)
+        :rtype: list
+        """
+        submit_perms = self.permissions\
+                .filter_by(permission=PermissionType.submit)\
+                .subquery()
+        divisions = db.session.query(Division).join(submit_perms)\
+                .order_by(Division.name)
+        # Remove duplicates and sort divisions by name
+        choices = []
+        for name, group in groupby(divisions, lambda d: d.name):
+            choices.append((next(group).id, name))
+        return choices
 
 
 class Note(db.Model, AutoID, Timestamped, AutoName):
