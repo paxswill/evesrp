@@ -31,7 +31,7 @@ KILLMAIL_SOURCES = [
         TestZKillboard,
 ]
 
-SRP_SHIP_URL_TRANSFORMERS = [
+SRP_SHIP_TYPE_URL_TRANSFORMERS = [
     Transformer('TEST Reimbursement Wiki',
         'https://wiki.pleaseignore.com/wiki/Reimbursement:{}'),
 ]

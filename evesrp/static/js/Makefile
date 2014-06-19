@@ -18,7 +18,8 @@ SOURCE_NAMES := \
 	$(THIRDPARTY)/zeroclipboard/ZeroClipboard \
 	custom-pourover \
 	$(THIRDPARTY)/typeahead_js/dist/typeahead.bundle \
-	custom-typeahead
+	custom-typeahead\
+	custom-divisions
 JS_SOURCE = $(patsubst %,%.js,$(SOURCE_NAMES))
 
 all: evesrp.min.js

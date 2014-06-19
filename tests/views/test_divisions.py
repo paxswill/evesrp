@@ -48,7 +48,7 @@ class TestDivisionDetails(TestLogin):
             db.session.add(Group('Group 1', self.default_authmethod.name,
                     id=10))
             db.session.commit()
-        self.app.config['SRP_SHIP_URL_TRANSFORMERS'] = [
+        self.app.config['SRP_SHIP_TYPE_URL_TRANSFORMERS'] = [
             Transformer('Test Transformer', '')
         ]
 
@@ -83,26 +83,26 @@ class TestDivisionDetails(TestLogin):
     def test_set_url_transformer(self):
         client = self.login(self.admin_name)
         resp = client.post('/divisions/1/', follow_redirects=True, data={
-                'name': 'Test Transformer',
-                'kind': 'ship_type',
+                'transformer': 'Test Transformer',
+                'attribute': 'ship_type',
                 'form_id': 'transformer',
         })
         self.assertEqual(resp.status_code, 200)
         with self.app.test_request_context():
             division = Division.query.get(1)
             self.assertEqual(division.transformers['ship_type'],
-                    self.app.config['SRP_SHIP_URL_TRANSFORMERS'][0])
+                    self.app.config['SRP_SHIP_TYPE_URL_TRANSFORMERS'][0])
 
     def test_unset_url_transformer(self):
         client = self.login(self.admin_name)
         with self.app.test_request_context():
             division = Division.query.get(1)
             division.ship_transformer = \
-                    self.app.config['SRP_SHIP_URL_TRANSFORMERS'][0]
+                    self.app.config['SRP_SHIP_TYPE_URL_TRANSFORMERS'][0]
             db.session.commit()
         resp = client.post('/divisions/1/', follow_redirects=True, data={
-                'name': 'none',
-                'kind': 'ship_type',
+                'transformer': 'none',
+                'attribute': 'ship_type',
                 'form_id': 'transformer',
         })
         self.assertEqual(resp.status_code, 200)

@@ -1,5 +1,5 @@
 from flask import url_for, render_template, redirect, abort, flash, request,\
-        Blueprint, current_app
+        Blueprint, current_app, jsonify
 from flask.ext.login import login_required
 from flask.ext.wtf import Form
 from wtforms.fields import StringField, SubmitField, HiddenField, SelectField,\
@@ -57,10 +57,36 @@ class ChangeEntity(Form):
     action = HiddenField(validators=[AnyOf(('add', 'delete'))])
 
 
-class SetTransformer(Form):
+transformer_choices = [
+    ('', ''),
+    ('kill_timestamp', 'Kill Timestamp'),
+    ('pilot', 'Pilot'),
+    ('corporation', 'Corporation'),
+    ('alliance', 'Alliance'),
+    ('system', 'Solar System'),
+    ('constellation', 'Constellation'),
+    ('region', 'Region'),
+    ('ship_type', 'Ship'),
+    ('payout', 'Payout'),
+    ('status', 'Request Status'),
+]
+
+
+class ChangeTransformer(Form):
     form_id = HiddenField(default='transformer')
-    name = SelectField()
-    kind = HiddenField()
+    attribute = SelectField('Attribute', choices=transformer_choices)
+    transformer = SelectField('Transformer', choices=[])
+
+
+def transformer_choices(attr):
+    default_transformers = [
+        ('none', 'None'),
+    ]
+    choices = default_transformers
+    if attr in current_app.url_transformers:
+        for transformer in current_app.url_transformers[attr]:
+            choices.append((transformer, transformer))
+    return choices
 
 
 @blueprint.route('/<int:division_id>/', methods=['GET', 'POST'])
@@ -77,12 +103,6 @@ def division_detail(division_id):
     :param int division_id: The ID number of the division
     """
     division = Division.query.get_or_404(division_id)
-    ship_transformers = [('none', 'None')]
-    for name in current_app.ship_urls.keys():
-        ship_transformers.append((name, name))
-    pilot_transformers = [('none', 'None')]
-    for name in current_app.pilot_urls.keys():
-        pilot_transformers.append((name, name))
     if request.method == 'POST':
         if request.form['form_id'] == 'entity':
             form = ChangeEntity()
@@ -111,42 +131,46 @@ def division_detail(division_id):
                     flash("'{}' is no longer a {}.".format(entity,
                             permission.description.lower()), "info")
         elif request.form['form_id'] == 'transformer':
-            form = SetTransformer()
-            if form.kind.data == 'ship_type':
-                form.name.choices = ship_transformers
-            elif form.kind.data == 'pilot':
-                form.name.choices = pilot_transformers
+            form = ChangeTransformer()
+            attr = form.attribute.data
+            form.transformer.choices = transformer_choices(attr)
+            # Check form and go from there
             if form.validate():
-                if form.name.data == 'none':
-                    division.transformers[form.kind.data] = None
+                name = form.transformer.data
+                if name == 'none':
+                    division.transformers[attr] = None
                 else:
-                    # Temporary until transformers is more generalized
-                    if form.kind.data == 'ship_type':
-                        source_dict = current_app.ship_urls
-                    elif form.kind.data == 'pilot':
-                        source_dict = current_app.pilot_urls
-                    new_transformer = source_dict[form.name.data]
-                    division.transformers[form.kind.data] = new_transformer
+                    # Get the specific map of transformers for the attribute
+                    attr_transformers = current_app.url_transformers[attr]
+                    # Get the new transformer
+                    division.transformers[attr] = attr_transformers[name]
                     # Explicitly add the TransformerRef to the session
-                    db.session.add(
-                            division.division_transformers[form.kind.data])
+                    db.session.add(division.division_transformers[attr])
         db.session.commit()
-    ship_form = SetTransformer(formdata=None)
-    ship_form.name.label = Label(ship_form.name.id, 'Ship Transformers')
-    ship_form.name.choices = ship_transformers
-    ship_transformer = division.transformers.get('ship_type', None)
-    if ship_transformer is not None:
-        ship_form.name.data = ship_transformer.name
-    pilot_form = SetTransformer(formdata=None)
-    pilot_form.name.label = Label(pilot_form.name.id, 'Pilot Transformers')
-    pilot_form.name.choices = pilot_transformers
-    pilot_transformer = division.transformers.get('pilot', None)
-    if pilot_transformer is not None:
-        pilot_form.name.data = pilot_transformer.name
     return render_template(
             'division_detail.html',
             division=division,
             entity_form=ChangeEntity(),
-            ship_form=ship_form,
-            pilot_form=pilot_form
+            transformer_form=ChangeTransformer(),
     )
+
+
+@blueprint.route('/<int:division_id>/transformers/')
+@blueprint.route('/<int:division_id>/transformers/<attribute>/')
+def list_transformers(division_id, attribute=None):
+    division = Division.query.get_or_404(division_id)
+    if attribute is None:
+        attrs = current_app.url_transformers.keys()
+    else:
+        attrs = (attribute,)
+    choices = {}
+    for attr in attrs:
+        raw_choices = transformer_choices(attr)
+        current = division.transformers.get(attr, None)
+        if current is not None:
+            choices[attr] = \
+                    [(c[0], c[1], c[1] == current.name) for c in raw_choices]
+        else:
+            choices[attr] = \
+                    [(c[0], c[1], False) for c in raw_choices]
+    return jsonify(choices)

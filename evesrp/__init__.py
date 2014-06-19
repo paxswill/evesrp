@@ -107,16 +107,22 @@ def _copy_config_to_authmethods():
 
 # Request detail URL setup
 def _copy_url_converter_config():
-    current_app.ship_urls = {}
-    ship_transformers = current_app.config.get('SRP_SHIP_URL_TRANSFORMERS')
-    if ship_transformers is not None:
-        for transformer in ship_transformers:
-            current_app.ship_urls[transformer.name] = transformer
-    current_app.pilot_urls = {}
-    pilot_transformers = current_app.config.get('SRP_PILOT_URL_TRANSFORMERS')
-    if pilot_transformers is not None:
-        for transformer in pilot_transformers:
-            current_app.pilot_urls[transformer.name] = transformer
+    url_transformers = {}
+    for config_key, config_value in current_app.config.items():
+        if config_value is None:
+            continue
+        index = config_key.rfind('_URL_TRANSFORMERS')
+        if not config_key.endswith('_URL_TRANSFORMERS')\
+                or not config_key.startswith('SRP_'):
+            continue
+        attribute = config_key.replace('SRP_', '', 1)
+        attribute = attribute.replace('_URL_TRANSFORMERS', '', 1)
+        attribute = attribute.lower()
+        url_transformers[attribute] = {t.name:t for t in config_value}
+    current_app.url_transformers = url_transformers
+    # temporary compatibility
+    current_app.ship_urls = url_transformers.get('ship_type', None)
+    current_app.pilot_urls = url_transformers.get('pilot', None)
 
 
 # Requests session setup

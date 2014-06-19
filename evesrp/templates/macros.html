@@ -1,10 +1,14 @@
-{% macro render_select(field) -%}
+{% macro render_select(field, disabled=False) -%}
 {# Renders selects. If there's only one choice, it hides the input. #}
 {% if field.iter_choices()|list|length == 1 %}
 {{ field(style="display: none;") }}
 {% else %}
 {{ field.label }}
+{% if disabled %}
+{{ field(class="form-control", disabled="") }}
+{% else %}
 {{ field(class="form-control") }}
+{% endif %}
 {% endif %}
 {%- endmacro %}
 
@@ -25,22 +29,22 @@
 {% endif %}
 {%- endmacro %}
 
-{% macro render_input(field, inline=False) -%}
+{% macro render_input(field, inline=False, disabled=False) -%}
 <div class="form-group{{ " has-error has-feedback" if field.errors }}">
   {% if inline %}
   {{ field.label(class="sr-only") }}
-  {{ field(class="form-control", placeholder=field.label.text) }}
+  {{ field(class="form-control", placeholder=field.label.text, disabled=disabled) }}
   {% else %}
     {% if field.widget.input_type == 'submit' %}
       {{ field(class="btn btn-default") }}
     {% else %}
       {% if field.iter_choices is defined %}
-      {{ render_select(field) }}
+      {{ render_select(field, disabled=disabled) }}
       {% else %}
         {% if field.widget.input_type != 'hidden' %}
           {{ field.label }}
         {% endif %}
-        {{ field(class="form-control") }}
+        {{ field(class="form-control", disabled=disabled) }}
         {% if field.description %}
           <span class="help-block">{{ field.description }}</span>
         {% endif %}
