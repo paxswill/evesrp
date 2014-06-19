@@ -142,18 +142,44 @@ def division_detail(division_id):
     :param int division_id: The ID of the division
     """
     division = Division.query.get_or_404(division_id)
-    div_obj = {
-            'name': division.name,
-            'requests': division.requests,
-    }
     permissions = {}
     for perm in PermissionType.all:
-        permission = division.permissions[perm]
-        permissions[perm] = {
-                'users': permission.individuals,
-                'groups': permission.groups,
+        key = perm.name + '_href'
+        permissions[key] = url_for('.division_permissions',
+                division_id=division_id,
+                permission=perm.name)
+    return jsonify(
+            name=division.name,
+            requests=division.requests,
+            permissions=permissions)
+
+
+@api.route('/division/<int:division_id>/<permission>/')
+@login_required
+@admin_permission.require()
+def division_permissions(division_id, permission):
+    division = Division.query.get_or_404(division_id)
+    permission = PermissionType.from_string(permission)
+    # Can't use normal Entity JSON encoder as it doesn't include the
+    # authentication source or their type (explicitly. Ain't nobody got time
+    # for parsing the entity type out of the href).
+    entities = []
+    for entity in map(lambda p: p.entity, division.permissions[permission]):
+        entity_info = {
+            'name': entity.name,
+            'id': entity.id,
+            'source': str(entity.authmethod),
         }
-    return jsonify(div_obj)
+        if hasattr(entity, 'users'):
+            entity_info['type'] = 'Group'
+            entity_info['length'] = len(entity.users)
+        else:
+            entity_info['type'] = 'User'
+        entities.append(entity_info)
+    return jsonify(
+        entities=entities,
+        name=permission.name,
+        description=permission.description)
 
 
 @api.route('/ships/')

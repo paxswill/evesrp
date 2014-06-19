@@ -1,10 +1,5 @@
 {% extends "list_requests.html" %}
 
-{% block head %}
-{{ super() }}
-<meta name="csrf_token" content="{{ csrf_token() }}">
-{% endblock head %}
-
 {% block table_headers %}
 {{ request_header('pilot', 'Pilot', 'paste') }}
 {{ request_header('id', 'Request ID (copy)', 'paste') }}

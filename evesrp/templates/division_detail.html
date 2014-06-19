@@ -14,7 +14,7 @@
   </div>
   <div class="col-md-9 col-md-pull-3">
   {% for permission in (PermissionType.submit, PermissionType.review, PermissionType.pay) %}
-  <div class="row" id="{{ permission }}">
+  <div class="row permission" id="{{ permission.name }}">
     <h2>{{ permission }}s</h2>
     <div class="col-lg-8">
       <table class="table table-condensed">

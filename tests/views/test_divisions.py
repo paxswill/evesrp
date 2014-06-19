@@ -9,7 +9,7 @@ class TestAddDivision(TestLogin):
 
     def test_add_division(self):
         client = self.login(self.admin_name)
-        resp = client.post('/divisions/add/', follow_redirects=True,
+        resp = client.post('/division/add/', follow_redirects=True,
                 data={'name': 'Test Division'})
         self.assertEqual(resp.status_code, 200)
         with self.app.test_request_context():
@@ -33,7 +33,7 @@ class TestListDivisions(TestLogin):
 
     def test_list_divisions(self):
         client = self.login(self.admin_name)
-        resp = client.get('/divisions/', follow_redirects=True)
+        resp = client.get('/division/', follow_redirects=True)
         self.assertIn('Division One', resp.get_data(as_text=True))
         self.assertIn('Division Two', resp.get_data(as_text=True))
         self.assertIn('Division Three', resp.get_data(as_text=True))
@@ -54,7 +54,7 @@ class TestDivisionDetails(TestLogin):
 
     def test_add_entity_by_id(self):
         client = self.login(self.admin_name)
-        resp = client.post('/divisions/1/', follow_redirects=True, data={
+        resp = client.post('/division/1/', follow_redirects=True, data={
                 'action': 'add',
                 'permission': 'submit',
                 'id_': 10,
@@ -68,7 +68,7 @@ class TestDivisionDetails(TestLogin):
 
     def test_add_entity_by_name(self):
         client = self.login(self.admin_name)
-        resp = client.post('/divisions/1/', follow_redirects=True, data={
+        resp = client.post('/division/1/', follow_redirects=True, data={
                 'action': 'add',
                 'permission': 'submit',
                 'name': 'Group 1',
@@ -82,7 +82,7 @@ class TestDivisionDetails(TestLogin):
 
     def test_set_url_transformer(self):
         client = self.login(self.admin_name)
-        resp = client.post('/divisions/1/', follow_redirects=True, data={
+        resp = client.post('/division/1/', follow_redirects=True, data={
                 'transformer': 'Test Transformer',
                 'attribute': 'ship_type',
                 'form_id': 'transformer',
@@ -100,7 +100,7 @@ class TestDivisionDetails(TestLogin):
             division.ship_transformer = \
                     self.app.config['SRP_SHIP_TYPE_URL_TRANSFORMERS'][0]
             db.session.commit()
-        resp = client.post('/divisions/1/', follow_redirects=True, data={
+        resp = client.post('/division/1/', follow_redirects=True, data={
                 'transformer': 'none',
                 'attribute': 'ship_type',
                 'form_id': 'transformer',

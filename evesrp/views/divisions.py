@@ -157,6 +157,8 @@ def division_detail(division_id):
 
 @blueprint.route('/<int:division_id>/transformers/')
 @blueprint.route('/<int:division_id>/transformers/<attribute>/')
+@login_required
+@admin_permission.require()
 def list_transformers(division_id, attribute=None):
     division = Division.query.get_or_404(division_id)
     if attribute is None:
