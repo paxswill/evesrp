@@ -414,6 +414,8 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
             ActionType.incomplete: (PermissionType.review,),
             ActionType.rejected: (PermissionType.review,),
             ActionType.approved: (PermissionType.review,),
+            ActionType.evaluating: (PermissionType.review,
+                PermissionType.submit),
         },
         ActionType.incomplete: {
             ActionType.rejected: (PermissionType.review,),
