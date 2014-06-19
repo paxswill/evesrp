@@ -235,10 +235,9 @@ class AbsoluteModifier(Modifier):
     #: How much ISK to add or remove from the payout
     value = db.Column(PrettyNumeric(precision=15, scale=2), nullable=False, default=0.0)
 
-    @property
-    def pretty_value(self):
-        return '{} ISK {}'.format(self.value, 'bonus' if self.value >= 0 else
-                'penalty')
+    def __str__(self):
+        return '{}M ISK {}'.format(self.value / 1000000,
+                'bonus' if self.value >= 0 else 'penalty')
 
 
 class RelativeModifier(Modifier):
@@ -253,10 +252,9 @@ class RelativeModifier(Modifier):
     #: What percentage of the payout to add or remove
     value = db.Column(db.Float, nullable=False, default=0.0)
 
-    @property
-    def pretty_value(self):
-        return '{}% {}'.format(self.value, 'bonus' if self.value >= 0 else
-                'penalty')
+    def __str__(self):
+        return '{}% {}'.format(self.value * 100,
+                'bonus' if self.value >= 0 else 'penalty')
 
 
 class Request(db.Model, AutoID, Timestamped, AutoName):

@@ -133,11 +133,7 @@
                 {% if modifier.voided %}
                   {% set color_class = "text-muted" %}
                 {% endif %}
-                {% if modifier.type_ == 'percentage' %}
-              <h4 class="{{ color_class }}">{{ modifier.value }}% {{ modifier_text }}</h4>
-                {% elif modifier.type_ == 'absolute' %}
-              <h4 class="{{ color_class }}">{{ modifier.value }}M ISK {{ modifier_text }}</h4>
-                {% endif %}
+              <h4 class="{{ color_class }}">{{ modifier }}</h4>
               {% endwith %}
               {{ '</del>'|safe if modifier.voided }}
               {% endblock modifier_header %}
