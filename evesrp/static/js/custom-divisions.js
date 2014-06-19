@@ -41,6 +41,11 @@ $("select#transformer").change( function() {
     function() {
       var flashed = $("<div></div>");
       flashed.addClass("alert alert-info");
+      var close_button = $("<button>&times;</button>");
+      close_button.attr('type', 'button');
+      close_button.attr('data-dismiss', 'alert');
+      close_button.addClass('close');
+      flashed.append(close_button);
       flashed.append('"' + attr_name + '" transformer set to "' + transformer_name + '".');
       $("#content").prepend(flashed);
     }

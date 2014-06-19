@@ -80,7 +80,10 @@
       {# catches 'info', the final recommended flash category #}
       {% set alert_class = 'alert-info' %}
       {% endif %}
-      <div class="alert {{ alert_class }}">{{ message }}</div>
+      <div class="alert {{ alert_class }} alert-dismissable">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        {{ message }}
+      </div>
       {% endfor %}
       {% endif %}
       {% endwith %}
