@@ -487,6 +487,9 @@ def request_change_division(request_id):
             srp_request.finalized:
         abort(403)
     division_choices = srp_request.submitter.submit_divisions()
+    if len(division_choices) < 2:
+        flash("No other divisions to move to.", 'info')
+        return redirect(url_for('.request_detail', request_id=request_id))
     form = DivisionChange()
     form.division.choices = division_choices
     if form.validate_on_submit():
