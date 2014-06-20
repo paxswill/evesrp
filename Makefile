@@ -14,7 +14,8 @@ $(SUBDIRS):
 
 build-deps:
 	pip install -r requirements.txt
-	npm install -g less uglify-js
+	npm install -g less uglify-js bower
+	bower install
 ifneq (,$(findstring psycopg2,$(DB)))
 	pip install psycopg2
 else ifneq (,$(findstring pymysql,$(DB)))

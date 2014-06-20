@@ -1,3 +1,4 @@
 *.py[oc]
 *.egg*
 *.pem
+bower_components

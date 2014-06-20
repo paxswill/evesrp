@@ -1,5 +1,5 @@
 SUBDIRS := js css
-export THIRDPARTY = $(abspath ../../thirdparty)
+export THIRDPARTY = $(abspath ../../bower_components)
 
 .PHONY: all clean $(SUBDIRS)
 

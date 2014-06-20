@@ -14,11 +14,11 @@ SOURCE_NAMES := \
 	custom-requests \
 	$(THIRDPARTY)/underscore/underscore \
 	$(THIRDPARTY)/pourover/pourover \
-	$(THIRDPARTY)/history_js/scripts/bundled/html4+html5/jquery.history \
+	$(THIRDPARTY)/history.js/scripts/bundled/html4+html5/jquery.history \
 	$(THIRDPARTY)/bootstrap-tokenfield/js/bootstrap-tokenfield \
 	$(THIRDPARTY)/zeroclipboard/ZeroClipboard \
 	custom-pourover \
-	$(THIRDPARTY)/typeahead_js/dist/typeahead.bundle \
+	$(THIRDPARTY)/typeahead.js/dist/typeahead.bundle \
 	custom-typeahead\
 	custom-divisions
 JS_SOURCE = $(patsubst %,%.js,$(SOURCE_NAMES))

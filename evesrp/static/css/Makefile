@@ -1,6 +1,6 @@
 LESSC ?= lessc
 BOOTSTRAP ?= $(THIRDPARTY)/bootstrap/less
-FONTAWESOME ?= $(THIRDPARTY)/fontawesome/less
+FONTAWESOME ?= $(THIRDPARTY)/font-awesome/less
 TOKENFIELD ?= $(THIRDPARTY)/bootstrap-tokenfield/less
 LESSC_OPTS ?= --source-map \
 			  --source-map-less-inline
@@ -13,17 +13,14 @@ all: bootstrap.css bootstrap.min.css bootstrap-theme.css \
 clean:
 	rm -f bootstrap*.css font-awesome*.css *.map tokenfield*.css
 
-$(BOOTSTRAP) $(FONTAWESOME) $(TOKENFIELD):
-	git submodule -u -i "$@"
-
-bootstrap.css: $(BOOTSTRAP)
+bootstrap.css:
 	$(LESSC) \
 		--include-path="$(BOOTSTRAP)" \
 		$(LESSC_OPTS) \
 		"$(BOOTSTRAP)/bootstrap.less" \
 		$@
 
-bootstrap.min.css: $(BOOTSTRAP)
+bootstrap.min.css:
 	$(LESSC) \
 		--include-path="$(BOOTSTRAP)" \
 		$(LESSC_OPTS) \
@@ -31,14 +28,14 @@ bootstrap.min.css: $(BOOTSTRAP)
 		"$(BOOTSTRAP)/bootstrap.less" \
 		$@
 
-bootstrap-theme.css: $(BOOTSTRAP)
+bootstrap-theme.css:
 	$(LESSC) \
 		--include-path="$(BOOTSTRAP)" \
 		$(LESSC_OPTS) \
 		"$(BOOTSTRAP)/theme.less" \
 		$@
 
-bootstrap-theme.min.css: $(BOOTSTRAP)
+bootstrap-theme.min.css:
 	$(LESSC) \
 		--include-path="$(BOOTSTRAP)" \
 		$(LESSC_OPTS) \
@@ -46,14 +43,14 @@ bootstrap-theme.min.css: $(BOOTSTRAP)
 		"$(BOOTSTRAP)/theme.less" \
 		$@
 
-font-awesome.css: $(FONTAWESOME)
+font-awesome.css:
 	$(LESSC) \
 		--include-path="$(FONTAWESOME)" \
 		$(LESSC_OPTS) \
 		"$(FONTAWESOME)/font-awesome.less" \
 		$@
 
-font-awesome.min.css: $(FONTAWESOME)
+font-awesome.min.css:
 	$(LESSC) \
 		--include-path="$(FONTAWESOME)" \
 		$(LESSC_OPTS) \
@@ -61,21 +58,17 @@ font-awesome.min.css: $(FONTAWESOME)
 		"$(FONTAWESOME)/font-awesome.less" \
 		$@
 
-bootstrap-tokenfield.css tokenfield-typeahead.css: $(TOKENFIELD)
-	# It tries to depend on bower including bootstrap. How cute.
-	sed -e s,'\.\./bower_components/','',g "$^/$(@:css=less)" | \
+bootstrap-tokenfield.css tokenfield-typeahead.css:
 	$(LESSC) \
-		--include-path="$^:$(THIRDPARTY)" \
+		--include-path="$(THIRDPARTY)" \
 		$(LESSC_OPTS) \
-		- \
+		"$(TOKENFIELD)/$(@:css=less)" \
 		$@
 
-bootstrap-tokenfield.min.css tokenfield-typeahead.min.css: $(TOKENFIELD)
-	# It tries to depend on bower including bootstrap. How cute.
-	sed -e s,'\.\./bower_components/','',g "$^/$(@:min.css=less)" | \
+bootstrap-tokenfield.min.css tokenfield-typeahead.min.css:
 	$(LESSC) \
-		--include-path="$^:$(THIRDPARTY)" \
+		--include-path="$(THIRDPARTY)" \
 		$(LESSC_OPTS) \
 		-x \
-		- \
+		"$(TOKENFIELD)/$(@:min.css=less)" \
 		$@
