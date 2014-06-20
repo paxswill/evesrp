@@ -14,7 +14,7 @@ $(SUBDIRS):
 
 build-deps:
 	pip install -r requirements.txt
-	npm install -g less uglify-js bower
+	npm install -g less uglify-js bower handlebars@1.3.0
 	bower install
 ifneq (,$(findstring psycopg2,$(DB)))
 	pip install psycopg2
