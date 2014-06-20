@@ -44,7 +44,11 @@
         {% if field.widget.input_type != 'hidden' %}
           {{ field.label }}
         {% endif %}
-        {{ field(class="form-control", disabled=disabled) }}
+        {% if disabled %}
+        {{ field(class="form-control", disabled="") }}
+        {% else %}
+        {{ field(class="form-control") }}
+        {% endif %}
         {% if field.description %}
           <span class="help-block">{{ field.description }}</span>
         {% endif %}
