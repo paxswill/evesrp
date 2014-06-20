@@ -22,13 +22,14 @@ SOURCE_NAMES := \
 	custom-typeahead \
 	custom-divisions \
 	$(THIRDPARTY)/handlebars/handlebars.runtime \
+	custom-handlebars \
 	handlebars-templates
 JS_SOURCE = $(patsubst %,%.js,$(SOURCE_NAMES))
 
 all: evesrp.min.js
 
 handlebars-templates.js: $(wildcard templates/*.hbs)
-	handlebars -e hbs templates -f $@
+	handlebars -e hbs templates -f $@ -k each -k if -k csrf
 
 evesrp.min.js: $(JS_SOURCE)
 	$(UGLIFY) $^ \

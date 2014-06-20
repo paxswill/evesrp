@@ -1,0 +1,28 @@
+<table class="table table-condensed">
+  <tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Authentication Source</th>
+    <th>Remove</th>
+  </tr>
+  {{#each entities}}
+  <tr>
+    <td>{{this.name}}</td>
+    {{#if this.length}}
+    <td>Group ({{this.length}})</td>
+    {{else}}
+    <td>User</td>
+    {{/if}}
+    <td>{{this.source}}</td>
+    <td>
+      <form method="post">
+        <input id="csrf_token" name="csrf_token" type="hidden" value="{{csrf}}">
+        <input id="id_" name="id_" type="hidden" value="{{this.id}}">
+        <input id="permission" name="permission" type="hidden" value="{{../name}}">
+        <input id="action" name="action" type="hidden" value="delete">
+        <input id="form_id" name="form_id" type="hidden" value="entity">
+        <button class="close" type="submit">&times;</button>
+      </form>
+  </tr>
+  {{/each}}
+</table>

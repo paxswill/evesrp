@@ -61,42 +61,8 @@ function rebuild_entities(permission) {
     '/api' + window.location.pathname + permission + '/',
     function(data) {
       var table = $("#" + permission).find("table");
-      var rows = table.find('tr').slice(1);
-      rows.remove();
-      $.each(data['entities'], function(i, entity) {
-        var row = $("<tr></tr>");
-        row.append("<td>" + entity['name'] + "</td>");
-        if (entity['type'] === 'Group') {
-          row.append("<td>" + "Group (" + entity['length'] + ")</td>");
-        } else {
-          row.append("<td>" + entity['type'] + "</td>");
-        }
-        row.append("<td>" + entity['source'] + "</td>");
-        // Render the removal form
-        var form = $("<form></form>");
-        form.addClass("remove-entity");
-        form.attr("method", "post");
-        var values = {
-          csrf_token: $("meta[name='csrf_token']").attr("content"),
-          id_: entity['id'],
-          permission: permission,
-          action: 'delete',
-          form_id: 'entity',
-        };
-        form.append($.map(values, function(value, key) {
-          var input = $("<input></input>");
-          input.attr("id", key);
-          input.attr("name", key);
-          input.attr("type", "hidden");
-          input.attr("value", value);
-          return input;
-        }));
-        form.append('<button class="close" type="submit">&times;</button>');
-        var form_cell = $("<td></td>");
-        form_cell.append(form);
-        row.append(form_cell);
-        table.append(row);
-      });
+	  var new_table = Handlebars.templates.entity_table(data);
+	  table.replaceWith(new_table);
     }
   );
 }
