@@ -29,7 +29,7 @@ $("select#attribute").change( function() {
 
 function flash(message, category){
   var flashed = $("<div></div>");
-  flashed.addClass("alert alert-dismissable");
+  flashed.addClass("alert alert-dismissable fade in");
   flashed.addClass("alert-" + category);
   var close_button = $("<button>&times;</button>");
   close_button.attr('type', 'button');
