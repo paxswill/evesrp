@@ -2,3 +2,4 @@
 *.egg*
 *.pem
 bower_components
+.env
