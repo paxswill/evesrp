@@ -130,6 +130,8 @@ def division_detail(division_id):
                             permission=permission, entity=entity).delete()
                     flash("'{}' is no longer a {}.".format(entity,
                             permission.description.lower()), "info")
+            else:
+                abort(400)
         elif request.form['form_id'] == 'transformer':
             form = ChangeTransformer()
             attr = form.attribute.data
@@ -146,6 +148,8 @@ def division_detail(division_id):
                     division.transformers[attr] = attr_transformers[name]
                     # Explicitly add the TransformerRef to the session
                     db.session.add(division.division_transformers[attr])
+            else:
+                abort(400)
         db.session.commit()
     return render_template(
             'division_detail.html',
