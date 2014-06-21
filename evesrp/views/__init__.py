@@ -38,6 +38,7 @@ def request_count(permission, statuses=None):
             subquery()
     requests = db.session.query(db.func.count(db.distinct(Request.id))).\
             join(divisions).\
-            filter(Request.status.in_(statuses)).\
-            one()[0]
-    return count
+            filter(Request.status.in_(statuses))
+    if permission == PermissionType.submit:
+        requests = requests.filter(Request.submitter==current_user)
+    return requests.one()[0]
