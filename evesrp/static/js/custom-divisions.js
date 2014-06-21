@@ -95,6 +95,8 @@ $(".permission").submit( function(e) {
         "'" + entity_name + status_string + permission_title.toLowerCase(),
         'info'
       );
+      // Clear the now added value
+      var typeahead = form.find('.typeahead').typeahead('val', '');
       rebuild_entities(permission)
     }
   );
