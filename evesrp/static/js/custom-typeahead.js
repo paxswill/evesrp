@@ -57,6 +57,9 @@ if ($('.entity-typeahead').length) {
     }
   })
   .on('typeahead:autocompleted', setEntityID)
-  .on('typeahead:selected', setEntityID)
-  .on('typeahead:cursorchanged', setEntityID);
+  .on('typeahead:cursorchanged', setEntityID)
+  .on('typeahead:selected', function(ev, datum, dataset) {
+    setEntityID(ev, datum, dataset);
+    $(this).closest('form').submit();
+  });
 }

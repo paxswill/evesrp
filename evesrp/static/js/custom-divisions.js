@@ -68,7 +68,12 @@ function rebuild_entities(permission) {
 }
 
 $(".permission").submit( function(e) {
-  var form = $(e.originalEvent.target);
+  var form;
+  if ('originalEvent' in e) {
+    form = $(e.originalEvent.target);
+  } else {
+    form = $(e.target);
+  }
   var permission = $(this).attr("id");
   var permission_title = $(this).children("h2").text().slice(0, -1);
   var entity_name = form.find("input[name='name']").val();
