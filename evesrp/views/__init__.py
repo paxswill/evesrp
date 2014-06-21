@@ -36,7 +36,7 @@ def request_count(permission, statuses=None):
     divisions = db.session.query(Division.id).\
             join(permissions).\
             subquery()
-    count = db.session.query(db.func.count(Request.id)).\
+    requests = db.session.query(db.func.count(db.distinct(Request.id))).\
             join(divisions).\
             filter(Request.status.in_(statuses)).\
             one()[0]
