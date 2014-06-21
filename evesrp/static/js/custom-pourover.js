@@ -2,46 +2,6 @@
  * Filterable lists with PourOver
  */
 
-/* Map month integers to month abbreviations */
-function month(month_int) {
-  switch (month_int) {
-    case 0:
-      return 'Jan';
-    case 1:
-      return 'Feb';
-    case 2:
-      return 'Mar';
-    case 3:
-      return 'Apr';
-    case 4:
-      return 'May';
-    case 5:
-      return 'Jun';
-    case 6:
-      return 'Jul';
-    case 7:
-      return 'Aug';
-    case 8:
-      return 'Sep';
-    case 9:
-      return 'Oct';
-    case 10:
-      return 'Nov';
-    case 11:
-      return 'Dec';
-  }
-};
-
-/* Pad num to width with 0s */
-function padNum (num, width) {
-  /* coerce to a string */
-  num = num + '';
-  while (num.length < width) {
-    num = 0 + num;
-  }
-  return num;
-}
-
 /* return an array of page numbers, skipping some of them as configured by the
  * options argument. This function should be functionally identical to
  * Flask-SQLAlchemy's
@@ -432,12 +392,14 @@ if ($('div#request-list').length) {
       var headers = rows.first().find('th');
       var columns = get_columns(rows);
       var oldRows = rows.not(':first');
+      var isPayout = false;
       if (oldRows.length != 0) {
         /* Remove the tooltips and unattach the clipboard client from any
          * buttons
          * */
         old_copy_buttons = oldRows.find('.copy-btn');
         if (old_copy_buttons.length != 0) {
+          isPayout = true;
           clipboard_client.unclip(old_copy_buttons);
           old_copy_buttons.each(function (i, element) {
             $(element).tooltip('destroy');
@@ -446,86 +408,13 @@ if ($('div#request-list').length) {
         oldRows.remove();
       }
       /* Rebuild the table */
-      $.each(
-        this.getCurrentItems(),
-        function (index, request) {
-          var row = $('<tr></tr>');
-          /* Color the rows based on status */
-          if (request['status'] === 'evaluating') {
-            row.addClass("warning");
-          } else if (request['status'] === 'approved') {
-            row.addClass("info");
-          } else if (request['status'] === 'paid') {
-            row.addClass("success");
-          } else if (request['status'] === 'incomplete' || request['status'] === 'rejected') {
-            row.addClass("danger");
-          }
-          $.each(
-            columns,
-            function (index, key) {
-              var content;
-              var header = headers.get(index);
-              if ($(header).hasClass('paste')) {
-                var value = key === 'payout' ? request.payout_str : request[key];
-                content = $('<button></button>')
-                  .attr('title', "Copy '" + value + "'")
-                  .attr('data-clipboard-text', value)
-                  .addClass('btn btn-default btn-sm copy-btn')
-                  .text(value);
-                if (request.status !== 'approved') {
-                  content.attr('disabled', 'disabled');
-                }
-                clipboard_client.clip(content)
-                content.tooltip({trigger: 'manual focus'});
-              } else if ($(header).hasClass('paid')) {
-                content = $('<form></form')
-                  .attr('method', 'post')
-                  .attr('action', $SCRIPT_ROOT + '/requests/' + request.id + '/');
-                var fields = {
-                  id_: 'action',
-                  type_: 'paid',
-                  csrf_token: $('meta[name=csrf_token]').attr('content')
-                };
-                for (field in fields) {
-                  $('<input>')
-                    .attr('id', field)
-                    .attr('name', field)
-                    .attr('value', fields[field])
-                    .attr('type', 'hidden')
-                    .appendTo(content);
-                }
-                var button = $('<button></button>')
-                  .attr('type', 'submit')
-                  .addClass('btn btn-success btn-sm paid-btn')
-                  .text('Paid')
-                if (request.status !== 'approved') {
-                  button.attr('disabled', 'disabled');
-                } else {
-                  button.click(payoutButton)
-                }
-                button.appendTo(content);
-              } else if (key === 'id') {
-                content = $('<a></a>', { href: request['href'] }).append(request['id']);
-              } else if (key === 'submit_timestamp') {
-                var date = request[key];
-                content = date.getUTCDate() + ' ' + month(date.getUTCMonth());
-                content = content + ' ' + date.getUTCFullYear() + ' @ ';
-                content = content + date.getUTCHours() + ':';
-                content = content + padNum(date.getUTCMinutes(), 2);
-              } else if (key === 'status') {
-                content = request[key].substr(0, 1).toUpperCase();
-                content = content + request[key].slice(1);
-              } else if (key === 'payout') {
-                content = request.payout_str;
-              } else {
-                content = request[key];
-              }
-              $('<td></td>').addClass('col-' + key).append(content).appendTo(row);
-            }
-          );
-          row.appendTo(rowsParent);
-        }
-      );
+      var newRows;
+      if (isPayout) {
+        newRows = Handlebars.templates.payout_rows(this.getCurrentItems());
+      } else {
+        newRows = Handlebars.templates.request_rows(this.getCurrentItems());
+      }
+      rowsParent.append(newRows);
       /* rebuild the pager */
       var num_pages = Math.ceil(this.match_set.length()/this.page_size - 1) + 1;
       var pager = $('ul.pagination')

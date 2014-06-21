@@ -1,0 +1,12 @@
+{{#each this}}
+<tr class="{{status_color status}}">
+  <td><a href="{{href}}">{{id}}</a></td>
+  <td>{{pilot}}</td>
+  <td>{{ship}}</td>
+  <td>{{system}}</td>
+  <td>{{capitalize status}}</td>
+  <td>{{payout_str}}</td>
+  <td>{{timefmt submit_timestamp}}</td>
+  <td>{{division}}</td>
+</tr>
+{{/each}}
