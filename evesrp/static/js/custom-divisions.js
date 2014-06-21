@@ -61,8 +61,8 @@ function rebuild_entities(permission) {
     '/api' + window.location.pathname + permission + '/',
     function(data) {
       var table = $("#" + permission).find("table");
-	  var new_table = Handlebars.templates.entity_table(data);
-	  table.replaceWith(new_table);
+      var new_table = Handlebars.templates.entity_table(data);
+      table.replaceWith(new_table);
     }
   );
 }
