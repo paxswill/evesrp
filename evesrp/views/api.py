@@ -258,7 +258,7 @@ class FiltersRequestListing(object):
             payout = request.payout
             return {
                 'id': request.id,
-                'href': url_for('requests.request_detail',
+                'href': url_for('requests.get_request_details',
                     request_id=request.id),
                 'pilot': request.pilot.name,
                 'corporation': request.corporation,

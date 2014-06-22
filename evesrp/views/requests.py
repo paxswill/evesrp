@@ -296,11 +296,11 @@ def submit_request():
             srp_request.pilot = pilot
             db.session.add(srp_request)
             db.session.commit()
-            return redirect(url_for('.request_detail',
+            return redirect(url_for('.get_request_details',
                 request_id=srp_request.id))
         else:
             flash("This kill has already been submitted", 'warning')
-            return redirect(url_for('.request_detail',
+            return redirect(url_for('.get_request_details',
                 request_id=srp_request.id))
     return render_template('form.html', form=form)
 
@@ -356,150 +356,172 @@ class AddNote(Form):
 killmail_re = re.compile(r'#(\d+)')
 
 
-@blueprint.route('/<int:request_id>/', methods=['GET', 'POST'])
+@blueprint.route('/<int:request_id>/', methods=['GET'])
 @login_required
-def request_detail(request_id):
-    """Renders the detail page for a :py:class:`~.models.Request`\.
+def get_request_details(request_id=None, srp_request=None):
+    """Handles responding to all of the :py:class:`~.models.Request` detail
+    functions.
 
-    This function is currently used for `all` request detail views, including
-    the reviewers and payers as well as the submitting user. It also enforces a
-    the evaluation workflow, which can be seen in the diagram below. In
-    addition, the payout amount can only be changed (either directly or through
-    modifiers) while the request is in the 'evaluating' state.
+    The various modifier functions all depend on this function to create the
+    actual response content.
+    Only one of the arguments is required. The ``srp_request`` argument is a
+    conveniece to other functions calling this function that have already
+    retrieved the request.
 
-    :param int request_id: the ID of the request
+    :param int request_id: the ID of the request.
+    :param srp_request: the request.
+    :type srp_request: :py:class:`~.models.Request`
+    """
+    if srp_request is None:
+        srp_request = Request.query.get_or_404(request_id)
+    pay_perm = PayoutRequestsPermission(srp_request)
+    review_perm = ReviewRequestsPermission(srp_request)
+    # Different templates are used for different roles
+    if review_perm.can():
+        template = 'request_review.html'
+    elif pay_perm.can():
+        template = 'request_pay.html'
+    elif current_user == srp_request.submitter:
+        template = 'request_detail.html'
+    else:
+        abort(403)
+    return render_template(template, srp_request=srp_request,
+            modifier_form=ModifierForm(formdata=None),
+            payout_form=PayoutForm(formdata=None),
+            action_form=ActionForm(formdata=None),
+            void_form=VoidModifierForm(formdata=None),
+            details_form=ChangeDetailsForm(formdata=None, obj=srp_request),
+            note_form=AddNote(formdata=None))
 
+
+def _add_modifier(srp_request):
+    form = ModifierForm()
+    if form.validate():
+        if 'bonus' in form.type_.data:
+            value = form.value.data
+        elif 'deduct' in form.type_.data:
+            value = form.value.data * -1
+        if 'abs' in form.type_.data:
+            ModClass = AbsoluteModifier
+            value *= 1000000
+        elif 'rel' in form.type_.data:
+            ModClass = RelativeModifier
+            value /= 100
+        try:
+            mod = ModClass(srp_request, current_user, form.note.data, value)
+            db.session.add(mod)
+            db.session.commit()
+        except ModifierError as e:
+            flash(e, 'error')
+    return get_request_details(srp_request=srp_request)
+
+
+def _change_payout(srp_request):
+    review_perm = ReviewRequestsPermission(srp_request)
+    form = PayoutForm()
+    if not review_perm.can():
+        flash("Only reviewers can change the base payout.", 'error')
+    elif form.validate():
+        try:
+            srp_request.base_payout = form.value.data * 1000000
+            db.session.commit()
+        except ModifierError as e:
+            flash(e, 'error')
+    return get_request_details(srp_request=srp_request)
+
+
+def _add_action(srp_request):
+    form = ActionForm()
+    if form.validate():
+        type_ = ActionType.from_string(form.type_.data)
+        try:
+            Action(srp_request, current_user, form.note.data, type_)
+            db.session.commit()
+        except ActionError as e:
+            flash(e, 'error')
+    return get_request_details(srp_request=srp_request)
+
+
+def _void_modifier(srp_request):
+    form = VoidModifierForm()
+    if form.validate():
+        modifier_id = int(form.modifier_id.data)
+        modifier = Modifier.query.get(modifier_id)
+        if modifier is None:
+            flash("Invalid modifier ID {}.".format(modifier_id),
+                    'error')
+        else:
+            try:
+                modifier.void(current_user)
+                db.session.commit()
+            except ModifierError as e:
+                flash(e, 'error')
+    return get_request_details(srp_request=srp_request)
+
+
+def _change_details(srp_request):
+    form = ChangeDetailsForm()
+    if current_user != srp_request.submitter:
+        flash("Only the submitter can change the request details.", 'error')
+    elif srp_request.finalized:
+        flash("Details con only be changed when the request is still pending.",
+                'error')
+    elif form.validate():
+        archive_note = "Old Details: " + srp_request.details
+        archive_action = Action(srp_request, current_user, archive_note)
+        archive_action.type_ = ActionType.evaluating
+        srp_request.details = form.details.data
+        db.session.commit()
+    return get_request_details(srp_request=srp_request)
+
+
+def _add_note(srp_request):
+    form = AddNote()
+    if not current_user.has_permission(PermissionType.elevated):
+        flash("You do not have permission to add a note to a user.", 'error')
+    elif form.validate():
+        # Linkify killmail IDs
+        note_content = Markup.escape(form.note.data)
+        for match in killmail_re.findall(note_content):
+            kill_id = int(match)
+            check_request = db.session.query(Request.id).filter_by(id=kill_id)
+            if db.session.query(check_request.exists()):
+                link = '<a href="{url}">#{kill_id}</a>'.format(
+                        url=url_for('.request_detail', request_id=kill_id),
+                        kill_id=kill_id)
+                link = Markup(link)
+                note_content = note_content.replace('#' + match, link)
+        # Create the note
+        note = Note(srp_request.submitter, current_user, note_content)
+        db.session.commit()
+    return get_request_details(srp_request=srp_request)
+
+
+@blueprint.route('/<int:request_id>/', methods=['POST'])
+@login_required
+def modify_request(request_id):
+    """Handles POST requests that modify :py:class:`~.models.Request`\s.
+
+    Because of the numerous possible forms, this function bounces execution to
+    a more specific function base on the form's "id_" field.
+
+    :param int request_id: the ID of the request.
     """
     srp_request = Request.query.get_or_404(request_id)
-    review_perm = ReviewRequestsPermission(srp_request)
-    pay_perm = PayoutRequestsPermission(srp_request)
-
-    def render_details():
-        # Different templates are used for different roles
-        if review_perm.can():
-            template = 'request_review.html'
-        elif pay_perm.can():
-            template = 'request_pay.html'
-        elif current_user == srp_request.submitter:
-            template = 'request_detail.html'
-        else:
-            abort(403)
-        return render_template(template, srp_request=srp_request,
-                modifier_form=ModifierForm(formdata=None),
-                payout_form=PayoutForm(formdata=None),
-                action_form=ActionForm(formdata=None),
-                void_form=VoidModifierForm(formdata=None),
-                details_form=ChangeDetailsForm(formdata=None, obj=srp_request),
-                note_form=AddNote(formdata=None))
-
-    if request.method == 'POST':
-        failed = False
-        if request.form['id_'] == 'modifier':
-            form = ModifierForm()
-        elif request.form['id_'] == 'payout':
-            if not review_perm.can():
-                flash("Only reviewers can change the base payout.", 'error')
-                return render_details()
-            form = PayoutForm()
-        elif request.form['id_'] == 'action':
-            form = ActionForm()
-        elif request.form['id_'] == 'void':
-            form = VoidModifierForm()
-        elif request.form['id_'] == 'details':
-            if current_user != srp_request.submitter:
-                flash("Only the submitter can change the request details.",
-                        'error')
-                return render_details()
-            if srp_request.finalized:
-                flash("Details con only be changed when the request is still"
-                      " pending.", 'error')
-                return render_details()
-            form = ChangeDetailsForm()
-        elif request.form['id_'] == 'note':
-            if not current_user.has_permission(PermissionType.elevated):
-                flash("You do not have permission to add a note to a user.""",
-                        'error')
-                return render_details()
-            form = AddNote()
-        else:
-            abort(400)
-        if form.validate():
-            if form.id_.data == 'modifier':
-                if 'bonus' in form.type_.data:
-                    value = form.value.data
-                elif 'deduct' in form.type_.data:
-                    value = form.value.data * -1
-                if 'abs' in form.type_.data:
-                    ModClass = AbsoluteModifier
-                    value *= 1000000
-                elif 'rel' in form.type_.data:
-                    ModClass = RelativeModifier
-                    value /= 100
-                try:
-                    mod = ModClass(srp_request, current_user, form.note.data,
-                            value)
-                except ModifierError as e:
-                    flash(e, 'error')
-                    return render_details()
-                db.session.add(mod)
-                db.session.commit()
-            elif form.id_.data == 'payout':
-                try:
-                    srp_request.base_payout = form.value.data * 1000000
-                    db.session.commit()
-                except ModifierError as e:
-                    flash(e, 'error')
-                    return render_details()
-            elif form.id_.data == 'void':
-                modifier_id = int(form.modifier_id.data)
-                modifier = Modifier.query.get(modifier_id)
-                if modifier is None:
-                    flash("Invalid modifier ID {}.".format(modifier_id),
-                            'error')
-                    return render_details()
-                try:
-                    modifier.void(current_user)
-                    db.session.commit()
-                except ModifierError as e:
-                    flash(e, 'error')
-                    return render_details()
-            elif form.id_.data == 'action':
-                type_ = ActionType.from_string(form.type_.data)
-                try:
-                    Action(srp_request, current_user, form.note.data, type_)
-                    db.session.commit()
-                except ActionError as e:
-                    flash(e, 'error')
-                    return render_details()
-            elif form.id_.data == 'details':
-                archive_note = "Old Details: " + srp_request.details
-                archive_action = Action(srp_request, current_user,
-                        archive_note)
-                archive_action.type_ = ActionType.evaluating
-                srp_request.details = form.details.data
-                db.session.commit()
-            elif form.id_.data == 'note':
-                # Linkify killmail IDs
-                note_content = Markup.escape(form.note.data)
-                for match in killmail_re.findall(note_content):
-                    kill_id = int(match)
-                    check_request = db.session.query(Request.id).\
-                            filter_by(id=kill_id)
-                    if db.session.query(check_request.exists()):
-                        link = '<a href="{url}">#{kill_id}</a>'.format(
-                                url=url_for('.request_detail',
-                                    request_id=kill_id),
-                                kill_id=kill_id)
-                        link = Markup(link)
-                        note_content = note_content.replace('#' + match, link)
-                # Create the note
-                note = Note(srp_request.submitter, current_user, note_content)
-                db.session.commit()
-        else:
-            # TODO: Actual error handling, probably using flash()
-            print(form.errors)
-    # Different templates are used for different roles
-    return render_details()
+    if request.form['id_'] == 'modifier':
+        return _add_modifier(srp_request)
+    elif request.form['id_'] == 'payout':
+        return _change_payout(srp_request)
+    elif request.form['id_'] == 'action':
+        return _add_action(srp_request)
+    elif request.form['id_'] == 'void':
+        return _void_modifier(srp_request)
+    elif request.form['id_'] == 'details':
+        return _change_details(srp_request)
+    elif request.form['id_'] == 'note':
+        return _add_note(srp_request)
+    else:
+        return abort(400)
 
 
 class DivisionChange(Form):
