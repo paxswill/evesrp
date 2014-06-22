@@ -1,6 +1,6 @@
 from flask import url_for
 from flask.json import JSONEncoder
-from .models import Request
+from .models import Request, Action
 from .auth.models import User, Group, Division
 
 
@@ -46,6 +46,12 @@ class GrabbagEncoder(JSONEncoder):
             done = False
             if isinstance(o, Request):
                 ret['href'] = url_for('api.request_detail', request_id=o.id)
+                return ret
+            elif isinstance(o, Action):
+                ret['note'] = o.note or ''
+                ret['timestamp'] = o.timestamp
+                ret['user'] = o.user
+                ret['type'] = o.type_.value
                 return ret
         return super(GrabbagEncoder, self).default(o)
 

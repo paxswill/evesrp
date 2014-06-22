@@ -121,8 +121,6 @@ def request_detail(request_id):
             json[attr] = srp_request.pilot.name
         elif attr == 'status':
             json[attr] = srp_request.status.value
-        elif attr == 'actions':
-            json[attr] = url_for('.request_actions', request_id=request_id)
         else:
             json[attr] = getattr(srp_request, attr)
     json['submit_timestamp'] = srp_request.timestamp
@@ -134,22 +132,13 @@ def request_detail(request_id):
 @api.route('/request/<int:request_id>/actions/')
 @login_required
 def request_actions(request_id):
-    """Get a list of all actions a request has."""
+    """get a list of all actions a request has."""
     srp_request = Request.query.get_or_404(request_id)
     if current_user != srp_request.submitter and \
-            not current_user.has_permission(PermissionType.elevated,
+            not current_user.has_permission(permissiontype.elevated,
                 srp_request.division):
         abort(403)
-    actions = []
-    for action in srp_request.actions:
-        actions.append({
-                'type': action.type_.value,
-                'user': action.user,
-                'note': action.note or '',
-                'timestamp': action.timestamp,
-                'id': action.id,
-        })
-    return jsonify(actions=actions)
+    return jsonify(actions=srp_request.actions)
 
 
 @api.route('/division/')
