@@ -11,6 +11,7 @@ db = SQLAlchemy()
 
 
 from .util import DB_STATS
+from .util.request import AcceptRequest
 
 
 __version__ = '0.5.4'
@@ -33,6 +34,7 @@ from .auth import models as auth_models
 
 def create_app(config=None, **kwargs):
     app = Flask('evesrp', **kwargs)
+    app.request_class = AcceptRequest
     app.config.from_object('evesrp.default_config')
     if config is not None:
         app.config.from_pyfile(config)
