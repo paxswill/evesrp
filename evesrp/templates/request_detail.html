@@ -130,40 +130,40 @@
       <dt>Modifiers</dt>
       <dd>
         {% block list_modifiers %}
-        <div class="list-group">
+        <div class="panel-group">
           {% for modifier in srp_request.modifiers %}
-          <div class="list-group-item">
-            <div class="list-group-item-heading">
+          {% if modifier.voided %}
+          <div class="panel panel-default">
+          {% elif modifier.value < 0 %}
+          <div class="panel panel-danger">
+          {% elif modifier.value >= 0 %}
+          <div class="panel panel-success">
+          {% endif %}
+            <div class="panel-heading" data-toggle="collapse" data-target="#modifier{{ modifier.id }}">
               {% block modifier_header scoped %}
               {{ '<del>'|safe if modifier.voided }}
-              {% with %}
-                {% if modifier.value < 0 %}
-                  {% set color_class = 'text-danger' %}
-                  {% set modifier_text = 'Deduction' %}
-                {% else %}
-                  {% set color_class = 'text-success' %}
-                  {% set modifier_text = 'Bonus' %}
-                {% endif %}
-                {% if modifier.voided %}
-                  {% set color_class = "text-muted" %}
-                {% endif %}
-              <h4 class="{{ color_class }}">{{ modifier }}</h4>
-              {% endwith %}
+              <h4 class="panel-title">
+                {{ modifier }}
+              </h4>
               {{ '</del>'|safe if modifier.voided }}
               {% endblock modifier_header %}
             </div>
-            <blockquote class="list-group-item-text blockquote-reverse">
-              <p class="list-group-item-text">
+            <div id="modifier{{ modifier.id }}" class="collapse{{ ' in' if not modifier.voided }}">
               {% if modifier.voided %}
-                <del>{{ modifier.note }}</del>
-                <footer><del>{{ modifier.user.name }} {{ modifier.timestamp.strftime('%d %b %Y @ %H:%M') }}</del></footer>
-                <footer>Voided by {{ modifier.voided_user.name }} {{ modifier.voided_timestamp.strftime('%d %b %Y @ %H:%M') }}</footer>
+              <div class="panel-body">
+                <del>{{ modifier.note ~ ' ' if modifier.note }} (voided by {{ modifier.voided_user.name }} at {{ modifier.voided_timestamp.strftime('%H:%M %d %b %Y') }})</del>
+              </div>
               {% else %}
+              {% if modifier.note %}
+              <div class="panel-body">
                 {{ modifier.note }}
-                <footer>{{ modifier.user.name }} {{ modifier.timestamp.strftime('%d %b %Y @ %H:%M') }}</footer>
+              </div>
               {% endif %}
-              </p>
-            </blockquote>
+              {% endif %}
+              <div class="panel-footer">
+                {{ modifier.user }} at {{ modifier.timestamp.strftime('%H:%M %d %b %Y') }}
+              </div>
+            </div>
           </div>
           {% endfor %}
         </div>
