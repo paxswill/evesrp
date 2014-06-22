@@ -435,6 +435,14 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         },
     }
 
+    def valid_actions(self, user):
+        """Get valid actions (besides comment) the given user can perform."""
+        possible_actions = self.state_rules[self.status]
+        def action_filter(action):
+            return user.has_permission(possible_actions[action],
+                    self.division)
+        return filter(action_filter, possible_actions)
+
     @db.validates('status')
     def validate_status(self, attr, new_status):
         """Enforces that status changes follow the status state diagram below.

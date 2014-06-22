@@ -2,10 +2,14 @@ Handlebars.registerHelper('csrf', function() {
   return $("meta[name='csrf_token']").attr("content");
 });
 
-Handlebars.registerHelper('capitalize', function(str) {
+function capitalize(str) {
   var content = str.substr(0, 1).toUpperCase();
   content = content + str.slice(1);
   return content;
+}
+
+Handlebars.registerHelper('capitalize', function(str) {
+  return capitalize(str);
 });
 
 /* Map month integers to month abbreviations */
@@ -49,21 +53,61 @@ function padNum (num, width) {
 }
 
 Handlebars.registerHelper('timefmt', function(date) {
-  var content = date.getUTCDate() + ' ' + month(date.getUTCMonth());
-  content = content + ' ' + date.getUTCFullYear() + ' @ ';
-  content = content + date.getUTCHours() + ':';
-  content = content + padNum(date.getUTCMinutes(), 2);
-  return content;
+  if (typeof date === 'string') {
+    date = new Date(date);
+  }
+  return date.getUTCDate() + ' ' + month(date.getUTCMonth()) +
+    ' ' + date.getUTCFullYear();
 });
 
-Handlebars.registerHelper('status_color', function(stat) {
-    if (stat === 'evaluating') {
-      return "warning";
-    } else if (stat === 'approved') {
-      return "info";
-    } else if (stat === 'paid') {
-      return "success";
-    } else if (stat === 'incomplete' || stat === 'rejected') {
-      return "danger";
-    }
+Handlebars.registerHelper('datefmt', function(date) {
+  if (typeof date === 'string') {
+    date = new Date(date);
+  }
+  return date.getUTCHours() + ':' + padNum(date.getUTCMinutes(), 2);
 });
+
+function statusColor(statusString) {
+  switch (statusString) {
+    case 'evaluating':
+      return 'warning';
+    case 'approved':
+      return 'info';
+    case 'paid':
+      return 'success';
+    case 'incomplete':
+    case 'rejected':
+      return 'danger';
+    default:
+      return '';
+  }
+}
+
+
+Handlebars.registerHelper('status_color', function(stat) {
+  return statusColor(stat);
+});
+
+
+Handlebars.registerHelper('compare', function(left, right, options) {
+  var op = options.hash.operator || "===";
+  console.log("Comparing", left, op, right);
+  var ops = {
+    '==': function(l, r) { return l == r;},
+    '!=': function(l, r) { return l != r;},
+    '===': function(l, r) { return l === r;},
+    '!==': function(l, r) { return l !== r;},
+    '<': function(l, r) { return l < r;},
+    '>': function(l, r) { return l > r;},
+    '<=': function(l, r) { return l <= r;},
+    '>=': function(l, r) { return l >= r;},
+    'in': function(l, r) { return l in r;}
+  };
+  var result = ops[op](left, right);
+  if (result) {
+    return options.fn(this);
+  } else {
+    return options.inverse(this);
+  }
+});
+

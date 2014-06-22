@@ -114,15 +114,42 @@ def request_detail(request_id):
         abort(403)
     attrs = ('killmail_url', 'kill_timestamp', 'pilot', 'alliance',
         'corporation', 'submitter', 'division', 'status', 'base_payout',
-        'payout', 'details', 'actions', 'modifiers', 'id')
+        'payout', 'details', 'actions', 'id')
     json = {}
     for attr in attrs:
         if attr == 'pilot':
             json[attr] = srp_request.pilot.name
+        elif attr == 'status':
+            json[attr] = srp_request.status.value
+        elif attr == 'actions':
+            json[attr] = url_for('.request_actions', request_id=request_id)
         else:
             json[attr] = getattr(srp_request, attr)
     json['submit_timestamp'] = srp_request.timestamp
+    json['valid_actions']=map(lambda a: a.value,
+            srp_request.valid_actions(current_user))
     return jsonify(json)
+
+
+@api.route('/request/<int:request_id>/actions/')
+@login_required
+def request_actions(request_id):
+    """Get a list of all actions a request has."""
+    srp_request = Request.query.get_or_404(request_id)
+    if current_user != srp_request.submitter and \
+            not current_user.has_permission(PermissionType.elevated,
+                srp_request.division):
+        abort(403)
+    actions = []
+    for action in srp_request.actions:
+        actions.append({
+                'type': action.type_.value,
+                'user': action.user,
+                'note': action.note or '',
+                'timestamp': action.timestamp,
+                'id': action.id,
+        })
+    return jsonify(actions=actions)
 
 
 @api.route('/division/')

@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 {% import "macros.html" as macros with context %}
 
+{% block head %}
+{{ super() }}
+<meta name="srp_request_id" content="{{ srp_request.id }}">
+{% endblock head %}
+
 {% block body %}
 <div class="modal fade" id="detailsModal" tabindex="-1" role=="dialog" aria-labelledby="detailsModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -61,7 +66,7 @@
       <dt>Ship</dt>
       <dd>{{ srp_request.transformed.ship_type }}</dd>
       <dt>Status</dt>
-      <dd><span class="label label-{{ macros.status_color(srp_request.status) }}">{{ srp_request.status }}</span></dd>
+      <dd><span class="label label-{{ macros.status_color(srp_request.status) }} request-status">{{ srp_request.status }}</span></dd>
       <dt>Payout</dt>
       <dd id="payout">
         <span data-toggle="tooltip" data-placement="right" title="Base Payout: {{ srp_request.base_payout }}">
@@ -71,10 +76,10 @@
       {% endblock info %}
     </dl>
     {% block action_form %}
-    <form class="form" method='post'>
-      {{ macros.render_input(action_form.id_) }}
-      {{ macros.render_input(action_form.type_) }}
-      {{ macros.render_input(action_form.csrf_token) }}
+    <form id="actionForm" class="form" method='post'>
+      {{ action_form.id_ }}
+      {{ action_form.type_ }}
+      {{ action_form.csrf_token }}
       <div class="form-group input-group">
         {{ action_form.note(class="form-control") }}
         <div class="input-group-btn">
@@ -84,30 +89,18 @@
             <span class="caret"></span>
             <span class="sr-only">Toggle Dropdown</span>
           </button>
-          <ul class="dropdown-menu" id="request-action-type" role="menu">
-            {% if srp_request.status == ActionType.evaluating %}
-            {{ '<li><a href="#" id="approved">Approve</a></li>'|safe if current_user.has_permission(PermissionType.review, srp_request.division) }}
-            {{ '<li><a href="#" id="incomplete">Incomplete</a></li>'|safe if current_user.has_permission(PermissionType.review, srp_request.division) }}
-            {{ '<li><a href="#" id="rejected">Reject</a></li>'|safe if current_user.has_permission(PermissionType.review, srp_request.division) }}
-            {% elif srp_request.status == ActionType.paid %}
-            {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if current_user.has_permission(PermissionType.pay, srp_request.division) }}
-            {% elif srp_request.status == ActionType.approved %}
-            {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if current_user.has_permission(PermissionType.review, srp_request.division) }}
-            {{ '<li><a href="#" id="paid">Paid</a></li>'|safe if current_user.has_permission(PermissionType.pay, srp_request.division) }}
-            {% elif srp_request.status == ActionType.incomplete %}
-            {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if current_user.has_permission((PermissionType.review, PermissionType.submit), srp_request.division) }}
-            {{ '<li><a href="#" id="rejected">Reject</a></li>'|safe if current_user.has_permission(PermissionType.review, srp_request.division) }}
-            {% elif srp_request.status == ActionType.rejected %}
-            {{ '<li><a href="#" id="evaluating">Evaluating</a></li>'|safe if current_user.has_permission(PermissionType.review, srp_request.division) }}
-            {% endif %}
-          {% endif %}
+          <ul class="dropdown-menu" role="menu">
+            {% for action in srp_request.valid_actions(current_user) %}
+            <li><a href="#" id="{{ action.value }}">{{ action.description }}</a></li>
+            {% endfor %}
           </ul>
+          {% endif %}
         </div>
       </div>
     </form>
     {% endblock action_form %}
     {% block action_list %}
-    <div class="list-group">
+    <div class="list-group" id="actionList">
       {% for action in srp_request.actions %}
       {% with %}
         {% set item_class = 'text-' ~ macros.status_color(action.type_) if macros.status_color(action.type_) != '' %}
@@ -115,7 +108,7 @@
           <h4 class="list-group-item-heading{{ ' ' ~ item_class if item_class is defined }}">{{ action.type_ if action.type_ != ActionType.comment }}</h4>
           <blockquote class="list-group-item-text">
             <p>{{ action.note }}</p>
-            <footer>{{ action.user.name }} ({{ action.timestamp.strftime('%d %b %Y @ %H:%M:%S') }})</footer>
+            <footer>{{ action.user.name }} ({{ action.timestamp.strftime('%d %b %Y @ %H:%M') }})</footer>
           </blockquote>
         </div>
       {% endwith %}

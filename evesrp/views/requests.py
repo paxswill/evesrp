@@ -369,6 +369,8 @@ def request_detail(request_id):
 
     """
     srp_request = Request.query.get_or_404(request_id)
+    review_perm = ReviewRequestsPermission(srp_request)
+    pay_perm = PayoutRequestsPermission(srp_request)
 
     def render_details():
         # Different templates are used for different roles
@@ -388,8 +390,6 @@ def request_detail(request_id):
                 details_form=ChangeDetailsForm(formdata=None, obj=srp_request),
                 note_form=AddNote(formdata=None))
 
-    review_perm = ReviewRequestsPermission(srp_request)
-    pay_perm = PayoutRequestsPermission(srp_request)
     if request.method == 'POST':
         failed = False
         if request.form['id_'] == 'modifier':

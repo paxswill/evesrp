@@ -27,19 +27,6 @@ $("select#attribute").change( function() {
   );
 });
 
-function flash(message, category){
-  var flashed = $("<div></div>");
-  flashed.addClass("alert alert-dismissable fade in");
-  flashed.addClass("alert-" + category);
-  var close_button = $("<button>&times;</button>");
-  close_button.attr('type', 'button');
-  close_button.attr('data-dismiss', 'alert');
-  close_button.addClass('close');
-  flashed.append(close_button);
-  flashed.append(message);
-  $("#content").prepend(flashed);
-}
-
 $("select#transformer").change( function() {
   var attr_name = $("select#attribute option:selected").text();
   var transformer_name = $(this).find("option:selected").text();

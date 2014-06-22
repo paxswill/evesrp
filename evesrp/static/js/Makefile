@@ -12,6 +12,8 @@ SOURCE_NAMES := \
 	$(BOOTSTRAP)/tooltip \
 	$(BOOTSTRAP)/alert \
 	$(BOOTSTRAP)/modal \
+	$(THIRDPARTY)/handlebars/handlebars.runtime \
+	custom-handlebars \
 	custom-requests \
 	$(THIRDPARTY)/underscore/underscore \
 	$(THIRDPARTY)/pourover/pourover \
@@ -22,8 +24,6 @@ SOURCE_NAMES := \
 	$(THIRDPARTY)/typeahead.js/dist/typeahead.bundle \
 	custom-typeahead \
 	custom-divisions \
-	$(THIRDPARTY)/handlebars/handlebars.runtime \
-	custom-handlebars \
 	handlebars-templates
 JS_SOURCE = $(patsubst %,%.js,$(SOURCE_NAMES))
 

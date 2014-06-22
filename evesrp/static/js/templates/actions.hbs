@@ -1,0 +1,15 @@
+<div class="list-group">
+  {{#each this.actions}}
+  <div class="list-group-item">
+    {{#if (status_color type)}}
+    <h4 class="list-group-item-heading text-{{status_color type}}">{{capitalize type}}</h4>
+    {{else}}
+    <h4 class="list-group-item-heading"></h4>
+    {{/if}}
+    <blockquote class="list-group-item-text">
+      <p>{{note}}</p>
+      <footer>{{user.name}} ({{datefmt timestamp}} @ {{timefmt timestamp}})</footer>
+    </blockquote>
+  </div>
+  {{/each}}
+</div>
