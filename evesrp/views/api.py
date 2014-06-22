@@ -107,19 +107,21 @@ def group_detail(group_id):
 def request_detail(request_id):
     """Get the details of a request.
     """
-    request = Request.query.get_or_404(request_id)
+    srp_request = Request.query.get_or_404(request_id)
+    if current_user != srp_request.submitter and \
+            not current_user.has_permission(PermissionType.elevated,
+                srp_request.division):
+        abort(403)
     attrs = ('killmail_url', 'kill_timestamp', 'pilot', 'alliance',
         'corporation', 'submitter', 'division', 'status', 'base_payout',
         'payout', 'details', 'actions', 'modifiers', 'id')
     json = {}
     for attr in attrs:
-        if attr == 'payout':
-            json[attr] = int(request.payout)
-        elif attr == 'pilot':
-            json[attr] = request.pilot.name
+        if attr == 'pilot':
+            json[attr] = srp_request.pilot.name
         else:
-            json[attr] = getattr(request, attr)
-    json['submit_timestamp'] = request.timestamp
+            json[attr] = getattr(srp_request, attr)
+    json['submit_timestamp'] = srp_request.timestamp
     return jsonify(json)
 
 
