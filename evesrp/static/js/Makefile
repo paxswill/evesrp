@@ -11,6 +11,7 @@ SOURCE_NAMES := \
 	$(BOOTSTRAP)/collapse \
 	$(BOOTSTRAP)/tooltip \
 	$(BOOTSTRAP)/alert \
+	$(BOOTSTRAP)/modal \
 	custom-requests \
 	$(THIRDPARTY)/underscore/underscore \
 	$(THIRDPARTY)/pourover/pourover \

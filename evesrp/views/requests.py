@@ -335,6 +335,11 @@ class ActionForm(Form):
             validators=[AnyOf(ActionType.values())])
 
 
+class ChangeDetailsForm(Form):
+    id_ = HiddenField(default='details')
+    details = TextAreaField('Details', validators=[InputRequired()])
+
+
 @blueprint.route('/<int:request_id>/', methods=['GET', 'POST'])
 @login_required
 def request_detail(request_id):
@@ -349,6 +354,8 @@ def request_detail(request_id):
     :param int request_id: the ID of the request
 
     """
+    srp_request = Request.query.get_or_404(request_id)
+
     def render_details():
         # Different templates are used for different roles
         if review_perm.can():
@@ -363,9 +370,9 @@ def request_detail(request_id):
                 modifier_form=ModifierForm(formdata=None),
                 payout_form=PayoutForm(formdata=None),
                 action_form=ActionForm(formdata=None),
-                void_form=VoidModifierForm(formdata=None))
+                void_form=VoidModifierForm(formdata=None),
+                details_form=ChangeDetailsForm(formdata=None, obj=srp_request))
 
-    srp_request = Request.query.get_or_404(request_id)
     review_perm = ReviewRequestsPermission(srp_request)
     pay_perm = PayoutRequestsPermission(srp_request)
     if request.method == 'POST':
@@ -381,6 +388,16 @@ def request_detail(request_id):
             form = ActionForm()
         elif request.form['id_'] == 'void':
             form = VoidModifierForm()
+        elif request.form['id_'] == 'details':
+            if current_user != srp_request.submitter:
+                flash("Only the submitter can change the request details.",
+                        'error')
+                return render_details()
+            if srp_request.finalized:
+                flash("Details con only be changed when the request is still"
+                      " pending.", 'error')
+                return render_details()
+            form = ChangeDetailsForm()
         else:
             abort(400)
         if form.validate():
@@ -431,35 +448,18 @@ def request_detail(request_id):
                 except ActionError as e:
                     flash(e, 'error')
                     return render_details()
+            elif form.id_.data == 'details':
+                archive_note = "Old Details: " + srp_request.details
+                archive_action = Action(srp_request, current_user,
+                        archive_note)
+                archive_action.type_ = ActionType.evaluating
+                srp_request.details = form.details.data
+                db.session.commit()
         else:
             # TODO: Actual error handling, probably using flash()
             print(form.errors)
     # Different templates are used for different roles
     return render_details()
-
-
-class DetailForm(Form):
-    details = TextAreaField('Details', validators=[InputRequired()])
-    submit = SubmitField('Submit')
-
-
-@blueprint.route('/<int:request_id>/update/', methods=['GET', 'POST'])
-@login_required
-def request_detail_update(request_id):
-    srp_request = Request.query.get_or_404(request_id)
-    # Only the submitter can change the details, and only if it isn't finalized
-    if current_user != srp_request.submitter or srp_request.finalized:
-        abort(403)
-    form = DetailForm()
-    if form.validate_on_submit():
-        archive_note = 'Old Details: ' + srp_request.details
-        archive_action = Action(srp_request, current_user, archive_note)
-        archive_action.type_ = ActionType.evaluating
-        srp_request.details = form.details.data
-        db.session.commit()
-        return redirect(url_for('.request_detail', request_id=request_id))
-    form.details.data = srp_request.details
-    return render_template('form.html', form=form)
 
 
 class DivisionChange(Form):
