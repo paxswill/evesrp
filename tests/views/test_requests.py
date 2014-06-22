@@ -50,7 +50,7 @@ class TestSubmitRequest(TestLogin):
 
     def test_division_listing(self):
         client = self.login()
-        resp = client.get('/add/')
+        resp = client.get('/request/add/')
         matches = re.findall(r'<option.*?>(?P<name>[\w\s]+)</option>',
                 resp.get_data(as_text=True))
         self.assertEqual(len(matches), 2)
@@ -69,7 +69,7 @@ class TestSubmitRequest(TestLogin):
         # Using a test_client() context so the before_request callbacks are
         # called.
         with self.app.test_client() as c:
-            c.get('/add/')
+            c.get('/request/add/')
             # RequestsForm needs a list of divisions
             user = self.normal_user
             divisions = user.submit_divisions()
@@ -115,7 +115,8 @@ class TestSubmitRequest(TestLogin):
             division = Division.query.filter_by(name='Division 1').one()
         client = self.login()
         with HTTMock(*all_mocks):
-            resp = client.post('/add/', follow_redirects=True, data=dict(
+            resp = client.post('/request/add/', follow_redirects=True,
+                    data=dict(
                         url='https://zkillboard.com/kill/37637533/',
                         details='Foo',
                         division=division.id,
@@ -134,7 +135,7 @@ class TestSubmitRequest(TestLogin):
             db.session.commit()
             division = Division.query.filter_by(name='Division 1').one()
         client = self.login()
-        resp = client.post('/add/', follow_redirects=True, data=dict(
+        resp = client.post('/request/add/', follow_redirects=True, data=dict(
                     url='https://zkillboard.com/kill/37637533/',
                     details='Foo',
                     division=division.id,
@@ -214,17 +215,17 @@ class TestRequestList(TestLogin):
         self.accessible_list_checker(self.admin_name, path, expected)
 
     def test_pending(self):
-        self.elevated_list_checker('/pending/', 10)
+        self.elevated_list_checker('/request/pending/', 10)
 
     def test_payout(self):
-        self.elevated_list_checker('/pay/', 4)
+        self.elevated_list_checker('/request/pay/', 4)
 
     def test_complete(self):
-        self.elevated_list_checker('/completed/', 4)
+        self.elevated_list_checker('/request/completed/', 4)
 
     def test_personal(self):
-        self.accessible_list_checker(self.normal_name, '/personal/', 7)
-        self.accessible_list_checker(self.admin_name, '/personal/', 7)
+        self.accessible_list_checker(self.normal_name, '/request/personal/', 7)
+        self.accessible_list_checker(self.admin_name, '/request/personal/', 7)
 
 
 class TestRequest(TestLogin):
@@ -256,7 +257,7 @@ class TestRequest(TestLogin):
             Request(self.normal_user, 'Original details', d1,
                     mock_killmail.items())
             db.session.commit()
-        self.request_path = '/12842852/'
+        self.request_path = '/request/12842852/'
 
     def _add_permission(self, user_name, permission,
             division_name='Division One'):

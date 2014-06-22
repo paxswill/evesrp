@@ -47,7 +47,7 @@
       <dt>Details</dt>
       <dd>
         <div class="panel panel-default">
-          <p class="panel-body">{{ srp_request.details }}</p>
+          <p class="panel-body" id="request-details">{{ srp_request.details }}</p>
         </div>
         {% if not srp_request.finalized and srp_request.submitter == current_user %}
         <button class="btn btn-default btn-sm" type="button" data-toggle="modal" data-target="#detailsModal">Update Details</button>

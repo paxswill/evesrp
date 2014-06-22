@@ -66,4 +66,17 @@ $("ul#request-modifier-type li a").click( function(e) {
   return false;
 });
 
+$('#detailsModal form').submit(function() {
+  var $form = $(this);
+  $.post(
+    window.location.pathname,
+    $form.serialize(),
+    function(data) {
+      $('#request-details').text($form.find('textarea#details').val());
+    }
+  );
+  $('#detailsModal').modal('hide')
+  return false;
+});
+
 $('dd#payout span').tooltip()
