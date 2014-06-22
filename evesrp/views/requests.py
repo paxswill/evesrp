@@ -2,7 +2,7 @@ from collections import OrderedDict
 import re
 
 from flask import render_template, abort, url_for, flash, Markup, request,\
-    redirect, current_app, Blueprint, Markup
+    redirect, current_app, Blueprint, Markup, jsonify
 from flask.views import View
 from flask.ext.login import login_required, current_user
 from flask.ext.wtf import Form
@@ -45,14 +45,16 @@ class RequestListing(View):
         """
         raise NotImplementedError()
 
-    def dispatch_request(self, division_id=None, page=1):
+    def dispatch_request(self, division_id=None, page=1, **kwargs):
         """Returns the response to requests.
 
         Part of the :py:class:`flask.views.View` interface.
         """
+        if request.wants_json or request.is_xhr:
+            return jsonify(requests=self.requests(division_id))
         pager = self.requests(division_id).paginate(page, per_page=20)
         return render_template(self.template,
-                pager=pager)
+                pager=pager, **kwargs)
 
     @property
     def _load_options(self):
@@ -105,12 +107,12 @@ class PermissionRequestListing(RequestListing):
         self.permissions = permissions
         self.statuses = statuses
 
-    def dispatch_request(self, division_id=None, page=1):
+    def dispatch_request(self, division_id=None, page=1, **kwargs):
         if not current_user.has_permission(self.permissions):
             abort(403)
         else:
             return super(PermissionRequestListing, self).dispatch_request(
-                    division_id, page)
+                    division_id, page, **kwargs)
 
     def requests(self, division_id=None):
         user_perms = db.session.query(Permission.id.label('permission_id'),
@@ -151,8 +153,8 @@ class PayoutListing(PermissionRequestListing):
         """
         if not current_user.has_permission(self.permissions):
             abort(403)
-        pager = self.requests(division_id).paginate(page, per_page=20)
-        return render_template(self.template, form=ActionForm(), pager=pager)
+        return super(PayoutListing, self).dispatch_request(
+                division_id, page, form=ActionForm())
 
 
 def register_perm_request_listing(app, endpoint, path, permissions, statuses):
