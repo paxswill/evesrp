@@ -28,8 +28,8 @@
 <div class="row">
   <div class="col-sm-offset-1 col-sm-10 col-md-offset-0 col-md-6 col-lg-offset-1 col-lg-5">
     {% block left_col %}
-    {% block info %}
     <dl class="dl-horizontal">
+      {% block info %}
       <dt>Lossmail</dt>
       <dd><a href="{{ srp_request.killmail_url }}" target="_blank">{{ srp_request.id }}</a></dd>
       <dt>Time of Loss</dt>
@@ -51,7 +51,6 @@
       <dt>Pilot</dt>
       <dd>
         {{ srp_request.transformed.pilot }}
-        &bull; <a href="{{ url_for('requests.user_notes', user_id=srp_request.submitter.id) }}">User Notes</a>
       </dd>
       <dt>Corporation</dt>
       <dd>{{ srp_request.corporation }}</dd>
@@ -69,8 +68,8 @@
           {{ srp_request.payout }}
         </span>
       </dd>
+      {% endblock info %}
     </dl>
-    {% endblock info %}
     {% block action_form %}
     <form class="form" method='post'>
       {{ macros.render_input(action_form.id_) }}

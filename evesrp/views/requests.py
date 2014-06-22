@@ -340,6 +340,20 @@ class ChangeDetailsForm(Form):
     details = TextAreaField('Details', validators=[InputRequired()])
 
 
+class AddNote(Form):
+    id_ = HiddenField(default='note')
+    note = TextAreaField('Add Note',
+            description=("If you have something like '#{Kill ID}', it will be "
+                         "linkified to the corresponding request "
+                         "(if it exists). For example, #1234567 would be "
+                         "linked to the request for the kill with ID "
+                         "1234567."),
+            validators=[InputRequired()])
+
+
+killmail_re = re.compile(r'#(\d+)')
+
+
 @blueprint.route('/<int:request_id>/', methods=['GET', 'POST'])
 @login_required
 def request_detail(request_id):
@@ -361,7 +375,7 @@ def request_detail(request_id):
         if review_perm.can():
             template = 'request_review.html'
         elif pay_perm.can():
-            template = 'request_detail.html'
+            template = 'request_pay.html'
         elif current_user == srp_request.submitter:
             template = 'request_detail.html'
         else:
@@ -371,7 +385,8 @@ def request_detail(request_id):
                 payout_form=PayoutForm(formdata=None),
                 action_form=ActionForm(formdata=None),
                 void_form=VoidModifierForm(formdata=None),
-                details_form=ChangeDetailsForm(formdata=None, obj=srp_request))
+                details_form=ChangeDetailsForm(formdata=None, obj=srp_request),
+                note_form=AddNote(formdata=None))
 
     review_perm = ReviewRequestsPermission(srp_request)
     pay_perm = PayoutRequestsPermission(srp_request)
@@ -398,6 +413,12 @@ def request_detail(request_id):
                       " pending.", 'error')
                 return render_details()
             form = ChangeDetailsForm()
+        elif request.form['id_'] == 'note':
+            if not current_user.has_permission(PermissionType.elevated):
+                flash("You do not have permission to add a note to a user.""",
+                        'error')
+                return render_details()
+            form = AddNote()
         else:
             abort(400)
         if form.validate():
@@ -455,6 +476,23 @@ def request_detail(request_id):
                 archive_action.type_ = ActionType.evaluating
                 srp_request.details = form.details.data
                 db.session.commit()
+            elif form.id_.data == 'note':
+                # Linkify killmail IDs
+                note_content = Markup.escape(form.note.data)
+                for match in killmail_re.findall(note_content):
+                    kill_id = int(match)
+                    check_request = db.session.query(Request.id).\
+                            filter_by(id=kill_id)
+                    if db.session.query(check_request.exists()):
+                        link = '<a href="{url}">#{kill_id}</a>'.format(
+                                url=url_for('.request_detail',
+                                    request_id=kill_id),
+                                kill_id=kill_id)
+                        link = Markup(link)
+                        note_content = note_content.replace('#' + match, link)
+                # Create the note
+                note = Note(srp_request.submitter, current_user, note_content)
+                db.session.commit()
         else:
             # TODO: Actual error handling, probably using flash()
             print(form.errors)
@@ -499,55 +537,4 @@ def request_change_division(request_id):
         else:
             return redirect(url_for('.list_pending_requests'))
     form.division.data = srp_request.division.id
-    return render_template('form.html', form=form)
-
-
-@blueprint.route('/notes/<int:user_id>/', methods=['GET', 'POST'])
-@login_required
-def user_notes(user_id):
-    if not current_user.has_permission(PermissionType.elevated):
-        abort(403)
-    user = User.query.get_or_404(user_id)
-    return render_template('notes.html', user=user)
-
-
-class AddNote(Form):
-    note = TextAreaField('Note',
-            description=("If you have something like '#{Kill ID}', it will be "
-                         "linkified to the corresponding request "
-                         "(if it exists). For example, #1234567 would be "
-                         "linked to the request for the kill with ID "
-                         "1234567."),
-            validators=[InputRequired()])
-    submit = SubmitField('Submit')
-
-
-killmail_re = re.compile(r'#(\d+)')
-
-
-@blueprint.route('/notes/<int:user_id>/add/', methods=['GET', 'POST'])
-@login_required
-def add_user_note(user_id):
-    if not current_user.has_permission(PermissionType.elevated):
-        abort(403)
-    user = User.query.get_or_404(user_id)
-    form = AddNote()
-    if form.validate_on_submit():
-        # Linkify killmail IDs
-        note_content = Markup.escape(form.note.data)
-        for match in killmail_re.findall(note_content):
-            kill_id = int(match)
-            srp_request = db.session.query(Request.id).filter_by(id=kill_id)
-            print(kill_id, srp_request.all())
-            if db.session.query(srp_request.exists()):
-                link = '<a href="{url}">#{kill_id}</a>'.format(
-                        url=url_for('.request_detail', request_id=kill_id),
-                        kill_id=kill_id)
-                link = Markup(link)
-                note_content = note_content.replace('#' + match, link)
-        # Create the note
-        note = Note(user, current_user, note_content)
-        db.session.add(note)
-        db.session.commit()
-        return redirect(url_for('.user_notes', user_id=user_id))
     return render_template('form.html', form=form)

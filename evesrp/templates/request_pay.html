@@ -1,0 +1,50 @@
+{% extends "request_detail.html" %}
+
+{% block body %}
+<div class="modal fade" id="notesModal" tabindex="-1" role="dialog" aria-labelledby="notesModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h3 class="modal-title" id="notesModalLabel">Notes for '{{ srp_request.submitter.name }}' from {{ srp_request.submitter.authmethod }}</h3>
+      </div>
+      <div class="modal-body">
+        {% for note in srp_request.submitter.notes %}
+        {{ '<ul class="list-group">'|safe if loop.first }}
+          <li class="list-group-item">
+            <h5 class="list-group-item-heading">{{ note.noter.name }} at {{ note.timestamp.strftime('%H:%M %d %b %Y') }}:</h4>
+            <p class="list-group-item-text">{{ note.content|safe }}</p>
+          </li>
+        {{ '</ul>'|safe if loop.last }}
+        {% else %}
+        <p class="text-center text-muted">No notes for this user</p>
+        {% endfor %}
+      </div>
+      <form class="modal-footer" method="post">
+        {{ note_form.csrf_token() }}
+        {{ note_form.id_(value='note') }}
+        <div class="text-left">
+          {{ macros.render_input(note_form.note) }}
+        </div>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary">Add</button>
+      </form>
+    </div>
+  </div>
+</div>
+{{ super() }}
+{% endblock body %}
+
+{% block info %}
+{{ super() }}
+<dt>User Notes</dt>
+<dd>
+  <button class="btn btn-default btn-xs" type="button" data-toggle="modal" data-target="#notesModal">
+  {% if not srp_request.submitter.notes|length %}
+  Add Note
+  {% else %}
+  View Notes
+  {% endif %}
+  </button>
+</dd>
+{% endblock info %}
