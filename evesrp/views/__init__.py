@@ -1,4 +1,5 @@
-from flask import redirect, url_for, render_template, make_response
+from flask import redirect, url_for, render_template, make_response, request,\
+        jsonify
 from flask.ext.login import login_required, current_user
 from .. import db
 from ..models import Request, ActionType
@@ -13,8 +14,12 @@ def index():
 
 
 def error_page(error):
-    return  make_response(render_template('error.html', error=error),
-            error.code)
+    if request.wants_json or request.is_xhr:
+        response_content = jsonify(description=error.description,
+                code=error.code)
+    else:
+        response_content = render_template('error.html', error=error)
+    return make_response(response_content, error.code)
 
 
 def request_count(permission, statuses=None):
