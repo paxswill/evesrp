@@ -9,15 +9,15 @@ it's closer to a real release. IN the mean time, here're some
 ## Dependencies
 
 In addition to the dependencies listed in setup.py/requirements.txt, EVE-SRP
-requires that these utilities be available for development:
+depends on a Javascript packages. A couple of them are Node.js command line
+utilities (UglifyJS2, LESS), but the majority are used as part of the user
+interface. To install all development dependencies at once you can use the
+`build-deps` make target:
 
-* UglifyJS2
+    make build-deps
 
-* LESS
-
-Most of these are Node.js packages available from NPM:
-
-    npm install -g uglify-js less
+This will install all of the Python and Javascript dependencies needed for
+developing EVE-SRP.
 
 ## Deploying
 
@@ -32,7 +32,7 @@ example, I use PostgreSQL, and use the psycopg2 adapter:
     pip install psycopg2
 
 From there, you just need to create an instance of the app and run it. The
-example below uses Flask's built-in webserver.
+simple example below uses Flask's built-in webserver.
 
     from evesrp import create_app
     
