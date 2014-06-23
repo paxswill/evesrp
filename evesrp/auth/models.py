@@ -62,7 +62,7 @@ class Entity(db.Model, AutoID, AutoName):
     def __str__(self):
         return "{x.name}".format(x=self)
 
-    def has_permission(self, permissions, division=None):
+    def has_permission(self, permissions, division_or_request=None):
         """Returns if this entity has been granted a permission in a division.
 
         If ``division`` is ``None``, this method checks if this group has the
@@ -70,14 +70,19 @@ class Entity(db.Model, AutoID, AutoName):
 
         :param permissions: The series of permissions to check
         :type permissions: iterable
-        :param division: The division to check. May be ``None``.
-        :type division: :py:class:`Division`
+        :param division_or_request: The division to check. May be ``None`` or
+            an SRP request.
+        :type division: :py:class:`Division` or :py:class:`~.models.Request`
         :rtype bool:
         """
         if permissions in PermissionType.all:
             permissions = (permissions,)
         perms = self.permissions.filter(Permission.permission.in_(permissions))
-        if division is not None:
+        if division_or_request is not None:
+            if hasattr(division_or_request, 'division'):
+                division = division_or_request.division
+            else:
+                division = division_or_request
             perms = perms.filter_by(division=division)
         return db.session.query(perms.exists()).all()[0][0]
 
