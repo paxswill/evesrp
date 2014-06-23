@@ -36,7 +36,7 @@ class AddDivisionForm(Form):
 @login_required
 @admin_permission.require()
 def add_division():
-    """Present a form for adding a view and also process that form.
+    """Present a form for adding a division and also process that form.
 
     Only accesible to adminstrators.
     """
@@ -57,6 +57,8 @@ class ChangeEntity(Form):
     action = HiddenField(validators=[AnyOf(('add', 'delete'))])
 
 
+#: List of tuples enumerating attributes that can be transformed/linked.
+#: Mainly used as the choices argument to :py:class:`~.SelectField`
 transformer_choices = [
     ('', ''),
     ('kill_timestamp', 'Kill Timestamp'),
@@ -79,6 +81,13 @@ class ChangeTransformer(Form):
 
 
 def transformer_choices(attr):
+    """Conveniece function for generating a list of transformer option tuples.
+
+    :param attr str: the name of the attribute to make a list for.
+    :return: A list of tuples suitable for the choices argument of\
+        :py:class:`StringField`
+    :rtype: list
+    """
     default_transformers = [
         ('none', 'None'),
     ]
@@ -164,6 +173,12 @@ def division_detail(division_id):
 @login_required
 @admin_permission.require()
 def list_transformers(division_id, attribute=None):
+    """API method to get a list of transformers for a division.
+
+    :param division_id int: the ID of the division to look up
+    :param attribute str: a specific attribute to look up. Optional.
+    :return: JSON
+    """
     division = Division.query.get_or_404(division_id)
     if attribute is None:
         attrs = current_app.url_transformers.keys()
