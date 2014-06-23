@@ -1,12 +1,25 @@
 language: python
+
 python:
-    - "3.3"
     - "3.4"
+    - "pypy3"
+
 env:
     - DB="sqlite://"
     - DB="postgresql+psycopg2://postgres@127.0.0.1/evesrp_test"
+    - DB="postgresql+pg8000://postgres@127.0.0.1/evesrp_test"
     - DB="mysql+pymysql://root@127.0.0.1/evesrp_test"
     - DB="mysql+cymysql://root@127.0.0.1/evesrp_test"
+
+matrix:
+    include:
+        - python: "3.3"
+          env: DB="sqlite://"
+    exclude:
+        - python: "pypy3"
+          env: DB="postgresql+psycopg2://postgres@127.0.0.1/evesrp_test"
+        - python: "pypy3"
+          env: DB="mysql+cymysql://root@127.0.0.1/evesrp_test"
 
 install: make build-deps
 

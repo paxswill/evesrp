@@ -18,6 +18,8 @@ build-deps:
 	bower install
 ifneq (,$(findstring psycopg2,$(DB)))
 	pip install psycopg2
+else ifneq (,$(findstring pg8000,$(DB)))
+	pip install pg8000
 else ifneq (,$(findstring pymysql,$(DB)))
 	pip install pymysql
 else ifneq (,$(findstring cymysql,$(DB)))
