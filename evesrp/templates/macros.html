@@ -86,7 +86,7 @@ warning
 info
 {%- elif action_type == ActionType.paid -%}
 success
-{%- elif action_type == ActionType.incomplete or state_string == ActionType.rejected -%}
+{%- elif action_type == ActionType.incomplete or action_type == ActionType.rejected -%}
 danger
 {%- endif %}
 {% endmacro %}
