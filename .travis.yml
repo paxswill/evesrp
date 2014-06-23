@@ -20,6 +20,7 @@ matrix:
           env: DB="postgresql+psycopg2://postgres@127.0.0.1/evesrp_test"
         - python: "pypy3"
           env: DB="mysql+cymysql://root@127.0.0.1/evesrp_test"
+        - python: "pypy3"
 
 install: make build-deps
 
