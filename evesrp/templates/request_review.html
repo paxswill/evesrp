@@ -3,18 +3,24 @@
 {% block right_col %}
   <dt>Set Base Payout</dt>
   <dd>
-    <form class="form" method="post">
-      <fieldset{{ ' disabled'|safe if srp_request.status != ActionType.evaluating }}>
-        {{ payout_form.csrf_token() }}
-        {{ payout_form.id_() }}
-        {{ payout_form.value.label(class="sr-only") }}
-        <div class="form-group input-group">
-          {{ payout_form.value(class="form-control", placeholder=payout_form.value.label.text) }}
-          <span class="input-group-btn">
-            <button class="btn btn-default" type="submit">Set</button>
-          </span>
-        </div>
-      </fieldset>
+    <form method="post">
+      {{ payout_form.csrf_token() }}
+      {{ payout_form.id_() }}
+      {{ payout_form.value.label(class="sr-only") }}
+      <div class="form-group input-group">
+        {% if srp_request.status != ActionType.evaluating %}
+        {{ payout_form.value(class="form-control evaluating-only", placeholder=payout_form.value.label.text, disabled='') }}
+        {% else %}
+        {{ payout_form.value(class="form-control evaluating-only", placeholder=payout_form.value.label.text) }}
+        {% endif %}
+        <span class="input-group-btn">
+          {% if srp_request.status != ActionType.evaluating %}
+          <button class="btn btn-default evaluating-only" type="submit" disabled>Set</button>
+          {% else %}
+          <button class="btn btn-default evaluating-only" type="submit">Set</button>
+          {% endif %}
+        </span>
+      </div>
     </form>
   </dd>
   {{ super() }}
@@ -22,24 +28,39 @@
 
 {% block list_modifiers %}
   <form method="post">
-    <fieldset{{ ' disabled'|safe if srp_request.status != ActionType.evaluating }}>
-      {{ macros.render_input(modifier_form.csrf_token) }}
-      {{ macros.render_input(modifier_form.id_) }}
-      {{ macros.render_input(modifier_form.type_) }}
-      <div class="form-group input-group">
-        {{ modifier_form.value(class="form-control") }}
-        <div class="input-group-btn">
-          <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Type <span class="caret"></span></button>
-          <ul id="request-modifier-type" class="dropdown-menu pull-right">
-            <li><a href="#" id="rel-bonus">% Bonus</a></li>
-            <li><a href="#" id="rel-deduct">% Deduction</a></li>
-            <li><a href="#" id="abs-bonus">M ISK Bonus</a></li>
-            <li><a href="#" id="abs-deduct">M ISK Deduction</a></li>
-          </ul>
-        </div>
+    {{ macros.render_input(modifier_form.csrf_token) }}
+    {{ macros.render_input(modifier_form.id_) }}
+    {{ macros.render_input(modifier_form.type_) }}
+    <div class="form-group input-group">
+      {% if srp_request.status != ActionType.evaluating %}
+      {{ modifier_form.value(class="form-control evaluating-only", disabled='') }}
+      {% else %}
+      {{ modifier_form.value(class="form-control evaluating-only") }}
+      {% endif %}
+      <div class="input-group-btn">
+        {% if srp_request.status != ActionType.evaluating %}
+        <button type="button" class="btn btn-default dropdown-toggle evaluating-only" data-toggle="dropdown" disabled>
+        {% else %}
+        <button type="button" class="btn btn-default dropdown-toggle evaluating-only" data-toggle="dropdown">
+        {% endif %}
+          Type <span class="caret"></span>
+        </button>
+        <ul id="request-modifier-type" class="dropdown-menu pull-right">
+          <li><a href="#" id="rel-bonus">% Bonus</a></li>
+          <li><a href="#" id="rel-deduct">% Deduction</a></li>
+          <li><a href="#" id="abs-bonus">M ISK Bonus</a></li>
+          <li><a href="#" id="abs-deduct">M ISK Deduction</a></li>
+        </ul>
       </div>
-      {{ macros.render_input(modifier_form.note) }}
-    </fieldset>
+    </div>
+    <div class="form-group">
+      {{ modifier_form.note.label }}
+      {% if srp_request.status != ActionType.evaluating %}
+      {{ modifier_form.note(class="form-control evaluating-only", disabled='') }}
+      {% else %}
+      {{ modifier_form.note(class="form-control evaluating-only") }}
+      {% endif %}
+    </div>
   </form>
   {{ super() }}
 {% endblock list_modifiers %}

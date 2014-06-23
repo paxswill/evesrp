@@ -41,7 +41,7 @@
       <dd>{{ srp_request.kill_timestamp.strftime('%d %b %Y %H:%M') }}</dd>
       <dt>Division</dt>
       <dd>
-        {{ srp_request.division.name }} &bull;
+        <span id="request-division">{{ srp_request.division.name }}</span> &bull;
         <a href="{{ url_for('requests.request_change_division', request_id=srp_request.id) }}">Change Division</a>
       </dd>
       <dt>Details</dt>
@@ -66,10 +66,10 @@
       <dt>Ship</dt>
       <dd>{{ srp_request.transformed.ship_type }}</dd>
       <dt>Status</dt>
-      <dd><span class="label label-{{ macros.status_color(srp_request.status) }} request-status">{{ srp_request.status }}</span></dd>
+      <dd><span id="request-status" class="label label-{{ macros.status_color(srp_request.status) }}">{{ srp_request.status }}</span></dd>
       <dt>Payout</dt>
-      <dd id="payout">
-        <span data-toggle="tooltip" data-placement="right" title="Base Payout: {{ srp_request.base_payout }}">
+      <dd>
+        <span id="request-payout" data-toggle="tooltip" data-placement="right" title="Base Payout: {{ srp_request.base_payout }}">
           {{ srp_request.payout }}
         </span>
       </dd>
@@ -89,7 +89,7 @@
             <span class="caret"></span>
             <span class="sr-only">Toggle Dropdown</span>
           </button>
-          <ul class="dropdown-menu" role="menu">
+          <ul class="dropdown-menu" role="menu" id="actionMenu">
             {% for action in srp_request.valid_actions(current_user) %}
             <li><a href="#" id="{{ action.value }}">{{ action.description }}</a></li>
             {% endfor %}
@@ -123,7 +123,7 @@
       <dt>Modifiers</dt>
       <dd>
         {% block list_modifiers %}
-        <div class="panel-group">
+        <div class="panel-group" id="modifierList">
           {% for modifier in srp_request.modifiers %}
           {% if modifier.voided %}
           <div class="panel panel-default">

@@ -1,0 +1,25 @@
+{{#compare value 0 operator='<'}}
+<div class="panel panel-danger">
+{{else}}
+<div class="panel panel-success">
+{{/compare}}
+  <div class="panel-heading" data-toggle="collapse" data-target="#modifier{{id}}">
+    <form class="form" method="post">
+      <input id="csrf_token" name="csrf_token" type="hidden" value="{{csrf}}">
+      <input id="id_" name="id_" type="hidden" value="void">
+      <input id="modifier_id_{{id}}" name="modifier_id" type="hidden" value="{{id}}">
+      <button class="close" type="submit" name="void_modifier">&times;</button>
+    </form>
+    <h4 class="panel-title">{{value_str}}</h4>
+  </div>
+  <div id="modifier{{id}}" class="collapse in">
+    {{#if note}}
+    <div class="panel-body">
+      {{note}}
+    </div>
+    {{/if}}
+    <div class="panel-footer">
+      {{user.name}} at {{datefmt timestamp}} {{timefmt timestamp}}
+    </div>
+  </div>
+</div>

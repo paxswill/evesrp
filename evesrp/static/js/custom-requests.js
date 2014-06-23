@@ -15,6 +15,54 @@ function flash(message, category){
   $("#content").prepend(flashed);
 }
 
+function renderRequest(request) {
+  var actionMenu = $('#actionMenu'),
+      actionList = $('#actionList'),
+      statusBadge = $('#request-status'),
+      modifierList = $('#modifierList'),
+      requestDetails = $('#request-details'),
+      payout = $('#request-payout'),
+      division = $('#request-division'),
+      evaluatingOnly = $('.evaluating-only'),
+      modifiers;
+  // Update action menu
+  actionMenu.empty();
+  actionMenu.append(Handlebars.templates.action_menu(request));
+  // Update list of actions
+  actionList.empty()
+  actionList.append(Handlebars.templates.actions(request));
+  // Update status badge
+  statusBadge.removeClass('label-warning label-info label-success ' +
+    'label-danger');
+  statusBadge.addClass('label-' + statusColor(request.status));
+  statusBadge.text(capitalize(request.status));
+  // Update the list of modifiers
+  modifiers = $.map(request.modifiers, function(modifier) {
+    if (modifier.void) {
+      return Handlebars.templates.voided_modifier(modifier);
+    } else if (request.status === 'evaluating' &&
+        request.valid_actions.indexOf('approved') !== -1) {
+      return Handlebars.templates.voidable_modifier(modifier);
+    } else {
+      return Handlebars.templates.modifier(modifier);
+    }
+  });
+  modifierList.empty();
+  modifierList.append(modifiers);
+  // Update details
+  requestDetails.text(request.details);
+  // Update Payout
+  payout.text(request.payout);
+  // Disable modifier and payout forms if not evaluating
+  if (request.status === 'evaluating') {
+    evaluatingOnly.prop('disabled', false);
+  } else {
+    evaluatingOnly.prop('disabled', true);
+  }
+  // Update division
+  division.text(request.division.name);
+}
+
 function submitAction(e) {
   var $link = $(e.target);
   var form = $link.closest("form");
@@ -22,35 +70,14 @@ function submitAction(e) {
   $.post(
     window.location.pathname,
     form.serialize(),
-    function() {
-      var requestID = $('meta[name="srp_request_id"]').attr('content');
-      $.getJSON(
-        '/api/request/' + requestID + '/actions/',
-        function(data) {
-          var actionList = $('#actionList');
-          // Re-render the actions list
-          actionList.empty()
-          actionList.append(Handlebars.templates.actions(data));
-        }
-      );
-      $.getJSON(
-        '/api/request/' + requestID + '/',
-        function(data) {
-          // Reset the action form
-          form.find('textarea').val('');
-          form.find('button.dropdown-toggle').dropdown('toggle');
-          // Update the possible actions
-          var actionMenu = form.find('ul.dropdown-menu');
-          actionMenu.empty();
-          actionMenu.append(Handlebars.templates.action_menu(data));
-          // Update status
-          var statusBadge = $('.request-status');
-          statusBadge.removeClass('label-warning label-info label-success ' +
-            'label-danger');
-          statusBadge.addClass('label-' + statusColor(data.status));
-          statusBadge.text(capitalize(data.status));
-        }
-      );
+    function(data) {
+      // Reset the action form
+      form.find('textarea').val('');
+      if (!$(e.target).hasClass('btn')) {
+        form.find('button.dropdown-toggle').dropdown('toggle');
+      }
+      // Update everything
+      renderRequest(data);
     }
   );
   return false;
@@ -79,4 +106,4 @@ $('#detailsModal form').submit(function() {
   return false;
 });
 
-$('dd#payout span').tooltip()
+$('#request-payout').tooltip()

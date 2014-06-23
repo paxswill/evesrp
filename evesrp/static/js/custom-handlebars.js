@@ -83,15 +83,12 @@ function statusColor(statusString) {
   }
 }
 
-
 Handlebars.registerHelper('status_color', function(stat) {
   return statusColor(stat);
 });
 
-
 Handlebars.registerHelper('compare', function(left, right, options) {
   var op = options.hash.operator || "===";
-  console.log("Comparing", left, op, right);
   var ops = {
     '==': function(l, r) { return l == r;},
     '!=': function(l, r) { return l != r;},
