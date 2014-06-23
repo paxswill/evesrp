@@ -499,7 +499,7 @@ def _add_note(srp_request):
             check_request = db.session.query(Request.id).filter_by(id=kill_id)
             if db.session.query(check_request.exists()):
                 link = '<a href="{url}">#{kill_id}</a>'.format(
-                        url=url_for('.request_detail', request_id=kill_id),
+                        url=url_for('.get_request_detail', request_id=kill_id),
                         kill_id=kill_id)
                 link = Markup(link)
                 note_content = note_content.replace('#' + match, link)
@@ -553,7 +553,7 @@ def request_change_division(request_id):
     division_choices = srp_request.submitter.submit_divisions()
     if len(division_choices) < 2:
         flash("No other divisions to move to.", 'info')
-        return redirect(url_for('.request_detail', request_id=request_id))
+        return redirect(url_for('.get_request_detail', request_id=request_id))
     form = DivisionChange()
     form.division.choices = division_choices
     if form.validate_on_submit():
@@ -569,7 +569,8 @@ def request_change_division(request_id):
                 new_division.name), 'success')
         if current_user.has_permission(PermissionType.elevated, new_division) or\
                 current_user == srp_request.submitter:
-            return redirect(url_for('.request_detail', request_id=request_id))
+            return redirect(url_for('.get_request_detail',
+                request_id=request_id))
         else:
             return redirect(url_for('.list_pending_requests'))
     form.division.data = srp_request.division.id
