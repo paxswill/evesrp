@@ -25,6 +25,26 @@ class PrettyDecimal(Decimal):
     def __html__(self):
         return Markup(str(self))
 
+    def __float__(self):
+        """Work around a bug in pure-Python Decimal implementations.
+
+
+        The standard pure-Python Decimal implementation does the equivalent of
+        ``float(str(self))`` inside its ``__float__`` method. This method is
+        simply a workaround for that silliness.
+        """
+        try:
+            return super(PrettyDecimal, self).__float__()
+        except ValueError as e:
+            if str(e).startswith('invalid'):
+                return float(super(PrettyDecimal, self).__str__())
+            else:
+                raise e
+
+    def __repr__(self):
+        """See :py:method:`__float__`."""
+        return "PrettyDecimal(%s)" % super(PrettyDecimal, self).__str__()
+
 
 class PrettyNumeric(db.TypeDecorator):
     """Type Decorator for :py:class:`~.Numeric` that reformats the userland
