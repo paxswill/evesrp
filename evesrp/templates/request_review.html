@@ -3,7 +3,7 @@
 {% block right_col %}
   <dt>Set Base Payout</dt>
   <dd>
-    <form method="post">
+    <form id="payoutForm" method="post">
       {{ payout_form.csrf_token() }}
       {{ payout_form.id_() }}
       {{ payout_form.value.label(class="sr-only") }}
@@ -27,7 +27,7 @@
 {% endblock right_col %}
 
 {% block list_modifiers %}
-  <form method="post">
+  <form id="modifierForm" method="post">
     {{ macros.render_input(modifier_form.csrf_token) }}
     {{ macros.render_input(modifier_form.id_) }}
     {{ macros.render_input(modifier_form.type_) }}

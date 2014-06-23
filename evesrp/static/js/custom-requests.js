@@ -52,6 +52,11 @@ function renderRequest(request) {
   // Update details
   requestDetails.text(request.details);
   // Update Payout
+  payout.tooltip('destroy');
+  payout.tooltip({
+    title: 'Base Payout: ' + request.base_payout,
+    placement: 'right'
+  });
   payout.text(request.payout);
   // Disable modifier and payout forms if not evaluating
   if (request.status === 'evaluating') {
@@ -87,9 +92,42 @@ $('form#actionForm ul').click(submitAction);
 $('form#actionForm button[type="submit"]').click(submitAction);
 
 $("ul#request-modifier-type li a").click( function(e) {
-  var form = $(this).closest("form");
-  form.find("input[name='type_']").attr("value", $(this).attr("id"));
-  form.submit();
+  var $this_ = $(this),
+      $form = $this_.closest('form');
+  $form.find("input[name='type_']").attr("value", $this_.attr("id"));
+  $form.submit();
+  $form.find('button.dropdown-toggle').dropdown('toggle');
+  return false;
+});
+
+$('form#modifierForm').submit(function() {
+  var $form = $(this);
+  $.post(
+    window.location.pathname,
+    $form.serialize(),
+    function(data) {
+      // Reset form
+      $form.find('textarea').val('');
+      $form.find('input#value').val('');
+      // Update
+      renderRequest(data);
+    }
+  );
+  return false;
+});
+
+$('form#payoutForm').submit(function() {
+  var $form = $(this);
+  $.post(
+    window.location.pathname,
+    $form.serialize(),
+    function(data) {
+      // Reset
+      $form.find('input#value').val('');
+      // Update
+      renderRequest(data);
+    }
+  );
   return false;
 });
 
@@ -106,4 +144,7 @@ $('#detailsModal form').submit(function() {
   return false;
 });
 
-$('#request-payout').tooltip()
+$('#request-payout').tooltip({
+  title: $('#request-payout').data('initial-title'),
+  placement: 'right'
+});
