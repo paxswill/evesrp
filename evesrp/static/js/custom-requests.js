@@ -137,7 +137,7 @@ $('#detailsModal form').submit(function() {
     window.location.pathname,
     $form.serialize(),
     function(data) {
-      $('#request-details').text($form.find('textarea#details').val());
+      renderRequest(data);
     }
   );
   $('#detailsModal').modal('hide')
