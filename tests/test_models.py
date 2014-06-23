@@ -20,7 +20,7 @@ class TestModels(TestLogin):
                     alliance='Northern Coalition.',
                     killmail_url=('http://eve-kill.net/?a=kill_detail'
                         '&kll_id=12842852'),
-                    base_payout=73957.9,
+                    base_payout=73957900000,
                     kill_timestamp=dt.datetime(2012, 3, 25, 0, 44, 0,
                         tzinfo=dt.timezone.utc),
                     system='92D-OI',
