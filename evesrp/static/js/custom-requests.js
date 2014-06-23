@@ -144,6 +144,19 @@ $('#detailsModal form').submit(function() {
   return false;
 });
 
+$('#modifierList').submit(function(e) {
+  var $form = $(e.target);
+  $.post(
+    window.location.pathname,
+    $form.serialize(),
+    function(data) {
+      // Update
+      renderRequest(data);
+    }
+  );
+  return false;
+});
+
 $('#request-payout').tooltip({
   title: $('#request-payout').data('initial-title'),
   placement: 'right'
