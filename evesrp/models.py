@@ -203,7 +203,7 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
 
     def __repr__(self):
         return ("{x.__class__.__name__}({x.request}, {x.user},"
-                "{x.pretty_value}, {x.voided})".format(x=self, value=self))
+                "{x}, {x.voided})".format(x=self, value=self))
 
     def void(self, user):
         """Mark this modifier as void.

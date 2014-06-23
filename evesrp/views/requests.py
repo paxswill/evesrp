@@ -2,7 +2,7 @@ from collections import OrderedDict
 import re
 
 from flask import render_template, abort, url_for, flash, Markup, request,\
-    redirect, current_app, Blueprint, Markup, jsonify
+    redirect, current_app, Blueprint, Markup, json, jsonify
 from flask.views import View
 from flask.ext.login import login_required, current_user
 from flask.ext.wtf import Form
@@ -374,17 +374,29 @@ def get_request_details(request_id=None, srp_request=None):
     """
     if srp_request is None:
         srp_request = Request.query.get_or_404(request_id)
-    pay_perm = PayoutRequestsPermission(srp_request)
-    review_perm = ReviewRequestsPermission(srp_request)
     # Different templates are used for different roles
-    if review_perm.can():
+    if current_user.has_permission(PermissionType.review,
+            srp_request.division):
         template = 'request_review.html'
-    elif pay_perm.can():
+    elif current_user.has_permission(PermissionType.pay, srp_request.division):
         template = 'request_pay.html'
     elif current_user == srp_request.submitter:
         template = 'request_detail.html'
     else:
         abort(403)
+    if request.wants_json:
+        # dump the load to encode srp_request as json and then get a dictionary
+        # form of it. We need this to add a few bits of information to the
+        # standard request encoding
+        enc_request = json.loads(json.dumps(srp_request))
+        enc_request['actions'] = srp_request.actions
+        enc_request['modifiers'] = srp_request.modifiers
+        valid_actions = map(
+                lambda a: a.value,
+                srp_request.valid_actions(current_user))
+        enc_request['valid_actions'] = valid_actions
+        enc_request['current_user'] = current_user._get_current_object()
+        return jsonify(enc_request)
     return render_template(template, srp_request=srp_request,
             modifier_form=ModifierForm(formdata=None),
             payout_form=PayoutForm(formdata=None),
