@@ -25,11 +25,15 @@ blueprint = Blueprint('requests', __name__)
 
 class RequestListing(View):
     """Abstract class for lists of :py:class:`~evesrp.models.Request`\s.
+
+    Subclasses will be able to respond to both normal HTML requests as well as
+    to API requests with JSON.
     """
 
     #: The template to use for listing requests
     template = 'list_requests.html'
 
+    #: Decorators to apply to the view functions
     decorators = [login_required]
 
     def requests(self, division_id=None):
@@ -72,8 +76,8 @@ class RequestListing(View):
 
 
 class PersonalRequests(RequestListing):
-    """Shows a list of all personally submitted requests and divisions they
-    have permissions in.
+    """Shows a list of all personally submitted requests and divisions the user
+    has permissions in.
 
     It will show all requests the current user has submitted.
     """
@@ -138,6 +142,7 @@ class PermissionRequestListing(RequestListing):
 
 
 class PayoutListing(PermissionRequestListing):
+    """A special view made for quickly processing payouts for requests."""
 
     template = 'payout.html'
 
@@ -147,10 +152,6 @@ class PayoutListing(PermissionRequestListing):
                 (ActionType.approved,))
 
     def dispatch_request(self, division_id=None, page=1):
-        """Returns the response to requests.
-
-        Part of the :py:class:`flask.views.View` interface.
-        """
         if not current_user.has_permission(self.permissions):
             abort(403)
         return super(PayoutListing, self).dispatch_request(
@@ -180,6 +181,9 @@ def register_perm_request_listing(app, endpoint, path, permissions, statuses):
 
 @blueprint.record
 def register_class_views(state):
+    """Called when the blueprint is registered, this function defines routes
+    for and attaches the class-based views to the app.
+    """
     try:
         prefixes = state.app.request_prefixes
     except AttributeError:
@@ -205,6 +209,9 @@ def register_class_views(state):
 
 
 class ValidKillmail(URL):
+    """Custom :py:class:'~.Field' validator that checks if any
+    :py:class:`~.Killmail` accepts the given URL.
+    """
     def __init__(self, mail_class, **kwargs):
         self.mail_class = mail_class
         super(ValidKillmail, self).__init__(**kwargs)
