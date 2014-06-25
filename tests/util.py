@@ -18,7 +18,7 @@ class TestApp(TestCase):
         self.app = create_app()
         self.app.testing = True
         self.app.config['SECRET_KEY'] = 'testing'
-        self.app.config['USER_AGENT_EMAIL'] = 'testing@example.com'
+        self.app.config['SRP_USER_AGENT_EMAIL'] = 'testing@example.com'
         self.app.config['WTF_CSRF_ENABLED'] = False
         if 'DB' in env:
             # Default is an in-memroy SQLite database
@@ -74,7 +74,7 @@ class TestLogin(TestApp):
                 NullAuth(name='Null Auth 1'),
                 NullAuth(name='Null Auth 2'),
         ]
-        self.app.config['AUTH_METHODS'] = self.auth_methods
+        self.app.config['SRP_AUTH_METHODS'] = self.auth_methods
         self.normal_name = 'Normal User'
         self.admin_name = 'Admin User'
         self.default_authmethod = self.auth_methods[0]

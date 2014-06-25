@@ -41,7 +41,7 @@ def configure_from_env(app):
     except KeyError:
         pass
     else:
-        app.config['AUTH_METHODS'].append(BraveCore(core_private_key,
+        app.config['SRP_AUTH_METHODS'].append(BraveCore(core_private_key,
                 core_public_key, core_identifier))
 
     secret_key = environ.get('SECRET_KEY')

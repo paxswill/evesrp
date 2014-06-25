@@ -52,7 +52,7 @@ class TestMethodTabs(TestLogin):
 
     def test_single_auth_method(self):
         # Remove the second auth method
-        self.app.config['AUTH_METHODS'].pop()
+        self.app.config['SRP_AUTH_METHODS'].pop()
         # Test
         resp = self.app.test_client().get('/login', follow_redirects=True)
         self.assertIn('Null Auth 1', resp.get_data(as_text=True))

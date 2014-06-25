@@ -104,7 +104,7 @@ def sqlalchemy_before():
 
 # Auth setup
 def _copy_config_to_authmethods():
-    current_app.auth_methods = current_app.config['AUTH_METHODS']
+    current_app.auth_methods = current_app.config['SRP_AUTH_METHODS']
 
 
 # Request detail URL setup
@@ -130,11 +130,11 @@ def _copy_url_converter_config():
 # Requests session setup
 def _config_requests_session():
     try:
-        ua_string = current_app.config['USER_AGENT_STRING']
+        ua_string = current_app.config['SRP_USER_AGENT_STRING']
     except KeyError as outer_exc:
         try:
             ua_string = 'EVE-SRP/{version} ({email})'.format(
-                    email=current_app.config['USER_AGENT_EMAIL'],
+                    email=current_app.config['SRP_USER_AGENT_EMAIL'],
                     version=__version__)
         except KeyError as inner_exc:
             raise inner_exc from outer_exc
@@ -144,4 +144,4 @@ def _config_requests_session():
 
 # Killmail verification
 def _config_killmails():
-    current_app.killmail_sources = current_app.config['KILLMAIL_SOURCES']
+    current_app.killmail_sources = current_app.config['SRP_KILLMAIL_SOURCES']
