@@ -150,7 +150,7 @@ def division_detail(division_id):
                     if form.action.data == 'delete':
                         permission_query.delete()
                         flash("'{}' is no longer a {}.".format(entity,
-                                permission.description.lower()), "info")
+                                permission_type.description.lower()), "info")
                     elif form.action.data == 'add':
                         flash("'{}' is now a {}.".format(entity,
                                 permission_type.description.lower()), "info")
