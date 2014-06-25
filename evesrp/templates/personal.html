@@ -6,18 +6,14 @@
     <table class="table">
       <tr>
         <th>Division</th>
-        <th>Permission</th>
-        <th>Type</th>
+        <th>Permissions</th>
       </tr>
-      {% for permission in current_user.permissions %}
+      {% for grouper, grouped in current_user.permissions|groupby('division.name') %}
       <tr>
-        <td>{{ permission.division.name }}</td>
-        <td>{{ permission.permission }}</td>
-        {% if permission.entity == current_user %}
-        <td>Individual</td>
-        {% else %}
-        <td>through {{ permission.entity.name }}</td>
-        {% endif %}
+        <td>{{ grouper }}</td>
+        {% with grouped_permissions = grouped|map(attribute='permission')|groupby('value') %}
+        <td>{{ grouped_permissions|map('last')|map('first')|map(attribute='description')|join(', ') }}</td>
+        {% endwith %}
       </tr>
       {% endfor %}
     </table>
