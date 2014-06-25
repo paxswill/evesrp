@@ -2,7 +2,7 @@ from collections import OrderedDict
 import re
 
 from flask import render_template, abort, url_for, flash, Markup, request,\
-    redirect, current_app, Blueprint, Markup, json, jsonify
+    redirect, current_app, Blueprint, Markup, json, jsonify, make_response
 from flask.views import View
 from flask.ext.login import login_required, current_user
 from flask.ext.wtf import Form
@@ -56,6 +56,12 @@ class RequestListing(View):
         """
         if request.wants_json or request.is_xhr:
             return jsonify(requests=self.requests(division_id))
+        if request.wants_xml:
+            xml_list = render_template('request_list.xml',
+                    requests=self.requests(division_id))
+            response = make_response(xml_list)
+            response.headers['Content-Type'] = 'application/xml'
+            return response
         pager = self.requests(division_id).paginate(page, per_page=20)
         return render_template(self.template,
                 pager=pager, **kwargs)
@@ -404,6 +410,11 @@ def get_request_details(request_id=None, srp_request=None):
         enc_request['valid_actions'] = valid_actions
         enc_request['current_user'] = current_user._get_current_object()
         return jsonify(enc_request)
+    if request.wants_xml:
+        xml_request = render_template('request.xml', srp_request=srp_request)
+        response = make_response(xml_request)
+        response.headers['Content-Type'] = 'application/xml'
+        return response
     return render_template(template, srp_request=srp_request,
             modifier_form=ModifierForm(formdata=None),
             payout_form=PayoutForm(formdata=None),

@@ -1,0 +1,6 @@
+{% from "request.xml" import request_xml %}
+<requests>
+  {% for srp_request in requests %}
+    {{ request_xml(srp_request) }}
+  {% endfor %}
+</requests>

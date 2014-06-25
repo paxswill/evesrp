@@ -22,6 +22,9 @@ class PrettyDecimal(Decimal):
     def __str__(self):
         return locale.currency(self, symbol=False, grouping=True)
 
+    def old_str(self):
+        return super(PrettyDecimal, self).__str__()
+
     def __html__(self):
         return Markup(str(self))
 
@@ -37,13 +40,13 @@ class PrettyDecimal(Decimal):
             return super(PrettyDecimal, self).__float__()
         except ValueError as e:
             if str(e).startswith('invalid'):
-                return float(super(PrettyDecimal, self).__str__())
+                return float(self.old_str())
             else:
                 raise e
 
     def __repr__(self):
         """See :py:method:`__float__`."""
-        return "PrettyDecimal(%s)" % super(PrettyDecimal, self).__str__()
+        return "PrettyDecimal(%s)" % self.old_str()
 
 
 class PrettyNumeric(db.TypeDecorator):
