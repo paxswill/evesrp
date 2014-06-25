@@ -129,16 +129,31 @@ def division_detail(division_id):
                     except MultipleResultsFound:
                         flash("Multiple entities eith the name '{}' found.".
                                 format(form.name.data), category='error')
-                permission = PermissionType.from_string(form.permission.data)
-                if form.action.data == 'add':
-                    db.session.add(Permission(division, permission, entity))
-                    flash("'{}' is now a {}.".format(entity,
-                            permission.description.lower()), "info")
-                elif form.action.data == 'delete':
-                    Permission.query.filter_by(division=division,
-                            permission=permission, entity=entity).delete()
-                    flash("'{}' is no longer a {}.".format(entity,
-                            permission.description.lower()), "info")
+                permission_type = PermissionType.from_string(
+                        form.permission.data)
+                permission_query = Permission.query.filter_by(
+                        division=division,
+                        entity=entity,
+                        permission=permission_type)
+                try:
+                    permission = permission_query.one()
+                except NoResultFound:
+                    if form.action.data == 'add':
+                        db.session.add(
+                            Permission(division, permission_type, entity))
+                        flash("'{}' is now a {}.".format(entity,
+                                permission_type.description.lower()), "info")
+                    elif form.action.data == 'delete':
+                        flash("{} is not a {}.".format(entity,
+                            permission_type.description.lower()), "warning")
+                else:
+                    if form.action.data == 'delete':
+                        permission_query.delete()
+                        flash("'{}' is no longer a {}.".format(entity,
+                                permission.description.lower()), "info")
+                    elif form.action.data == 'add':
+                        flash("'{}' is now a {}.".format(entity,
+                                permission_type.description.lower()), "info")
             else:
                 abort(400)
         elif request.form['form_id'] == 'transformer':
