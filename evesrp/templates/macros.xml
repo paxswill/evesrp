@@ -16,6 +16,12 @@
   <submitter id="{{ srp_request.submitter.id }}" name="{{ srp_request.submitter.name }}" />
   <killmail-url>{{ srp_request.killmail_url }}</killmail-url>
   <url>{{ url_for('requests.get_request_details', request_id=srp_request.id) }}</url>
+  <ship>{{ srp_request.ship_type }}</ship>
+  <location>
+    <system>{{ srp_request.system }}</system>
+    <constellation>{{ srp_request.constellation }}</constellation>
+    <region>{{ srp_request.region }}</region>
+  </location>
   {% if actions %}
   <actions>
   {% for action in srp_request.actions %}
