@@ -16,20 +16,15 @@ class AcceptRequest(Request):
                self._xml_mimetypes
 
     @property
-    def wants_json(self):
+    def is_json(self):
         if 'fmt' in self.values:
             return self.values['fmt'] == 'json'
         return self.accept_mimetypes.best_match(self._known_mimetypes) in \
             self._json_mimetypes
 
     @property
-    def wants_xml(self):
+    def is_xml(self):
         if 'fmt' in self.values:
             return self.values['fmt'] == 'xml'
         return self.accept_mimetypes.best_match(self._known_mimetypes) in \
             self._xml_mimetypes
-
-    @property
-    def wants_html(self):
-        return self.accept_mimetypes.best_match(self._known_mimetypes) in \
-            self._html_mimetypes

@@ -14,7 +14,7 @@ def index():
 
 
 def error_page(error):
-    if request.wants_json or request.is_xhr:
+    if request.is_json or request.is_xhr:
         response_content = jsonify(description=error.description,
                 code=error.code)
     else:

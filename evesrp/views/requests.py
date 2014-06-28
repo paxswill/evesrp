@@ -9,7 +9,7 @@ from flask.ext.wtf import Form
 from wtforms.fields import SelectField, SubmitField, TextAreaField, HiddenField
 from wtforms.fields.html5 import URLField, DecimalField
 from wtforms.validators import InputRequired, AnyOf, URL, ValidationError,\
-        StopValidation
+    StopValidation
 
 from .. import db
 from ..models import Request, Modifier, Action, ActionType, ActionError,\
@@ -54,9 +54,9 @@ class RequestListing(View):
 
         Part of the :py:class:`flask.views.View` interface.
         """
-        if request.wants_json or request.is_xhr:
+        if request.is_json or request.is_xhr:
             return jsonify(requests=self.requests(division_id))
-        if request.wants_xml:
+        if request.is_xml:
             xml_list = render_template('request_list.xml',
                     requests=self.requests(division_id))
             response = make_response(xml_list)
@@ -397,7 +397,7 @@ def get_request_details(request_id=None, srp_request=None):
         template = 'request_detail.html'
     else:
         abort(403)
-    if request.wants_json:
+    if request.is_json:
         # dump the load to encode srp_request as json and then get a dictionary
         # form of it. We need this to add a few bits of information to the
         # standard request encoding
@@ -410,7 +410,7 @@ def get_request_details(request_id=None, srp_request=None):
         enc_request['valid_actions'] = valid_actions
         enc_request['current_user'] = current_user._get_current_object()
         return jsonify(enc_request)
-    if request.wants_xml:
+    if request.is_xml:
         xml_request = render_template('request.xml', srp_request=srp_request)
         response = make_response(xml_request)
         response.headers['Content-Type'] = 'application/xml'
