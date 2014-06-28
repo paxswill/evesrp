@@ -54,6 +54,10 @@ class GrabbagEncoder(JSONEncoder):
                         ret[attr] = str(o.pilot)
                     elif attr == 'status':
                         ret[attr] = o.status.value
+                    elif 'payout' in attr:
+                        payout = getattr(o, attr)
+                        ret[attr] = payout.currency(commas=False)
+                        ret[attr + '_str'] = payout.currency()
                     else:
                         ret[attr] = getattr(o, attr)
                 ret['submit_timestamp'] = o.timestamp
@@ -75,7 +79,10 @@ class GrabbagEncoder(JSONEncoder):
                     }
                 else:
                     ret['void'] = False
-                ret['value'] = o.value
+                if hasattr(o.value, 'currency'):
+                    ret['value'] = o.value.currency(commas=False)
+                else:
+                    ret['value'] = o.value
                 ret['value_str'] = str(o)
                 return ret
             elif isinstance(o, APIKey):

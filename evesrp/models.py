@@ -12,41 +12,34 @@ from .auth import PermissionType
 
 
 class PrettyDecimal(Decimal):
-    """:py:class:`~.Decimal` subclass that pretty-prints its string
-    representation.
+    """:py:class:`~.Decimal` subclass that can pretty-print itself."""
 
-    It also returns that string representation for templating engines that
-    support the ``__html__`` protocol.
-    """
+    def currency(self, commas=True):
+        """Format the Decimal as a currency number.
 
-    def __str__(self):
-        return locale.currency(self, symbol=False, grouping=True)
+        Commas for the thousands separators, full stops for the decimal, two
+        decimal places. Commas are optional and controlled by the ``commas``
+        argument.
 
-    def old_str(self):
-        return super(PrettyDecimal, self).__str__()
-
-    def __html__(self):
-        return Markup(str(self))
-
-    def __float__(self):
-        """Work around a bug in pure-Python Decimal implementations.
-
-
-        The standard pure-Python Decimal implementation does the equivalent of
-        ``float(str(self))`` inside its ``__float__`` method. This method is
-        simply a workaround for that silliness.
+        Adapted from https://docs.python.org/3.3/library/decimal.html#recipes
         """
-        try:
-            return super(PrettyDecimal, self).__float__()
-        except ValueError as e:
-            if str(e).startswith('invalid'):
-                return float(self.old_str())
-            else:
-                raise e
-
-    def __repr__(self):
-        """See :py:method:`__float__`."""
-        return "PrettyDecimal(%s)" % self.old_str()
+        sign, digits, exp = self.quantize(Decimal('0.01')).as_tuple()
+        digits = list(map(str, digits))
+        result = []
+        for i in range(2):
+            result.append(digits.pop() if digits else '0')
+        result.append('.')
+        if not digits:
+            result.append('0')
+        count = 0
+        while digits:
+            result.append(digits.pop())
+            count += 1
+            if count == 3 and digits and commas:
+                count = 0
+                result.append(',')
+        result.append('-' if sign else '')
+        return ''.join(reversed(result))
 
 
 class PrettyNumeric(db.TypeDecorator):

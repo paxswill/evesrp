@@ -37,7 +37,7 @@
         {{ request_cell('ship', request.ship_type) }}
         {{ request_cell('system', request.system) }}
         {{ request_cell('status', request.status) }}
-        {{ request_cell('payout', request.payout) }}
+        {{ request_cell('payout', request.payout.currency()) }}
         {{ request_cell('submit_timestamp', request.timestamp.strftime('%d %b %Y @ %H:%M')) }}
         {{ request_cell('division', request.division.name) }}
         {% endblock table_row %}
