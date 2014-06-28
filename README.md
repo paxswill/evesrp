@@ -6,7 +6,10 @@ it's closer to a real release. IN the mean time, here're some
 
 [screens]: http://imgur.com/a/3IEQC
 
-## Dependencies
+
+## Developing
+
+### Dependencies
 
 In addition to the dependencies listed in setup.py/requirements.txt, EVE-SRP
 depends on a Javascript packages. A couple of them are Node.js command line
@@ -18,9 +21,6 @@ interface. To install all development dependencies at once you can use the
 
 This will install all of the Python and Javascript dependencies needed for
 developing EVE-SRP.
-
-## Developing
-
 After you've installed the dependencies, you'll need to generate the CSS and
 Javascript sources.
 
@@ -65,3 +65,17 @@ simple example below uses Flask's built-in webserver.
     if __name__ == '__main__':
         app.extensions['sqlalchemy'].db.create_all(app=app)
         app.run()
+
+### Dependencies
+
+EVE-SRP requires Python 3.3 or later and a database (with connector) that is
+supported by [SQLAlchemy][sqla-db-support]. EVE-SRP is typically developed
+against PostgreSQL with the [psycopg2][psycopg2] adapter. It is also tested
+regularly with the following database adapters:
+
+* [pg8000](https://pypi.python.org/pypi/pg8000/)
+* [CyMySQL](https://pypi.python.org/pypi/cymysql)
+* [PyMySQL](https://pypi.python.org/pypi/PyMySQL)
+
+[sqla-db-support]: http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#supported-databases
+[psycopg2]:http://initd.org/psycopg/
