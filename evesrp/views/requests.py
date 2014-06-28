@@ -57,6 +57,15 @@ class RequestListing(View):
         """
         if request.is_json or request.is_xhr:
             return jsonify(requests=self.requests(division_id))
+        if request.is_rss:
+            rss_content = render_template('rss.xml',
+                    requests=self.requests(division_id),
+                    title=(kwargs['title'] if 'title' in kwargs else ''),
+                    main_link=url_for(request.endpoint,
+                        division_id=division_id, _external=True))
+            response = make_response(rss_content)
+            response.headers['Content-Type'] = 'application/rss+xml'
+            return response
         if request.is_xml:
             xml_list = render_template('request_list.xml',
                     requests=self.requests(division_id))
@@ -154,8 +163,15 @@ class PermissionRequestListing(RequestListing):
         if not current_user.has_permission(self.permissions):
             abort(403)
         else:
+            if 'title' in kwargs:
+                title = kwargs.pop('title')
+            else:
+                title = ', '.join(map(lambda s: s.description, self.statuses))
             return super(PermissionRequestListing, self).dispatch_request(
-                    division_id, page, **kwargs)
+                    division_id,
+                    page,
+                    title=title,
+                    **kwargs)
 
     def requests(self, division_id=None):
         user_perms = db.session.query(Permission.id.label('permission_id'),
@@ -194,7 +210,10 @@ class PayoutListing(PermissionRequestListing):
         if not current_user.has_permission(self.permissions):
             abort(403)
         return super(PayoutListing, self).dispatch_request(
-                division_id, page, form=ActionForm())
+                division_id,
+                page,
+                title=', '.join(map(lambda s: s.description, self.statuses)),
+                form=ActionForm())
 
 
 def register_perm_request_listing(app, endpoint, path, permissions, statuses):
@@ -210,12 +229,18 @@ def register_perm_request_listing(app, endpoint, path, permissions, statuses):
     :param iterable statuses: Passed to
         :py:meth:`PermissionRequestListing.__init__`
     """
+    if not path.endswith('/'):
+        path += '/'
     view = PermissionRequestListing.as_view(endpoint, permissions=permissions,
             statuses=statuses)
     app.add_url_rule(path, view_func=view)
-    app.add_url_rule('{}<int:page>/'.format(path), view_func=view)
-    app.add_url_rule('{}<int:page>/<int:division_id>'.format(path),
-            view_func=view)
+    app.add_url_rule('{}rss.xml'.format(path), view_func=view)
+    if path != '/':
+        app.add_url_rule('{}<int:division_id>/rss.xml'.format(path),
+                view_func=view)
+        app.add_url_rule('{}<int:page>/'.format(path), view_func=view)
+        app.add_url_rule('{}<int:page>/<int:division_id>/'.format(path),
+                view_func=view)
 
 
 @blueprint.record
@@ -229,22 +254,33 @@ def register_class_views(state):
         prefixes = []
         state.app.request_prefixes = prefixes
     prefixes.append(state.url_prefix if state.url_prefix is not None else '')
-    """Register class based views onto the requests blueprint."""
+    # Personal list
     personal_view = PersonalRequests.as_view('personal_requests')
     state.add_url_rule('/personal/', view_func=personal_view)
+    state.add_url_rule('/personal/rss.xml', view_func=personal_view)
+    state.add_url_rule('/personal/<int:division_id>/rss.xml',
+            view_func=personal_view)
     state.add_url_rule('/personal/<int:page>/', view_func=personal_view)
     state.add_url_rule('/personal/<int:page>/<int:division_id>',
             view_func=personal_view)
+    # Payout list
     payout_view = PayoutListing.as_view('list_approved_requests')
     payout_url_stub = '/pay/'
     state.add_url_rule(payout_url_stub, view_func=payout_view)
+    state.add_url_rule(payout_url_stub + 'rss.xml', view_func=payout_view)
+    state.add_url_rule(payout_url_stub + '<int:division_id>/rss.xml',
+            view_func=payout_view)
     state.add_url_rule(payout_url_stub + '<int:page>/', view_func=payout_view)
     state.add_url_rule(payout_url_stub + '<int:page>/<int:division_id>/',
             view_func=payout_view)
+    # Other more generalized listings
     register_perm_request_listing(state, 'list_pending_requests',
             '/pending/', (PermissionType.review,), ActionType.pending)
     register_perm_request_listing(state, 'list_completed_requests',
             '/completed/', PermissionType.elevated, ActionType.finalized)
+    # Special all listing, mainly intended for API users
+    register_perm_request_listing(state, 'list_all_requests',
+            '/', PermissionType.elevated, ActionType.statuses)
 
 
 class ValidKillmail(URL):
