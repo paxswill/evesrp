@@ -1,3 +1,7 @@
 .popover-content {
   font-weight: normal;
 }
+
+td form button.close {
+  float: none;
+}

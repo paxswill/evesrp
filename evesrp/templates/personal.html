@@ -1,4 +1,5 @@
 {% extends "list_requests.html" %}
+{% from "macros.html" import clipboard_button %}
 
 {% block content %}
 <div class="row">
@@ -16,6 +17,42 @@
         {% endwith %}
       </tr>
       {% endfor %}
+    </table>
+  </div>
+  <div class="col-md-10 col-md-offset-1">
+    <table id="apikeys" class="table table-condensed">
+        <tr>
+          <th>Key</th>
+          <th>Created</th>
+          <th>Remove</th>
+        </tr>
+        {% for key in current_user.api_keys %}
+        <tr>
+          <td class="key-button">
+            {{ clipboard_button(key.hex_key, "bottom", "") }}
+          </td>
+          <td>{{ key.timestamp.strftime('%d %b %Y @ %H:%M') }}</td>
+          <td>
+            <form class="" method="post">
+              {{ key_form.csrf_token }}
+              {{ key_form.action(value='delete') }}
+              {{ key_form.key_id(value=key.id) }}
+              <button type="submit" class="close">&times;</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      <tr>
+        <td colspan="2">
+        </td>
+        <td class="">
+          <form class="pull-right" method="post">
+            {{ key_form.csrf_token }}
+            {{ key_form.action(value='add') }}
+            <button type="submit" class="btn btn-sm btn-info">Add API Key</button>
+          </form>
+        </td>
+      </tr>
     </table>
   </div>
 </div>

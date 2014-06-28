@@ -1,4 +1,5 @@
 {% extends "list_requests.html" %}
+{% from "macros.html" import clipboard_button %}
 
 {% block table_headers %}
 {{ request_header('pilot', 'Pilot', 'paste') }}
@@ -10,9 +11,6 @@
 {{ request_header('division', 'Division') }}
 {% endblock table_headers %}
 
-{% macro clipboard_button(value) %}
-<button class="btn btn-default btn-sm copy-btn" data-clipboard-text="{{ value }}" data-toggle="tooltip" title="Copy '{{ value }}' to clipboard">{{ value }}</button>
-{% endmacro %}
 
 {% block table_row %}
 {{ request_cell('pilot', clipboard_button(request.pilot.name)) }}

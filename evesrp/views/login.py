@@ -1,9 +1,12 @@
+from base64 import urlsafe_b64decode
+import binascii
 from flask import render_template, url_for, abort, session, redirect, request,\
         current_app, g, Blueprint
 from flask.ext.login import login_required, logout_user, LoginManager
 from flask.ext.principal import identity_changed, AnonymousIdentity
+from sqlalchemy.orm.exc import NoResultFound
 from .. import csrf
-from ..auth.models import User
+from ..auth.models import User, APIKey
 
 
 blueprint = Blueprint('login', __name__)
@@ -19,6 +22,28 @@ def login_loader(userid):
     This is used for loading users from existing sessions.
     """
     return User.query.get(int(userid))
+
+
+@login_manager.request_loader
+def apikey_loader(request):
+    api_key = request.values.get('apikey')
+    if api_key and request.method == 'GET':
+        api_key = api_key.replace(',', '=')
+        try:
+            api_key = urlsafe_b64decode(api_key.encode('utf-8'))
+        except binascii.Error:
+            # If the api key is malformed, binascii throws an exception.
+            # Rejected.
+            return None
+        try:
+            key = APIKey.query.filter_by(key=api_key).one()
+        except NoResultFound:
+            pass
+        else:
+            return key.user
+
+    # returning None signifies failure for this method
+    return None
 
 
 @blueprint.route('/login/', methods=['GET', 'POST'])

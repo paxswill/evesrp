@@ -1,7 +1,7 @@
 from flask import url_for
 from flask.json import JSONEncoder
 from .models import Request, Action, Modifier
-from .auth.models import User, Group, Division
+from .auth.models import User, Group, Division, APIKey
 
 
 class IterableEncoder(JSONEncoder):
@@ -77,6 +77,10 @@ class GrabbagEncoder(JSONEncoder):
                     ret['void'] = False
                 ret['value'] = o.value
                 ret['value_str'] = str(o)
+                return ret
+            elif isinstance(o, APIKey):
+                ret['key'] = o.hex_key
+                ret['timestamp'] = o.timestamp
                 return ret
         return super(GrabbagEncoder, self).default(o)
 

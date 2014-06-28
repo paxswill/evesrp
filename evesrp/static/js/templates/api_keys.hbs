@@ -1,0 +1,16 @@
+{{#each this.api_keys}}
+<tr>
+  <td class="key-button">
+    <button class="btn btn-default btn-sm copy-btn" data-clipboard-text="{{key}}">{{key}}</button>
+  </td>
+  <td>{{datefmt timestamp}} @ {{timefmt timestamp}}</td>
+  <td>
+    <form method="post">
+      <input id="csrf_token" name="csrf_token" type="hidden" value="{{csrf}}">
+      <input id="action" name="action" type="hidden" value="delete">
+      <input id="key_id" name="key_id" type="hidden" value="{{id}}">
+      <button type="submit" class="close">&times;</button>
+    </form>
+  </td>
+</tr>
+{{/each}}

@@ -331,7 +331,7 @@ function payoutButton(ev){
   return false;
 }
 
-if ($('.copy-btn').length) {
+;(function(){
   ZeroClipboard.config({
     moviePath: $SCRIPT_ROOT + '/static/ZeroClipboard.swf'
   })
@@ -347,7 +347,7 @@ if ($('.copy-btn').length) {
   .on('mouseout', function(ev) {
     $(this).tooltip('hide');
   });
-}
+}());
 
 if ($('div#request-list').length) {
   /* Event callback for pager links */
@@ -525,3 +525,28 @@ if ($('div#request-list').length) {
     request_view.setSort(newSort);
   });
 }
+
+$('#apikeys').submit(function(e) {
+  var $form = $(e.target),
+      $table = $(this);
+  $.post(
+    window.location.pathname,
+    $form.serialize(),
+    function(data) {
+      // Update table
+      var $rows = $table.find('tr').slice(1, -1),
+          $lastRow = $table.find('tr').slice(-1),
+          $newRows = $(Handlebars.templates.api_keys(data)),
+          $copyButtons = $newRows.find('.copy-btn');
+      clipboard_client.clip($copyButtons);
+      $copyButtons.tooltip({
+        placement: 'bottom',
+        title: 'Copy to clipboard',
+        trigger: 'manual focus'
+      });
+      $rows.remove();
+      $lastRow.before($newRows);
+    }
+  );
+  return false;
+})

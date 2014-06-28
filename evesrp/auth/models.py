@@ -1,4 +1,6 @@
+from base64 import urlsafe_b64encode
 from itertools import groupby
+import os
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -87,6 +89,23 @@ class Entity(db.Model, AutoID, AutoName):
         return db.session.query(perms.exists()).all()[0][0]
 
 
+class APIKey(db.Model, AutoID, AutoName, Timestamped):
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    user = db.relationship('User', back_populates='api_keys')
+
+    key = db.Column(db.LargeBinary(32), nullable=False)
+
+    def __init__(self, user):
+        self.user = user
+        self.key = os.urandom(32)
+
+    @property
+    def hex_key(self):
+        return urlsafe_b64encode(self.key).decode('utf-8').replace('=', ',')
+
+
 class User(Entity):
     """User base class.
 
@@ -118,6 +137,8 @@ class User(Entity):
 
     notes_made = db.relationship('Note', back_populates='noter',
             order_by='desc(Note.timestamp)', foreign_keys='Note.noter_id')
+
+    api_keys = db.relationship(APIKey, back_populates='user')
 
     @hybrid_property
     def permissions(self):

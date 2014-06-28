@@ -90,3 +90,7 @@ success
 danger
 {%- endif %}
 {% endmacro %}
+
+{% macro clipboard_button(value, position="top", title=None) %}
+<button class="btn btn-default btn-sm copy-btn" data-clipboard-text="{{ value }}" data-toggle="tooltip" data-placement="{{ position }}" title="Copy {{ title if title != None else "'" ~ value ~ "'" }} to clipboard">{{ value }}</button>
+{% endmacro %}

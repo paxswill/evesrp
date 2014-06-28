@@ -17,7 +17,8 @@ from ..models import Request, Modifier, Action, ActionType, ActionError,\
 from ..auth.permissions import SubmitRequestsPermission,\
         ReviewRequestsPermission, PayoutRequestsPermission, admin_permission
 from ..auth import PermissionType
-from ..auth.models import Division, Pilot, Permission, User, Group, Note
+from ..auth.models import Division, Pilot, Permission, User, Group, Note,\
+    APIKey
 
 
 blueprint = Blueprint('requests', __name__)
@@ -81,6 +82,11 @@ class RequestListing(View):
         )
 
 
+class APIKeyForm(Form):
+    action = HiddenField(validators=[AnyOf(['add', 'delete'])])
+    key_id = HiddenField()
+
+
 class PersonalRequests(RequestListing):
     """Shows a list of all personally submitted requests and divisions the user
     has permissions in.
@@ -89,6 +95,33 @@ class PersonalRequests(RequestListing):
     """
 
     template = 'personal.html'
+
+    methods = ['GET', 'POST']
+
+    def dispatch_request(self, division_id=None, page=1, **kwargs):
+        if request.method == 'POST':
+            form = APIKeyForm()
+            if form.validate():
+                if form.action.data == 'add':
+                    key = APIKey(current_user)
+                else:
+                    key = APIKey.query.get(int(form.key_id.data))
+                    if key is not None:
+                        db.session.delete(key)
+                db.session.commit()
+        # Handle API access in here, so we can add extra data
+        if request.is_json or request.is_xhr:
+            return jsonify(
+                    requests=self.requests(division_id),
+                    api_keys=current_user.api_keys)
+        if request.is_xml:
+            xml_list = render_template('request_list.xml',
+                    requests=self.requests(division_id))
+            response = make_response(xml_list)
+            response.headers['Content-Type'] = 'application/xml'
+            return response
+        return super(PersonalRequests, self).dispatch_request(
+                division_id, page, key_form=APIKeyForm(formdata=None))
 
     def requests(self, division_id=None):
         requests = Request.query\
