@@ -88,6 +88,7 @@ def create_app(config=None, **kwargs):
         return {
             'ActionType': models.ActionType,
             'PermissionType': PermissionType,
+            'app_version': __version__,
         }
     # Auto-trim whitespace
     app.jinja_env.trim_blocks = True

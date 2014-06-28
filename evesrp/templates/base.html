@@ -93,11 +93,15 @@
       {% endblock content %}
     </div>
     {% block stats %}
-    {% if current_user.admin %}
     <footer id="stats">
+      <p class="text-muted text-center"><small>
+        EVE-SRP v{{ app_version }} &bull;
+        <a href="https://github.com/paxswill/evesrp">Github Project</a>
+      </small></p>
+      {% if current_user.admin %}
       <p class="text-muted text-center"><small>{{ g.DB_STATS.total_queries }} queries in {{ (g.DB_STATS.total_time * 1000)|round(3)}} ms</small></p>
+      {% endif %}
     </footer>
-    {% endif %}
     {% endblock stats %}
     {% endblock body %}
     {% block scripts %}
