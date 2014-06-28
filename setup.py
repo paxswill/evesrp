@@ -39,6 +39,7 @@ setup(
             'static/fonts/fontawesome-webfont.*',
             'static/ZeroClipboard.swf',
             'templates/*.html',
+            'templates/*.xml',
             'migrate/alembic.ini',
             'migrate/script.py.mako',
         ],
