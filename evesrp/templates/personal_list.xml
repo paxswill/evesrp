@@ -1,0 +1,12 @@
+{% extends "request_list.xml" %}
+{% block content %}
+<apikeys>
+  {% for key in current_user.api_keys %}
+  <apikey id="{{ key.id }}">
+    <key>{{ key.hex_key }}</key>
+    <timestamp>{{ key.timestamp.isoformat() }}</timestamp>
+  </apikey>
+  {% endfor %}
+</apikeys>
+{{ super() }}
+{% endblock content %}

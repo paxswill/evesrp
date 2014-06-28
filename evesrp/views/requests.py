@@ -115,7 +115,7 @@ class PersonalRequests(RequestListing):
                     requests=self.requests(division_id),
                     api_keys=current_user.api_keys)
         if request.is_xml:
-            xml_list = render_template('request_list.xml',
+            xml_list = render_template('personal_list.xml',
                     requests=self.requests(division_id))
             response = make_response(xml_list)
             response.headers['Content-Type'] = 'application/xml'

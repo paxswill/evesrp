@@ -1,0 +1,48 @@
+{% macro request_xml(srp_request, actions=False, modifiers=False) %}
+<request id="{{ srp_request.id }}" status="{{ srp_request.status.value }}">
+  <payout>
+    <base>{{ srp_request.base_payout }}</base>
+    <computed>{{ srp_request.payout }}</computed>
+  </payout>
+  <details>{{ srp_request.details }}</details>
+  <pilot>
+    <alliance>{{ srp_request.alliance }}</alliance>
+    <corporation>{{ srp_request.corporation }}</corporation>
+    <name>{{ srp_request.pilot.name }}</name>
+  </pilot>
+  <submit-timestamp>{{ srp_request.timestamp.isoformat() }}</submit-timestamp>
+  <kill-timestamp>{{ srp_request.kill_timestamp.isoformat() }}</kill-timestamp>
+  <division id="{{ srp_request.division.id }}" name="{{ srp_request.division.name }}" />
+  <submitter id="{{ srp_request.submitter.id }}" name="{{ srp_request.submitter.name }}" />
+  <killmail-url>{{ srp_request.killmail_url }}</killmail-url>
+  <url>{{ url_for('requests.get_request_details', request_id=srp_request.id) }}</url>
+  {% if actions %}
+  <actions>
+  {% for action in srp_request.actions %}
+  <action id="{{ action.id }}" type="{{ action.type_.value }}">
+      <note>{{ action.note }}</note>
+      <timestamp>{{ action.timestamp.isoformat() }}</timestamp>
+      <user id="{{ action.user.id }}" name="{{ action.user.name }}" />
+    </action>
+  {% endfor %}
+  </actions>
+  {% endif %}
+  {% if modifiers %}
+  <modifiers>
+    {% for modifier in srp_request.modifiers %}
+    <modifier id="{{ modifier.id }}">
+      <note>{{ modifier.note }}</note>
+      <user id="{{ modifier.user.id }}" name="{{ modifier.user.name }}" />
+      <value>{{ modifier }}</value>
+      <timestamp>{{ modifier.timestamp.isoformat() }}</timestamp>
+      {% if modifier.voided %}
+      <void id="{{ modifier.voided_user.id }}" name="{{ modifier.voided_user.name }}">
+        <timestamp>{{ modifier.voided_timestamp.isoformat() }}</timestamp>
+      </void>
+      {% endif %}
+    </modifier>
+    {% endfor %}
+  </modifiers>
+  {% endif %}
+</request>
+{% endmacro %}

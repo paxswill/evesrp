@@ -1,0 +1,4 @@
+<response user="{{ current_user.name }}">
+  {% block content %}
+  {% endblock content %}
+</response>
