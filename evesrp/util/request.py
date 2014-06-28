@@ -9,11 +9,14 @@ class AcceptRequest(Request):
 
     _xml_mimetypes = ['application/xml', 'text/xml']
 
+    _rss_mimetypes = ['application/rss+xml', 'application/rdf+xml']
+
     @property
     def _known_mimetypes(self):
         return self._json_mimetypes + \
                self._html_mimetypes + \
-               self._xml_mimetypes
+               self._xml_mimetypes + \
+               self._rss_mimetypes
 
     @property
     def is_json(self):
@@ -28,3 +31,12 @@ class AcceptRequest(Request):
             return self.values['fmt'] == 'xml'
         return self.accept_mimetypes.best_match(self._known_mimetypes) in \
             self._xml_mimetypes
+
+    @property
+    def is_rss(self):
+        if self.path.endswith('rss.xml'):
+            return True
+        if 'fmt' in self.values:
+            return self.values['fmt'] == 'rss'
+        return self.accept_mimetypes.best_match(self._known_mimetypes) in \
+            self._rss_mimetypes

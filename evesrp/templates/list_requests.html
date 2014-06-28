@@ -9,6 +9,11 @@
 <td class="col-{{ attr }}">{{ content }}</td>
 {%- endmacro %}
 
+{% block head %}
+{{ super() }}
+<link rel="alternate" type="application/rss+xml" href="{{ url_for(request.endpoint, division_id=request.view_args.get('division_id'), _external=True) ~ 'rss.xml' }}">
+{% endblock head %}
+
 {% block content %}
 <div class="row">
   <div id="request-list" class="col-md-10 col-md-offset-1">
