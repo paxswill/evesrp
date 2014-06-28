@@ -19,10 +19,29 @@ interface. To install all development dependencies at once you can use the
 This will install all of the Python and Javascript dependencies needed for
 developing EVE-SRP.
 
+## Developing
+
+After you've installed the dependencies, you'll need to generate the CSS and
+Javascript sources.
+
+    make all
+
+If the Javascript minimization is causing a problem, you can disable it by
+defining the `DEBUG` variable for make.
+
+    DEBUG="true" make all
+
+To run the development server, you can use the included `evesrp` command line
+utility. I recommend installing the project in editable mode to get access to
+it.
+
+    ./setup.py develop
+    evesrp -c config.py runserver
+
 ## Deploying
 
-EVE-SRP is registered on PyPI, so you can install it (in a virtualenv!) like
-this:
+If all you want to do is run EVE-SRP, you can skip the steps above and install
+it from PyPI (in a virtualenv!) like this:
 
     pip install EVE-SRP
 
