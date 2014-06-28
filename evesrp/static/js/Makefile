@@ -1,7 +1,8 @@
 UGLIFY ?= uglifyjs
-UGLIFY_OPTS ?= -m \
-			   -c \
-			   --source-map-include-sources
+ifndef DEBUG
+UGLIFY_OPTS ?= -m -c
+endif
+UGLIFY_OPTS += --source-map-include-sources
 BOOTSTRAP = $(THIRDPARTY)/bootstrap/js
 
 SOURCE_NAMES := \
