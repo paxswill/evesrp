@@ -85,11 +85,12 @@ class PermissionType(DeclEnum):
     submit = 'submit', 'Submitter'
     review = 'review', 'Reviewer'
     pay = 'pay', 'Payer'
+    admin = 'admin', 'Administrator'
 
     @classproperty
     def elevated(cls):
-        return frozenset((cls.review, cls.pay))
+        return frozenset((cls.review, cls.pay, cls.admin))
 
     @classproperty
     def all(cls):
-        return frozenset((cls.submit, cls.review, cls.pay))
+        return frozenset((cls.submit, cls.review, cls.pay, cls.admin))
