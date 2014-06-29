@@ -5,7 +5,6 @@ from sqlalchemy.orm.exc import NoResultFound
 from .. import ships, systems, db
 from ..models import Request, ActionType
 from ..auth import PermissionType
-from ..auth.permissions import admin_permission
 from ..auth.models import Division, User, Group, Pilot
 from .requests import PermissionRequestListing, PersonalRequests
 
@@ -18,7 +17,6 @@ filters = Blueprint('filters', __name__)
 
 @api.route('/<entity_type>/')
 @login_required
-@admin_permission.require()
 def list_entities(entity_type):
     """Return a JSON object with a list of all of the specified entity type.
 
@@ -37,6 +35,9 @@ def list_entities(entity_type):
 
     :param str entity_type: Either ``'user'`` or ``'group'``.
     """
+    if not current_user.admin and not \
+            current_user.has_permission(PermissionType.admin):
+        abort(403)
     if entity_type == 'user':
         query = db.session.query(User.id, User.name)
     elif entity_type == 'group':
@@ -104,23 +105,26 @@ def group_detail(group_id):
 
 @api.route('/division/')
 @login_required
-@admin_permission.require()
 def list_divisions():
     """List all divisions.
     """
+    if not current_user.admin:
+        abort(403)
     divisions = db.session.query(Division.id, Division.name)
     return jsonify(divisions=divisions)
 
 
 @api.route('/division/<int:division_id>/')
 @login_required
-@admin_permission.require()
 def division_detail(division_id):
     """Get the details of a division.
 
     :param int division_id: The ID of the division
     """
     division = Division.query.get_or_404(division_id)
+    if not current_user.admin and not \
+            current_user.has_permission(PermissionType.admin, division):
+        abort(403)
     permissions = {}
     for perm in PermissionType.all:
         key = perm.name + '_href'
@@ -135,9 +139,11 @@ def division_detail(division_id):
 
 @api.route('/division/<int:division_id>/<permission>/')
 @login_required
-@admin_permission.require()
 def division_permissions(division_id, permission):
     division = Division.query.get_or_404(division_id)
+    if not current_user.admin and not \
+            current_user.has_permission(PermissionType.admin, division):
+        abort(403)
     permission = PermissionType.from_string(permission)
     # Can't use normal Entity JSON encoder as it doesn't include the
     # authentication source or their type (explicitly. Ain't nobody got time

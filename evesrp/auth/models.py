@@ -84,14 +84,20 @@ class Entity(db.Model, AutoID, AutoName):
 
         :param permissions: The series of permissions to check
         :type permissions: iterable
-        :param division_or_request: The division to check. May be ``None`` or
-            an SRP request.
+        :param division_or_request: The division to check. May also be ``None``
+            or an SRP request.
         :type division: :py:class:`Division` or :py:class:`~.models.Request`
         :rtype bool:
         """
         if permissions in PermissionType.all:
             permissions = (permissions,)
+        # admin permission includes the reviewer and payer privileges
+        if PermissionType.admin not in permissions and \
+                PermissionType.elevated.issuperset(permissions):
+            if self.has_permission(PermissionType.admin, division_or_request):
+                return True
         if division_or_request is not None:
+            # requests have a 'division' attribute, so we check for that
             if hasattr(division_or_request, 'division'):
                 division_id = division_or_request.division.id
             else:

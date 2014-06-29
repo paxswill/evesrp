@@ -2,7 +2,6 @@ import locale
 import os
 import requests
 from flask import Flask, current_app, g
-from flask.ext.principal import identity_loaded
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.wtf.csrf import CsrfProtect
 
@@ -48,10 +47,6 @@ def create_app(config=None, **kwargs):
 
     from .views.login import login_manager
     login_manager.init_app(app)
-
-    from .auth.permissions import principal, load_user_permissions
-    principal.init_app(app)
-    identity_loaded.connect(load_user_permissions, app)
 
     before_csrf = list(app.before_request_funcs[None])
     csrf.init_app(app)

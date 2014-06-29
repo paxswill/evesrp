@@ -14,8 +14,6 @@ from wtforms.validators import InputRequired, AnyOf, URL, ValidationError,\
 from .. import db
 from ..models import Request, Modifier, Action, ActionType, ActionError,\
         ModifierError, AbsoluteModifier, RelativeModifier
-from ..auth.permissions import SubmitRequestsPermission,\
-        ReviewRequestsPermission, PayoutRequestsPermission, admin_permission
 from ..auth import PermissionType
 from ..auth.models import Division, Pilot, Permission, User, Group, Note,\
     APIKey
@@ -156,7 +154,11 @@ class PermissionRequestListing(RequestListing):
         :param tuple permissions: The permissions to filter by
         :param tuple statuses: A tuple of valid statuses for requests to be in
         """
-        self.permissions = permissions
+        if permissions in PermissionType.all:
+            permissions = (permissions,)
+        # Admin permission has to be explicitly added because it's used in a
+        # complicated query in requests()
+        self.permissions = (PermissionType.admin,) + tuple(permissions)
         self.statuses = statuses
 
     def dispatch_request(self, division_id=None, page=1, **kwargs):
@@ -516,9 +518,8 @@ def _add_modifier(srp_request):
 
 
 def _change_payout(srp_request):
-    review_perm = ReviewRequestsPermission(srp_request)
     form = PayoutForm()
-    if not review_perm.can():
+    if not current_user.has_permission(PermissionType.review, srp_request):
         flash("Only reviewers can change the base payout.", 'error')
     elif form.validate():
         try:

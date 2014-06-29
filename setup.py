@@ -58,7 +58,6 @@ setup(
         'Flask==0.10.1',
         'Flask-Login==0.2.10',
         'Flask-Migrate==1.2.0',
-        'Flask-Principal==0.4.0',
         'Flask-Script==2.0.5',
         'Flask-SQLAlchemy==1.0',
         'Flask-WTF==0.9.4',
