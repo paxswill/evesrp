@@ -4,10 +4,11 @@
   <div class="col-md-10 col-md-offset-1">
     <table class="table table-condensed">
       <tr>
-        <th>Name</th>
+        <th>Division Name</th>
         <th>Submitters</th>
         <th>Reviewers</th>
         <th>Payers</th>
+        <th>Admins</th>
       </tr>
       {% if divisions %}
       {% for division in divisions %}
@@ -16,11 +17,14 @@
         <td><a href="{{ url_for('divisions.division_detail', division_id=division.id)}}#submit">{{ division.permissions[PermissionType.submit]|length }}</a></td>
         <td><a href="{{ url_for('divisions.division_detail', division_id=division.id)}}#review">{{ division.permissions[PermissionType.review]|length }}</a></td>
         <td><a href="{{ url_for('divisions.division_detail', division_id=division.id)}}#pay">{{ division.permissions[PermissionType.pay]|length }}</a></td>
+        <td><a href="{{ url_for('divisions.division_detail', division_id=division.id)}}#admin">{{ division.permissions[PermissionType.admin]|length }}</a></td>
       </tr>
       {% endfor %}
       {% endif %}
     </table>
+    {% if current_user.admin %}
     <a class="btn btn-primary" href="{{ url_for('divisions.add_division') }}">Add Division</a>
+    {% endif %}
   </div>
 </div>
 {% endblock content %}
