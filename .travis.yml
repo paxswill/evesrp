@@ -30,3 +30,21 @@ before_script:
     - make all
 
 script: make test
+
+before_deploy: make all
+
+deploy:
+    - provider: pypi
+      user: paxswill
+      password:
+          secure: Jl8/AGFMC0TZi4yUDj2DIf8ieNsMFOBT1R6FVyhSbBVm6jIFzOuy58tt2VZibkwFHVaacFeyE7odcPU9nzPCqE2XtPo+6f57I3spbDnI08iJQHd2DeByNLG49hZPnuvNNauRxPr4RhnNaV3IXVO9xmPB0v/+uykdfGERyu6tPms=
+      on:
+          branch: release
+      skip_cleanup: true
+    - provider: github
+      api_key:
+          secure: dwFUw1S2wfCRMW+iBv9/7VaBgmL+XaTciWQb31bzDJpJpX+3XB5JYJVRs2T/59OHKxYWZ7OsNo4RrHdlLaFO4f4lVcv8e5ynSWtPtPi5o8gKq6oCNJpYeUdlF1uSvbTbgETnA6srJ25lk30A02xqlNf2DAAENcKcwqREQuHXesM=
+      on:
+          branch: release
+      skip_cleanup: true
+      file: dist/EVE-SRP-*.tar.gz
