@@ -13,7 +13,7 @@ from .util import DB_STATS
 from .util.request import AcceptRequest
 
 
-__version__ = '0.6.6-dev'
+__version__ = '0.7.0'
 
 
 requests_session = requests.Session()
