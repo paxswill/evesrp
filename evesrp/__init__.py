@@ -2,7 +2,6 @@ import locale
 import os
 import requests
 from flask import Flask, current_app, g
-from flask.ext.principal import identity_loaded
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.wtf.csrf import CsrfProtect
 
@@ -14,7 +13,7 @@ from .util import DB_STATS
 from .util.request import AcceptRequest
 
 
-__version__ = '0.6.5'
+__version__ = '0.7.0'
 
 
 requests_session = requests.Session()
@@ -49,10 +48,6 @@ def create_app(config=None, **kwargs):
     from .views.login import login_manager
     login_manager.init_app(app)
 
-    from .auth.permissions import principal, load_user_permissions
-    principal.init_app(app)
-    identity_loaded.connect(load_user_permissions, app)
-
     before_csrf = list(app.before_request_funcs[None])
     csrf.init_app(app)
     # Remove the context processor that checks CSRF values. All it is used for
@@ -84,12 +79,16 @@ def create_app(config=None, **kwargs):
     # Inject variables into the context
     from .auth import PermissionType
     @app.context_processor
-    def inject_enums():
+    def inject_into_context():
+        """Inject enumerated types and the permissions cache info into the
+        template context.
+        """
         return {
             'ActionType': models.ActionType,
             'PermissionType': PermissionType,
             'app_version': __version__,
-            'site_name': app.config['SRP_SITE_NAME']
+            'site_name': app.config['SRP_SITE_NAME'],
+            'cache_info': auth_models._cached_has_permission.cache_info,
         }
     # Auto-trim whitespace
     app.jinja_env.trim_blocks = True

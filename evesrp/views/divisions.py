@@ -1,6 +1,6 @@
 from flask import url_for, render_template, redirect, abort, flash, request,\
         Blueprint, current_app, jsonify
-from flask.ext.login import login_required
+from flask.ext.login import login_required, current_user
 from flask.ext.wtf import Form
 from wtforms.fields import StringField, SubmitField, HiddenField, SelectField,\
         Label
@@ -8,7 +8,6 @@ from wtforms.validators import InputRequired, AnyOf, NumberRange
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from ..models import db
-from ..auth.permissions import admin_permission
 from ..auth import PermissionType
 from ..auth.models import Division, Permission, Entity
 
@@ -18,13 +17,22 @@ blueprint = Blueprint('divisions', __name__)
 
 @blueprint.route('/')
 @login_required
-@admin_permission.require()
 def list_divisions():
     """Show a page listing all divisions.
 
     Accesible only to administrators.
     """
-    return render_template('divisions.html', divisions=Division.query.all())
+    if current_user.admin:
+        return render_template('divisions.html',
+                divisions=Division.query.all())
+    if current_user.has_permission(PermissionType.admin):
+        admin_permissions = current_user.permissions.filter_by(
+                permission=PermissionType.admin).values(Permission.division_id)
+        admin_permissions = map(lambda x: x[0], admin_permissions)
+        divisions = db.session.query(Division).\
+                filter(Division.id.in_(admin_permissions))
+        return render_template('divisions.html', divisions=divisions)
+    return abort(403)
 
 
 class AddDivisionForm(Form):
@@ -34,12 +42,13 @@ class AddDivisionForm(Form):
 
 @blueprint.route('/add/', methods=['GET', 'POST'])
 @login_required
-@admin_permission.require()
 def add_division():
     """Present a form for adding a division and also process that form.
 
     Only accesible to adminstrators.
     """
+    if not current_user.admin:
+        return abort(403)
     form = AddDivisionForm()
     if form.validate_on_submit():
         division = Division(form.name.data)
@@ -100,7 +109,6 @@ def transformer_choices(attr):
 
 @blueprint.route('/<int:division_id>/', methods=['GET', 'POST'])
 @login_required
-@admin_permission.require()
 def division_detail(division_id):
     """Generate a page showing the details of a division.
 
@@ -112,6 +120,9 @@ def division_detail(division_id):
     :param int division_id: The ID number of the division
     """
     division = Division.query.get_or_404(division_id)
+    if not current_user.admin and not \
+            current_user.has_permission(PermissionType.admin, division):
+        abort(403)
     if request.method == 'POST':
         if request.form['form_id'] == 'entity':
             form = ChangeEntity()
@@ -119,10 +130,12 @@ def division_detail(division_id):
                 if form.id_.data != '':
                     entity = Entity.query.get(form.id_.data)
                     if entity is None:
-                        flash("No entity with ID #{}.".format(form.id_.data), 'error')
+                        flash("No entity with ID #{}.".format(form.id_.data),
+                                'error')
                 else:
                     try:
-                        entity = Entity.query.filter_by(name=form.name.data).one()
+                        entity = Entity.query.filter_by(
+                                name=form.name.data).one()
                     except NoResultFound:
                         flash("No entities with the name '{}' found.".
                                 format(form.name.data), category='error')
@@ -186,7 +199,6 @@ def division_detail(division_id):
 @blueprint.route('/<int:division_id>/transformers/')
 @blueprint.route('/<int:division_id>/transformers/<attribute>/')
 @login_required
-@admin_permission.require()
 def list_transformers(division_id, attribute=None):
     """API method to get a list of transformers for a division.
 
@@ -195,6 +207,9 @@ def list_transformers(division_id, attribute=None):
     :return: JSON
     """
     division = Division.query.get_or_404(division_id)
+    if not current_user.admin and not \
+            current_user.has_permission(PermissionType.admin, division):
+        abort(403)
     if attribute is None:
         attrs = current_app.url_transformers.keys()
     else:

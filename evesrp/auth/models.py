@@ -1,6 +1,7 @@
 from base64 import urlsafe_b64encode
 from itertools import groupby
 import os
+from functools import lru_cache
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -15,6 +16,17 @@ from ..models import Action, Modifier, Request
 users_groups = db.Table('users_groups', db.Model.metadata,
         db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
         db.Column('group_id', db.Integer, db.ForeignKey('group.id')))
+
+
+@lru_cache()
+def _cached_has_permission(entity_id, permissions, division_id):
+    """Caches the results of permissions checks for entities."""
+    entity = Entity.query.get(entity_id)
+    perms = entity.permissions.filter(Permission.permission.in_(permissions))
+    if division_id is not None:
+        division = Division.query.get(division_id)
+        perms = perms.filter_by(division=division)
+    return db.session.query(perms.exists()).all()[0][0]
 
 
 class Entity(db.Model, AutoID, AutoName):
@@ -72,21 +84,28 @@ class Entity(db.Model, AutoID, AutoName):
 
         :param permissions: The series of permissions to check
         :type permissions: iterable
-        :param division_or_request: The division to check. May be ``None`` or
-            an SRP request.
+        :param division_or_request: The division to check. May also be ``None``
+            or an SRP request.
         :type division: :py:class:`Division` or :py:class:`~.models.Request`
         :rtype bool:
         """
         if permissions in PermissionType.all:
             permissions = (permissions,)
-        perms = self.permissions.filter(Permission.permission.in_(permissions))
+        # admin permission includes the reviewer and payer privileges
+        if PermissionType.admin not in permissions and \
+                PermissionType.elevated.issuperset(permissions):
+            if self.has_permission(PermissionType.admin, division_or_request):
+                return True
         if division_or_request is not None:
+            # requests have a 'division' attribute, so we check for that
             if hasattr(division_or_request, 'division'):
-                division = division_or_request.division
+                division_id = division_or_request.division.id
             else:
-                division = division_or_request
-            perms = perms.filter_by(division=division)
-        return db.session.query(perms.exists()).all()[0][0]
+                division_id = division_or_request.id
+        else:
+            division_id = None
+        permissions = frozenset(permissions)
+        return _cached_has_permission(self.id, permissions, division_id)
 
 
 class APIKey(db.Model, AutoID, AutoName, Timestamped):
@@ -377,3 +396,11 @@ class Division(db.Model, AutoID, AutoName):
 
     def __repr__(self):
         return "{x.__class__.__name__}('{x.name}')".format(x=self)
+
+    @db.validates('division_permissions')
+    def _invalidate_permission_cache(self, key, value):
+        """Invalidates the permissions cache whenever any permissions are
+        changed.
+        """
+        _cached_has_permission.cache_clear()
+        return value

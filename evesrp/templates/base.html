@@ -59,7 +59,7 @@
             {{ macros.navbar_button('Submit', 'requests.submit_request')|indent(12)|safe }}
             {% endif %}
             {{ macros.navbar_button('Personal', 'requests.personal_requests', request_count(PermissionType.submit))|indent(12)|safe }}
-            {% if current_user.admin %}
+            {% if current_user.admin or current_user.has_permission(PermissionType.admin) %}
             {{ macros.navbar_button('Admin', 'divisions.list_divisions')|indent(12)|safe }}
             {% endif %}
             {{ macros.navbar_button('Log Out', 'login.logout')|indent(12)|safe }}
@@ -100,6 +100,9 @@
       </small></p>
       {% if current_user.admin %}
       <p class="text-muted text-center"><small>{{ g.DB_STATS.total_queries }} queries in {{ (g.DB_STATS.total_time * 1000)|round(3)}} ms</small></p>
+      {% with info = cache_info() %}
+      <p class="text-muted text-center"><small>Cache status: {{ info.hits }} hits, {{info.misses }} misses, {{ info.currsize }}/{{ info.maxsize }}</small></p>
+      {% endwith %}
       {% endif %}
     </footer>
     {% endblock stats %}
