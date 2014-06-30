@@ -15,6 +15,11 @@ matrix:
     include:
         - python: "3.3"
           env: DB="sqlite://"
+    exclude:
+        - python: "pypy3"
+          env: DB="mysql+cymysql://root@127.0.0.1/evesrp_test"
+        - python: "pypy3"
+          env: DB="postgresql+psycopg2://postgres@127.0.0.1/evesrp_test"
     allow_failures:
         - python: "pypy3"
     fast_finish: true
@@ -34,14 +39,16 @@ deploy:
     - provider: pypi
       user: paxswill
       password:
-          secure: Jl8/AGFMC0TZi4yUDj2DIf8ieNsMFOBT1R6FVyhSbBVm6jIFzOuy58tt2VZibkwFHVaacFeyE7odcPU9nzPCqE2XtPo+6f57I3spbDnI08iJQHd2DeByNLG49hZPnuvNNauRxPr4RhnNaV3IXVO9xmPB0v/+uykdfGERyu6tPms=
+          secure: G9HY/E5JmeYkJhxN2mCkmKldbhg074N4/L2BI2wpGlHtUeUiYqu6+9szHv+zoBSd0JN+Iw01k139RFYSqHb+Dd2l52acr/07KB8xOH6NQtqevrfmW1lAwGcRz2mHJ1XETBvLItr3w7Bo+lnF8WLG38/IiIITjei3q0bFCL0nyQQ=
       on:
+          repo: paxswill/evesrp
           branch: release
       skip_cleanup: true
-    - provider: github
+    - provider: releases
       api_key:
           secure: dwFUw1S2wfCRMW+iBv9/7VaBgmL+XaTciWQb31bzDJpJpX+3XB5JYJVRs2T/59OHKxYWZ7OsNo4RrHdlLaFO4f4lVcv8e5ynSWtPtPi5o8gKq6oCNJpYeUdlF1uSvbTbgETnA6srJ25lk30A02xqlNf2DAAENcKcwqREQuHXesM=
       on:
+          repo: paxswill/evesrp
           branch: release
       skip_cleanup: true
       file: dist/EVE-SRP-*.tar.gz
