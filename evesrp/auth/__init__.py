@@ -3,7 +3,6 @@ import re
 from flask import redirect, url_for, current_app
 from flask.ext.login import current_user
 import flask.ext.login as flask_login
-from flask.ext.principal import identity_changed, Identity
 from flask.ext.wtf import Form
 from wtforms.fields import SubmitField, HiddenField
 from ..util import DeclEnum, classproperty
@@ -59,8 +58,6 @@ class AuthMethod(object):
         :type user: :py:class:`~models.User`
         """
         flask_login.login_user(user)
-        identity_changed.send(current_app._get_current_object(),
-                identity=Identity(user.id))
 
     @property
     def safe_name(self):

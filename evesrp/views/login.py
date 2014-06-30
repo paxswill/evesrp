@@ -3,7 +3,6 @@ import binascii
 from flask import render_template, url_for, abort, session, redirect, request,\
         current_app, g, Blueprint
 from flask.ext.login import login_required, logout_user, LoginManager
-from flask.ext.principal import identity_changed, AnonymousIdentity
 from sqlalchemy.orm.exc import NoResultFound
 from .. import csrf
 from ..auth.models import User, APIKey
@@ -103,8 +102,4 @@ def logout():
     Redirects to :py:func:`.index`.
     """
     logout_user()
-    for key in ('identity.name', 'identity.auth_type'):
-        session.pop(key, None)
-    identity_changed.send(current_app._get_current_object(),
-            identity=AnonymousIdentity())
     return redirect(url_for('index'))

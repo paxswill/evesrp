@@ -33,6 +33,8 @@ def request_count(permission, statuses=None):
             statuses = (ActionType.approved,)
         elif permission == PermissionType.submit:
             statuses = (ActionType.incomplete,)
+        else:
+            return 0
     elif statuses in ActionType.statuses:
         statuses = (statuses,)
     permissions = current_user.permissions.\
