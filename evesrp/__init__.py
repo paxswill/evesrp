@@ -13,7 +13,7 @@ from .util import DB_STATS
 from .util.request import AcceptRequest
 
 
-__version__ = '0.7.0'
+__version__ = '0.7.1'
 
 
 requests_session = requests.Session()
@@ -79,16 +79,12 @@ def create_app(config=None, **kwargs):
     # Inject variables into the context
     from .auth import PermissionType
     @app.context_processor
-    def inject_into_context():
-        """Inject enumerated types and the permissions cache info into the
-        template context.
-        """
+    def inject_enums():
         return {
             'ActionType': models.ActionType,
             'PermissionType': PermissionType,
             'app_version': __version__,
-            'site_name': app.config['SRP_SITE_NAME'],
-            'cache_info': auth_models._cached_has_permission.cache_info,
+            'site_name': app.config['SRP_SITE_NAME']
         }
     # Auto-trim whitespace
     app.jinja_env.trim_blocks = True

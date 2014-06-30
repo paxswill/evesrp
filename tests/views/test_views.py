@@ -66,7 +66,8 @@ class TestRequestCount(TestLogin):
         with client as c:
             # Get a request context by firing off a request
             c.get('/')
-            for permission in PermissionType.all:
+            for permission in (PermissionType.submit, PermissionType.review,
+                    PermissionType.pay):
                 self.assertEqual(request_count(permission), 1)
                 for status in ActionType.statuses:
                     self.assertEqual(request_count(permission, status), 1)
