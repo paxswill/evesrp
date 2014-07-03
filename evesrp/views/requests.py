@@ -8,6 +8,7 @@ from flask import render_template, abort, url_for, flash, Markup, request,\
 from flask.views import View
 from flask.ext.login import login_required, current_user
 from flask.ext.wtf import Form
+import six
 from wtforms.fields import SelectField, SubmitField, TextAreaField, HiddenField
 from wtforms.fields.html5 import URLField, DecimalField
 from wtforms.validators import InputRequired, AnyOf, URL, ValidationError,\
@@ -300,9 +301,9 @@ class ValidKillmail(URL):
         try:
             mail = self.mail_class(field.data)
         except ValueError as e:
-            raise ValidationError(str(e)) from e
+            raise ValidationError(six.u(str(e)))
         except LookupError as e:
-            raise ValidationError(str(e)) from e
+            raise ValidationError(six.u(str(e)))
         else:
             if mail.verified:
                 form.killmail = mail

@@ -8,6 +8,7 @@ from functools import partial
 import re
 import sys
 from urllib.parse import urlparse, urlunparse, quote
+import six
 
 import requests
 from sqlalchemy import create_engine, Table, MetaData
@@ -128,7 +129,7 @@ class Killmail(object):
         try:
             return self._data[name]
         except KeyError as e:
-            raise AttributeError from e
+            raise AttributeError(six.u(str(e)))
 
     def __setattr__(self, name, value):
         if name[0] == '_':
@@ -262,12 +263,11 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
         try:
             json = resp.json()
         except ValueError as e:
-            raise retrieval_error from e
+            raise retrieval_error
         try:
             json = json[0]
         except IndexError as e:
-            raise LookupError("Invalid killmail: {}"
-                    .format(url)) from e
+            raise LookupError("Invalid killmail: {}".format(url))
         victim = json['victim']
         self.pilot_id = int(victim['characterID'])
         self.pilot = victim['characterName']

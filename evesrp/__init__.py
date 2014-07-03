@@ -136,7 +136,7 @@ def _config_requests_session():
                     email=current_app.config['SRP_USER_AGENT_EMAIL'],
                     version=__version__)
         except KeyError as inner_exc:
-            raise inner_exc from outer_exc
+            raise inner_exc
     requests_session.headers.update({'User-Agent': ua_string})
     current_app.user_agent = ua_string
 
