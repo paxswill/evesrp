@@ -53,7 +53,8 @@ class EnumMeta(type):
         return six.itervalues(cls._reg)
 
 
-class DeclEnum(object, metaclass=EnumMeta):
+@six.add_metaclass(EnumMeta)
+class DeclEnum(object):
     """Declarative enumeration."""
 
     _reg = {}
