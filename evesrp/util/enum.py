@@ -83,7 +83,7 @@ class DeclEnumType(SchemaType, db.TypeDecorator):
     def __init__(self, enum):
         self.enum = enum
         self.impl = db.Enum(
-                        *(list(six.itervalues(enum))),
+                        *(list(enum.values())),
                         name="ck%s" % re.sub(
                                     '([A-Z])', 
                                     lambda m:"_" + m.group(1).lower(), 

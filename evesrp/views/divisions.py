@@ -66,7 +66,7 @@ class ChangeEntity(Form):
     form_id = HiddenField(default='entity')
     id_ = HiddenField()
     name = StringField()
-    permission = HiddenField(validators=[AnyOf(PermissionType.values())])
+    permission = HiddenField(validators=[AnyOf(list(PermissionType.values()))])
     action = HiddenField(validators=[AnyOf(('add', 'delete'))])
 
 
