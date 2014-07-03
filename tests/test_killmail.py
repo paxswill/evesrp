@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from unittest import TestCase
 from decimal import Decimal
 from httmock import HTTMock, all_requests

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from __future__ import unicode_literals
 
 """Originally taken from http://techspot.zzzeek.org/2011/01/14/the-enum-recipe/

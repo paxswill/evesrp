@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from __future__ import unicode_literals
 from flask import url_for, redirect, abort, request, jsonify, Blueprint
 from flask.ext.login import login_required, current_user

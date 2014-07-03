@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from ..util import TestApp, TestLogin
 from evesrp import db
 from evesrp.auth import AuthMethod, AuthForm

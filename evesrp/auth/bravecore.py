@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from __future__ import unicode_literals
 from ecdsa import SigningKey, VerifyingKey, NIST256p
 from brave.api.client import SignedAuth, API
