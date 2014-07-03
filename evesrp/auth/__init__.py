@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import re
 
 from flask import redirect, url_for, current_app

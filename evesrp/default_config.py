@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from .killmail import CRESTMail, ZKillmail
 
 CSRF_ENABLE = True

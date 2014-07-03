@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 ships = {   582: 'Bantam',
     583: 'Condor',
     584: 'Griffin',

@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 class Transformer(object):
 
     def __init__(self, name, slug):

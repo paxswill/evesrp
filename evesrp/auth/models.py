@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from base64 import urlsafe_b64encode
 from itertools import groupby
 import os

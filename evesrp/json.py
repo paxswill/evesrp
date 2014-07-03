@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from flask import url_for
 from flask.json import JSONEncoder
 from .models import Request, Action, Modifier

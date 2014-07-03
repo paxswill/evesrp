@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 system_names = {   30000001: 'Tanoo',
     30000002: 'Lashesih',
     30000003: 'Akpivem',

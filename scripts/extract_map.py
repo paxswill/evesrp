@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import unicode_literals
+
 """Script for generating a Python file with variables mapping solar systems to
 constellations and regions. It also has mappings between the IDs for those
 items and their names.

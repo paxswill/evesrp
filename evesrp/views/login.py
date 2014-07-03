@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from base64 import urlsafe_b64decode
 import binascii
 from flask import render_template, url_for, abort, session, redirect, request,\

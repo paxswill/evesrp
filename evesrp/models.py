@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import datetime as dt
 from decimal import Decimal
 import locale

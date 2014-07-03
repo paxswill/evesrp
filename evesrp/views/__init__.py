@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from flask import redirect, url_for, render_template, make_response, request,\
         jsonify
 from flask.ext.login import login_required, current_user

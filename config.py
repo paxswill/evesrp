@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from evesrp.killmail import CRESTMail, ZKillmail
 from evesrp.transformers import Transformer
 from evesrp.auth.testauth import TestAuth

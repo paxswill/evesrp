@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 """Originally taken from http://techspot.zzzeek.org/2011/01/14/the-enum-recipe/
 on 23 May 2014. Specifically, this is a modified version of
 http://techspot.zzzeek.org/files/2011/decl_enum.py
