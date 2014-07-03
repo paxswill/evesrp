@@ -65,7 +65,8 @@ setup(
         'WTForms==1.0.5',
         'requests==2.2.1',
         'ecdsa==0.11',
-        'brave.api'
+        'six==1.7.3',
+        'brave.api',
     ],
     entry_points={
         'console_scripts': [

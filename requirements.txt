@@ -26,3 +26,4 @@ itsdangerous==0.23
 marrow.util==1.2.3
 requests==2.2.1
 simple-pbkdf2==1.0
+six==1.7.3
