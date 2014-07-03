@@ -1,5 +1,6 @@
 from flask import url_for, redirect, abort, request, jsonify, Blueprint
 from flask.ext.login import login_required, current_user
+import six
 from sqlalchemy.orm.exc import NoResultFound
 
 from .. import ships, systems, db
@@ -276,25 +277,26 @@ def register_request_lists(state):
 @filters.route('/ship/')
 @login_required
 def filter_ships():
-    return jsonify(ship=list(ships.ships.values()))
+    return jsonify(ship=list(six.itervalues(ships.ships)))
 
 
 @filters.route('/system/')
 @login_required
 def filter_systems():
-    return jsonify(system=list(systems.system_names.values()))
+    return jsonify(system=list(six.itervalues(systems.system_names)))
 
 
 @filters.route('/constellation/')
 @login_required
 def filter_constellations():
-    return jsonify(constellation=list(systems.constellation_names.values()))
+    return jsonify(constellation=list(
+        six.itervalues(systems.constellation_names)))
 
 
 @filters.route('/region/')
 @login_required
 def filter_regions():
-    return jsonify(region=list(systems.region_names.values()))
+    return jsonify(region=list(six.itervalues(systems.region_names)))
 
 
 def _first(o):

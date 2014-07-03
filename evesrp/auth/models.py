@@ -1,6 +1,7 @@
 from base64 import urlsafe_b64encode
 from itertools import groupby
 import os
+import six
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -200,7 +201,7 @@ class User(Entity):
         # Remove duplicates and sort divisions by name
         choices = []
         for name, group in groupby(divisions, lambda d: d.name):
-            choices.append((next(group).id, name))
+            choices.append((six.next(group).id, name))
         return choices
 
 

@@ -4,6 +4,7 @@ http://techspot.zzzeek.org/files/2011/decl_enum.py
 """
 
 from .. import db
+import six
 from sqlalchemy.types import SchemaType
 import re
 
@@ -40,14 +41,14 @@ class EnumMeta(type):
 
     def __init__(cls, classname, bases, dict_):
         cls._reg = reg = cls._reg.copy()
-        for k, v in dict_.items():
+        for k, v in six.iteritems(dict_):
             if isinstance(v, tuple):
                 sym = reg[v[0]] = EnumSymbol(cls, k, *v)
                 setattr(cls, k, sym)
         return type.__init__(cls, classname, bases, dict_)
 
     def __iter__(cls):
-        return iter(cls._reg.values())
+        return six.itervalues(cls._reg)
 
 
 class DeclEnum(object, metaclass=EnumMeta):
@@ -67,7 +68,7 @@ class DeclEnum(object, metaclass=EnumMeta):
 
     @classmethod
     def values(cls):
-        return cls._reg.keys()
+        return six.iterkeys(cls._reg)
 
     @classmethod
     def db_type(cls):
@@ -78,7 +79,7 @@ class DeclEnumType(SchemaType, db.TypeDecorator):
     def __init__(self, enum):
         self.enum = enum
         self.impl = db.Enum(
-                        *enum.values(), 
+                        *(list(six.itervalues(enum))),
                         name="ck%s" % re.sub(
                                     '([A-Z])', 
                                     lambda m:"_" + m.group(1).lower(), 

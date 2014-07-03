@@ -1,6 +1,7 @@
 import datetime as dt
 from decimal import Decimal
 import locale
+import six
 from sqlalchemy.types import DateTime
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -512,7 +513,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         if new_status not in rules:
             raise ActionError("{} is not a valid status to change to from {} "
                     "(valid options: {})".format(new_status,
-                            self.status, list(rules.keys())))
+                            self.status, list(six.iterkeys(rules))))
         return new_status
 
     @db.validates('actions')

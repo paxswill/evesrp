@@ -2,10 +2,11 @@ from flask import url_for, render_template, redirect, abort, flash, request,\
         Blueprint, current_app, jsonify
 from flask.ext.login import login_required, current_user
 from flask.ext.wtf import Form
+import six
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from wtforms.fields import StringField, SubmitField, HiddenField, SelectField,\
         Label
 from wtforms.validators import InputRequired, AnyOf, NumberRange
-from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from ..models import db
 from ..auth import PermissionType
@@ -211,7 +212,7 @@ def list_transformers(division_id, attribute=None):
             current_user.has_permission(PermissionType.admin, division):
         abort(403)
     if attribute is None:
-        attrs = current_app.url_transformers.keys()
+        attrs = six.iterkeys(current_app.url_transformers)
     else:
         attrs = (attribute,)
     choices = {}
