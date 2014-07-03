@@ -3,6 +3,7 @@ import datetime as dt
 from decimal import Decimal
 import locale
 import six
+from six.moves import filter, map, range
 from sqlalchemy.types import DateTime
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property

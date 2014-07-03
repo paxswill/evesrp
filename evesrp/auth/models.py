@@ -4,6 +4,7 @@ from base64 import urlsafe_b64encode
 from itertools import groupby
 import os
 import six
+from six.moves import filter
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property

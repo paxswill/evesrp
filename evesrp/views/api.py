@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from flask import url_for, redirect, abort, request, jsonify, Blueprint
 from flask.ext.login import login_required, current_user
 import six
+from six.moves import filter, map
 from sqlalchemy.orm.exc import NoResultFound
 
 from .. import ships, systems, db

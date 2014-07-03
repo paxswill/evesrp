@@ -5,6 +5,7 @@ import binascii
 from flask import render_template, url_for, abort, session, redirect, request,\
         current_app, g, Blueprint
 from flask.ext.login import login_required, logout_user, LoginManager
+from six.moves import map
 from sqlalchemy.orm.exc import NoResultFound
 from .. import csrf
 from ..auth.models import User, APIKey

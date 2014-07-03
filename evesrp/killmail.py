@@ -7,8 +7,8 @@ from decimal import Decimal
 from functools import partial
 import re
 import sys
-from urllib.parse import urlparse, urlunparse, quote
 import six
+from six.moves.urllib.parse import urlparse, urlunparse, quote
 
 import requests
 from sqlalchemy import create_engine, Table, MetaData

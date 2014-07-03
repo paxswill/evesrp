@@ -5,6 +5,7 @@ from flask import url_for, render_template, redirect, abort, flash, request,\
 from flask.ext.login import login_required, current_user
 from flask.ext.wtf import Form
 import six
+from six.moves import map
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from wtforms.fields import StringField, SubmitField, HiddenField, SelectField,\
         Label

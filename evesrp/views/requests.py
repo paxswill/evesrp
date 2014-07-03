@@ -9,6 +9,7 @@ from flask.views import View
 from flask.ext.login import login_required, current_user
 from flask.ext.wtf import Form
 import six
+from six.moves import map
 from wtforms.fields import SelectField, SubmitField, TextAreaField, HiddenField
 from wtforms.fields.html5 import URLField, DecimalField
 from wtforms.validators import InputRequired, AnyOf, URL, ValidationError,\
