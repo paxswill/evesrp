@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import unicode_literals
 from ..util import TestApp
 from evesrp import db
 from evesrp.auth import PermissionType
