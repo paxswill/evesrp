@@ -1,9 +1,12 @@
 from __future__ import absolute_import
-from __future__ import unicode_literals
 from flask import url_for
 from flask.json import JSONEncoder
+import six
 from .models import Request, Action, Modifier
 from .auth.models import User, Group, Division, APIKey
+
+if six.PY3:
+    unicode = str
 
 
 class IterableEncoder(JSONEncoder):
@@ -21,19 +24,19 @@ class NamedEncoder(JSONEncoder):
     def default(self, o):
         try:
             ret = {
-                'name': o.name,
-                'id': o.id,
+                u'name': o.name,
+                u'id': o.id,
             }
         except AttributeError:
             pass
         else:
             if isinstance(o, User):
-                ret['href'] = url_for('api.user_detail', user_id=o.id)
+                ret[u'href'] = url_for('api.user_detail', user_id=o.id)
             elif isinstance(o, Group):
-                ret['href'] = url_for('api.group_detail', group_id=o.id)
+                ret[u'href'] = url_for('api.group_detail', group_id=o.id)
             elif isinstance(o, Division):
-                ret['href'] = url_for('api.division_detail', division_id=o.id)
-            if 'href' in ret:
+                ret[u'href'] = url_for('api.division_detail', division_id=o.id)
+            if u'href' in ret:
                 return ret
         return super(NamedEncoder, self).default(o)
 
@@ -46,50 +49,51 @@ class GrabbagEncoder(JSONEncoder):
             pass
         else:
             if isinstance(o, Request):
-                ret['href'] = url_for('requests.get_request_details',
+                ret[u'href'] = url_for('requests.get_request_details',
                         request_id=o.id)
-                attrs = ('killmail_url', 'kill_timestamp', 'pilot', 'alliance',
-                    'corporation', 'submitter', 'division', 'status',
-                    'base_payout', 'payout', 'details', 'id')
+                attrs = (u'killmail_url', u'kill_timestamp', u'pilot',
+                         u'alliance', u'corporation', u'submitter',
+                         u'division', u'status', u'base_payout', u'payout',
+                         u'details', u'id')
                 for attr in attrs:
-                    if attr == 'pilot':
+                    if attr == u'pilot':
                         ret[attr] = str(o.pilot)
-                    elif attr == 'status':
+                    elif attr == u'status':
                         ret[attr] = o.status.value
-                    elif 'payout' in attr:
+                    elif u'payout' in attr:
                         payout = getattr(o, attr)
                         ret[attr] = payout.currency(commas=False)
                         ret[attr + '_str'] = payout.currency()
                     else:
                         ret[attr] = getattr(o, attr)
-                ret['submit_timestamp'] = o.timestamp
+                ret[u'submit_timestamp'] = o.timestamp
                 return ret
             elif isinstance(o, Action):
-                ret['note'] = o.note or ''
-                ret['timestamp'] = o.timestamp
-                ret['user'] = o.user
-                ret['type'] = o.type_.value
+                ret[u'note'] = o.note or u''
+                ret[u'timestamp'] = o.timestamp
+                ret[u'user'] = o.user
+                ret[u'type'] = o.type_.value
                 return ret
             elif isinstance(o, Modifier):
-                ret['user'] = o.user
-                ret['timestamp'] = o.timestamp
-                ret['note'] = o.note or ''
+                ret[u'user'] = o.user
+                ret[u'timestamp'] = o.timestamp
+                ret[u'note'] = o.note or u''
                 if o.voided:
-                    ret['void'] = {
-                            'user': o.voided_user,
-                            'timestamp': o.voided_timestamp,
+                    ret[u'void'] = {
+                            u'user': o.voided_user,
+                            u'timestamp': o.voided_timestamp,
                     }
                 else:
-                    ret['void'] = False
+                    ret[u'void'] = False
                 if hasattr(o.value, 'currency'):
-                    ret['value'] = o.value.currency(commas=False)
+                    ret[u'value'] = o.value.currency(commas=False)
                 else:
-                    ret['value'] = o.value
-                ret['value_str'] = str(o)
+                    ret[u'value'] = o.value
+                ret[u'value_str'] = unicode(o)
                 return ret
             elif isinstance(o, APIKey):
-                ret['key'] = o.hex_key
-                ret['timestamp'] = o.timestamp
+                ret[u'key'] = o.hex_key
+                ret[u'timestamp'] = o.timestamp
                 return ret
         return super(GrabbagEncoder, self).default(o)
 

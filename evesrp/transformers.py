@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 class Transformer(object):
 
     def __init__(self, name, slug):
@@ -7,7 +5,7 @@ class Transformer(object):
         self.slug = slug
 
     def __repr__(self):
-        return "{x.__class__.__name__}('{x.name}', '{x.slug}')".format(x=self)
+        return u"{x.__class__.__name__}('{x.name}', '{x.slug}')".format(x=self)
 
     def __str__(self):
         return self.name
