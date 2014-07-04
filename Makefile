@@ -24,6 +24,8 @@ else ifneq (,$(findstring pymysql,$(DB)))
 	pip install pymysql
 else ifneq (,$(findstring cymysql,$(DB)))
 	pip install cython cymysql
+else ifneq (,$(findstring mysqldb,$(DB)))
+	pip install mysql-python
 endif
 
 sdist: $(SUBDIRS) setup.py
