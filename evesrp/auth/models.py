@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-from __future__ import unicode_literals
 from base64 import urlsafe_b64encode
 from itertools import groupby
 import os
@@ -12,8 +11,12 @@ from sqlalchemy.orm.collections import attribute_mapped_collection, collection
 
 from .. import db
 from . import AuthMethod, PermissionType
-from ..util import AutoID, Timestamped, AutoName
+from ..util import AutoID, Timestamped, AutoName, unistr
 from ..models import Action, Modifier, Request
+
+
+if six.PY3:
+    unicode = str
 
 
 users_groups = db.Table('users_groups', db.Model.metadata,
@@ -21,6 +24,7 @@ users_groups = db.Table('users_groups', db.Model.metadata,
         db.Column('group_id', db.Integer, db.ForeignKey('group.id')))
 
 
+@unistr.unistr
 class Entity(db.Model, AutoID, AutoName):
     """Private class for shared functionality between :py:class:`User` and
     :py:class:`Group`.
@@ -34,17 +38,17 @@ class Entity(db.Model, AutoID, AutoName):
     """
 
     #: The name of the entity. Usually a nickname.
-    name = db.Column(db.String(100), nullable=False)
+    name = db.Column(db.String(100, convert_unicode=True), nullable=False)
 
     #: Polymorphic discriminator column.
-    type_ = db.Column(db.String(50))
+    type_ = db.Column(db.String(50, convert_unicode=True))
 
     #: :py:class:`Permission`\s associated specifically with this entity.
     entity_permissions = db.relationship('Permission', collection_class=set,
             back_populates='entity', lazy='dynamic')
 
     #: The name of the :py:class:`AuthMethod` for this entity.
-    authmethod = db.Column(db.String(50), nullable=False)
+    authmethod = db.Column(db.String(50, convert_unicode=True), nullable=False)
 
     @declared_attr
     def __mapper_args__(cls):
@@ -52,21 +56,22 @@ class Entity(db.Model, AutoID, AutoName):
 
         Obviates subclasses from having to specify polymorphic identities.
         """
-        args = {'polymorphic_identity': cls.__name__}
-        if cls.__name__ == 'Entity':
+        cls_name = unicode(cls.__name__)
+        args = {'polymorphic_identity': cls_name}
+        if cls_name == u'Entity':
             args['polymorphic_on'] = cls.type_
         return args
 
     def __init__(self, name, authmethod, **kwargs):
-        self.name = name
-        self.authmethod = authmethod
+        self.name = unistr.ensure_unicode(name)
+        self.authmethod = unistr.ensure_unicode(authmethod)
         super(Entity, self).__init__(**kwargs)
 
     def __repr__(self):
         return "{x.__class__.__name__}('{x.name}')".format(x=self)
 
-    def __str__(self):
-        return "{x.name}".format(x=self)
+    def __unicode__(self):
+        return u"{x.name}".format(x=self)
 
     def has_permission(self, permissions, division_or_request=None):
         """Returns if this entity has been granted a permission in a division.
@@ -113,7 +118,7 @@ class APIKey(db.Model, AutoID, AutoName, Timestamped):
 
     @property
     def hex_key(self):
-        return urlsafe_b64encode(self.key).decode('utf-8').replace('=', ',')
+        return urlsafe_b64encode(self.key).decode('utf-8').replace(u'=', u',')
 
 
 class User(Entity):
@@ -209,25 +214,34 @@ class User(Entity):
 
 
 class Note(db.Model, AutoID, Timestamped, AutoName):
+
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
     user = db.relationship(User, back_populates='notes',
             foreign_keys=[user_id])
-    content = db.Column(db.Text, nullable=False)
+
+    content = db.Column(db.Text(convert_unicode=True), nullable=False)
+
     noter_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
     noter = db.relationship(User, back_populates='notes_made',
             foreign_keys=[noter_id])
 
     def __init__(self, user, noter, note):
         self.user = user
         self.noter = noter
-        self.content = note
+        self.content = unistr.ensure_unicode(note)
 
 
+@unistr.unistr
 class Pilot(db.Model, AutoID, AutoName):
     """Represents an in-game character."""
 
+    # Character names in Eve are resticted to ASCII, but use unicode for
+    # consistency with the rest of the database columns (and if they ever
+    # decide to lift this restriction).
     #: The name of the character
-    name = db.Column(db.String(150), nullable=False)
+    name = db.Column(db.String(150, convert_unicode=True), nullable=False)
 
     #: The id of the User this character belongs to.
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -248,14 +262,14 @@ class Pilot(db.Model, AutoID, AutoName):
         :param int id_: The CCP-given characterID number.
         """
         self.user = user
-        self.name = name
+        self.name = unistr.ensure_unicode(name)
         self.id = id_
 
     def __repr__(self):
         return "{x.__class__.__name__}({x.user}, '{x.name}', {x.id})".format(
                 x=self)
 
-    def __str__(self):
+    def __unicode__(self):
         return self.name
 
 
@@ -349,7 +363,7 @@ class Division(db.Model, AutoID, AutoName):
     """
 
     #: The name of this division.
-    name = db.Column(db.String(128), nullable=False)
+    name = db.Column(db.String(128, convert_unicode=True), nullable=False)
 
     #: All :py:class:`Permission`\s associated with this division.
     division_permissions = db.relationship(Permission, collection_class=set,
@@ -383,7 +397,7 @@ class Division(db.Model, AutoID, AutoName):
         return _PermProxy(self.division_permissions)
 
     def __init__(self, name):
-        self.name = name
+        self.name = unistr.ensure_unicode(name)
 
     def __repr__(self):
         return "{x.__class__.__name__}('{x.name}')".format(x=self)

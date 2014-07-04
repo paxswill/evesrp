@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-from __future__ import unicode_literals
 import re
 
 from flask import redirect, url_for, current_app
@@ -7,20 +6,20 @@ from flask.ext.login import current_user
 import flask.ext.login as flask_login
 from flask.ext.wtf import Form
 from wtforms.fields import SubmitField, HiddenField
-from ..util import DeclEnum, classproperty
+from ..util import DeclEnum, classproperty, unistr
 
 
 class AuthForm(Form):
-    submit = SubmitField('Login')
+    submit = SubmitField(u'Login')
 
 
 class AuthMethod(object):
-    def __init__(self, admins=None, name='Base Authentication', **kwargs):
+    def __init__(self, admins=None, name=u'Base Authentication', **kwargs):
         if admins is None:
             self.admins = []
         else:
             self.admins = admins
-        self.name = name
+        self.name = unistr.ensure_unicode(name)
 
     def form(self):
         """Return a form class to login with."""
@@ -75,16 +74,16 @@ class AuthMethod(object):
         # Turn 'fancy' characters into '?'s
         ascii_rep = self.name.encode('ascii', 'replace').decode('utf-8')
         # Whitespace and '?' to underscores
-        no_space = re.sub(r'[\s\?]', '_', ascii_rep)
+        no_space = re.sub(r'[\s\?]', u'_', ascii_rep)
         lowered = no_space.lower()
         return lowered
 
 
 class PermissionType(DeclEnum):
-    submit = 'submit', 'Submitter'
-    review = 'review', 'Reviewer'
-    pay = 'pay', 'Payer'
-    admin = 'admin', 'Administrator'
+    submit = u'submit', u'Submitter'
+    review = u'review', u'Reviewer'
+    pay = u'pay', u'Payer'
+    admin = u'admin', u'Administrator'
 
     @classproperty
     def elevated(cls):
