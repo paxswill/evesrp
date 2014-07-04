@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-from __future__ import unicode_literals
 from flask import url_for, redirect, abort, request, jsonify, Blueprint
 from flask.ext.login import login_required, current_user
 import six
@@ -42,15 +41,15 @@ def list_entities(entity_type):
     if not current_user.admin and not \
             current_user.has_permission(PermissionType.admin):
         abort(403)
-    if entity_type == 'user':
+    if entity_type == u'user':
         query = db.session.query(User.id, User.name)
-    elif entity_type == 'group':
+    elif entity_type == u'group':
         query = db.session.query(Group.id, Group.name)
     else:
         abort(404)
     json_obj = {
-            entity_type + 's': map(
-                lambda e: {'id': e.id, 'name': e.name},
+            entity_type + u's': map(
+                lambda e: {u'id': e.id, u'name': e.name},
                 query)
     }
     return jsonify(json_obj)
@@ -70,15 +69,15 @@ def user_detail(user_id):
             filter(lambda p: p.permission == PermissionType.pay,
                 user.permissions))
     resp = {
-        'name': user.name,
-        'groups': list(user.groups),
-        'divisions': {
-            'submit': list(set(submit)),
-            'review': list(set(review)),
-            'pay': list(set(pay)),
+        u'name': user.name,
+        u'groups': list(user.groups),
+        u'divisions': {
+            u'submit': list(set(submit)),
+            u'review': list(set(review)),
+            u'pay': list(set(pay)),
         },
-        'admin': user.admin,
-        'requests': user.requests,
+        u'admin': user.admin,
+        u'requests': user.requests,
     }
     return jsonify(resp)
 
@@ -96,12 +95,12 @@ def group_detail(group_id):
             filter(lambda p: p.permission == PermissionType.pay,
                 group.permissions))
     resp = {
-        'name': group.name,
-        'users': list(group.users),
-        'divisions': {
-            'submit': list(set(submit)),
-            'review': list(set(review)),
-            'pay': list(set(pay)),
+        u'name': group.name,
+        u'users': list(group.users),
+        u'divisions': {
+            u'submit': list(set(submit)),
+            u'review': list(set(review)),
+            u'pay': list(set(pay)),
         },
     }
     return jsonify(resp)
@@ -155,15 +154,15 @@ def division_permissions(division_id, permission):
     entities = []
     for entity in map(lambda p: p.entity, division.permissions[permission]):
         entity_info = {
-            'name': entity.name,
-            'id': entity.id,
-            'source': str(entity.authmethod),
+            u'name': entity.name,
+            u'id': entity.id,
+            u'source': str(entity.authmethod),
         }
-        if hasattr(entity, 'users'):
-            entity_info['type'] = 'Group'
-            entity_info['length'] = len(entity.users)
+        if hasattr(entity, u'users'):
+            entity_info[u'type'] = u'Group'
+            entity_info[u'length'] = len(entity.users)
         else:
-            entity_info['type'] = 'User'
+            entity_info[u'type'] = u'User'
         entities.append(entity_info)
     return jsonify(
         entities=entities,
@@ -180,7 +179,7 @@ def ship_list():
     the name of the ship. This method is only accessible for logged in users to
     try to keep possible misuse to a minimum.
     """
-    ship_objs = list(map(lambda s: {'name': s[1], 'id': s[0]},
+    ship_objs = list(map(lambda s: {u'name': s[1], u'id': s[0]},
             ships.ships.items()))
     return jsonify(ships=ship_objs)
 
@@ -217,23 +216,23 @@ class FiltersRequestListing(object):
         def request_dict(request):
             payout = request.payout
             return {
-                'id': request.id,
-                'href': url_for('requests.get_request_details',
+                u'id': request.id,
+                u'href': url_for('requests.get_request_details',
                     request_id=request.id),
-                'pilot': request.pilot.name,
-                'corporation': request.corporation,
-                'alliance': request.alliance,
-                'ship': request.ship_type,
-                'status': request.status.name,
-                'payout': payout.currency(commas=False),
-                'payout_str': payout.currency(),
-                'kill_timestamp': request.kill_timestamp,
-                'submit_timestamp': request.timestamp,
-                'division': request.division.name,
-                'submitter_id': request.submitter.id,
-                'system': request.system,
-                'constellation': request.constellation,
-                'region': request.region,
+                u'pilot': request.pilot.name,
+                u'corporation': request.corporation,
+                u'alliance': request.alliance,
+                u'ship': request.ship_type,
+                u'status': request.status.name,
+                u'payout': payout.currency(commas=False),
+                u'payout_str': payout.currency(),
+                u'kill_timestamp': request.kill_timestamp,
+                u'submit_timestamp': request.timestamp,
+                u'division': request.division.name,
+                u'submitter_id': request.submitter.id,
+                u'system': request.system,
+                u'constellation': request.constellation,
+                u'region': request.region,
             }
 
         return jsonify(requests=map(request_dict, self.requests()))
