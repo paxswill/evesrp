@@ -9,6 +9,7 @@ import sys
 import six
 from .util.unistr import unistr
 from .util.urlparse import urlparse, urlunparse
+from .util.utc import utc
 
 import requests
 from sqlalchemy import create_engine, Table, MetaData
@@ -294,7 +295,7 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
         # Parse the timestamp
         time_struct = time.strptime(json[u'killTime'], '%Y-%m-%d %H:%M:%S')
         self.timestamp = dt.datetime(*(time_struct[0:6]),
-                tzinfo=dt.timezone.utc)
+                tzinfo=utc)
 
     @property
     def verified(self):
@@ -364,4 +365,4 @@ class CRESTMail(Killmail, RequestsSessionMixin, LocationMixin):
         # Parse the timestamp
         time_struct = time.strptime(json[u'killTime'], '%Y.%m.%d %H:%M:%S')
         self.timestamp = dt.datetime(*(time_struct[0:6]),
-                tzinfo=dt.timezone.utc)
+                tzinfo=utc)

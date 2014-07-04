@@ -7,6 +7,7 @@ from evesrp.models import ActionType, ActionError, Action, Request,\
         AbsoluteModifier, RelativeModifier, ModifierError
 from evesrp.auth import PermissionType
 from evesrp.auth.models import Pilot, Division, Permission
+from evesrp.util.utc import utc
 
 
 class TestModels(TestLogin):
@@ -24,7 +25,7 @@ class TestModels(TestLogin):
                         '&kll_id=12842852'),
                     base_payout=73957900000,
                     kill_timestamp=dt.datetime(2012, 3, 25, 0, 44, 0,
-                        tzinfo=dt.timezone.utc),
+                        tzinfo=utc),
                     system='92D-OI',
                     constellation='XHYS-O',
                     region='Venal',

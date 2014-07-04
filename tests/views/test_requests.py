@@ -12,6 +12,7 @@ from evesrp.models import Request, Action, AbsoluteModifier, RelativeModifier,\
         ActionType, PrettyDecimal
 from evesrp.auth import PermissionType
 from evesrp.auth.models import User, Pilot, Division, Permission
+from evesrp.util.utc import utc
 from evesrp import views
 from wtforms.validators import StopValidation, ValidationError
 
@@ -249,7 +250,7 @@ class TestRequest(TestLogin):
                         '&kll_id=12842852'),
                     base_payout=73957900000,
                     kill_timestamp=dt.datetime(2012, 3, 25, 0, 44, 0,
-                        tzinfo=dt.timezone.utc),
+                        tzinfo=utc),
                     system='92D-OI',
                     constellation='XHYS-O',
                     region='Venal',
