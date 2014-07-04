@@ -68,7 +68,7 @@ simple example below uses Flask's built-in webserver.
 
 ### Dependencies
 
-EVE-SRP requires Python 3.3 or later and a database (with connector) that is
+EVE-SRP requires Python 2.7 or >=3.3 and a database (with connector) that is
 supported by [SQLAlchemy][sqla-db-support]. EVE-SRP is typically developed
 against PostgreSQL with the [psycopg2][psycopg2] adapter. It is also tested
 regularly with the following database adapters:
@@ -76,6 +76,7 @@ regularly with the following database adapters:
 * [pg8000](https://pypi.python.org/pypi/pg8000/)
 * [CyMySQL](https://pypi.python.org/pypi/cymysql)
 * [PyMySQL](https://pypi.python.org/pypi/PyMySQL)
+* [MySQL-Python](https://pypi.python.org/pypi/MySQL-python) (Python 2.7 only)
 
 [sqla-db-support]: http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#supported-databases
 [psycopg2]:http://initd.org/psycopg/
