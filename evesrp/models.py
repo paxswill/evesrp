@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+from __future__ import absolute_import
 import datetime as dt
 from decimal import Decimal
 import locale
@@ -10,8 +10,13 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from flask import Markup
 
 from . import db
-from .util import DeclEnum, classproperty, AutoID, Timestamped, AutoName
+from .util import DeclEnum, classproperty, AutoID, Timestamped, AutoName,\
+        unistr
 from .auth import PermissionType
+
+
+if six.PY3:
+    unicode = str
 
 
 class PrettyDecimal(Decimal):
@@ -27,22 +32,22 @@ class PrettyDecimal(Decimal):
         Adapted from https://docs.python.org/3.3/library/decimal.html#recipes
         """
         sign, digits, exp = self.quantize(Decimal('0.01')).as_tuple()
-        digits = list(map(str, digits))
+        digits = list(map(unicode, digits))
         result = []
         for i in range(2):
-            result.append(digits.pop() if digits else '0')
-        result.append('.')
+            result.append(digits.pop() if digits else u'0')
+        result.append(u'.')
         if not digits:
-            result.append('0')
+            result.append(u'0')
         count = 0
         while digits:
             result.append(digits.pop())
             count += 1
             if count == 3 and digits and commas:
                 count = 0
-                result.append(',')
-        result.append('-' if sign else '')
-        return ''.join(reversed(result))
+                result.append(u',')
+        result.append(u'-' if sign else u'')
+        return u''.join(reversed(result))
 
 
 class PrettyNumeric(db.TypeDecorator):
@@ -62,24 +67,24 @@ class ActionType(DeclEnum):
     # engines that don't support native enum types.
 
     #: Status for a request being evaluated.
-    evaluating = 'evaluating', 'Evaluating'
+    evaluating = u'evaluating', u'Evaluating'
 
     #: Status for a request that has been evaluated and is awaitng payment.
-    approved = 'approved', 'Approved'
+    approved = u'approved', u'Approved'
 
     #: Status for a request that has been paid. This is a terminatint state.
-    paid = 'paid', 'Paid'
+    paid = u'paid', u'Paid'
 
     #: Status for a requests that has been rejected. This is a terminating
     #: state.
-    rejected = 'rejected', 'Rejected'
+    rejected = u'rejected', u'Rejected'
 
     #: Status for a request that is missing details and needs further action.
-    incomplete = 'incomplete', 'Incomplete'
+    incomplete = u'incomplete', u'Incomplete'
 
     #: A special type of :py:class:`Action` representing a comment made on the
     #: request.
-    comment = 'comment', 'Comment'
+    comment = u'comment', u'Comment'
 
     @classproperty
     def finalized(cls):
@@ -130,13 +135,13 @@ class Action(db.Model, AutoID, Timestamped, AutoName):
     user = db.relationship('User', back_populates='actions')
 
     #: Any additional notes for this action.
-    note = db.Column(db.Text)
+    note = db.Column(db.Text(convert_unicode=True))
 
     def __init__(self, request, user, note=None, type_=None):
         if type_ is not None:
             self.type_ = type_
         self.user = user
-        self.note = note
+        self.note = unistr.ensure_unicode(note)
         self.timestamp = dt.datetime.utcnow()
         self.request = request
 
@@ -162,7 +167,7 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
     """
 
     #: Discriminator column for SQLAlchemy
-    _type = db.Column(db.String(20), nullable=False)
+    _type = db.Column(db.String(20, convert_unicode=True), nullable=False)
 
     #: The ID of the :py:class:`Request` this modifier applies to.
     request_id = db.Column(db.Integer, db.ForeignKey('request.id'))
@@ -177,7 +182,7 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
     user = db.relationship('User', foreign_keys=[user_id])
 
     #: Any notes explaining this modification.
-    note = db.Column(db.Text)
+    note = db.Column(db.Text(convert_unicode=True))
 
     #: The ID of the :py:class:`~.User` who voided this modifier (if voided).
     voided_user_id = db.Column(db.Integer, db.ForeignKey('user.id'),
@@ -209,14 +214,15 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
 
         Obviates subclasses from having to specify polymorphic identities.
         """
-        args = {'polymorphic_identity': cls.__name__}
-        if cls.__name__ == 'Modifier':
+        cls_name = unicode(cls.__name__)
+        args = {'polymorphic_identity': cls_name}
+        if cls_name == u'Modifier':
             args['polymorphic_on'] = cls._type
         return args
 
     def __init__(self, request, user, note, value):
         self.user = user
-        self.note = note
+        self.note = unistr.ensure_unicode(note)
         self.value = value
         self.request = request
 
@@ -241,6 +247,7 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
         self.voided_timestamp = dt.datetime.utcnow()
 
 
+@unistr.unistr
 class AbsoluteModifier(Modifier):
     """Subclass of :py:class:`Modifier` for representing absolute
     modifications.
@@ -254,11 +261,12 @@ class AbsoluteModifier(Modifier):
     #: How much ISK to add or remove from the payout
     value = db.Column(PrettyNumeric(precision=15, scale=2), nullable=False, default=0.0)
 
-    def __str__(self):
-        return '{}M ISK {}'.format(self.value / 1000000,
-                'bonus' if self.value >= 0 else 'penalty')
+    def __unicode__(self):
+        return u'{}M ISK {}'.format(self.value / 1000000,
+                u'bonus' if self.value >= 0 else u'penalty')
 
 
+@unistr.unistr
 class RelativeModifier(Modifier):
     """Subclass of :py:class:`Modifier` for representing relative modifiers.
 
@@ -271,9 +279,9 @@ class RelativeModifier(Modifier):
     #: What percentage of the payout to add or remove
     value = db.Column(db.Float, nullable=False, default=0.0)
 
-    def __str__(self):
-        return '{}% {}'.format(self.value * 100,
-                'bonus' if self.value >= 0 else 'penalty')
+    def __unicode__(self):
+        return u'{}% {}'.format(self.value * 100,
+                u'bonus' if self.value >= 0 else u'penalty')
 
 
 class Request(db.Model, AutoID, Timestamped, AutoName):
@@ -304,7 +312,8 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
             order_by='desc(Modifier.timestamp)', lazy='dynamic')
 
     #: The URL of the source killmail.
-    killmail_url = db.Column(db.String(512), nullable=False)
+    killmail_url = db.Column(db.String(512, convert_unicode=True),
+            nullable=False)
 
     #: The ID of the :py:class:`~.Pilot` for the killmail.
     pilot_id = db.Column(db.Integer, db.ForeignKey('pilot.id'), nullable=False)
@@ -313,14 +322,18 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     pilot = db.relationship('Pilot', back_populates='requests')
 
     #: The corporation of the :py:attr:`pilot` at the time of the killmail.
-    corporation = db.Column(db.String(150), nullable=False, index=True)
+    corporation = db.Column(db.String(150, convert_unicode=True),
+            nullable=False, index=True)
 
     #: The alliance of the :py:attr:`pilot` at the time of the killmail.
-    alliance = db.Column(db.String(150), nullable=True, index=True)
+    alliance = db.Column(db.String(150, convert_unicode=True), nullable=True,
+            index=True)
 
     #: The type of ship that was destroyed.
-    ship_type = db.Column(db.String(75), nullable=False, index=True)
+    ship_type = db.Column(db.String(75, convert_unicode=True), nullable=False,
+            index=True)
 
+    # TODO: include timezones
     #: The date and time of when the ship was destroyed.
     kill_timestamp = db.Column(DateTime, nullable=False, index=True)
 
@@ -329,20 +342,23 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     base_payout = db.Column(PrettyNumeric(precision=15, scale=2), default=0.0)
 
     #: Supporting information for the request.
-    details = db.deferred(db.Column(db.Text))
+    details = db.deferred(db.Column(db.Text(convert_unicode=True)))
 
     #: The current status of this request
     status = db.Column(ActionType.db_type(), nullable=False,
             default=ActionType.evaluating)
 
     #: The solar system this loss occured in.
-    system = db.Column(db.String(25), nullable=False, index=True)
+    system = db.Column(db.String(25, convert_unicode=True), nullable=False,
+            index=True)
 
     #: The constellation this loss occured in.
-    constellation = db.Column(db.String(25), nullable=False, index=True)
+    constellation = db.Column(db.String(25, convert_unicode=True),
+            nullable=False, index=True)
 
     #: The region this loss occured in.
-    region = db.Column(db.String(25), nullable=False, index=True)
+    region = db.Column(db.String(25, convert_unicode=True), nullable=False,
+            index=True)
 
     @property
     def payout(self):
@@ -421,12 +437,12 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         """Ensures that base_payout is positive. The value is clamped to 0."""
         if self.status == ActionType.evaluating or self.status is None:
             if value is None or value < 0:
-                return Decimal(0.0)
+                return Decimal('0')
             else:
                 return Decimal(value)
         else:
-            raise ModifierError("The request must be in the evaluating state "
-                                "to change the base payout.")
+            raise ModifierError(u"The request must be in the evaluating state "
+                                u"to change the base payout.")
 
     state_rules = {
         ActionType.evaluating: {
@@ -501,20 +517,20 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
 
         def check_status(*valid_states):
             if new_status not in valid_states:
-                raise ActionError("{} is not a valid status to change "
-                        "to from {} (valid options: {})".format(new_status,
+                raise ActionError(u"{} is not a valid status to change "
+                        u"to from {} (valid options: {})".format(new_status,
                                 self.status, valid_states))
 
 
         if new_status == ActionType.comment:
-            raise ValueError("ActionType.comment is not a valid status")
+            raise ValueError(u"ActionType.comment is not a valid status")
         # Initial status
         if self.status is None:
             return new_status
         rules = self.state_rules[self.status]
         if new_status not in rules:
-            raise ActionError("{} is not a valid status to change to from {} "
-                    "(valid options: {})".format(new_status,
+            raise ActionError(u"{} is not a valid status to change to from {} "
+                    u"(valid options: {})".format(new_status,
                             self.status, list(six.iterkeys(rules))))
         return new_status
 
@@ -532,14 +548,14 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
             self.status = action.type_
             permissions = rules[action.type_]
             if not action.user.has_permission(permissions, self.division):
-                raise ActionError("Insufficient permissions to perform that "
-                                  "action.")
+                raise ActionError(u"Insufficient permissions to perform that "
+                                  u"action.")
         elif action.type_ == ActionType.comment:
             if action.user != self.submitter \
                     and not action.user.has_permission(PermissionType.elevated,
                             self.division):
-                raise ActionError("You must either own or have special"
-                                  "privileges to comment on this request.")
+                raise ActionError(u"You must either own or have special"
+                                  u"privileges to comment on this request.")
         return action
 
     def __repr__(self):
@@ -549,11 +565,11 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     @db.validates('modifiers')
     def validate_add_modifier(self, attr, modifier):
         if self.status != ActionType.evaluating:
-            raise ModifierError("Modifiers can only be added when the request "
-                                "is in an evaluating state.")
+            raise ModifierError(u"Modifiers can only be added when the request"
+                                u" is in an evaluating state.")
         if not modifier.user.has_permission(PermissionType.review,
                 self.division):
-            raise ModifierError("Only reviewers can add modifiers.")
+            raise ModifierError(u"Only reviewers can add modifiers.")
         return modifier
 
     @property
@@ -570,7 +586,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
                 raw_value = getattr(self._request, attr)
                 if attr in self._request.division.transformers:
                     transformer = self._request.division.transformers[attr]
-                    return Markup('<a href="{link}">{value}</a>').format(
+                    return Markup(u'<a href="{link}">{value}</a>').format(
                             link=transformer(raw_value), value=str(raw_value))
                 else:
                     return raw_value

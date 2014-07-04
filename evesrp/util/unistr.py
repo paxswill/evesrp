@@ -10,3 +10,9 @@ def unistr(klass):
 
     klass.__str__ = __str__
     return klass
+
+
+def ensure_unicode(val):
+    if isinstance(val, six.binary_type):
+        return val.decode('utf-8')
+    return val
