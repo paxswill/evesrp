@@ -42,23 +42,3 @@ before_script:
     - make all
 
 script: make test
-
-before_deploy: make all
-
-deploy:
-    - provider: pypi
-      user: paxswill
-      password:
-          secure: G9HY/E5JmeYkJhxN2mCkmKldbhg074N4/L2BI2wpGlHtUeUiYqu6+9szHv+zoBSd0JN+Iw01k139RFYSqHb+Dd2l52acr/07KB8xOH6NQtqevrfmW1lAwGcRz2mHJ1XETBvLItr3w7Bo+lnF8WLG38/IiIITjei3q0bFCL0nyQQ=
-      on:
-          repo: paxswill/evesrp
-          branch: release
-      skip_cleanup: true
-    - provider: releases
-      api_key:
-          secure: dwFUw1S2wfCRMW+iBv9/7VaBgmL+XaTciWQb31bzDJpJpX+3XB5JYJVRs2T/59OHKxYWZ7OsNo4RrHdlLaFO4f4lVcv8e5ynSWtPtPi5o8gKq6oCNJpYeUdlF1uSvbTbgETnA6srJ25lk30A02xqlNf2DAAENcKcwqREQuHXesM=
-      on:
-          repo: paxswill/evesrp
-          branch: release
-      skip_cleanup: true
-      file: dist/EVE-SRP-*.tar.gz
