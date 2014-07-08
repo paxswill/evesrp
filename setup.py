@@ -7,7 +7,7 @@ with open('evesrp/__init__.py', 'r') as f:
     init_contents = ''
     for line in f:
         init_contents += line + '\n'
-version = re.search(r'^__version__ *= *[\'"]([^\'"]*)[\'"]', init_contents,
+version = re.search(r'^__version__ *= *u?[\'"]([^\'"]*)[\'"]', init_contents,
         re.MULTILINE)
 if version:
     version = version.group(1)
