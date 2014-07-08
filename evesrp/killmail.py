@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from collections import defaultdict
 import datetime as dt
 import time
@@ -5,7 +6,10 @@ from decimal import Decimal
 from functools import partial
 import re
 import sys
-from urllib.parse import urlparse, urlunparse, quote
+import six
+from .util.unistr import unistr
+from .util.urlparse import urlparse, urlunparse
+from .util.utc import utc
 
 import requests
 from sqlalchemy import create_engine, Table, MetaData
@@ -14,6 +18,11 @@ from sqlalchemy.sql import select
 from . import ships, systems
 
 
+if six.PY3:
+    unicode = str
+
+
+@unistr
 class Killmail(object):
     """Base killmail representation.
 
@@ -106,10 +115,10 @@ class Killmail(object):
         :param: keyword arguments corresponding to attributes.
         """
         self._data = defaultdict(lambda: None)
-        for attr in ('kill_id', 'ship_id', 'ship', 'pilot_id', 'pilot',
-                'corp_id', 'corp', 'alliance_id', 'alliance', 'verified',
-                'url', 'value', 'timestamp', 'system', 'constellation',
-                'region', 'system_id'):
+        for attr in (u'kill_id', u'ship_id', u'ship', u'pilot_id', u'pilot',
+                u'corp_id', u'corp', u'alliance_id', u'alliance', u'verified',
+                u'url', u'value', u'timestamp', u'system', u'constellation',
+                u'region', u'system_id'):
             try:
                 setattr(self, attr, kwargs[attr])
             except KeyError:
@@ -126,7 +135,7 @@ class Killmail(object):
         try:
             return self._data[name]
         except KeyError as e:
-            raise AttributeError from e
+            raise AttributeError(unicode(e))
 
     def __setattr__(self, name, value):
         if name[0] == '_':
@@ -134,8 +143,8 @@ class Killmail(object):
         else:
             self._data[name] = value
 
-    def __str__(self):
-        return "{kill_id}: {pilot} lost a {ship}. Verified: {verified}.".\
+    def __unicode__(self):
+        return u"{kill_id}: {pilot} lost a {ship}. Verified: {verified}.".\
                 format(kill_id=self.kill_id, pilot=self.pilot, ship=self.ship,
                         verified=self.verified)
 
@@ -239,63 +248,63 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
         if match:
             self.kill_id = int(match.group('kill_id'))
         else:
-            raise ValueError("'{}' is not a valid zKillboard killmail".
+            raise ValueError(u"'{}' is not a valid zKillboard killmail".
                     format(self.url))
         parsed = urlparse(self.url, scheme='https')
         if parsed.netloc == '':
             # Just in case someone is silly and gives an address without a
             # scheme. Also fix self.url to have a scheme.
             parsed = urlparse('//' + url, scheme='https')
-            self.url = urlunparse(parsed)
+            self.url = parsed.geturl()
         self.domain = parsed.netloc
         # Check API
         api_url = [a for a in parsed]
         api_url[2] = '/api/no-attackers/no-items/killID/{}'.format(
                 self.kill_id)
         resp = self.requests_session.get(urlunparse(api_url))
-        retrieval_error = LookupError("Error retrieving killmail data: {}"
+        retrieval_error = LookupError(u"Error retrieving killmail data: {}"
                     .format(resp.status_code))
         if resp.status_code != 200:
             raise retrieval_error
         try:
             json = resp.json()
         except ValueError as e:
-            raise retrieval_error from e
+            raise retrieval_error
         try:
             json = json[0]
         except IndexError as e:
-            raise LookupError("Invalid killmail: {}"
-                    .format(url)) from e
-        victim = json['victim']
-        self.pilot_id = int(victim['characterID'])
-        self.pilot = victim['characterName']
-        self.corp_id = int(victim['corporationID'])
-        self.corp = victim['corporationName']
-        if victim['allianceID'] != '0':
-            self.alliance_id = int(victim['allianceID'])
-            self.alliance = victim['allianceName']
-        self.ship_id = int(victim['shipTypeID'])
-        self.system_id = int(json['solarSystemID'])
+            raise LookupError(u"Invalid killmail: {}".format(url))
+        # JSON is defined to be UTF-8 in the standard
+        victim = json[u'victim']
+        self.pilot_id = int(victim[u'characterID'])
+        self.pilot = victim[u'characterName']
+        self.corp_id = int(victim[u'corporationID'])
+        self.corp = victim[u'corporationName']
+        if victim[u'allianceID'] != '0':
+            self.alliance_id = int(victim[u'allianceID'])
+            self.alliance = victim[u'allianceName']
+        self.ship_id = int(victim[u'shipTypeID'])
+        self.system_id = int(json[u'solarSystemID'])
         # For consistency, store self.value in millions. Decimal is being used
         # for precision at large values.
         # Old versions of zKB don't give the ISK value
         try:
-            self.value = Decimal(json['zkb']['totalValue'])
+            self.value = Decimal(json[u'zkb'][u'totalValue'])
         except KeyError:
             self.value = Decimal(0)
         # Parse the timestamp
-        time_struct = time.strptime(json['killTime'], '%Y-%m-%d %H:%M:%S')
+        time_struct = time.strptime(json[u'killTime'], '%Y-%m-%d %H:%M:%S')
         self.timestamp = dt.datetime(*(time_struct[0:6]),
-                tzinfo=dt.timezone.utc)
+                tzinfo=utc)
 
     @property
     def verified(self):
         # zKillboard assigns unverified IDs negative numbers
         return self.kill_id > 0
 
-    def __str__(self):
-        parent = super(ZKillmail, self).__str__()
-        return "{parent} From ZKillboard at {url}".format(parent=parent,
+    def __unicode__(self):
+        parent = super(ZKillmail, self).__unicode__()
+        return u"{parent} From ZKillboard at {url}".format(parent=parent,
                 url=self.url)
 
 
@@ -318,41 +327,42 @@ class CRESTMail(Killmail, RequestsSessionMixin, LocationMixin):
         if match:
             self.kill_id = match.group('kill_id')
         else:
-            raise ValueError("'{}' is not a valid CREST killmail".
+            raise ValueError(u"'{}' is not a valid CREST killmail".
                     format(self.url))
         parsed = urlparse(self.url, scheme='https')
         if parsed.netloc == '':
             parsed = urlparse('//' + url, scheme='https')
-            self.url = urlunparse(parsed)
+            self.url = parsed.geturl()
         # Check if it's a valid CREST URL
         resp = self.requests_session.get(self.url)
+        # JSON responses are defined to be UTF-8 encoded
         if resp.status_code != 200:
-            raise LookupError("Error retrieving CREST killmail: {}".format(
-                resp.json()['message']))
+            raise LookupError(u"Error retrieving CREST killmail: {}".format(
+                resp.json()[u'message']))
         try:
             json = resp.json()
         except ValueError as e:
-            raise LookupError("Error retrieving killmail data: {}"
-                    .format(resp.status_code)) from e
-        victim = json['victim']
-        char = victim['character']
-        corp = victim['corporation']
-        ship = victim['shipType']
-        alliance = victim['alliance']
-        self.pilot_id = char['id']
-        self.pilot = char['name']
-        self.corp_id = corp['id']
-        self.corp = corp['name']
-        self.alliance_id = alliance['id']
-        self.alliance = alliance['name']
-        self.ship_id = ship['id']
-        self.ship = ship['name']
-        solarSystem = json['solarSystem']
-        self.system_id = solarSystem['id']
-        self.system = solarSystem['name']
+            raise LookupError(u"Error retrieving killmail data: {}"
+                    .format(resp.status_code))
+        victim = json[u'victim']
+        char = victim[u'character']
+        corp = victim[u'corporation']
+        ship = victim[u'shipType']
+        alliance = victim[u'alliance']
+        self.pilot_id = char[u'id']
+        self.pilot = char[u'name']
+        self.corp_id = corp[u'id']
+        self.corp = corp[u'name']
+        self.alliance_id = alliance[u'id']
+        self.alliance = alliance[u'name']
+        self.ship_id = ship[u'id']
+        self.ship = ship[u'name']
+        solarSystem = json[u'solarSystem']
+        self.system_id = solarSystem[u'id']
+        self.system = solarSystem[u'name']
         # CREST Killmails are always verified
         self.verified = True
         # Parse the timestamp
-        time_struct = time.strptime(json['killTime'], '%Y.%m.%d %H:%M:%S')
+        time_struct = time.strptime(json[u'killTime'], '%Y.%m.%d %H:%M:%S')
         self.timestamp = dt.datetime(*(time_struct[0:6]),
-                tzinfo=dt.timezone.utc)
+                tzinfo=utc)

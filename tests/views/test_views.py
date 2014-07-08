@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import datetime as dt
 from ..util import TestApp, TestLogin
 from evesrp import create_app, db

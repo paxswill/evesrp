@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import locale
 import os
 import requests
@@ -13,7 +14,7 @@ from .util import DB_STATS
 from .util.request import AcceptRequest
 
 
-__version__ = '0.7.1'
+__version__ = u'0.7.1'
 
 
 requests_session = requests.Session()
@@ -55,7 +56,7 @@ def create_app(config=None, **kwargs):
     app.before_request_funcs[None] = before_csrf
 
     from .views import index, error_page, divisions, login, requests, api
-    app.add_url_rule(rule='/', view_func=index)
+    app.add_url_rule(rule=u'/', view_func=index)
     for error_code in (400, 403, 404, 500):
         app.register_error_handler(error_code, error_page)
     app.register_blueprint(divisions.blueprint, url_prefix='/division')
@@ -84,7 +85,7 @@ def create_app(config=None, **kwargs):
             'ActionType': models.ActionType,
             'PermissionType': PermissionType,
             'app_version': __version__,
-            'site_name': app.config['SRP_SITE_NAME']
+            'site_name': app.config['SRP_SITE_NAME'],
         }
     # Auto-trim whitespace
     app.jinja_env.trim_blocks = True
@@ -134,7 +135,7 @@ def _config_requests_session():
                     email=current_app.config['SRP_USER_AGENT_EMAIL'],
                     version=__version__)
         except KeyError as inner_exc:
-            raise inner_exc from outer_exc
+            raise inner_exc
     requests_session.headers.update({'User-Agent': ua_string})
     current_app.user_agent = ua_string
 

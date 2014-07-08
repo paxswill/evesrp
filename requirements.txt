@@ -24,5 +24,7 @@ gunicorn==18.0
 httmock==1.2.2
 itsdangerous==0.23
 marrow.util==1.2.3
+mock==1.0.1
 requests==2.2.1
 simple-pbkdf2==1.0
+six==1.7.3

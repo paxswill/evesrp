@@ -1,11 +1,14 @@
+from __future__ import absolute_import
 from base64 import urlsafe_b64decode
 import binascii
 from flask import render_template, url_for, abort, session, redirect, request,\
         current_app, g, Blueprint
 from flask.ext.login import login_required, logout_user, LoginManager
+from six.moves import map
 from sqlalchemy.orm.exc import NoResultFound
 from .. import csrf
 from ..auth.models import User, APIKey
+from ..util import unistr
 
 
 blueprint = Blueprint('login', __name__)
@@ -25,9 +28,9 @@ def login_loader(userid):
 
 @login_manager.request_loader
 def apikey_loader(request):
-    api_key = request.values.get('apikey')
+    api_key = unistr.ensure_unicode(request.values.get('apikey'))
     if api_key and request.method == 'GET':
-        api_key = api_key.replace(',', '=')
+        api_key = api_key.replace(u',', u'=')
         try:
             api_key = urlsafe_b64decode(api_key.encode('utf-8'))
         except binascii.Error:
@@ -90,8 +93,6 @@ def auth_method_login(auth_method):
     method_map = dict(map((lambda m: (m.safe_name, m)),
         current_app.auth_methods))
     return method_map[auth_method].view()
-
-auth_method_login.methods = ['GET', 'POST']
 
 
 @blueprint.route('/logout/')

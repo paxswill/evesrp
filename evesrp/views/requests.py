@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from collections import OrderedDict
 import re
 
@@ -6,6 +7,8 @@ from flask import render_template, abort, url_for, flash, Markup, request,\
 from flask.views import View
 from flask.ext.login import login_required, current_user
 from flask.ext.wtf import Form
+import six
+from six.moves import map
 from wtforms.fields import SelectField, SubmitField, TextAreaField, HiddenField
 from wtforms.fields.html5 import URLField, DecimalField
 from wtforms.validators import InputRequired, AnyOf, URL, ValidationError,\
@@ -17,6 +20,9 @@ from ..models import Request, Modifier, Action, ActionType, ActionError,\
 from ..auth import PermissionType
 from ..auth.models import Division, Pilot, Permission, User, Group, Note,\
     APIKey
+
+if six.PY3:
+    unicode = str
 
 
 blueprint = Blueprint('requests', __name__)
@@ -58,7 +64,7 @@ class RequestListing(View):
         if request.is_rss:
             rss_content = render_template('rss.xml',
                     requests=self.requests(division_id),
-                    title=(kwargs['title'] if 'title' in kwargs else ''),
+                    title=(kwargs['title'] if 'title' in kwargs else u''),
                     main_link=url_for(request.endpoint,
                         division_id=division_id, _external=True))
             response = make_response(rss_content)
@@ -168,7 +174,7 @@ class PermissionRequestListing(RequestListing):
             if 'title' in kwargs:
                 title = kwargs.pop('title')
             else:
-                title = ', '.join(map(lambda s: s.description, self.statuses))
+                title = u', '.join(map(lambda s: s.description, self.statuses))
             return super(PermissionRequestListing, self).dispatch_request(
                     division_id,
                     page,
@@ -214,7 +220,7 @@ class PayoutListing(PermissionRequestListing):
         return super(PayoutListing, self).dispatch_request(
                 division_id,
                 page,
-                title=', '.join(map(lambda s: s.description, self.statuses)),
+                title=u', '.join(map(lambda s: s.description, self.statuses)),
                 form=ActionForm())
 
 
@@ -298,16 +304,18 @@ class ValidKillmail(URL):
         try:
             mail = self.mail_class(field.data)
         except ValueError as e:
-            raise ValidationError(str(e)) from e
+            if six.PY2:
+                raise ValidationError(unicode(e))
         except LookupError as e:
-            raise ValidationError(str(e)) from e
+            if six.PY2:
+                raise ValidationError(unicode(e))
         else:
             if mail.verified:
                 form.killmail = mail
                 raise StopValidation
             else:
                 raise ValidationError(
-                        '{} cannot be verified.'.format(field.data))
+                        u'{} cannot be verified.'.format(field.data))
 
 
 def get_killmail_validators():
@@ -324,10 +332,10 @@ def get_killmail_validators():
 
 
 class RequestForm(Form):
-    url = URLField('Killmail URL')
-    details = TextAreaField('Details', validators=[InputRequired()])
-    division = SelectField('Division', coerce=int)
-    submit = SubmitField('Submit')
+    url = URLField(u'Killmail URL')
+    details = TextAreaField(u'Details', validators=[InputRequired()])
+    division = SelectField(u'Division', coerce=int)
+    submit = SubmitField(u'Submit')
 
     def validate_url(form, field):
         failures = set()
@@ -335,13 +343,13 @@ class RequestForm(Form):
             try:
                 v(form, field)
             except ValidationError as e:
-                failures.add(str(e))
+                failures.add(unicode(e))
             else:
                 continue
         else:
             # If execution reached here, it means a StopValidation exception
             # wasn't raised (meaning the killmail isn't valid).
-            raise ValidationError([str(e) for e in failures])
+            raise ValidationError([e for e in failures])
 
 
 @blueprint.route('/add/', methods=['GET', 'POST'])
@@ -366,8 +374,8 @@ def submit_request():
         # Prevent submitting other people's killmails
         pilot = Pilot.query.get(mail.pilot_id)
         if not pilot or pilot not in current_user.pilots:
-            flash("You can only submit killmails of characters you control",
-                    'warning')
+            flash(u"You can only submit killmails of characters you control",
+                    u'warning')
             return render_template('form.html', form=form)
         # Prevent duplicate killmails
         # The name 'request' is already used by Flask.
@@ -383,7 +391,7 @@ def submit_request():
             return redirect(url_for('.get_request_details',
                 request_id=srp_request.id))
         else:
-            flash("This kill has already been submitted", 'warning')
+            flash(u"This kill has already been submitted", u'warning')
             return redirect(url_for('.get_request_details',
                 request_id=srp_request.id))
     return render_template('form.html', form=form)
@@ -391,17 +399,17 @@ def submit_request():
 
 class ModifierForm(Form):
     id_ = HiddenField(default='modifier')
-    value = DecimalField('Value')
+    value = DecimalField(u'Value')
     # TODO: add a validator for the type
     type_ = HiddenField(validators=[AnyOf(('rel-bonus', 'rel-deduct',
             'abs-bonus', 'abs-deduct'))])
-    note = TextAreaField('Reason')
+    note = TextAreaField(u'Reason')
 
 
 class VoidModifierForm(Form):
     id_ = HiddenField(default='void')
     modifier_id = HiddenField()
-    void = SubmitField(Markup('x'))
+    void = SubmitField(Markup(u'x'))
 
     def __init__(self, modifier=None, *args, **kwargs):
         if modifier is not None:
@@ -411,29 +419,29 @@ class VoidModifierForm(Form):
 
 class PayoutForm(Form):
     id_ = HiddenField(default='payout')
-    value = DecimalField('M ISK', validators=[InputRequired()])
+    value = DecimalField(u'M ISK', validators=[InputRequired()])
 
 
 class ActionForm(Form):
     id_ = HiddenField(default='action')
-    note = TextAreaField('Note')
+    note = TextAreaField(u'Note')
     type_ = HiddenField(default='comment',
             validators=[AnyOf(ActionType.values())])
 
 
 class ChangeDetailsForm(Form):
     id_ = HiddenField(default='details')
-    details = TextAreaField('Details', validators=[InputRequired()])
+    details = TextAreaField(u'Details', validators=[InputRequired()])
 
 
 class AddNote(Form):
     id_ = HiddenField(default='note')
-    note = TextAreaField('Add Note',
-            description=("If you have something like '#{Kill ID}', it will be "
-                         "linkified to the corresponding request "
-                         "(if it exists). For example, #1234567 would be "
-                         "linked to the request for the kill with ID "
-                         "1234567."),
+    note = TextAreaField(u'Add Note',
+            description=( "If you have something like '#{Kill ID}', it will be"
+                         u" linkified to the corresponding request "
+                         u"(if it exists). For example, #1234567 would be "
+                         u"linked to the request for the kill with ID "
+                         u"1234567."),
             validators=[InputRequired()])
 
 
@@ -473,13 +481,13 @@ def get_request_details(request_id=None, srp_request=None):
         # form of it. We need this to add a few bits of information to the
         # standard request encoding
         enc_request = json.loads(json.dumps(srp_request))
-        enc_request['actions'] = srp_request.actions
-        enc_request['modifiers'] = srp_request.modifiers
+        enc_request[u'actions'] = srp_request.actions
+        enc_request[u'modifiers'] = srp_request.modifiers
         valid_actions = map(
                 lambda a: a.value,
                 srp_request.valid_actions(current_user))
-        enc_request['valid_actions'] = valid_actions
-        enc_request['current_user'] = current_user._get_current_object()
+        enc_request[u'valid_actions'] = valid_actions
+        enc_request[u'current_user'] = current_user._get_current_object()
         return jsonify(enc_request)
     if request.is_xml:
         xml_request = render_template('request.xml', srp_request=srp_request)
@@ -513,20 +521,20 @@ def _add_modifier(srp_request):
             db.session.add(mod)
             db.session.commit()
         except ModifierError as e:
-            flash(e, 'error')
+            flash(unicode(e), u'error')
     return get_request_details(srp_request=srp_request)
 
 
 def _change_payout(srp_request):
     form = PayoutForm()
     if not current_user.has_permission(PermissionType.review, srp_request):
-        flash("Only reviewers can change the base payout.", 'error')
+        flash(u"Only reviewers can change the base payout.", u'error')
     elif form.validate():
         try:
             srp_request.base_payout = form.value.data * 1000000
             db.session.commit()
         except ModifierError as e:
-            flash(e, 'error')
+            flash(unicode(e), u'error')
     return get_request_details(srp_request=srp_request)
 
 
@@ -538,7 +546,7 @@ def _add_action(srp_request):
             Action(srp_request, current_user, form.note.data, type_)
             db.session.commit()
         except ActionError as e:
-            flash(e, 'error')
+            flash(unicode(e), u'error')
     return get_request_details(srp_request=srp_request)
 
 
@@ -548,26 +556,26 @@ def _void_modifier(srp_request):
         modifier_id = int(form.modifier_id.data)
         modifier = Modifier.query.get(modifier_id)
         if modifier is None:
-            flash("Invalid modifier ID {}.".format(modifier_id),
-                    'error')
+            flash(u"Invalid modifier ID {}.".format(modifier_id),
+                    u'error')
         else:
             try:
                 modifier.void(current_user)
                 db.session.commit()
             except ModifierError as e:
-                flash(e, 'error')
+                flash(unicode(e), u'error')
     return get_request_details(srp_request=srp_request)
 
 
 def _change_details(srp_request):
     form = ChangeDetailsForm()
     if current_user != srp_request.submitter:
-        flash("Only the submitter can change the request details.", 'error')
+        flash(u"Only the submitter can change the request details.", u'error')
     elif srp_request.finalized:
-        flash("Details con only be changed when the request is still pending.",
-                'error')
+        flash(u"Details con only be changed when the request is still "
+                u"pending.", u'error')
     elif form.validate():
-        archive_note = "Old Details: " + srp_request.details
+        archive_note = u"Old Details: " + srp_request.details
         archive_action = Action(srp_request, current_user, archive_note)
         archive_action.type_ = ActionType.evaluating
         srp_request.details = form.details.data
@@ -578,7 +586,7 @@ def _change_details(srp_request):
 def _add_note(srp_request):
     form = AddNote()
     if not current_user.has_permission(PermissionType.elevated):
-        flash("You do not have permission to add a note to a user.", 'error')
+        flash(u"You do not have permission to add a note to a user.", u'error')
     elif form.validate():
         # Linkify killmail IDs
         note_content = Markup.escape(form.note.data)
@@ -586,11 +594,12 @@ def _add_note(srp_request):
             kill_id = int(match)
             check_request = db.session.query(Request.id).filter_by(id=kill_id)
             if db.session.query(check_request.exists()):
-                link = '<a href="{url}">#{kill_id}</a>'.format(
-                        url=url_for('.get_request_details', request_id=kill_id),
+                link = u'<a href="{url}">#{kill_id}</a>'.format(
+                        url=url_for('.get_request_details',
+                                request_id=kill_id),
                         kill_id=kill_id)
                 link = Markup(link)
-                note_content = note_content.replace('#' + match, link)
+                note_content = note_content.replace(u'#' + match, link)
         # Create the note
         note = Note(srp_request.submitter, current_user, note_content)
         db.session.commit()
@@ -625,8 +634,8 @@ def modify_request(request_id):
 
 
 class DivisionChange(Form):
-    division = SelectField('Divisions', coerce=int)
-    submit = SubmitField('Submit')
+    division = SelectField(u'Divisions', coerce=int)
+    submit = SubmitField(u'Submit')
 
 
 @blueprint.route('/<int:request_id>/division', methods=['GET', 'POST'])
@@ -640,25 +649,25 @@ def request_change_division(request_id):
         abort(403)
     division_choices = srp_request.submitter.submit_divisions()
     if len(division_choices) < 2:
-        flash("No other divisions to move to.", 'info')
+        flash(u"No other divisions to move to.", u'info')
         return redirect(url_for('.get_request_details', request_id=request_id))
     form = DivisionChange()
     form.division.choices = division_choices
     if form.validate_on_submit():
         new_division = Division.query.get(form.division.data)
-        archive_note = "Moving from division '{}' to division '{}'.".format(
+        archive_note = u"Moving from division '{}' to division '{}'.".format(
                 srp_request.division.name,
                 new_division.name)
         archive_action = Action(srp_request, current_user, archive_note)
         archive_action.type_ = ActionType.evaluating
         srp_request.division = new_division
         db.session.commit()
-        flash('Request #{} moved to {} division'.format(srp_request.id,
-                new_division.name), 'success')
-        if current_user.has_permission(PermissionType.elevated, new_division) or\
-                current_user == srp_request.submitter:
+        flash(u'Request #{} moved to {} division'.format(srp_request.id,
+                new_division.name), u'success')
+        if current_user.has_permission(PermissionType.elevated, new_division) \
+                or current_user == srp_request.submitter:
             return redirect(url_for('.get_request_details',
-                request_id=request_id))
+                    request_id=request_id))
         else:
             return redirect(url_for('.list_pending_requests'))
     form.division.data = srp_request.division.id
