@@ -21,7 +21,7 @@ setup(
     description=u'EVE Ship Replacement Program Helper',
     author=u'Will Ross',
     author_email=u'paxswill@paxswill.com',
-    url=u'https://github.com/evesrp',
+    url=u'https://github.com/paxswill/evesrp',
     packages=[
         'evesrp',
         'evesrp.auth',
