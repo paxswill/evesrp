@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import unicode_literals
+
 """Script for generating a Python file with a variable 'ships' containing a
 dictionary of all of the ships in Eve.
 """

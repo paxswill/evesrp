@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import unicode_literals
 from evesrp import create_app
 from evesrp.auth.testauth import TestAuth
 from evesrp.auth.bravecore import BraveCore

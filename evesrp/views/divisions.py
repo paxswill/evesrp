@@ -1,11 +1,14 @@
+from __future__ import absolute_import
 from flask import url_for, render_template, redirect, abort, flash, request,\
         Blueprint, current_app, jsonify
 from flask.ext.login import login_required, current_user
 from flask.ext.wtf import Form
+import six
+from six.moves import map
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from wtforms.fields import StringField, SubmitField, HiddenField, SelectField,\
         Label
 from wtforms.validators import InputRequired, AnyOf, NumberRange
-from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from ..models import db
 from ..auth import PermissionType
@@ -36,8 +39,8 @@ def list_divisions():
 
 
 class AddDivisionForm(Form):
-    name = StringField('Division Name', validators=[InputRequired()])
-    submit = SubmitField('Create Division')
+    name = StringField(u'Division Name', validators=[InputRequired()])
+    submit = SubmitField(u'Create Division')
 
 
 @blueprint.route('/add/', methods=['GET', 'POST'])
@@ -62,31 +65,31 @@ class ChangeEntity(Form):
     form_id = HiddenField(default='entity')
     id_ = HiddenField()
     name = StringField()
-    permission = HiddenField(validators=[AnyOf(PermissionType.values())])
+    permission = HiddenField(validators=[AnyOf(list(PermissionType.values()))])
     action = HiddenField(validators=[AnyOf(('add', 'delete'))])
 
 
 #: List of tuples enumerating attributes that can be transformed/linked.
 #: Mainly used as the choices argument to :py:class:`~.SelectField`
 transformer_choices = [
-    ('', ''),
-    ('kill_timestamp', 'Kill Timestamp'),
-    ('pilot', 'Pilot'),
-    ('corporation', 'Corporation'),
-    ('alliance', 'Alliance'),
-    ('system', 'Solar System'),
-    ('constellation', 'Constellation'),
-    ('region', 'Region'),
-    ('ship_type', 'Ship'),
-    ('payout', 'Payout'),
-    ('status', 'Request Status'),
+    ('', u''),
+    ('kill_timestamp', u'Kill Timestamp'),
+    ('pilot', u'Pilot'),
+    ('corporation', u'Corporation'),
+    ('alliance', u'Alliance'),
+    ('system', u'Solar System'),
+    ('constellation', u'Constellation'),
+    ('region', u'Region'),
+    ('ship_type', u'Ship'),
+    ('payout', u'Payout'),
+    ('status', u'Request Status'),
 ]
 
 
 class ChangeTransformer(Form):
     form_id = HiddenField(default='transformer')
-    attribute = SelectField('Attribute', choices=transformer_choices)
-    transformer = SelectField('Transformer', choices=[])
+    attribute = SelectField(u'Attribute', choices=transformer_choices)
+    transformer = SelectField(u'Transformer', choices=[])
 
 
 def transformer_choices(attr):
@@ -130,18 +133,18 @@ def division_detail(division_id):
                 if form.id_.data != '':
                     entity = Entity.query.get(form.id_.data)
                     if entity is None:
-                        flash("No entity with ID #{}.".format(form.id_.data),
-                                'error')
+                        flash(u"No entity with ID #{}.".format(form.id_.data),
+                                u'error')
                 else:
                     try:
                         entity = Entity.query.filter_by(
                                 name=form.name.data).one()
                     except NoResultFound:
-                        flash("No entities with the name '{}' found.".
-                                format(form.name.data), category='error')
+                        flash(u"No entities with the name '{}' found.".
+                                format(form.name.data), category=u'error')
                     except MultipleResultsFound:
-                        flash("Multiple entities eith the name '{}' found.".
-                                format(form.name.data), category='error')
+                        flash(u"Multiple entities eith the name '{}' found.".
+                                format(form.name.data), category=u'error')
                 permission_type = PermissionType.from_string(
                         form.permission.data)
                 permission_query = Permission.query.filter_by(
@@ -154,19 +157,19 @@ def division_detail(division_id):
                     if form.action.data == 'add':
                         db.session.add(
                             Permission(division, permission_type, entity))
-                        flash("'{}' is now a {}.".format(entity,
-                                permission_type.description.lower()), "info")
+                        flash(u"'{}' is now a {}.".format(entity,
+                                permission_type.description.lower()), u"info")
                     elif form.action.data == 'delete':
-                        flash("{} is not a {}.".format(entity,
-                            permission_type.description.lower()), "warning")
+                        flash(u"{} is not a {}.".format(entity,
+                            permission_type.description.lower()), u"warning")
                 else:
                     if form.action.data == 'delete':
                         permission_query.delete()
-                        flash("'{}' is no longer a {}.".format(entity,
-                                permission_type.description.lower()), "info")
+                        flash(u"'{}' is no longer a {}.".format(entity,
+                                permission_type.description.lower()), u"info")
                     elif form.action.data == 'add':
-                        flash("'{}' is now a {}.".format(entity,
-                                permission_type.description.lower()), "info")
+                        flash(u"'{}' is now a {}.".format(entity,
+                                permission_type.description.lower()), u"info")
             else:
                 abort(400)
         elif request.form['form_id'] == 'transformer':
@@ -211,7 +214,7 @@ def list_transformers(division_id, attribute=None):
             current_user.has_permission(PermissionType.admin, division):
         abort(403)
     if attribute is None:
-        attrs = current_app.url_transformers.keys()
+        attrs = six.iterkeys(current_app.url_transformers)
     else:
         attrs = (attribute,)
     choices = {}

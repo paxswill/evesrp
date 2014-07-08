@@ -12,16 +12,16 @@ version = re.search(r'^__version__ *= *[\'"]([^\'"]*)[\'"]', init_contents,
 if version:
     version = version.group(1)
 else:
-    raise Exception("Unable to find __version__ in evesrp/__init__.py")
+    raise Exception(u"Unable to find __version__ in evesrp/__init__.py")
 
 
 setup(
-    name='EVE-SRP',
+    name=u'EVE-SRP',
     version=version,
-    description='EVE Ship Replacement Program Helper',
-    author='Will Ross',
-    author_email='paxswill@paxswill.com',
-    url='https://github.com/evesrp',
+    description=u'EVE Ship Replacement Program Helper',
+    author=u'Will Ross',
+    author_email=u'paxswill@paxswill.com',
+    url=u'https://github.com/evesrp',
     packages=[
         'evesrp',
         'evesrp.auth',
@@ -45,14 +45,14 @@ setup(
         ],
     },
     classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Framework :: Flask',
-        'License :: OSI Approved :: BSD License',
-        'Programming Language :: Python :: 3',
-        'Topic :: Games/Entertainment'
+        u'Development Status :: 3 - Alpha',
+        u'Framework :: Flask',
+        u'License :: OSI Approved :: BSD License',
+        u'Programming Language :: Python :: 3',
+        u'Topic :: Games/Entertainment',
     ],
     dependency_links=[
-        'https://github.com/bravecollective/api/tarball/develop#egg=brave.api'
+        u'https://github.com/bravecollective/api/tarball/develop#egg=brave.api'
     ],
     install_requires=[
         'Flask==0.10.1',
@@ -65,7 +65,8 @@ setup(
         'WTForms==1.0.5',
         'requests==2.2.1',
         'ecdsa==0.11',
-        'brave.api'
+        'six==1.7.3',
+        'brave.api',
     ],
     entry_points={
         'console_scripts': [

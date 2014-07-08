@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 """This file was written by Dan Birken and discussed on his blog:
     http://www.danbirken.com/quicktip/2014/04/16/improve-developer-habits-with-db-diagnostisc.html
 

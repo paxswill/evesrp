@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from ecdsa import SigningKey, VerifyingKey, NIST256p
 from brave.api.client import SignedAuth, API
 from sqlalchemy.orm.exc import NoResultFound
@@ -16,7 +17,7 @@ class BraveCore(AuthMethod):
         self.api = API(url, identifier, client_key, server_key,
                 requests_session).api
         if 'name' not in kwargs:
-            kwargs['name'] = 'Brave Core'
+            kwargs['name'] = u'Brave Core'
         super(BraveCore, self).__init__(**kwargs)
 
     def login(self, form):
@@ -27,14 +28,14 @@ class BraveCore(AuthMethod):
                 auth_method=self.safe_name)
         response = self.api.core.authorize(success=result_url,
                 failure=result_url)
-        core_url = response['location']
+        core_url = response[u'location']
         return redirect(core_url)
 
     def list_groups(self, user=None):
         pass
 
     def view(self):
-        token = request.args.get('token')
+        token = unistr.ensure_unicode(request.args.get('token'))
         if token is not None:
             info = self.api.core.info(token=token)
             char_name = info.character.name
@@ -49,7 +50,7 @@ class BraveCore(AuthMethod):
             # Apply admin flag
             user.admin = user.name in self.admins
             # Sync up group membership
-            for group_name in info['tags']:
+            for group_name in info.tags:
                 try:
                     group = CoreGroup.query.filter_by(name=group_name,
                             authmethod=self.name).one()
@@ -58,7 +59,7 @@ class BraveCore(AuthMethod):
                     db.session.add(group)
                 user.groups.add(group)
             for group in user.groups:
-                if group.name not in info['tags']:
+                if group.name not in info.tags:
                     user.groups.remove(group)
             # Sync pilot (just the primary for now)
             pilot = Pilot.query.get(info.character.id)
@@ -72,15 +73,15 @@ class BraveCore(AuthMethod):
             # TODO Have a meaningful redirect for this
             return redirect(url_for('index'))
         else:
-            flash("Login failed.")
+            flash(u"Login failed.", u'error')
             return redirect(url_for('login.login'))
 
 
 class CoreUser(User):
     id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
-    token = db.Column(db.String(100))
+    token = db.Column(db.String(100, convert_unicode=True))
 
 
 class CoreGroup(Group):
     id = db.Column(db.Integer, db.ForeignKey('group.id'), primary_key=True)
-    description = db.Column(db.Text)
+    description = db.Column(db.Text(convert_unicode=True))

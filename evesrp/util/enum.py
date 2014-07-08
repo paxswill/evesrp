@@ -1,16 +1,21 @@
+from __future__ import absolute_import
+
 """Originally taken from http://techspot.zzzeek.org/2011/01/14/the-enum-recipe/
 on 23 May 2014. Specifically, this is a modified version of
 http://techspot.zzzeek.org/files/2011/decl_enum.py
 """
 
-from .. import db
+import six
 from sqlalchemy.types import SchemaType
 import re
+from . import unistr
+from .. import db
 
 
 # NOTE: When adding Py2 support, make sure to set the metaclasses appropriately
 
 
+@unistr.unistr
 class EnumSymbol(object):
     """Define a fixed symbol tied to a parent class."""
 
@@ -29,9 +34,9 @@ class EnumSymbol(object):
         return iter([self.value, self.description])
 
     def __repr__(self):
-        return "<%s>" % self.name
+        return u"<%s>" % self.name
 
-    def __str__(self):
+    def __unicode__(self):
         return self.description
 
 
@@ -40,17 +45,21 @@ class EnumMeta(type):
 
     def __init__(cls, classname, bases, dict_):
         cls._reg = reg = cls._reg.copy()
-        for k, v in dict_.items():
+        for k, v in six.iteritems(dict_):
             if isinstance(v, tuple):
-                sym = reg[v[0]] = EnumSymbol(cls, k, *v)
+                unicoded = []
+                for tup_v in v:
+                    unicoded.append(unistr.ensure_unicode(tup_v))
+                sym = reg[unicoded[0]] = EnumSymbol(cls, k, *unicoded)
                 setattr(cls, k, sym)
         return type.__init__(cls, classname, bases, dict_)
 
     def __iter__(cls):
-        return iter(cls._reg.values())
+        return six.itervalues(cls._reg)
 
 
-class DeclEnum(object, metaclass=EnumMeta):
+@six.add_metaclass(EnumMeta)
+class DeclEnum(object):
     """Declarative enumeration."""
 
     _reg = {}
@@ -58,16 +67,16 @@ class DeclEnum(object, metaclass=EnumMeta):
     @classmethod
     def from_string(cls, value):
         try:
-            return cls._reg[value]
+            return cls._reg[unistr.ensure_unicode(value)]
         except KeyError:
             raise ValueError(
-                    "Invalid value for %r: %r" % 
-                    (cls.__name__, value)
+                    u"Invalid value for %r: %r" % 
+                    (cls.__name__, unistr.ensure_unicode(value))
                 )
 
     @classmethod
     def values(cls):
-        return cls._reg.keys()
+        return six.iterkeys(cls._reg)
 
     @classmethod
     def db_type(cls):
@@ -78,8 +87,9 @@ class DeclEnumType(SchemaType, db.TypeDecorator):
     def __init__(self, enum):
         self.enum = enum
         self.impl = db.Enum(
-                        *enum.values(), 
-                        name="ck%s" % re.sub(
+                        *(list(enum.values())),
+                        convert_unicode=True,
+                        name=u"ck%s" % re.sub(
                                     '([A-Z])', 
                                     lambda m:"_" + m.group(1).lower(), 
                                     enum.__name__)

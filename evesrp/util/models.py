@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import datetime as dt
 from sqlalchemy.types import DateTime
 from sqlalchemy.ext.declarative import declared_attr

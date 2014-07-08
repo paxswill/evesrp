@@ -1,6 +1,8 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
 from unittest import TestCase
 import json
-from urllib.parse import urlparse
+from six.moves.urllib.parse import urlparse
 from os import environ as env
 import httmock
 from httmock import urlmatch
