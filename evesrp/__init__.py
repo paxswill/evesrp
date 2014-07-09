@@ -14,7 +14,7 @@ from .util import DB_STATS
 from .util.request import AcceptRequest
 
 
-__version__ = u'0.8.5'
+__version__ = u'0.8.6-dev'
 
 
 requests_session = requests.Session()
