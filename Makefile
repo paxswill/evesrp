@@ -1,8 +1,8 @@
 SUBDIRS := evesrp/static
 
-.PHONY: all clean build-deps test $(SUBDIRS)
+.PHONY: all clean build-deps test docs $(SUBDIRS)
 
-all: $(SUBDIRS)
+all: $(SUBDIRS) docs
 
 clean:
 	for DIR in $(SUBDIRS); do\
@@ -36,3 +36,6 @@ upload: $(SUBDIRS) setup.py
 
 test:
 	python -m unittest discover
+
+docs:
+	$(MAKE) -C doc html
