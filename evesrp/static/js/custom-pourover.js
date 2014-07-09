@@ -526,27 +526,35 @@ if ($('div#request-list').length) {
   });
 }
 
-$('#apikeys').submit(function(e) {
-  var $form = $(e.target),
-      $table = $(this);
-  $.post(
-    window.location.pathname,
-    $form.serialize(),
-    function(data) {
-      // Update table
-      var $rows = $table.find('tr').slice(1, -1),
-          $lastRow = $table.find('tr').slice(-1),
-          $newRows = $(Handlebars.templates.api_keys(data)),
-          $copyButtons = $newRows.find('.copy-btn');
-      clipboard_client.clip($copyButtons);
-      $copyButtons.tooltip({
-        placement: 'bottom',
-        title: 'Copy to clipboard',
-        trigger: 'manual focus'
-      });
-      $rows.remove();
-      $lastRow.before($newRows);
-    }
-  );
-  return false;
-})
+;(function (){
+  var $apikeys = $('#apikeys');
+  if ($apikeys.length) {
+    // Activate the button tooltip
+    $apikeys.find('#createKey').tooltip();
+    // Attach a listener for form submissions
+    $apikeys.submit(function(e) {
+      var $form = $(e.target),
+          $table = $(this);
+      $.post(
+        window.location.pathname,
+        $form.serialize(),
+        function(data) {
+          // Update table
+          var $rows = $table.find('tr').slice(1, -1),
+              $lastRow = $table.find('tr').slice(-1),
+              $newRows = $(Handlebars.templates.api_keys(data)),
+              $copyButtons = $newRows.find('.copy-btn');
+          clipboard_client.clip($copyButtons);
+          $copyButtons.tooltip({
+            placement: 'bottom',
+            title: 'Copy to clipboard',
+            trigger: 'manual focus'
+          });
+          $rows.remove();
+          $lastRow.before($newRows);
+        }
+      );
+      return false;
+    })
+  }
+}());
