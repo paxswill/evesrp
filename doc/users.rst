@@ -139,17 +139,31 @@ Administering Divisions
 
 A fresh installation of EVE-SRP will not have any divisions configured, so
 one of the first actions after installation should be to configure divisions.
-If you have either the global administrator or a divisional administrator
-permission, you will have a "Divisions" button at the top of the screen.
+If you have either the site administrator or administrator in a division,
+you will have an "Admin" button at the top of the screen. Clicking it will list
+all of the divisions you can administer. 
 
 .. image:: images/list_divisions.png
 
-To add a division, click the "Add Division" button, enter a name on the form,
-then click the "Create Division" button. Afterwards you will be taken to the
-administration page for the new division. To grant a permission to a group,
-enter the group name then click the "Add Group" button. The process for adding
-users is identical. User and group names are case sensitive!
+If you are a site administrator you will also see a button for creating
+divisions. To add a division, click the "Add Division" button, enter a name on
+the form, then click the "Create Division" button.
 
-.. image:: images/division_detail.png
+After creating a new division or clicking one of the links in the division
+listing, you will see the administration page for that division.
+To grant a permission to a user or group, start typing the name of that user or
+group in the text box corresponding to that permission. It will autocomplete
+their name if the app knows about it (i.e. if they've logged in before or a
+user in that group has logged in before).
 
-To revoke privileges to a user or group, click the "X" in the "Remove" column.
+.. image:: images/grant_permission.png
+
+Either click the correct entry, or finish typing it out and click the "Add"
+button. To revoke privileges to a user or group, click the "X" in the "Remove"
+column.
+
+.. image:: images/permission_granted.png
+
+Divisions can be configured to have certain request attributes to be changed
+into links. This is covered in more detail in the (TODO) transformers section.
+
