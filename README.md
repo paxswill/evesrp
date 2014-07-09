@@ -119,6 +119,9 @@ socket, your gunicorn command might looks something like this:
 
     gunicorn --bind unix:/path/to/socket wsgi:app
 
+For more information on how to serve a Python app using Gunicorn, check out the
+[Gunicorn documentation][gunicorn-docs].
+
 ### Dependencies
 
 EVE-SRP requires Python 2.7 or >=3.3 and a database (with connector) that is
@@ -132,5 +135,6 @@ regularly with the following database adapters:
 * [MySQL-Python](https://pypi.python.org/pypi/MySQL-python) (Python 2.7 only)
 
 [core]: https://github.com/bravecollective/core
+[gunicorn-docs]: http://docs.gunicorn.org/en/latest/index.html
 [sqla-db-support]: http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#supported-databases
 [psycopg2]:http://initd.org/psycopg/
