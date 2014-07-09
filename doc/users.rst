@@ -93,7 +93,45 @@ evaluating.
 Paying Out Requests
 *******************
 
-TODO
+If you have the payer permission for a division, you can mark requests as paid.
+Typically this is handled by someone with access to the wallet in-game used to
+hold the SRP money.
+
+The number of requests pending payout is displayed in the number badge to the
+right of the "Pay Outs" button. This butotn is only visible if you have the
+payer permission. Click the button to see a list of approved requests.
+
+.. image:: images/list_payouts.png
+
+This list tries to make paying out requests as quick as possible. Clicking one
+of the white buttons (under the "Pilot", "Request ID (copy)", or "Payout"
+columns) will copy the text within to your clipboard, making it quicker to
+enter the information in-game. The clipboard functionality requires Flash, so
+it should be done using an out of game browser. The work flow should be
+something like this:
+
+1. Copy Pilot name from app using standard web browser.
+
+2. Paste the name in a search box for transferring money (either frmo a corp
+   wallet or a personal wallet). Select the user and have the Give/Transfer ISK
+   dialog box up.
+
+3. Copy payout amount from app.
+
+4. Paste payout amount into the amount box in-game.
+
+5. Copy the request ID from the app.
+
+6. Paste the request ID into the reason box in-game. Click the OK button to
+   transfer the money.
+
+7. Once the transfer has completed, click the green "Paid" button. This will
+   mark the request as paid.
+
+If you need to go back and fix something in a request, or to review them
+beforehand, you can clik the request ID text (the blue link).
+
+.. image:: images/paid.png
 
 ***********************
 Administering Divisions
