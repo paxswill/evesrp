@@ -7,9 +7,9 @@ from hashlib import sha256
 from binascii import unhexlify
 
 from .. import db, requests_session
+from ..util import unistr
 from . import AuthMethod, AuthForm
 from .models import User, Group, Pilot
-
 
 class BraveCore(AuthMethod):
     def __init__(self, client_key, server_key, identifier,
