@@ -21,7 +21,9 @@ def error_page(error):
                 code=error.code)
     else:
         response_content = render_template('error.html', error=error)
-    return make_response(response_content, error.code)
+    # Give a default response code for generic exceptions
+    code = error.code if hasattr(error, 'code') else 500
+    return make_response(response_content, code)
 
 
 def request_count(permission, statuses=None):

@@ -4,7 +4,11 @@
 
 {% block content %}
 <div class="jumbotron">
+  {% if error.code %}
   <h1>{{ error.code }}</h1>
+  {% else %}
+  <h1>500</h1>
+  {% endif %}
   <p>{{ error.description }}</p>
 </div>
 {% endblock content %}

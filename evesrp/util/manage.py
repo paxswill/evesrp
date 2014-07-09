@@ -1,7 +1,7 @@
 #!/usr/bin.env python
 
 from __future__ import absolute_import
-from __future__ import unicode_literals
+from __future__ import print_function
 import os
 import os.path
 import argparse
@@ -51,7 +51,7 @@ class MigrateManager(script.Manager):
         if app is None:
             app = self.app
             if app is None:
-                raise Exception("No app specified")
+                raise Exception(u"No app specified")
 
         db = kwargs.pop('db', None)
 
@@ -63,7 +63,7 @@ class MigrateManager(script.Manager):
             if 'sqlalchemy' in app.extensions:
                 db = app.extensions['sqlalchemy'].db
             else:
-                raise Exception("No database defined for app.")
+                raise Exception(u"No database defined for app.")
 
         Migrate(app, db, self.directory)
         return app
@@ -91,8 +91,8 @@ def create(force=False):
     script = ScriptDirectory.from_config(alembic_config)
     latest_rev = script.get_current_head()
     if current_rev == latest_rev and not force:
-        print("You need to run 'evesrp -c config.py db migrate' to "
-              "migrate to the latest database schema.")
+        print(u"You need to run 'evesrp -c config.py db migrate' to "
+              u"migrate to the latest database schema.")
     else:
         db.create_all()
         if current_rev is None:
