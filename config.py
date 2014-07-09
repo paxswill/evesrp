@@ -19,15 +19,15 @@ DEBUG = True
 
 SQLALCHEMY_ECHO = False
 
-USER_AGENT_EMAIL = u'paxswill@paxswill.com'
+SRP_USER_AGENT_EMAIL = u'paxswill@paxswill.com'
 
 SQLALCHEMY_DATABASE_URI = 'postgres://localhost:5432/evesrp'
 
-AUTH_METHODS = [
+SRP_AUTH_METHODS = [
         TestAuth(admins=[u'paxswill',]),
 ]
 
-KILLMAIL_SOURCES = [
+SRP_KILLMAIL_SOURCES = [
         TestZKillboard,
 ]
 
