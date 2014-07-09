@@ -8,14 +8,14 @@ http://techspot.zzzeek.org/files/2011/decl_enum.py
 import six
 from sqlalchemy.types import SchemaType
 import re
-from . import unistr
+from .unistr import unistr, ensure_unicode
 from .. import db
 
 
 # NOTE: When adding Py2 support, make sure to set the metaclasses appropriately
 
 
-@unistr.unistr
+@unistr
 class EnumSymbol(object):
     """Define a fixed symbol tied to a parent class."""
 
@@ -49,7 +49,7 @@ class EnumMeta(type):
             if isinstance(v, tuple):
                 unicoded = []
                 for tup_v in v:
-                    unicoded.append(unistr.ensure_unicode(tup_v))
+                    unicoded.append(ensure_unicode(tup_v))
                 sym = reg[unicoded[0]] = EnumSymbol(cls, k, *unicoded)
                 setattr(cls, k, sym)
         return type.__init__(cls, classname, bases, dict_)
@@ -67,11 +67,11 @@ class DeclEnum(object):
     @classmethod
     def from_string(cls, value):
         try:
-            return cls._reg[unistr.ensure_unicode(value)]
+            return cls._reg[ensure_unicode(value)]
         except KeyError:
             raise ValueError(
                     u"Invalid value for %r: %r" % 
-                    (cls.__name__, unistr.ensure_unicode(value))
+                    (cls.__name__, ensure_unicode(value))
                 )
 
     @classmethod

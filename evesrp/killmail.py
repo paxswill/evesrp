@@ -7,9 +7,7 @@ from functools import partial
 import re
 import sys
 import six
-from .util.unistr import unistr
-from .util.urlparse import urlparse, urlunparse
-from .util.utc import utc
+from .util import unistr, urlparse, urlunparse, utc
 
 import requests
 from sqlalchemy import create_engine, Table, MetaData

@@ -11,7 +11,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection, collection
 
 from .. import db
 from . import AuthMethod, PermissionType
-from ..util import AutoID, Timestamped, AutoName, unistr
+from ..util import AutoID, Timestamped, AutoName, unistr, ensure_unicode
 from ..models import Action, Modifier, Request
 
 
@@ -24,7 +24,7 @@ users_groups = db.Table('users_groups', db.Model.metadata,
         db.Column('group_id', db.Integer, db.ForeignKey('group.id')))
 
 
-@unistr.unistr
+@unistr
 class Entity(db.Model, AutoID, AutoName):
     """Private class for shared functionality between :py:class:`User` and
     :py:class:`Group`.
@@ -63,8 +63,8 @@ class Entity(db.Model, AutoID, AutoName):
         return args
 
     def __init__(self, name, authmethod, **kwargs):
-        self.name = unistr.ensure_unicode(name)
-        self.authmethod = unistr.ensure_unicode(authmethod)
+        self.name = ensure_unicode(name)
+        self.authmethod = ensure_unicode(authmethod)
         super(Entity, self).__init__(**kwargs)
 
     def __repr__(self):
@@ -230,10 +230,10 @@ class Note(db.Model, AutoID, Timestamped, AutoName):
     def __init__(self, user, noter, note):
         self.user = user
         self.noter = noter
-        self.content = unistr.ensure_unicode(note)
+        self.content = ensure_unicode(note)
 
 
-@unistr.unistr
+@unistr
 class Pilot(db.Model, AutoID, AutoName):
     """Represents an in-game character."""
 
@@ -262,7 +262,7 @@ class Pilot(db.Model, AutoID, AutoName):
         :param int id_: The CCP-given characterID number.
         """
         self.user = user
-        self.name = unistr.ensure_unicode(name)
+        self.name = ensure_unicode(name)
         self.id = id_
 
     def __repr__(self):
@@ -397,7 +397,7 @@ class Division(db.Model, AutoID, AutoName):
         return _PermProxy(self.division_permissions)
 
     def __init__(self, name):
-        self.name = unistr.ensure_unicode(name)
+        self.name = ensure_unicode(name)
 
     def __repr__(self):
         return "{x.__class__.__name__}('{x.name}')".format(x=self)

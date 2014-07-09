@@ -10,8 +10,7 @@ from flask.ext.wtf.csrf import CsrfProtect
 db = SQLAlchemy()
 
 
-from .util import DB_STATS
-from .util.request import AcceptRequest
+from .util import DB_STATS, AcceptRequest
 
 
 __version__ = u'0.8.6-dev'

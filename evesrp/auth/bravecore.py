@@ -7,7 +7,7 @@ from hashlib import sha256
 from binascii import unhexlify
 
 from .. import db, requests_session
-from ..util import unistr
+from ..util import ensure_unicode
 from . import AuthMethod, AuthForm
 from .models import User, Group, Pilot
 
@@ -35,7 +35,7 @@ class BraveCore(AuthMethod):
         pass
 
     def view(self):
-        token = unistr.ensure_unicode(request.args.get('token'))
+        token = ensure_unicode(request.args.get('token'))
         if token is not None:
             info = self.api.core.info(token=token)
             char_name = info.character.name

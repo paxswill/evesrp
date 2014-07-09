@@ -8,7 +8,7 @@ from six.moves import map
 from sqlalchemy.orm.exc import NoResultFound
 from .. import csrf
 from ..auth.models import User, APIKey
-from ..util import unistr
+from ..util import ensure_unicode
 
 
 blueprint = Blueprint('login', __name__)
@@ -28,7 +28,7 @@ def login_loader(userid):
 
 @login_manager.request_loader
 def apikey_loader(request):
-    api_key = unistr.ensure_unicode(request.values.get('apikey'))
+    api_key = ensure_unicode(request.values.get('apikey'))
     if api_key and request.method == 'GET':
         api_key = api_key.replace(u',', u'=')
         try:
