@@ -17,9 +17,11 @@ from wtforms.validators import InputRequired, AnyOf, URL, ValidationError,\
 from .. import db
 from ..models import Request, Modifier, Action, ActionType, ActionError,\
         ModifierError, AbsoluteModifier, RelativeModifier
+from ..util import xmlify
 from ..auth import PermissionType
 from ..auth.models import Division, Pilot, Permission, User, Group, Note,\
     APIKey
+
 
 if six.PY3:
     unicode = str
@@ -62,20 +64,14 @@ class RequestListing(View):
         if request.is_json or request.is_xhr:
             return jsonify(requests=self.requests(division_id))
         if request.is_rss:
-            rss_content = render_template('rss.xml',
+            return xmlify('rss.xml', content_type='application/rss+xml',
                     requests=self.requests(division_id),
                     title=(kwargs['title'] if 'title' in kwargs else u''),
                     main_link=url_for(request.endpoint,
                         division_id=division_id, _external=True))
-            response = make_response(rss_content)
-            response.headers['Content-Type'] = 'application/rss+xml'
-            return response
         if request.is_xml:
-            xml_list = render_template('request_list.xml',
+            return xmlify('request_list.xml',
                     requests=self.requests(division_id))
-            response = make_response(xml_list)
-            response.headers['Content-Type'] = 'application/xml'
-            return response
         pager = self.requests(division_id).paginate(page, per_page=20)
         return render_template(self.template,
                 pager=pager, **kwargs)
@@ -128,11 +124,8 @@ class PersonalRequests(RequestListing):
                     requests=self.requests(division_id),
                     api_keys=current_user.api_keys)
         if request.is_xml:
-            xml_list = render_template('personal_list.xml',
+            return xmlify('personal_list.xml',
                     requests=self.requests(division_id))
-            response = make_response(xml_list)
-            response.headers['Content-Type'] = 'application/xml'
-            return response
         return super(PersonalRequests, self).dispatch_request(
                 division_id, page, key_form=APIKeyForm(formdata=None))
 
@@ -490,10 +483,7 @@ def get_request_details(request_id=None, srp_request=None):
         enc_request[u'current_user'] = current_user._get_current_object()
         return jsonify(enc_request)
     if request.is_xml:
-        xml_request = render_template('request.xml', srp_request=srp_request)
-        response = make_response(xml_request)
-        response.headers['Content-Type'] = 'application/xml'
-        return response
+        return xmlify('request.xml', srp_request=srp_request)
     return render_template(template, srp_request=srp_request,
             modifier_form=ModifierForm(formdata=None),
             payout_form=PayoutForm(formdata=None),

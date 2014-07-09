@@ -6,3 +6,4 @@ from .sqlstats import DB_STATS
 from .unistr import unistr, ensure_unicode
 from .urlparse import urlparse, urlunparse
 from .utc import utc
+from .xmlify import xmlify
