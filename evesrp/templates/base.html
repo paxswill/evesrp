@@ -96,7 +96,14 @@
     <footer id="stats">
       <p class="text-muted text-center"><small>
         EVE-SRP v{{ app_version }} &bull;
-        <a href="https://github.com/paxswill/evesrp">Github Project</a>
+        <a href="https://github.com/paxswill/evesrp">Github Project</a> &bull;
+        {% if '-dev' in app_version %}
+        <a href="https://eve-srp.readthedocs.org/en/latest/users.html">
+        {% else %}
+        <a href="{{ "https://eve-srp.readthedocs.org/en/" ~ app_version ~ "/users.html" }}">
+        {% endif %}
+          Help
+        </a>
       </small></p>
       {% if current_user.admin %}
       <p class="text-muted text-center"><small>{{ g.DB_STATS.total_queries }} queries in {{ (g.DB_STATS.total_time * 1000)|round(3)}} ms</small></p>
