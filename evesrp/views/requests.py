@@ -324,9 +324,20 @@ def get_killmail_validators():
     return validators
 
 
+def get_killmail_descriptions():
+    description = Markup(u"Acceptable Killmail Links:<ul>")
+    desc_entry = Markup(u"<li>{}</li>")
+    killmail_descs = [desc_entry.format(km.description) for km in\
+            current_app.killmail_sources]
+    description += Markup(u"").join(killmail_descs)
+    description += Markup(u"</ul>")
+    return description
+
+
 class RequestForm(Form):
     url = URLField(u'Killmail URL')
-    details = TextAreaField(u'Details', validators=[InputRequired()])
+    details = TextAreaField(u'Details', validators=[InputRequired()],
+            description=u'Supporting details about your loss.')
     division = SelectField(u'Division', coerce=int)
     submit = SubmitField(u'Submit')
 
@@ -359,6 +370,9 @@ def submit_request():
     if not current_user.has_permission(PermissionType.submit):
         abort(403)
     form = RequestForm()
+    # Do it in here so we can access current_app (needs to be in an app
+    # context)
+    form.url.description = get_killmail_descriptions()
     # Create a list of divisions this user can submit to
     form.division.choices = current_user.submit_divisions()
 
