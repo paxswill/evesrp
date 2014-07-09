@@ -16,13 +16,26 @@ def index():
 
 
 def error_page(error):
+    """View function for displaying error pages."""
+    # Try to get some meaningful bits of information about the error
+    # HTTPExceptions (raised by abort()) have code and description attributes.
+    # Try to prefer those rich values over more generic information.
+    code = error.code if hasattr(error, 'code') else 500
+    if hasattr(error, 'description'):
+        description = error.description
+    else:
+        description = str(error)
+    name = error.name if hasattr(error, 'name') else u'Application Error'
+    # Give the error information in a machine readable format for APIs
     if request.is_json or request.is_xhr:
         response_content = jsonify(description=error.description,
-                code=error.code)
+                code=code)
+    elif request.is_xml:
+        pass
     else:
-        response_content = render_template('error.html', error=error)
+        response_content = render_template('error.html', code=code,
+                description=description, name=name)
     # Give a default response code for generic exceptions
-    code = error.code if hasattr(error, 'code') else 500
     return make_response(response_content, code)
 
 

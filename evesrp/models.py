@@ -11,7 +11,7 @@ from flask import Markup
 
 from . import db
 from .util import DeclEnum, classproperty, AutoID, Timestamped, AutoName,\
-        unistr
+        unistr, ensure_unicode
 from .auth import PermissionType
 
 
@@ -141,7 +141,7 @@ class Action(db.Model, AutoID, Timestamped, AutoName):
         if type_ is not None:
             self.type_ = type_
         self.user = user
-        self.note = unistr.ensure_unicode(note)
+        self.note = ensure_unicode(note)
         self.timestamp = dt.datetime.utcnow()
         self.request = request
 
@@ -222,7 +222,7 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
 
     def __init__(self, request, user, note, value):
         self.user = user
-        self.note = unistr.ensure_unicode(note)
+        self.note = ensure_unicode(note)
         self.value = value
         self.request = request
 
@@ -247,7 +247,7 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
         self.voided_timestamp = dt.datetime.utcnow()
 
 
-@unistr.unistr
+@unistr
 class AbsoluteModifier(Modifier):
     """Subclass of :py:class:`Modifier` for representing absolute
     modifications.
@@ -266,7 +266,7 @@ class AbsoluteModifier(Modifier):
                 u'bonus' if self.value >= 0 else u'penalty')
 
 
-@unistr.unistr
+@unistr
 class RelativeModifier(Modifier):
     """Subclass of :py:class:`Modifier` for representing relative modifiers.
 

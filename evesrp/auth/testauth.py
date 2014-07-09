@@ -8,7 +8,7 @@ from wtforms.fields import StringField, PasswordField, HiddenField, SubmitField
 from wtforms.validators import InputRequired
 
 from .. import db, requests_session
-from ..util import unistr
+from ..util import ensure_unicode
 from . import AuthMethod, AuthForm
 from .models import User, Group, Pilot
 
@@ -145,9 +145,9 @@ class TestUser(User):
     auth_id = db.Column(db.Integer, nullable=False, index=True)
 
     def __init__(self, username, auth_id, authmethod, groups=None, **kwargs):
-        self.name = unistr.ensure_unicode(username)
+        self.name = ensure_unicode(username)
         self.auth_id = auth_id
-        self.authmethod = unistr.ensure_unicode(authmethod)
+        self.authmethod = ensure_unicode(authmethod)
 
 
 class TestGroup(Group):
@@ -156,6 +156,6 @@ class TestGroup(Group):
     description = db.Column(db.Text)
 
     def __init__(self, name, auth_id, authmethod):
-        self.name = unistr.ensure_unicode(name)
+        self.name = ensure_unicode(name)
         self.auth_id = auth_id
-        self.authmethod = unistr.ensure_unicode(authmethod)
+        self.authmethod = ensure_unicode(authmethod)

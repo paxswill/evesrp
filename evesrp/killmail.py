@@ -7,10 +7,9 @@ from functools import partial
 import re
 import sys
 import six
-from .util.unistr import unistr
-from .util.urlparse import urlparse, urlunparse
-from .util.utc import utc
+from .util import unistr, urlparse, urlunparse, utc
 
+from flask import Markup
 import requests
 from sqlalchemy import create_engine, Table, MetaData
 from sqlalchemy.sql import select
@@ -167,6 +166,11 @@ class Killmail(object):
         yield ('constellation', self.constellation)
         yield ('region', self.region)
 
+    #: A user-facing description of what killmails this Killmail
+    #: validates/handles.
+    description = (u"A generic Killmail. If you see this text, you need to"
+                   u"reconfigure your application.")
+
 
 class ShipNameMixin(object):
     """Killmail mixin providing :py:attr:`Killmail.ship` from
@@ -307,6 +311,9 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
         return u"{parent} From ZKillboard at {url}".format(parent=parent,
                 url=self.url)
 
+    description = Markup(u'A link to a lossmail from <a href="https://'
+                         u'zkillboard.com/">ZKillboard</a>.')
+
 
 class CRESTMail(Killmail, RequestsSessionMixin, LocationMixin):
     """A killmail with data sourced from a CREST killmail link."""
@@ -366,3 +373,6 @@ class CRESTMail(Killmail, RequestsSessionMixin, LocationMixin):
         time_struct = time.strptime(json[u'killTime'], '%Y.%m.%d %H:%M:%S')
         self.timestamp = dt.datetime(*(time_struct[0:6]),
                 tzinfo=utc)
+
+    description = Markup(u'A CREST external killmail link. <a href="#">'
+                         u'How to get one.</a>')

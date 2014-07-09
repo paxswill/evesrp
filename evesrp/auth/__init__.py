@@ -6,7 +6,7 @@ from flask.ext.login import current_user
 import flask.ext.login as flask_login
 from flask.ext.wtf import Form
 from wtforms.fields import SubmitField, HiddenField
-from ..util import DeclEnum, classproperty, unistr
+from ..util import DeclEnum, classproperty, ensure_unicode
 
 
 class AuthForm(Form):
@@ -19,7 +19,7 @@ class AuthMethod(object):
             self.admins = []
         else:
             self.admins = admins
-        self.name = unistr.ensure_unicode(name)
+        self.name = ensure_unicode(name)
 
     def form(self):
         """Return a form class to login with."""

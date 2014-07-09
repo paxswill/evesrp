@@ -17,9 +17,11 @@ from wtforms.validators import InputRequired, AnyOf, URL, ValidationError,\
 from .. import db
 from ..models import Request, Modifier, Action, ActionType, ActionError,\
         ModifierError, AbsoluteModifier, RelativeModifier
+from ..util import xmlify
 from ..auth import PermissionType
 from ..auth.models import Division, Pilot, Permission, User, Group, Note,\
     APIKey
+
 
 if six.PY3:
     unicode = str
@@ -62,20 +64,14 @@ class RequestListing(View):
         if request.is_json or request.is_xhr:
             return jsonify(requests=self.requests(division_id))
         if request.is_rss:
-            rss_content = render_template('rss.xml',
+            return xmlify('rss.xml', content_type='application/rss+xml',
                     requests=self.requests(division_id),
                     title=(kwargs['title'] if 'title' in kwargs else u''),
                     main_link=url_for(request.endpoint,
                         division_id=division_id, _external=True))
-            response = make_response(rss_content)
-            response.headers['Content-Type'] = 'application/rss+xml'
-            return response
         if request.is_xml:
-            xml_list = render_template('request_list.xml',
+            return xmlify('request_list.xml',
                     requests=self.requests(division_id))
-            response = make_response(xml_list)
-            response.headers['Content-Type'] = 'application/xml'
-            return response
         pager = self.requests(division_id).paginate(page, per_page=20)
         return render_template(self.template,
                 pager=pager, **kwargs)
@@ -128,11 +124,8 @@ class PersonalRequests(RequestListing):
                     requests=self.requests(division_id),
                     api_keys=current_user.api_keys)
         if request.is_xml:
-            xml_list = render_template('personal_list.xml',
+            return xmlify('personal_list.xml',
                     requests=self.requests(division_id))
-            response = make_response(xml_list)
-            response.headers['Content-Type'] = 'application/xml'
-            return response
         return super(PersonalRequests, self).dispatch_request(
                 division_id, page, key_form=APIKeyForm(formdata=None))
 
@@ -331,9 +324,20 @@ def get_killmail_validators():
     return validators
 
 
+def get_killmail_descriptions():
+    description = Markup(u"Acceptable Killmail Links:<ul>")
+    desc_entry = Markup(u"<li>{}</li>")
+    killmail_descs = [desc_entry.format(km.description) for km in\
+            current_app.killmail_sources]
+    description += Markup(u"").join(killmail_descs)
+    description += Markup(u"</ul>")
+    return description
+
+
 class RequestForm(Form):
     url = URLField(u'Killmail URL')
-    details = TextAreaField(u'Details', validators=[InputRequired()])
+    details = TextAreaField(u'Details', validators=[InputRequired()],
+            description=u'Supporting details about your loss.')
     division = SelectField(u'Division', coerce=int)
     submit = SubmitField(u'Submit')
 
@@ -366,6 +370,9 @@ def submit_request():
     if not current_user.has_permission(PermissionType.submit):
         abort(403)
     form = RequestForm()
+    # Do it in here so we can access current_app (needs to be in an app
+    # context)
+    form.url.description = get_killmail_descriptions()
     # Create a list of divisions this user can submit to
     form.division.choices = current_user.submit_divisions()
 
@@ -490,10 +497,7 @@ def get_request_details(request_id=None, srp_request=None):
         enc_request[u'current_user'] = current_user._get_current_object()
         return jsonify(enc_request)
     if request.is_xml:
-        xml_request = render_template('request.xml', srp_request=srp_request)
-        response = make_response(xml_request)
-        response.headers['Content-Type'] = 'application/xml'
-        return response
+        return xmlify('request.xml', srp_request=srp_request)
     return render_template(template, srp_request=srp_request,
             modifier_form=ModifierForm(formdata=None),
             payout_form=PayoutForm(formdata=None),

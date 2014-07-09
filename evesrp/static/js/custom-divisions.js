@@ -62,7 +62,7 @@ $(".permission").submit( function(e) {
     form = $(e.target);
   }
   var permission = $(this).attr("id");
-  var permission_title = $(this).children("h2").text().slice(0, -1);
+  var permission_title = $(this).find("h3").text().slice(0, -1);
   var entity_name = form.find("input[name='name']").val();
   if (entity_name === undefined) {
     entity_name = form.closest("tr").find("td").first().text();
