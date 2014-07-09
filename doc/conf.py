@@ -113,6 +113,7 @@ intersphinx_mapping = {
     'requests': ('http://docs.python-requests.org/en/latest/', None),
     'python3': ('https://docs.python.org/3/', None),
     'flasksqlalchemy': ('http://pythonhosted.org/Flask-SQLAlchemy/', None),
+    'six': ('https://pythonhosted.org/six/', None),
 }
 
 # -- Autodoc configuration --------------
