@@ -13,14 +13,14 @@ enter your credentials and login.
 .. image:: images/login.png
 
 Once you have logged in, you will be able to see what reimbursement divisions
-you have been granted permissions in. If you click the "Submit" button  at the
-top of the screen you will see a list of all requests you have submitted,
-regardless of final status or current division privileges. To submit a request,
-click the "Submit Request" button at the bottom of the list. The button will
-only be present if you have been granted the submit privilege within a
-division.
+you have been granted permissions in as well as all of the requests you have
+submitted.
 
-.. image:: images/submitted.png
+.. image:: images/personal.png
+
+To submit a request, click the "Submit" button at the top of the
+screen. The button will only be present if you have been granted the submit
+privilege within a division.
 
 In the form, enter a killmail URL and any details your organization normally
 requires. What kind of killmail URLs that are acceptable is up to your
@@ -31,7 +31,8 @@ done entering the information.
 .. image:: images/submit_form.png
 
 You will be redirected to the request detail page once you have submitted your
-request. Via this page you can add comments for reviewers.
+request. Via this page you can add comments for reviewers, or update the
+details to correct problems.
 
 .. image:: images/request_submitted.png
 
