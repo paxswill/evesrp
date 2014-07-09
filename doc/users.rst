@@ -41,25 +41,30 @@ Reviewing Requests
 ******************
 
 If you have the review permission in a division and are logged in, you can
-click on the "Review" link at the top of the screen to see a list
+click on the "Pending" link at the top of the screen to see a list
 of requests that are not in a final (paid or rejected) state, and are thus able
-to be reviewed. Unevaluated requests have a yellow background, incomplete and
-rejected have a red background, approved (pending payout) have blue, and paid
-requests have a green background. To open a request, click the Request ID link
-(blue text).
+to be reviewed. The number of requests that are in the "Evaluating" state is
+displayed in the number badge next to the "Pending" button.
+
+In the list of requests, unevaluated requests have a yellow background,
+incomplete and
+rejected have a red background, approved (pending payout) have a blue one, and
+paid requests have a green background. To open a request, click the Request ID
+link (blue text).
 
 .. image:: images/list_submitted.png
 
 In addition to the controls available to a normal user, reviewers have a few
-extra available. The base payout can be set by entering a value (in millions of
-ISK) and clicking the "Set" button.
+extra controls available. The base payout can be set by entering a value
+(in millions of ISK) and clicking the "Set" button.
 
 .. image:: images/set_payout.png
 
 To apply bonuses and/or deduction, enter an amount in the "Add Modifier" form,
 enter a reason for the modifier, and then select the type of modifier from the
-dropdown button labeled, "Type". The effect of modifiers are calculated in the
-order they are added.
+dropdown button labeled, "Type". Absolute modifiers (adding or subtracting a
+set amount of ISK) are applied first, followed by percentage
+deductions/bonuses.
 
 .. image:: images/add_modifier.png
 
@@ -83,11 +88,6 @@ base payout, you can set approved (but not yet paid) requests back to
 evaluating.
 
 .. image:: images/evaluating.png
-
-Finally, you can see a list of completed (paid or rejected) requests by
-clicking the "Completed" link at the top of the screen.
-
-.. image:: images/list_completed.png
 
 *******************
 Paying Out Requests
