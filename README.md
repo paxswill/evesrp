@@ -109,7 +109,7 @@ Name the file as `wsgi.py` and you can then run it with
 
     python wsgi.py
 
-Using a separate server, you can use the same `wsgi.py` file with a Procfile
+Using Heroku, you can use the same `wsgi.py` file with a Procfile
 like this:
 
     web: gunicorn wsgi:app
