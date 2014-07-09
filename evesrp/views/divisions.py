@@ -57,7 +57,7 @@ def add_division():
         division = Division(form.name.data)
         db.session.add(division)
         db.session.commit()
-        return redirect(url_for('.division_detail', division_id=division.id))
+        return redirect(url_for('.get_division_details', division_id=division.id))
     return render_template('form.html', form=form)
 
 
@@ -110,9 +110,9 @@ def transformer_choices(attr):
     return choices
 
 
-@blueprint.route('/<int:division_id>/', methods=['GET', 'POST'])
+@blueprint.route('/<int:division_id>/', methods=['GET'])
 @login_required
-def division_detail(division_id):
+def get_division_details(division_id=None, division=None):
     """Generate a page showing the details of a division.
 
     Shows which groups and individuals have been granted permissions to each
@@ -122,81 +122,126 @@ def division_detail(division_id):
 
     :param int division_id: The ID number of the division
     """
+    if division is None:
+        division = Division.query.get_or_404(division_id)
+    if not current_user.admin and not \
+            current_user.has_permission(PermissionType.admin, division):
+        abort(403)
+    return render_template(
+            'division_detail.html',
+            division=division,
+            entity_form=ChangeEntity(formdata=None),
+            transformer_form=ChangeTransformer(formdata=None),
+    )
+
+
+def _modify_division_entity(division):
+    """Handle POST requests for adding/removing entities form a Division."""
+    form = ChangeEntity()
+    if form.validate():
+        if form.id_.data != '':
+            entity = Entity.query.get(form.id_.data)
+            if entity is None:
+                flash(u"No entity with ID #{}.".format(form.id_.data),
+                        u'error')
+        else:
+            try:
+                entity = Entity.query.filter_by(
+                        name=form.name.data).one()
+            except NoResultFound:
+                flash(u"No entities with the name '{}' found.".
+                        format(form.name.data), category=u'error')
+            except MultipleResultsFound:
+                flash(u"Multiple entities eith the name '{}' found.".
+                        format(form.name.data), category=u'error')
+        if entity is None:
+            return get_division_details(division=division)
+        # The entity has been found, create the query for the requested
+        # Permission.
+        permission_type = PermissionType.from_string(
+                form.permission.data)
+        permission_query = Permission.query.filter_by(
+                division=division,
+                entity=entity,
+                permission=permission_type)
+        # The response for both add and delete actions depends on wether the
+        # Permission is found, so look it up first.
+        try:
+            permission = permission_query.one()
+        except NoResultFound:
+            if form.action.data == 'add':
+                db.session.add(
+                    Permission(division, permission_type, entity))
+                flash(u"'{}' is now a {}.".format(entity,
+                        permission_type.description.lower()), u"info")
+            elif form.action.data == 'delete':
+                flash(u"{} is not a {}.".format(entity,
+                    permission_type.description.lower()), u"warning")
+        else:
+            if form.action.data == 'delete':
+                permission_query.delete()
+                flash(u"'{}' is no longer a {}.".format(entity,
+                        permission_type.description.lower()), u"info")
+            elif form.action.data == 'add':
+                flash(u"'{}' is now a {}.".format(entity,
+                        permission_type.description.lower()), u"info")
+        db.session.commit()
+    else:
+        for field_name, errors in six.iteritems(form.errors):
+            errors = u", ".join(errors)
+            flash(u"Errors for {}: {}".format(field_name, errors), u'error')
+        current_app.logger.info("Malformed entity permission POST: {}".format(
+                form.errors))
+    return get_division_details(division=division)
+
+
+def _modify_division_transformer(division):
+    """Handle POST requests for changing the Transformers for a Division."""
+    form = ChangeTransformer()
+    # Set the form's choices
+    attr = form.attribute.data
+    form.transformer.choices = transformer_choices(attr)
+    # Check form and go from there
+    if form.validate():
+        name = form.transformer.data
+        if name == 'none':
+            division.transformers[attr] = None
+        else:
+            # Get the specific map of transformers for the attribute
+            attr_transformers = current_app.url_transformers[attr]
+            # Get the new transformer
+            division.transformers[attr] = attr_transformers[name]
+            # Explicitly add the TransformerRef to the session
+            db.session.add(division.division_transformers[attr])
+            db.session.commit()
+    else:
+        for field_name, errors in six.iteritems(form.errors):
+            errors = u", ".join(errors)
+            flash(u"Errors for {}: {}".format(field_name, errors), u'error')
+        current_app.logger.info("Malformed division transformer POST: {}".
+                format(form.errors))
+    return get_division_details(division=division)
+
+
+@blueprint.route('/<int:division_id>/', methods=['POST'])
+@login_required
+def modify_division(division_id):
+    """Dispatches modification requests to the specialized view function for
+    that operation.
+    """
     division = Division.query.get_or_404(division_id)
     if not current_user.admin and not \
             current_user.has_permission(PermissionType.admin, division):
         abort(403)
-    if request.method == 'POST':
-        if request.form['form_id'] == 'entity':
-            form = ChangeEntity()
-            if form.validate():
-                if form.id_.data != '':
-                    entity = Entity.query.get(form.id_.data)
-                    if entity is None:
-                        flash(u"No entity with ID #{}.".format(form.id_.data),
-                                u'error')
-                else:
-                    try:
-                        entity = Entity.query.filter_by(
-                                name=form.name.data).one()
-                    except NoResultFound:
-                        flash(u"No entities with the name '{}' found.".
-                                format(form.name.data), category=u'error')
-                    except MultipleResultsFound:
-                        flash(u"Multiple entities eith the name '{}' found.".
-                                format(form.name.data), category=u'error')
-                permission_type = PermissionType.from_string(
-                        form.permission.data)
-                permission_query = Permission.query.filter_by(
-                        division=division,
-                        entity=entity,
-                        permission=permission_type)
-                try:
-                    permission = permission_query.one()
-                except NoResultFound:
-                    if form.action.data == 'add':
-                        db.session.add(
-                            Permission(division, permission_type, entity))
-                        flash(u"'{}' is now a {}.".format(entity,
-                                permission_type.description.lower()), u"info")
-                    elif form.action.data == 'delete':
-                        flash(u"{} is not a {}.".format(entity,
-                            permission_type.description.lower()), u"warning")
-                else:
-                    if form.action.data == 'delete':
-                        permission_query.delete()
-                        flash(u"'{}' is no longer a {}.".format(entity,
-                                permission_type.description.lower()), u"info")
-                    elif form.action.data == 'add':
-                        flash(u"'{}' is now a {}.".format(entity,
-                                permission_type.description.lower()), u"info")
-            else:
-                abort(400)
-        elif request.form['form_id'] == 'transformer':
-            form = ChangeTransformer()
-            attr = form.attribute.data
-            form.transformer.choices = transformer_choices(attr)
-            # Check form and go from there
-            if form.validate():
-                name = form.transformer.data
-                if name == 'none':
-                    division.transformers[attr] = None
-                else:
-                    # Get the specific map of transformers for the attribute
-                    attr_transformers = current_app.url_transformers[attr]
-                    # Get the new transformer
-                    division.transformers[attr] = attr_transformers[name]
-                    # Explicitly add the TransformerRef to the session
-                    db.session.add(division.division_transformers[attr])
-            else:
-                abort(400)
-        db.session.commit()
-    return render_template(
-            'division_detail.html',
-            division=division,
-            entity_form=ChangeEntity(),
-            transformer_form=ChangeTransformer(),
-    )
+    form_id = request.form.get('form_id')
+    if form_id == 'entity':
+        return _modify_division_entity(division)
+    elif form_id == 'transformer':
+        return _modify_division_transformer(division)
+    else:
+        current_app.logger.warn("Invalid division modification POST: {}"
+                .format(request.form))
+        abort(400)
 
 
 @blueprint.route('/<int:division_id>/transformers/')
