@@ -49,7 +49,7 @@
           <form class="pull-right" method="post">
             {{ key_form.csrf_token }}
             {{ key_form.action(value='add') }}
-            <button type="submit" class="btn btn-sm btn-info">Add API Key</button>
+            <button type="submit" class="btn btn-sm btn-info" id="createKey" data-toggle="tooltip" data-placement="bottom" title="This creates a key for this app's API, not the EVE API.">Create API Key</button>
           </form>
         </td>
       </tr>
