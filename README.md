@@ -60,7 +60,6 @@ connect to the database, how users should log in, and other things like that.
 Here's an example that will authenticate using [Brave's Core][core] that you
 can build off of.
 
-    from evesrp import Transformer
     from evesrp.auth.bravecore import BraveCore
     
     # The database connection URI. Consult the SQLAlchemy documentation for
