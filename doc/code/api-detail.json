@@ -1,0 +1,81 @@
+{
+  "actions": [
+    {
+      "id": 2, 
+      "note": "", 
+      "timestamp": "Thu, 10 Jul 2014 06:37:09 GMT", 
+      "type": "paid", 
+      "user": {
+        "href": "/api/user/1/", 
+        "id": 1, 
+        "name": "paxswill"
+      }
+    }, 
+    {
+      "id": 1, 
+      "note": "Good to go.", 
+      "timestamp": "Wed, 09 Jul 2014 19:58:56 GMT", 
+      "type": "approved", 
+      "user": {
+        "href": "/api/user/1/", 
+        "id": 1, 
+        "name": "paxswill"
+      }
+    }
+  ], 
+  "alliance": "Test Alliance Please Ignore", 
+  "base_payout": "40000000.00", 
+  "base_payout_str": "40,000,000.00", 
+  "corporation": "Dreddit", 
+  "current_user": {
+    "href": "/api/user/1/", 
+    "id": 1, 
+    "name": "paxswill"
+  }, 
+  "details": "I literally forgot how to broadcast for armor.", 
+  "division": {
+    "href": "/api/division/1/", 
+    "id": 1, 
+    "name": "Test Alliance"
+  }, 
+  "href": "/request/39861569/", 
+  "id": 39861569, 
+  "kill_timestamp": "Wed, 02 Jul 2014 19:26:00 GMT", 
+  "killmail_url": "https://zkillboard.com/kill/39861569/", 
+  "modifiers": [
+    {
+      "id": 1, 
+      "note": "You're awesome!", 
+      "timestamp": "Wed, 09 Jul 2014 19:50:10 GMT", 
+      "user": {
+        "href": "/api/user/1/", 
+        "id": 1, 
+        "name": "paxswill"
+      }, 
+      "value": 0.15, 
+      "value_str": "15.0% bonus", 
+      "void": {
+        "timestamp": "Wed, 09 Jul 2014 19:58:00 GMT", 
+        "user": {
+          "href": "/api/user/1/", 
+          "id": 1, 
+          "name": "paxswill"
+        }
+      }
+    }
+  ], 
+  "payout": "40000000.00", 
+  "payout_str": "40,000,000.00", 
+  "pilot": "Paxswill", 
+  "status": "paid", 
+  "submit_timestamp": "Wed, 09 Jul 2014 19:43:58 GMT", 
+  "submitter": {
+    "href": "/api/user/1/", 
+    "id": 1, 
+    "name": "paxswill"
+  }, 
+  "valid_actions": [
+    "approved", 
+    "evaluating"
+  ]
+}
