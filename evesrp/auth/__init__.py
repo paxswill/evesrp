@@ -80,9 +80,19 @@ class AuthMethod(object):
 
 
 class PermissionType(DeclEnum):
+    """Enumerated type for the typers of permissions available. """
+
+    #: Permission allowing submission of :py:class:`~.Request`\s to a
+    #: :py:class:`~.Division`.
     submit = u'submit', u'Submitter'
+
+    #: Permission for reviewers of requests in a :py:class:`~.Division`.
     review = u'review', u'Reviewer'
+
+    #: Permission for payers in a :py:class:`~.Division`.
     pay = u'pay', u'Payer'
+
+    #: :py:class:`~.Division`\-level administrator permission
     admin = u'admin', u'Administrator'
 
     @classproperty

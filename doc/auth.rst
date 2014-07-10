@@ -123,6 +123,17 @@ API Documentation
 
 .. py:module:: evesrp.auth
 
+.. autoclass:: PermissionType
+
+    .. py:attribute:: elevated
+
+        Returns a :py:class:`frozenset` of the permissions above
+        :py:attr:`submit`.
+
+    .. py:attribute:: all
+
+        Returns a :py:class:`frozenset` of all possible permission values.
+
 .. autoclass:: AuthMethod
     :exclude-members: __weakref__
 
