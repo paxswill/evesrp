@@ -28,3 +28,4 @@ mock==1.0.1
 requests==2.2.1
 simple-pbkdf2==1.0
 six==1.7.3
+sphinx-rtd-theme==0.1.6
