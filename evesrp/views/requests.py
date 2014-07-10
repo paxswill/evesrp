@@ -433,7 +433,8 @@ class ActionForm(Form):
     id_ = HiddenField(default='action')
     note = TextAreaField(u'Note')
     type_ = HiddenField(default='comment',
-            validators=[AnyOf(ActionType.values())])
+            validators=[AnyOf(list(ActionType.values()))])
+
 
 
 class ChangeDetailsForm(Form):
