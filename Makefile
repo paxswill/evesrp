@@ -8,6 +8,7 @@ clean:
 	for DIR in $(SUBDIRS); do\
 		$(MAKE) -C "$$DIR" clean; \
 	done
+	$(MAKE) -C doc clean
 
 $(SUBDIRS):
 	$(MAKE) -C "$@"
