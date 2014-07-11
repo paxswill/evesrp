@@ -24,7 +24,7 @@ SOURCE_NAMES := \
 	ui-common \
 	ui-request \
 	ui-division \
-	custom-handlebars \
+	handlebars-helpers \
 	custom-pourover \
 	custom-typeahead \
 	handlebars-templates
