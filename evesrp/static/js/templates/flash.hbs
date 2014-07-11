@@ -1,13 +1,13 @@
 {{#compare category 'message'}}
-  <div class="alert alert-dismissable fade in alert-success">
+  <div class="alert alert-dismissable fade in alert-success" id="flash-{{id}}">
 {{else}}
   {{#compare category 'warning'}}
-    <div class="alert alert-dismissable fade in alert-warning">
+    <div class="alert alert-dismissable fade in alert-warning" id="flash-{{id}}">
   {{else}}
     {{#compare category 'error'}}
-      <div class="alert alert-dismissable fade in alert-danger">
+      <div class="alert alert-dismissable fade in alert-danger" id="flash-{{id}}">
     {{else}}
-      <div class="alert alert-dismissable fade in alert-info">
+      <div class="alert alert-dismissable fade in alert-info" id="flash-{{id}}">
     {{/compare}}
   {{/compare}}
 {{/compare}}

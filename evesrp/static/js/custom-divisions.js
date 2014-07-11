@@ -34,12 +34,7 @@ $("select#transformer").change( function() {
   $.post(
     window.location.pathname,
     form.serialize(),
-    function() {
-      flash(
-        '"' + attr_name + '" transformer set to "' + transformer_name + '".',
-        'info'
-      );
-    }
+    EveSRP.ui.renderFlashes
   );
 });
 
@@ -74,7 +69,7 @@ $(".permission").submit( function(e) {
     complete: function(jqxhr) {
       var data = jqxhr.responseJSON;
       renderEntities(data['entities']);
-      renderFlashes(data);
+      EveSRP.ui.renderFlashes(data);
     }
   });
   return false;
