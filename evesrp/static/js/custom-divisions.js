@@ -65,6 +65,7 @@ $(".permission").submit( function(e) {
     success: function(data) {
       // Clear the now added value
       $form.find('.entity-typeahead').typeahead('val', '');
+      $form.find('#id_').val('');
     },
     complete: function(jqxhr) {
       var data = jqxhr.responseJSON;
