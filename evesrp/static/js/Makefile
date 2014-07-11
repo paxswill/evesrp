@@ -23,10 +23,10 @@ SOURCE_NAMES := \
 	util \
 	ui-common \
 	ui-request \
+	ui-division \
 	custom-handlebars \
 	custom-pourover \
 	custom-typeahead \
-	custom-divisions \
 	handlebars-templates
 JS_SOURCE = $(patsubst %,%.js,$(SOURCE_NAMES))
 
