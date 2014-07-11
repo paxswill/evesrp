@@ -4,11 +4,12 @@ from flask.ext.login import login_required, current_user
 import six
 from six.moves import filter, map
 from sqlalchemy.orm.exc import NoResultFound
+from itertools import chain
 
 from .. import ships, systems, db
 from ..models import Request, ActionType
 from ..auth import PermissionType
-from ..auth.models import Division, User, Group, Pilot
+from ..auth.models import Division, User, Group, Pilot, Entity
 from .requests import PermissionRequestListing, PersonalRequests
 from ..util import jsonify
 
@@ -19,21 +20,19 @@ api = Blueprint('api', __name__)
 filters = Blueprint('filters', __name__)
 
 
-@api.route('/<entity_type>/')
+@api.route('/entities/')
 @login_required
-def list_entities(entity_type):
+def list_entities():
     """Return a JSON object with a list of all of the specified entity type.
 
     Example output::
         {
-          groups: [
-            {name: 'Bar', id: 1},
-            {name: 'Foo', id: 0},
-            {name: 'Baz', id: 20}
+          entities: [
+            {name: 'Bar', id: 1, source: 'Auth Source', type: 'User'},
+            {name: 'Foo', id: 0, source: 'Another Auth Source', type: 'Group'},
+            {name: 'Baz', id: 20, source: 'Auth Source', type: 'Group'}
           ]
         }
-
-    Order of the objects in the ``'users'`` or ``groups`` key is undefined.
 
     This method is only accesible to administrators.
 
@@ -42,18 +41,19 @@ def list_entities(entity_type):
     if not current_user.admin and not \
             current_user.has_permission(PermissionType.admin):
         abort(403)
-    if entity_type == u'user':
-        query = db.session.query(User.id, User.name)
-    elif entity_type == u'group':
-        query = db.session.query(Group.id, Group.name)
-    else:
-        abort(404)
-    json_obj = {
-            entity_type + u's': map(
-                lambda e: {u'id': e.id, u'name': e.name},
-                query)
-    }
-    return jsonify(json_obj)
+    user_query = db.session.query(User.id, User.name, User.authmethod)
+    group_query = db.session.query(Group.id, Group.name, Group.authmethod)
+    users = map(lambda e: {
+            u'id': e.id,
+            u'name': e.name,
+            u'type': u'User',
+            u'source': e.authmethod}, user_query)
+    groups = map(lambda e: {
+            u'id': e.id,
+            u'name': e.name,
+            u'type': u'Group',
+            u'source': e.authmethod}, group_query)
+    return jsonify(entities=chain(users, groups))
 
 
 @api.route('/user/<int:user_id>/')

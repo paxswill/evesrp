@@ -21,13 +21,12 @@ SOURCE_NAMES := \
 	$(THIRDPARTY)/zeroclipboard/ZeroClipboard \
 	$(THIRDPARTY)/typeahead.js/dist/typeahead.bundle \
 	util \
+	handlebars-helpers \
+	handlebars-templates \
 	ui-common \
 	ui-request \
 	ui-division \
-	handlebars-helpers \
-	custom-pourover \
-	custom-typeahead \
-	handlebars-templates
+	custom-pourover
 JS_SOURCE = $(patsubst %,%.js,$(SOURCE_NAMES))
 
 all: evesrp.min.js

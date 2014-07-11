@@ -22,10 +22,53 @@ EveSRP.ui.division = {
     }
   },
 
+  setEntityID: function setEntityID(ev, datum, dataset) {
+    // set the entity ID for the appropriate input box
+    $(this)
+      .closest('form')
+      .find("input[name='id_']")
+      .attr('value', datum['id']);
+  },
+
+  createEntitySource: function createEntitySource() {
+    var entitySource = new Bloodhound({
+      datumTokenizer: Bloodhound.tokenizers.obj.nonword('name'),
+      queryTokenizer: Bloodhound.tokenizers.nonword,
+      prefetch: {
+        url: $SCRIPT_ROOT + '/api/entities/',
+        ttl: 1800000,
+        filter: function(list) {
+          return list['entities'];
+        }
+      }
+    });
+    entitySource.initialize();
+    return entitySource;
+  },
+
+  createTypeahead: function createTypeahead(selector, source) {
+    var $typeahead = $(selector).typeahead(
+      {
+        hint: true,
+        highlight: true
+      },
+      {
+        displayKey: 'name',
+        source: source.ttAdapter(),
+        templates: {
+          suggestion: Handlebars.templates.typeahead_suggestion,
+          empty: Handlebars.templates.typeahead_empty
+        }
+      }
+    );
+    return $typeahead;
+  },
+
   selectAttribute: function selectAttribute() {
-    var $attr = $(this).find('option:selected').val();
+    var $this = $(this),
+        attr = $this.find('option:selected').val();
     if (attr !== '') {
-      $(this).find('option[value=""]').remove();
+      $this.find('option[value=""]').remove();
     }
     $.ajax( {
       type: 'GET',
@@ -42,12 +85,12 @@ EveSRP.ui.division = {
         }
         $.each(choices, function(i, choice) {
           var $option = $('<option></option>');
-          option.append(choice[1]);
-          option.attr('value', choice[0]);
+          $option.append(choice[1]);
+          $option.attr('value', choice[0]);
           if (choice[2] === true) {
-            option.prop('selected', true);
+            $option.prop('selected', true);
           }
-          $transformerSelect.append(option);
+          $transformerSelect.append($option);
         });
       }
     });
@@ -62,17 +105,16 @@ EveSRP.ui.division = {
     $.ajax( {
       type: 'POST',
       url: window.location.pathname,
-      data: form.serialize()
+      data: $form.serialize()
     });
     return true;
   },
 
-  changePermission: function changePermission(ev) {
-    var $form;
-    if ('originalEvent' in ev) {
-      $form = $(ev.originalEvent.target);
-    } else {
-      $form = $(ev.target);
+  changePermission: function changePermission(ev, datum, dataset) {
+    var $form = $(ev.target);
+    if (datum !== undefined) {
+      EveSRP.ui.division.setEntityID(ev, datum, dataset);
+      $form = $form.closest('form')
     }
     $.ajax({
       type: 'POST',
@@ -85,13 +127,20 @@ EveSRP.ui.division = {
       },
       complete: function(jqxhr) {
         var data = jqxhr.responseJSON;
-        renderEntities(data['entities']);
+        EveSRP.ui.division.render(data['entities']);
       }
     });
     return false;
   },
 
   setupEvents: function setupDivisionEvents() {
+    // Setup the typeaheads
+    var entitySource = EveSRP.ui.division.createEntitySource();
+    EveSRP.ui.division.createTypeahead('.entity-typeahead', entitySource)
+      .on('typeahead:autocompleted', EveSRP.ui.division.setEntityID)
+      .on('typeahead:cursorchanged', EveSRP.ui.division.setEntityID)
+      .on('typeahead:selected', EveSRP.ui.division.changePermission);
+
     $("select#attribute").change(EveSRP.ui.division.selectAttribute);
     $("select#transformer").change(EveSRP.ui.division.selectTransformer);
     $(".permission").submit(EveSRP.ui.division.changePermission);
