@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 from flask import url_for, render_template, redirect, abort, flash, request,\
-        Blueprint, current_app, jsonify
+        Blueprint, current_app
 from flask.ext.login import login_required, current_user
 from flask.ext.wtf import Form
 import six
@@ -13,6 +13,7 @@ from wtforms.validators import InputRequired, AnyOf, NumberRange
 from ..models import db
 from ..auth import PermissionType
 from ..auth.models import Division, Permission, Entity
+from ..util import jsonify
 
 
 blueprint = Blueprint('divisions', __name__)

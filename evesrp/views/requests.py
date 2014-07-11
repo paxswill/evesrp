@@ -3,7 +3,7 @@ from collections import OrderedDict
 import re
 
 from flask import render_template, abort, url_for, flash, Markup, request,\
-    redirect, current_app, Blueprint, Markup, json, jsonify, make_response
+    redirect, current_app, Blueprint, Markup, json, make_response
 from flask.views import View
 from flask.ext.login import login_required, current_user
 from flask.ext.wtf import Form
@@ -17,7 +17,7 @@ from wtforms.validators import InputRequired, AnyOf, URL, ValidationError,\
 from .. import db
 from ..models import Request, Modifier, Action, ActionType, ActionError,\
         ModifierError, AbsoluteModifier, RelativeModifier
-from ..util import xmlify
+from ..util import xmlify, jsonify
 from ..auth import PermissionType
 from ..auth.models import Division, Pilot, Permission, User, Group, Note,\
     APIKey

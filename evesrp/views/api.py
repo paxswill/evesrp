@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from flask import url_for, redirect, abort, request, jsonify, Blueprint
+from flask import url_for, redirect, abort, request, Blueprint
 from flask.ext.login import login_required, current_user
 import six
 from six.moves import filter, map
@@ -10,6 +10,7 @@ from ..models import Request, ActionType
 from ..auth import PermissionType
 from ..auth.models import Division, User, Group, Pilot
 from .requests import PermissionRequestListing, PersonalRequests
+from ..util import jsonify
 
 
 api = Blueprint('api', __name__)

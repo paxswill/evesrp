@@ -1,5 +1,6 @@
 from .classproperty import classproperty
 from .enum import DeclEnum
+from .jsonify import jsonify
 from .models import AutoID, Timestamped, AutoName
 from .request import AcceptRequest
 from .sqlstats import DB_STATS
