@@ -31,11 +31,11 @@ $("select#transformer").change( function() {
   var attr_name = $("select#attribute option:selected").text();
   var transformer_name = $(this).find("option:selected").text();
   var form = $(this).parents("form");
-  $.post(
-    window.location.pathname,
-    form.serialize(),
-    EveSRP.ui.renderFlashes
-  );
+  $.ajax( {
+    type: 'POST',
+    url: window.location.pathname,
+    data: form.serialize()
+  });
 });
 
 function renderEntities(entities) {
@@ -69,7 +69,6 @@ $(".permission").submit( function(e) {
     complete: function(jqxhr) {
       var data = jqxhr.responseJSON;
       renderEntities(data['entities']);
-      EveSRP.ui.renderFlashes(data);
     }
   });
   return false;

@@ -23,3 +23,13 @@ EveSRP.ui.renderFlashes = function renderFlashes(data) {
     }, 5000);
   }
 };
+
+EveSRP.ui.setupEvents = function setupUIEvents() {
+  $(document).ajaxComplete(function(ev, jqxhr) {
+    var data = jqxhr.responseJSON;
+    if (data && 'flashed_messages' in data) {
+      EveSRP.ui.renderFlashes(jqxhr.responseJSON);
+    }
+  });
+};
+EveSRP.ui.setupEvents();
