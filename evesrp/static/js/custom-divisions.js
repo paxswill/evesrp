@@ -43,49 +43,39 @@ $("select#transformer").change( function() {
   );
 });
 
-function rebuild_entities(permission) {
-  $.getJSON(
-    '/api' + window.location.pathname + permission + '/',
-    function(data) {
-      var table = $("#" + permission).find("table");
-      var new_table = Handlebars.templates.entity_table(data);
-      table.replaceWith(new_table);
-    }
-  );
+function renderEntities(entities) {
+  var perms = ['submit', 'review', 'pay', 'admin'];
+  for (var i = 0; i < perms.length; ++i) {
+    var perm = perms[i],
+        $table = $('#' + perm).find('table'),
+        $newTable = Handlebars.templates.entity_table({
+          entities:entities[perm],
+          name: perm
+        });
+    $table.replaceWith($newTable);
+  }
 }
 
 $(".permission").submit( function(e) {
-  var form;
+  var $form;
   if ('originalEvent' in e) {
-    form = $(e.originalEvent.target);
+    $form = $(e.originalEvent.target);
   } else {
-    form = $(e.target);
+    $form = $(e.target);
   }
-  var permission = $(this).attr("id");
-  var permission_title = $(this).find("h3").text().slice(0, -1);
-  var entity_name = form.find("input[name='name']").val();
-  if (entity_name === undefined) {
-    entity_name = form.closest("tr").find("td").first().text();
-  }
-  $.post(
-    window.location.pathname,
-    form.serialize(),
-    function() {
-      var status_string;
-      var action = form.find("input[name='action']").val();
-      if (action === "add") {
-        status_string = "' is now a ";
-      } else if (action === "delete") {
-        status_string = "' is no longer a ";
-      }
-      flash(
-        "'" + entity_name + status_string + permission_title.toLowerCase(),
-        'info'
-      );
+  $.ajax({
+    type: 'POST',
+    url: window.location.pathname,
+    data: $form.serialize(),
+    success: function(data) {
       // Clear the now added value
-      var typeahead = form.find('.typeahead').typeahead('val', '');
-      rebuild_entities(permission)
+      $form.find('.entity-typeahead').typeahead('val', '');
+    },
+    complete: function(jqxhr) {
+      var data = jqxhr.responseJSON;
+      renderEntities(data['entities']);
+      renderFlashes(data);
     }
-  );
+  });
   return false;
 });

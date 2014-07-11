@@ -128,6 +128,23 @@ def get_division_details(division_id=None, division=None):
     if not current_user.admin and not \
             current_user.has_permission(PermissionType.admin, division):
         abort(403)
+    if request.is_json or request.is_xhr:
+        # Non-default way of encoding the division to include all the info in a
+        # normal response
+        entities = {}
+        for perm in PermissionType.all:
+            members = []
+            for member in [p.entity for p in division.permissions[perm]]:
+                member_info = {
+                    'id': member.id,
+                    'name': member.name,
+                    'source': member.authmethod,
+                }
+                if hasattr(member, 'users'):
+                    member_info['length'] = len(member.users)
+                members.append(member_info)
+            entities[perm.name] = members
+        return jsonify(name=division.name, entities=entities, id=division.id)
     return render_template(
             'division_detail.html',
             division=division,
@@ -140,12 +157,17 @@ def _modify_division_entity(division):
     """Handle POST requests for adding/removing entities form a Division."""
     form = ChangeEntity()
     if form.validate():
+        entity = None
         if form.id_.data != '':
+            current_app.logger.debug("Looking up entity by ID: {}".format(
+                form.id_.data))
             entity = Entity.query.get(form.id_.data)
             if entity is None:
                 flash(u"No entity with ID #{}.".format(form.id_.data),
                         u'error')
         else:
+            current_app.logger.debug(u"Looking up entity by name: '{}'"\
+                    .format(form.name.data))
             try:
                 entity = Entity.query.filter_by(
                         name=form.name.data).one()
@@ -153,10 +175,12 @@ def _modify_division_entity(division):
                 flash(u"No entities with the name '{}' found.".
                         format(form.name.data), category=u'error')
             except MultipleResultsFound:
-                flash(u"Multiple entities eith the name '{}' found.".
+                flash(u"Multiple entities with the name '{}' found.".
                         format(form.name.data), category=u'error')
+            else:
+                current_app.logger.debug("entity lookup success")
         if entity is None:
-            return get_division_details(division=division)
+            return get_division_details(division=division), 404, None
         # The entity has been found, create the query for the requested
         # Permission.
         permission_type = PermissionType.from_string(

@@ -1,0 +1,16 @@
+{{#compare category 'message'}}
+  <div class="alert alert-dismissable fade in alert-success">
+{{else}}
+  {{#compare category 'warning'}}
+    <div class="alert alert-dismissable fade in alert-warning">
+  {{else}}
+    {{#compare category 'error'}}
+      <div class="alert alert-dismissable fade in alert-danger">
+    {{else}}
+      <div class="alert alert-dismissable fade in alert-info">
+    {{/compare}}
+  {{/compare}}
+{{/compare}}
+  <button type="button" class="close" data-dismiss="alert">&times;</button>
+  {{message}}
+</div>

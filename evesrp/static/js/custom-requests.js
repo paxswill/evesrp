@@ -15,6 +15,15 @@ function flash(message, category){
   $("#content").prepend(flashed);
 }
 
+function renderFlashes(data) {
+  var $content = $('#content'),
+      flashes = data.flashed_messages;
+  for (index in flashes) {
+    var flash = Handlebars.templates.flash(flashes[index]);
+    $content.prepend(flash);
+  }
+}
+
 function renderRequest(request) {
   var actionMenu = $('#actionMenu'),
       actionList = $('#actionList'),
