@@ -643,17 +643,32 @@ class DivisionChange(Form):
     submit = SubmitField(u'Submit')
 
 
-@blueprint.route('/<int:request_id>/division', methods=['GET', 'POST'])
+@blueprint.route('/<int:request_id>/division/', methods=['GET', 'POST'])
 @login_required
 def request_change_division(request_id):
     srp_request = Request.query.get_or_404(request_id)
-    review_perm = ReviewRequestsPermission(srp_request)
-    if not review_perm.can() and \
-            current_user != srp_request.submitter or \
-            srp_request.finalized:
+    if not current_user.has_permission(PermissionType.review, srp_request) and\
+            current_user != srp_request.submitter:
+        current_app.logger.warn(u"User '{}' does not have permission to change"
+                                u" request #{}'s division".format(
+                                    current_user, srp_request.id))
         abort(403)
+    if srp_request.finalized:
+        msg = (u"Cannot change request #{}'s division as it is in a finalized"
+               u" state").format(srp_request.id)
+        current_app.logger.info(msg)
+        flash(u"Cannot change the division as this request is in a finalized"
+              u" state", u'warning')
+        return redirect(url_for('.get_request_details', request_id=request_id))
     division_choices = srp_request.submitter.submit_divisions()
-    if len(division_choices) < 2:
+    try:
+        division_choices.remove(
+                (srp_request.division.id, srp_request.division.name))
+    except ValueError:
+        pass
+    if len(division_choices) == 0:
+        current_app.logger.debug(u"No other divisions to move request #{} to."\
+                .format(srp_request.id))
         flash(u"No other divisions to move to.", u'info')
         return redirect(url_for('.get_request_details', request_id=request_id))
     form = DivisionChange()
@@ -675,5 +690,8 @@ def request_change_division(request_id):
                     request_id=request_id))
         else:
             return redirect(url_for('.list_pending_requests'))
+    else:
+        current_app.logger.warn(u"Form validation failed for division change:"
+                                u" {}.".format(form.errors))
     form.division.data = srp_request.division.id
     return render_template('form.html', form=form)
