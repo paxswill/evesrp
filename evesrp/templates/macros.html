@@ -1,7 +1,8 @@
 {% macro render_select(field, disabled=False) -%}
 {# Renders selects. If there's only one choice, it hides the input. #}
 {% if field.iter_choices()|list|length == 1 %}
-{{ field(style="display: none;") }}
+{{ field.label }}
+{{ field(class="form-control", disabled='') }}
 {% else %}
 {{ field.label }}
 {% if disabled %}
