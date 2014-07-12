@@ -87,7 +87,6 @@ class RequestListing(View):
                     kind = 'division_id'
                 elif kind == 'ship':
                     kind = 'ship_type'
-                column = getattr(Request, kind)
                 if kind == 'status':
                     if ',' in arg:
                         arg = arg.split(',')
@@ -102,14 +101,19 @@ class RequestListing(View):
                             actions.update(ActionType.statuses)
                         else:
                             actions.add(ActionType.from_string(action))
-                    requests = requests.filter(column.in_(actions))
+                    requests = requests.filter(Request.status.in_(actions))
+                elif kind == 'details':
+                    requests = requests.filter(Request.details.match(arg)) 
                 else:
+                    column = getattr(Request, kind)
                     if ',' in arg:
                         arg = arg.split(',')
                         if arg == 'division_id':
                             arg = map(int, arg)
+                        else:
+                            arg = map(lambda x: x.lower(), arg)
                         requests = requests.filter(db.func.lower(column).in_(
-                            db.func.lower(arg)))
+                                arg))
                     else:
                         requests = requests.filter(db.func.lower(column) ==
                                 db.func.lower(arg))
