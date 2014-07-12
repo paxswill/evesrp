@@ -26,7 +26,9 @@ SOURCE_NAMES := \
 	ui-common \
 	ui-request \
 	ui-division \
-	custom-pourover
+	pourover \
+	tokenfield \
+	ui-requestList
 JS_SOURCE = $(patsubst %,%.js,$(SOURCE_NAMES))
 
 all: evesrp.min.js

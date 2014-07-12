@@ -67,4 +67,53 @@ EveSRP.util = {
         return '';
     }
   },
+
+  pageNumbers: function pageNumbers(num_pages, current_page, options) {
+    /* return an array of page numbers, skipping some of them as configured by
+     * the options argument. This function should be functionally identical to
+     * Flask-SQLAlchemy's
+     * :py:method:`Pagination.iter_pages <flask.ext.sqlalchemy.Pagination.iter_pages>`
+     * method (including in default arguments). One deviation is that this
+     * function uses 0-indexed page numbers instead of 1-indexed, to ease
+     * compatibility with PourOver.
+     */
+    // default values
+    if (options === undefined) {
+      options = {
+        left_edge: 2,
+        left_current: 2,
+        right_current: 5,
+        right_edge: 2
+      };
+    }
+    var pages = [];
+    for (var i = 0; i < num_pages; ++i) {
+      if (i < options.left_edge){
+        pages.push(i);
+      } else if ((current_page - options.left_current - 1) < i &&
+          i < (current_page + options.right_current)) {
+        pages.push(i);
+      } else if ((num_pages - options.right_edge - 1) < i) {
+        pages.push(i);
+      } else if (pages[pages.length - 1] !== null) {
+        pages.push(null);
+      }
+    }
+    return pages;
+  },
+
+  getAttributeChoices: function getAttributeChoices(attribute) {
+    if (attribute === 'status') {
+      var statuses = ['evaluating', 'approved', 'rejected', 'incomplete',
+        'paid'];
+      return $.Deferred().resolve( {
+        'key': 'status',
+        'status': statuses
+      });
+    }
+    return $.ajax( {
+      type: 'GET',
+      url: $SCRIPT_ROOT + '/api/filter/' + attribute + '/'
+    });
+  }
 };

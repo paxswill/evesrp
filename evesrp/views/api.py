@@ -280,26 +280,28 @@ def register_request_lists(state):
 @filters.route('/ship/')
 @login_required
 def filter_ships():
-    return jsonify(ship=list(six.itervalues(ships.ships)))
+    return jsonify(key=u'ship', ship=list(six.itervalues(ships.ships)))
 
 
 @filters.route('/system/')
 @login_required
 def filter_systems():
-    return jsonify(system=list(six.itervalues(systems.system_names)))
+    return jsonify(key=u'system',
+            system=list(six.itervalues(systems.system_names)))
 
 
 @filters.route('/constellation/')
 @login_required
 def filter_constellations():
-    return jsonify(constellation=list(
-        six.itervalues(systems.constellation_names)))
+    return jsonify(key=u'constellation',
+            constellation=list(six.itervalues(systems.constellation_names)))
 
 
 @filters.route('/region/')
 @login_required
 def filter_regions():
-    return jsonify(region=list(six.itervalues(systems.region_names)))
+    return jsonify(key=u'region',
+            region=list(six.itervalues(systems.region_names)))
 
 
 def _first(o):
@@ -310,25 +312,25 @@ def _first(o):
 @login_required
 def filter_pilots():
     pilots = db.session.query(Pilot.name)
-    return jsonify(pilot=map(_first, pilots))
+    return jsonify(key=u'pilot', pilot=map(_first, pilots))
 
 
 @filters.route('/corporation/')
 @login_required
 def filter_corps():
     corps = db.session.query(Request.corporation).distinct()
-    return jsonify(corporation=map(_first, corps))
+    return jsonify(key=u'corporation', corporation=map(_first, corps))
 
 
 @filters.route('/alliance/')
 @login_required
 def filter_alliances():
     alliances = db.session.query(Request.alliance).distinct()
-    return jsonify(alliance=map(_first, alliances))
+    return jsonify(key=u'alliance', alliance=map(_first, alliances))
 
 
 @filters.route('/division/')
 @login_required
 def filter_divisions():
     div_names = db.session.query(Division.name)
-    return jsonify(division=map(_first, div_names))
+    return jsonify(key=u'division', division=map(_first, div_names))
