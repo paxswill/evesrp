@@ -238,7 +238,9 @@ def _modify_division_transformer(division):
             division.transformers[attr] = attr_transformers[name]
             # Explicitly add the TransformerRef to the session
             db.session.add(division.division_transformers[attr])
-            db.session.commit()
+        db.session.commit()
+        flash(u"'{}' transformer set to '{}'.".format(attr, name),
+                u'message')
     else:
         for field_name, errors in six.iteritems(form.errors):
             errors = u", ".join(errors)
