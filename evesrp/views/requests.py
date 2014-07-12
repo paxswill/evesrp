@@ -43,36 +43,89 @@ class RequestListing(View):
     #: Decorators to apply to the view functions
     decorators = [login_required]
 
-    def requests(self, division_id=None):
+    def requests(self):
         """Returns a list :py:class:`~.Request`\s belonging to
         the specified :py:class:`~.Division`, or all divisions if
         ``None``. Must be implemented by subclasses, as this is an abstract
         method.
 
-        :param int division_id: ID number of a :py:class:`~.Division`, or
-            ``None``.
         :returns: :py:class:`~.models.Request`\s
         :rtype: iterable
         """
         raise NotImplementedError()
 
-    def dispatch_request(self, division_id=None, page=1, **kwargs):
+    def dispatch_request(self, filters=None, **kwargs):
         """Returns the response to requests.
 
         Part of the :py:class:`flask.views.View` interface.
         """
+        # Parse filters
+        known_filters = ('page', 'division', 'alliance', 'corporation',
+                'pilot', 'system', 'constellation', 'region', 'ship', 'status',
+                'details')
+        page = 1
+        requests = self.requests()
+        if filters is not None:
+            split_filters = filters.split('/')
+            # trim empty beginning or ends
+            if split_filters[0] == '':
+                split_filters = split_filters[1:]
+            if split_filters[-1] == '':
+                split_filters = split_filters[:-1]
+            if len(split_filters) % 2 != 0:
+                # TODO: uneven length of filters
+                pass
+            for i in range(0, len(split_filters), 2):
+                kind = split_filters[i]
+                arg = split_filters[i + 1]
+                # fix nice column names back to real names, and handle page
+                # numbers
+                if kind == 'page':
+                    page = int(arg)
+                    continue
+                if kind == 'division':
+                    kind = 'division_id'
+                elif kind == 'ship':
+                    kind = 'ship_type'
+                column = getattr(Request, kind)
+                if kind == 'status':
+                    if ',' in arg:
+                        arg = arg.split(',')
+                    else:
+                        arg = [arg]
+                    arg = map(lambda x: x.lower(), arg)
+                    actions = set()
+                    for action in arg:
+                        if action in ('finalized', 'pending'):
+                            actions.update(getattr(ActionType, action))
+                        elif action == 'all':
+                            actions.update(ActionType.statuses)
+                        else:
+                            actions.add(ActionType.from_string(action))
+                    requests = requests.filter(column.in_(actions))
+                else:
+                    if ',' in arg:
+                        arg = arg.split(',')
+                        if arg == 'division_id':
+                            arg = map(int, arg)
+                        requests = requests.filter(db.func.lower(column).in_(
+                            db.func.lower(arg)))
+                    else:
+                        requests = requests.filter(db.func.lower(column) ==
+                                db.func.lower(arg))
+        # Respond
         if request.is_json or request.is_xhr:
-            return jsonify(requests=self.requests(division_id))
+            return jsonify(requests=requests)
         if request.is_rss:
             return xmlify('rss.xml', content_type='application/rss+xml',
-                    requests=self.requests(division_id),
+                    requests=requests,
                     title=(kwargs['title'] if 'title' in kwargs else u''),
-                    main_link=url_for(request.endpoint,
-                        division_id=division_id, _external=True))
+                    main_link=url_for(request.endpoint, filters=filters,
+                        _external=True))
         if request.is_xml:
             return xmlify('request_list.xml',
-                    requests=self.requests(division_id))
-        pager = self.requests(division_id).paginate(page, per_page=20)
+                    requests=requests)
+        pager = requests.paginate(page, per_page=20)
         return render_template(self.template,
                 pager=pager, **kwargs)
 
@@ -107,7 +160,7 @@ class PersonalRequests(RequestListing):
 
     methods = ['GET', 'POST']
 
-    def dispatch_request(self, division_id=None, page=1, **kwargs):
+    def dispatch_request(self, filters=None, **kwargs):
         if request.method == 'POST':
             form = APIKeyForm()
             if form.validate():
@@ -121,21 +174,19 @@ class PersonalRequests(RequestListing):
         # Handle API access in here, so we can add extra data
         if request.is_json or request.is_xhr:
             return jsonify(
-                    requests=self.requests(division_id),
+                    requests=self.requests(),
                     api_keys=current_user.api_keys)
         if request.is_xml:
             return xmlify('personal_list.xml',
-                    requests=self.requests(division_id))
-        return super(PersonalRequests, self).dispatch_request(
-                division_id, page, key_form=APIKeyForm(formdata=None))
+                    requests=self.requests())
+        return super(PersonalRequests, self).dispatch_request(filters,
+                key_form=APIKeyForm(formdata=None))
 
-    def requests(self, division_id=None):
+    def requests(self):
         requests = Request.query\
                 .join(User)\
                 .filter(User.id==current_user.id)\
                 .options(*self._load_options)
-        if division_id is not None:
-            requests = requests.filter(Request.division_id==division_id)
         requests = requests.order_by(Request.timestamp.desc())
         return requests
 
@@ -160,7 +211,7 @@ class PermissionRequestListing(RequestListing):
         self.permissions = (PermissionType.admin,) + tuple(permissions)
         self.statuses = statuses
 
-    def dispatch_request(self, division_id=None, page=1, **kwargs):
+    def dispatch_request(self, filters=None, **kwargs):
         if not current_user.has_permission(self.permissions):
             abort(403)
         else:
@@ -169,12 +220,11 @@ class PermissionRequestListing(RequestListing):
             else:
                 title = u', '.join(map(lambda s: s.description, self.statuses))
             return super(PermissionRequestListing, self).dispatch_request(
-                    division_id,
-                    page,
+                    filters,
                     title=title,
                     **kwargs)
 
-    def requests(self, division_id=None):
+    def requests(self):
         user_perms = db.session.query(Permission.id.label('permission_id'),
                 Permission.division_id.label('division_id'),
                 Permission.permission.label('permission'))\
@@ -186,8 +236,6 @@ class PermissionRequestListing(RequestListing):
                 .filter(Group.users.contains(current_user))
         perms = user_perms.union(group_perms)\
                 .filter(Permission.permission.in_(self.permissions))
-        if division_id is not None:
-            perms = perms.filter(Permission.division_id==division_id)
         perms = perms.subquery()
         requests = Request.query\
                 .join(perms, Request.division_id==perms.c.division_id)\
@@ -207,12 +255,11 @@ class PayoutListing(PermissionRequestListing):
         super(PayoutListing, self).__init__((PermissionType.pay,),
                 (ActionType.approved,))
 
-    def dispatch_request(self, division_id=None, page=1):
+    def dispatch_request(self, filters=None, **kwargs):
         if not current_user.has_permission(self.permissions):
             abort(403)
         return super(PayoutListing, self).dispatch_request(
-                division_id,
-                page,
+                filters,
                 title=u', '.join(map(lambda s: s.description, self.statuses)),
                 form=ActionForm())
 
@@ -236,12 +283,7 @@ def register_perm_request_listing(app, endpoint, path, permissions, statuses):
             statuses=statuses)
     app.add_url_rule(path, view_func=view)
     app.add_url_rule('{}rss.xml'.format(path), view_func=view)
-    if path != '/':
-        app.add_url_rule('{}<int:division_id>/rss.xml'.format(path),
-                view_func=view)
-        app.add_url_rule('{}<int:page>/'.format(path), view_func=view)
-        app.add_url_rule('{}<int:page>/<int:division_id>/'.format(path),
-                view_func=view)
+    app.add_url_rule(path + '<path:filters>', view_func=view)
 
 
 @blueprint.record
@@ -259,20 +301,13 @@ def register_class_views(state):
     personal_view = PersonalRequests.as_view('personal_requests')
     state.add_url_rule('/personal/', view_func=personal_view)
     state.add_url_rule('/personal/rss.xml', view_func=personal_view)
-    state.add_url_rule('/personal/<int:division_id>/rss.xml',
-            view_func=personal_view)
-    state.add_url_rule('/personal/<int:page>/', view_func=personal_view)
-    state.add_url_rule('/personal/<int:page>/<int:division_id>',
-            view_func=personal_view)
+    state.add_url_rule('/personal/<path:filters>', view_func=personal_view)
     # Payout list
     payout_view = PayoutListing.as_view('list_approved_requests')
     payout_url_stub = '/pay/'
     state.add_url_rule(payout_url_stub, view_func=payout_view)
     state.add_url_rule(payout_url_stub + 'rss.xml', view_func=payout_view)
-    state.add_url_rule(payout_url_stub + '<int:division_id>/rss.xml',
-            view_func=payout_view)
-    state.add_url_rule(payout_url_stub + '<int:page>/', view_func=payout_view)
-    state.add_url_rule(payout_url_stub + '<int:page>/<int:division_id>/',
+    state.add_url_rule(payout_url_stub + '<path:filters>',
             view_func=payout_view)
     # Other more generalized listings
     register_perm_request_listing(state, 'list_pending_requests',
@@ -281,7 +316,7 @@ def register_class_views(state):
             '/completed/', PermissionType.elevated, ActionType.finalized)
     # Special all listing, mainly intended for API users
     register_perm_request_listing(state, 'list_all_requests',
-            '/', PermissionType.elevated, ActionType.statuses)
+            '/ll/', PermissionType.elevated, ActionType.statuses)
 
 
 class ValidKillmail(URL):

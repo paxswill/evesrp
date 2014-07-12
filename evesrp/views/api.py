@@ -213,7 +213,7 @@ class FiltersRequestListing(object):
         )
 
 
-    def dispatch_request(self, division_id=None):
+    def dispatch_request(self, filters=None, **kwargs):
         def request_dict(request):
             payout = request.payout
             return {
