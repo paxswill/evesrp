@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<response user="paxswill">
+  <apikeys>
+    <apikey id="6">
+      <key>dVbP0_SCPS12LnLpIZoJvemzeUUOOUErT7nojbJW4_I,</key>
+      <timestamp>2014-07-10T06:48:51.167054</timestamp>
+    </apikey>
+  </apikeys>
+  <requests>
+    <request id="39861569" status="paid">
+      <payout>
+        <base pretty="40,000,000.00">40000000.00</base>
+        <computed pretty="40,000,000.00">40000000.00</computed>
+      </payout>
+      <details>I literally forgot how to broadcast for armor.</details>
+      <pilot>
+        <alliance>Test Alliance Please Ignore</alliance>
+        <corporation>Dreddit</corporation>
+        <name>Paxswill</name>
+      </pilot>
+      <submit-timestamp>2014-07-09T19:43:58.126158</submit-timestamp>
+      <kill-timestamp>2014-07-02T19:26:00</kill-timestamp>
+      <division id="1" name="Test Alliance" />
+      <submitter id="1" name="paxswill" />
+      <killmail-url>https://zkillboard.com/kill/39861569/</killmail-url>
+      <url>/request/39861569/</url>
+      <ship>Guardian</ship>
+      <location>
+        <system>WD-VTV</system>
+        <constellation>UX3-N2</constellation>
+        <region>Catch</region>
+      </location>
+    </request>
+    <request id="39697412" status="paid">
+      <payout>
+        <base pretty="9,158,708.44">9158708.44</base>
+        <computed pretty="9,158,708.44">9158708.44</computed>
+      </payout>
+      <details>crest mail?</details>
+      <pilot>
+        <alliance>Test Alliance Please Ignore</alliance>
+        <corporation>Dreddit</corporation>
+        <name>Paxswill</name>
+      </pilot>
+      <submit-timestamp>2014-07-09T09:12:19.250893</submit-timestamp>
+      <kill-timestamp>2014-06-23T16:06:00</kill-timestamp>
+      <division id="1" name="Test Alliance" />
+      <submitter id="1" name="paxswill" />
+      <killmail-url>https://zkillboard.com/kill/39697412/</killmail-url>
+      <url>/request/39697412/</url>
+      <ship>Tristan</ship>
+      <location>
+        <system>Hikkoken</system>
+        <constellation>Ishaga</constellation>
+        <region>Black Rise</region>
+      </location>
+    </request>
+  </requests>
+</response>

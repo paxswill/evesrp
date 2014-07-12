@@ -1,15 +1,17 @@
 from __future__ import absolute_import
-from flask import url_for, redirect, abort, request, jsonify, Blueprint
+from flask import url_for, redirect, abort, request, Blueprint
 from flask.ext.login import login_required, current_user
 import six
 from six.moves import filter, map
 from sqlalchemy.orm.exc import NoResultFound
+from itertools import chain
 
 from .. import ships, systems, db
 from ..models import Request, ActionType
 from ..auth import PermissionType
-from ..auth.models import Division, User, Group, Pilot
+from ..auth.models import Division, User, Group, Pilot, Entity
 from .requests import PermissionRequestListing, PersonalRequests
+from ..util import jsonify
 
 
 api = Blueprint('api', __name__)
@@ -18,21 +20,19 @@ api = Blueprint('api', __name__)
 filters = Blueprint('filters', __name__)
 
 
-@api.route('/<entity_type>/')
+@api.route('/entities/')
 @login_required
-def list_entities(entity_type):
+def list_entities():
     """Return a JSON object with a list of all of the specified entity type.
 
     Example output::
         {
-          groups: [
-            {name: 'Bar', id: 1},
-            {name: 'Foo', id: 0},
-            {name: 'Baz', id: 20}
+          entities: [
+            {name: 'Bar', id: 1, source: 'Auth Source', type: 'User'},
+            {name: 'Foo', id: 0, source: 'Another Auth Source', type: 'Group'},
+            {name: 'Baz', id: 20, source: 'Auth Source', type: 'Group'}
           ]
         }
-
-    Order of the objects in the ``'users'`` or ``groups`` key is undefined.
 
     This method is only accesible to administrators.
 
@@ -41,18 +41,19 @@ def list_entities(entity_type):
     if not current_user.admin and not \
             current_user.has_permission(PermissionType.admin):
         abort(403)
-    if entity_type == u'user':
-        query = db.session.query(User.id, User.name)
-    elif entity_type == u'group':
-        query = db.session.query(Group.id, Group.name)
-    else:
-        abort(404)
-    json_obj = {
-            entity_type + u's': map(
-                lambda e: {u'id': e.id, u'name': e.name},
-                query)
-    }
-    return jsonify(json_obj)
+    user_query = db.session.query(User.id, User.name, User.authmethod)
+    group_query = db.session.query(Group.id, Group.name, Group.authmethod)
+    users = map(lambda e: {
+            u'id': e.id,
+            u'name': e.name,
+            u'type': u'User',
+            u'source': e.authmethod}, user_query)
+    groups = map(lambda e: {
+            u'id': e.id,
+            u'name': e.name,
+            u'type': u'Group',
+            u'source': e.authmethod}, group_query)
+    return jsonify(entities=chain(users, groups))
 
 
 @api.route('/user/<int:user_id>/')
@@ -279,26 +280,28 @@ def register_request_lists(state):
 @filters.route('/ship/')
 @login_required
 def filter_ships():
-    return jsonify(ship=list(six.itervalues(ships.ships)))
+    return jsonify(key=u'ship', ship=list(six.itervalues(ships.ships)))
 
 
 @filters.route('/system/')
 @login_required
 def filter_systems():
-    return jsonify(system=list(six.itervalues(systems.system_names)))
+    return jsonify(key=u'system',
+            system=list(six.itervalues(systems.system_names)))
 
 
 @filters.route('/constellation/')
 @login_required
 def filter_constellations():
-    return jsonify(constellation=list(
-        six.itervalues(systems.constellation_names)))
+    return jsonify(key=u'constellation',
+            constellation=list(six.itervalues(systems.constellation_names)))
 
 
 @filters.route('/region/')
 @login_required
 def filter_regions():
-    return jsonify(region=list(six.itervalues(systems.region_names)))
+    return jsonify(key=u'region',
+            region=list(six.itervalues(systems.region_names)))
 
 
 def _first(o):
@@ -309,25 +312,25 @@ def _first(o):
 @login_required
 def filter_pilots():
     pilots = db.session.query(Pilot.name)
-    return jsonify(pilot=map(_first, pilots))
+    return jsonify(key=u'pilot', pilot=map(_first, pilots))
 
 
 @filters.route('/corporation/')
 @login_required
 def filter_corps():
     corps = db.session.query(Request.corporation).distinct()
-    return jsonify(corporation=map(_first, corps))
+    return jsonify(key=u'corporation', corporation=map(_first, corps))
 
 
 @filters.route('/alliance/')
 @login_required
 def filter_alliances():
     alliances = db.session.query(Request.alliance).distinct()
-    return jsonify(alliance=map(_first, alliances))
+    return jsonify(key=u'alliance', alliance=map(_first, alliances))
 
 
 @filters.route('/division/')
 @login_required
 def filter_divisions():
     div_names = db.session.query(Division.name)
-    return jsonify(division=map(_first, div_names))
+    return jsonify(key=u'division', division=map(_first, div_names))

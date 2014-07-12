@@ -14,18 +14,21 @@ SOURCE_NAMES := \
 	$(BOOTSTRAP)/alert \
 	$(BOOTSTRAP)/modal \
 	$(THIRDPARTY)/handlebars/handlebars.runtime \
-	custom-handlebars \
-	custom-requests \
 	$(THIRDPARTY)/underscore/underscore \
 	$(THIRDPARTY)/pourover/pourover \
 	$(THIRDPARTY)/history.js/scripts/bundled/html4+html5/jquery.history \
 	$(THIRDPARTY)/bootstrap-tokenfield/js/bootstrap-tokenfield \
 	$(THIRDPARTY)/zeroclipboard/ZeroClipboard \
-	custom-pourover \
 	$(THIRDPARTY)/typeahead.js/dist/typeahead.bundle \
-	custom-typeahead \
-	custom-divisions \
-	handlebars-templates
+	util \
+	handlebars-helpers \
+	handlebars-templates \
+	ui-common \
+	ui-request \
+	ui-division \
+	pourover \
+	tokenfield \
+	ui-requestList
 JS_SOURCE = $(patsubst %,%.js,$(SOURCE_NAMES))
 
 all: evesrp.min.js

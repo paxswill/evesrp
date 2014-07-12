@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<response user="paxswill">
+  <request id="39861569" status="paid">
+    <payout>
+      <base pretty="40,000,000.00">40000000.00</base>
+      <computed pretty="40,000,000.00">40000000.00</computed>
+    </payout>
+    <details>I literally forgot how to broadcast for armor.</details>
+    <pilot>
+      <alliance>Test Alliance Please Ignore</alliance>
+      <corporation>Dreddit</corporation>
+      <name>Paxswill</name>
+    </pilot>
+    <submit-timestamp>2014-07-09T19:43:58.126158</submit-timestamp>
+    <kill-timestamp>2014-07-02T19:26:00</kill-timestamp>
+    <division id="1" name="Test Alliance" />
+    <submitter id="1" name="paxswill" />
+    <killmail-url>https://zkillboard.com/kill/39861569/</killmail-url>
+    <url>/request/39861569/</url>
+    <ship>Guardian</ship>
+    <location>
+      <system>WD-VTV</system>
+      <constellation>UX3-N2</constellation>
+      <region>Catch</region>
+    </location>
+    <actions>
+      <action id="2" type="paid">
+        <note></note>
+        <timestamp>2014-07-10T06:37:09.242568</timestamp>
+        <user id="1" name="paxswill" />
+      </action>
+      <action id="1" type="approved">
+        <note>Good to go.</note>
+        <timestamp>2014-07-09T19:58:56.524278</timestamp>
+        <user id="1" name="paxswill" />
+      </action>
+    </actions>
+    <modifiers>
+      <modifier id="1">
+        <note>You&#39;re awesome!</note>
+        <user id="1" name="paxswill" />
+        <value>15.0% bonus</value>
+        <timestamp>2014-07-09T19:50:10.909394</timestamp>
+        <void id="1" name="paxswill">
+          <timestamp>2014-07-09T19:58:00.069323</timestamp>
+        </void>
+      </modifier>
+    </modifiers>
+  </request>
+</response>

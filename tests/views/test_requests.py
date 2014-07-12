@@ -14,7 +14,12 @@ from evesrp.auth import PermissionType
 from evesrp.auth.models import User, Pilot, Division, Permission
 from evesrp.util.utc import utc
 from evesrp import views
+import six
 from wtforms.validators import StopValidation, ValidationError
+
+
+if six.PY3:
+    unicode = str
 
 
 class TestSubmitRequest(TestLogin):
@@ -464,3 +469,68 @@ class TestRequestVoidModifiers(TestRequest):
                     value=(-10))
             db.session.commit()
             self.assertEqual(int(self.request.payout), 73957900000)
+
+
+class TestChangeDivision(TestRequest):
+
+    def setUp(self):
+        super(TestChangeDivision, self).setUp()
+        with self.app.test_request_context():
+            db.session.add(Division('Division Three'))
+            db.session.commit()
+
+    def _send_request(self, user_name):
+        with self.app.test_request_context():
+            new_division_id = Division.query.filter_by(
+                    name='Division Two').one().id
+        client = self.login(user_name)
+        return client.post(self.request_path + 'division/',
+                follow_redirects=True,
+                data={'division': new_division_id})
+
+    def test_submitter_change_submit_division(self):
+        self._add_permission(self.normal_name, PermissionType.submit,
+                'Division Two')
+        self._add_permission(self.normal_name, PermissionType.submit,
+                'Division Three')
+        resp = self._send_request(self.normal_name)
+        self.assertEqual(resp.status_code, 200)
+        with self.app.test_request_context():
+            d2 = Division.query.filter_by(name='Division Two').one()
+            self.assertEqual(self.request.division, d2)
+
+    def test_submitter_change_nonsubmit_division(self):
+        resp = self._send_request(self.normal_name)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn(u"No other divisions", resp.get_data(as_text=True))
+        with self.app.test_request_context():
+            d1 = Division.query.filter_by(name='Division One').one()
+            self.assertEqual(self.request.division, d1)
+
+    def test_submitter_change_division_finalized(self):
+        self._add_permission(self.normal_name, PermissionType.submit,
+                'Division Two')
+        self._add_permission(self.normal_name, PermissionType.submit,
+                'Division Three')
+        self._add_permission(self.admin_name, PermissionType.admin)
+        with self.app.test_request_context():
+            Action(self.request, self.admin_user, type_=ActionType.rejected)
+            db.session.commit()
+        resp = self._send_request(self.normal_name)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn(u"in a finalized state", resp.get_data(as_text=True))
+        with self.app.test_request_context():
+            d1 = Division.query.filter_by(name='Division One').one()
+            self.assertEqual(self.request.division, d1)
+
+    def test_reviewer_change_division(self):
+        self._add_permission(self.admin_name, PermissionType.review)
+        self._add_permission(self.normal_name, PermissionType.submit,
+                'Division Two')
+        self._add_permission(self.normal_name, PermissionType.submit,
+                'Division Three')
+        resp = self._send_request(self.normal_name)
+        self.assertEqual(resp.status_code, 200)
+        with self.app.test_request_context():
+            d2 = Division.query.filter_by(name='Division Two').one()
+            self.assertEqual(self.request.division, d2)

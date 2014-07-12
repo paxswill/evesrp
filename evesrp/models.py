@@ -225,6 +225,7 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
         self.note = ensure_unicode(note)
         self.value = value
         self.request = request
+        self.timestamp = dt.datetime.utcnow()
 
     def __repr__(self):
         return ("{x.__class__.__name__}({x.request}, {x.user},"
