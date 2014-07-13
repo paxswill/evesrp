@@ -8,9 +8,13 @@ EveSRP.tokenfield = {
 
   addedToken: function addedToken(ev) {
     /* Apply the filter */
-    function _add(attr) {
+    function _add(item) {
       var requests = EveSRP.ui.requestList.requests;
-      requests.filters[attr.attr].unionQuery(attr.real_value);
+      if (item.attr === 'details') {
+        requests.filters.details.unionQuery(item.real_value);
+      } else {
+        requests.filters[item.attr].unionQuery(item.real_value);
+      }
     }
     if (ev.attrs instanceof Array) {
       for (var i = 0; i < ev.attrs.length; ++i) {
@@ -23,17 +27,23 @@ EveSRP.tokenfield = {
 
   modifyToken: function modifyToken(ev) {
     /* format the value and label */
-    function _modify(attr) {
-      if (attr.attr === undefined) {
-        var data = attr.label.split(':');
-        attr.attr = data[0];
-        if (attr.attr === 'status') {
-          attr.real_value = data.slice(1).join(':').toLowerCase();
+    function _modify(item) {
+      if (item.attr === undefined) {
+        var data = item.label.split(':');
+        if (data.length === 1) {
+          item.attr = 'details';
+          item.real_value = data[0];
+          item.value = 'details:' + data[0];
         } else {
-          attr.real_value = data.slice(1).join(':');
+          item.attr = data[0];
+          if (item.attr === 'status') {
+            item.real_value = data.slice(1).join(':').toLowerCase();
+          } else {
+            item.real_value = data.slice(1).join(':');
+          }
         }
       }
-      attr.label = attr.value;
+      item.label = item.value;
     }
     if (ev.attrs instanceof Array) {
       for (var i = 0; i < ev.attrs.length; ++i) {
@@ -46,9 +56,9 @@ EveSRP.tokenfield = {
 
   removedToken: function removedToken(ev) {
     /* Remove the filter */
-    function _remove(attr) {
+    function _remove(item) {
       var requests = EveSRP.ui.requestList.requests;
-      requests.filters[attr.attr].removeSingleQuery(attr.real_value);
+      requests.filters[item.attr].removeSingleQuery(item.real_value);
     }
     if (ev.attrs instanceof Array) {
       for (var i = 0; i < ev.attrs.length; ++i) {
@@ -83,9 +93,10 @@ EveSRP.tokenfield = {
 
   attachTokenfield: function attachTokenfield($input, bloodhounds) {
     /* Create the typeahead arguments */
-    var typeahead_args = [];
+    var typeahead_args = [],
+        tokenfield;
     typeahead_args.push({
-      hint: false,
+      hint: true,
       highlight: true
     });
     function superBloodhound(query, cb) {
@@ -135,11 +146,12 @@ EveSRP.tokenfield = {
       source: superBloodhound
     });
     /* Create the tokenfield and listeners */
-    return $input.tokenfield({
+    tokenfield = $input.tokenfield({
       typeahead: typeahead_args
     })
     .on('tokenfield:createtoken', EveSRP.tokenfield.modifyToken)
     .on('tokenfield:createdtoken', EveSRP.tokenfield.addedToken)
     .on('tokenfield:removetoken', EveSRP.tokenfield.removedToken);
+    return tokenfield;
   }
 }

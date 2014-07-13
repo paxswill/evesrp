@@ -104,6 +104,50 @@ EveSRP.pourover = {
     return false;
   },
 
+  BufferedFilter: PourOver.manualFilter.extend( {
+    _getFn: this.getFn,
+
+    processQuery: function processQuery(query) {
+      var _this = this;
+      if (! ('cachedQueries' in this)) {
+        this.cachedQueries = {};
+      }
+      if (query in this.cachedQueries) {
+        this.addItems(this.cachedQueries[query]);
+      } else {
+        $.ajax( {
+          async: false,
+          type: 'GET',
+          url: $SCRIPT_ROOT + '/api/filter/' + this.attr + '/' + query,
+          success: function(data) {
+            var ids = data.ids,
+                items = _this.getCollection().getBy('id', ids),
+                cids = _(items).map(function(i) {return i.cid});
+            _this.cachedQueries[query] = cids;
+          }
+        });
+      }
+    },
+
+    getFn: function(query) {
+      var cids;
+      if (! ('cachedQueries' in this)) {
+        this.cachedQueries = {};
+      }
+      if (query in this.cachedQueries) {
+        cids = this.cachedQueries[query];
+      } else {
+        this.processQuery(query);
+        cids = this.cachedQueries[query];
+      }
+      return this.makeQueryMatchSet(cids, query);
+    }
+  }),
+
+  makeBufferedFilter: function makeBufferedFilter(name) {
+    return new EveSRP.pourover.BufferedFilter(name, [], {attr: name});
+  },
+
   RequestsView: PourOver.View.extend( {
     page_size: 20,
     render: function () {

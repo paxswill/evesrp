@@ -77,7 +77,8 @@ EveSRP.ui.requestList = {
       'region',
       'ship',
       'status',
-      'division'
+      'division',
+      'details'
     ];
     // Get a promises for all the requests
     deferredRequests = $.map(attributes, function(column) {
@@ -90,11 +91,17 @@ EveSRP.ui.requestList = {
             requestView;
         // Create PourOver filters
         $.each(arguments, function(i, data) {
-          var filter;
+          var filter, key, value;
           if ($.isArray(data)) {
             data = data[0];
           }
-          filter = PourOver.makeExactFilter(data.key, data[data.key]);
+          key = data.key;
+          value = data[data.key];
+          if (value !== null) {
+            filter = PourOver.makeExactFilter(key, value);
+          } else {
+            filter = EveSRP.pourover.makeBufferedFilter(key);
+          }
           requests.addFilters(filter);
         });
         // Create the PourOver View
@@ -107,12 +114,18 @@ EveSRP.ui.requestList = {
       })
       .done(function(responses) {
         // Create Bloodhounds
-        var bloodhounds;
-        bloodhounds = $.map(arguments, function(data) {
+        var bloodhounds = [];
+        $.each(arguments, function(i, data) {
+          var key, value;
           if ($.isArray(data)) {
             data = data[0];
           }
-          return EveSRP.tokenfield.createBloodhound(data.key, data[data.key]);
+          key = data.key;
+          value = data[data.key];
+          if (value !== null) {
+            bloodhounds.push(EveSRP.tokenfield.createBloodhound(
+                key, value));
+          }
         });
         var tokenfield = EveSRP.tokenfield.attachTokenfield($('.filter-tokenfield'),
           bloodhounds);

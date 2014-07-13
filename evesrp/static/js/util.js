@@ -107,8 +107,14 @@ EveSRP.util = {
       var statuses = ['evaluating', 'approved', 'rejected', 'incomplete',
         'paid'];
       return $.Deferred().resolve( {
-        'key': 'status',
+        key: 'status',
         'status': statuses
+      });
+    }
+    if (attribute === 'details') {
+      return $.Deferred().resolve( {
+        key: 'details',
+        'details': null
       });
     }
     return $.ajax( {

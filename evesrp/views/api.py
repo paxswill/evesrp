@@ -308,6 +308,14 @@ def _first(o):
     return o[0]
 
 
+@filters.route('/details/<path:query>')
+@login_required
+def query_details(query):
+    requests = db.session.query(Request.id)\
+            .filter(Request.details.match(query))
+    return jsonify(ids=map(_first, requests))
+
+
 @filters.route('/pilot/')
 @login_required
 def filter_pilots():
