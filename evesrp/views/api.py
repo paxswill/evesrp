@@ -236,7 +236,7 @@ class FiltersRequestListing(object):
                 u'region': request.region,
             }
 
-        return jsonify(requests=map(request_dict, self.requests()))
+        return jsonify(requests=map(request_dict, self.requests(filters)))
 
 
 class APIRequestListing(FiltersRequestListing, PermissionRequestListing): pass

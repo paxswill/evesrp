@@ -6,6 +6,7 @@ from flask import render_template, abort, url_for, flash, Markup, request,\
     redirect, current_app, Blueprint, Markup, json, make_response
 from flask.views import View
 from flask.ext.login import login_required, current_user
+from flask.ext.sqlalchemy import Pagination
 from flask.ext.wtf import Form
 import six
 from six.moves import map
@@ -43,31 +44,24 @@ class RequestListing(View):
     #: Decorators to apply to the view functions
     decorators = [login_required]
 
-    def requests(self):
+    def requests(self, filters=None):
         """Returns a list :py:class:`~.Request`\s belonging to
         the specified :py:class:`~.Division`, or all divisions if
-        ``None``. Must be implemented by subclasses, as this is an abstract
-        method.
+        ``None``.
 
         :returns: :py:class:`~.models.Request`\s
         :rtype: iterable
         """
-        raise NotImplementedError()
-
-    def dispatch_request(self, filters=None, **kwargs):
-        """Returns the response to requests.
-
-        Part of the :py:class:`flask.views.View` interface.
-        """
-        # Parse filters
+        # Start with a basic query for requests
+        requests = Request.query.options(*self._load_options)
+        requests = requests.order_by(Request.timestamp.desc())
+        # Apply the filters
         known_filters = ('page', 'division', 'alliance', 'corporation',
                 'pilot', 'system', 'constellation', 'region', 'ship', 'status',
                 'details')
-        page = 1
-        requests = self.requests()
         if filters is not None:
             split_filters = filters.split('/')
-            # trim empty beginning or ends
+            # trim empty beginning and/or ends
             if split_filters[0] == '':
                 split_filters = split_filters[1:]
             if split_filters[-1] == '':
@@ -78,11 +72,7 @@ class RequestListing(View):
             for i in range(0, len(split_filters), 2):
                 kind = split_filters[i]
                 arg = split_filters[i + 1]
-                # fix nice column names back to real names, and handle page
-                # numbers
-                if kind == 'page':
-                    page = int(arg)
-                    continue
+                # fix nice column names back to real names
                 if kind == 'division':
                     kind = 'division_id'
                 elif kind == 'ship':
@@ -104,7 +94,9 @@ class RequestListing(View):
                     requests = requests.filter(Request.status.in_(actions))
                 elif kind == 'details':
                     requests = requests.filter(Request.details.match(arg)) 
-                else:
+                elif kind == 'page':
+                    pager = requests.paginate(int(arg), per_page=20)
+                elif kind in known_filters:
                     column = getattr(Request, kind)
                     if ',' in arg:
                         arg = arg.split(',')
@@ -117,7 +109,17 @@ class RequestListing(View):
                     else:
                         requests = requests.filter(db.func.lower(column) ==
                                 db.func.lower(arg))
-        # Respond
+                else:
+                    flash(u"Unknown filterable attribute name: {}".format(
+                            kind), u'warning')
+        return requests
+
+    def dispatch_request(self, filters=None, **kwargs):
+        """Returns the response to requests.
+
+        Part of the :py:class:`flask.views.View` interface.
+        """
+        requests = self.requests(filters)
         if request.is_json or request.is_xhr:
             return jsonify(requests=requests)
         if request.is_rss:
@@ -127,11 +129,10 @@ class RequestListing(View):
                     main_link=url_for(request.endpoint, filters=filters,
                         _external=True))
         if request.is_xml:
-            return xmlify('request_list.xml',
-                    requests=requests)
-        pager = requests.paginate(page, per_page=20)
-        return render_template(self.template,
-                pager=pager, **kwargs)
+            return xmlify('request_list.xml', requests=requests)
+        if not isinstance(requests, Pagination):
+            requests = requests.paginate(1, 20)
+        return render_template(self.template, pager=requests, **kwargs)
 
     @property
     def _load_options(self):
@@ -186,12 +187,11 @@ class PersonalRequests(RequestListing):
         return super(PersonalRequests, self).dispatch_request(filters,
                 key_form=APIKeyForm(formdata=None))
 
-    def requests(self):
-        requests = Request.query\
+    def requests(self, filters=None):
+        requests = super(PersonalRequests, self).requests(filters)
+        requests = requests\
                 .join(User)\
-                .filter(User.id==current_user.id)\
-                .options(*self._load_options)
-        requests = requests.order_by(Request.timestamp.desc())
+                .filter(User.id==current_user.id)
         return requests
 
 
@@ -228,7 +228,7 @@ class PermissionRequestListing(RequestListing):
                     title=title,
                     **kwargs)
 
-    def requests(self):
+    def requests(self, filters=None):
         user_perms = db.session.query(Permission.id.label('permission_id'),
                 Permission.division_id.label('division_id'),
                 Permission.permission.label('permission'))\
@@ -241,11 +241,9 @@ class PermissionRequestListing(RequestListing):
         perms = user_perms.union(group_perms)\
                 .filter(Permission.permission.in_(self.permissions))
         perms = perms.subquery()
-        requests = Request.query\
+        requests = super(PermissionRequestListing, self).requests(filters)\
                 .join(perms, Request.division_id==perms.c.division_id)\
-                .filter(Request.status.in_(self.statuses))\
-                .order_by(Request.timestamp.desc())\
-                .options(*self._load_options)
+                .filter(Request.status.in_(self.statuses))
         return requests
 
 
