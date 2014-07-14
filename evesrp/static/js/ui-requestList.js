@@ -32,6 +32,28 @@ EveSRP.ui.requestList = {
     return false;
   },
 
+  changePage: function changePage(ev) {
+    var requestView = ev.data.requestView,
+        currentFilters;
+    /* Set the view to the new page */
+    if ($(this).attr('id') === 'prev_page') {
+      requestView.page(-1);
+    } else if ($(this).attr('id') == 'next_page') {
+      requestView.page(1);
+    } else {
+      var pageNum = parseInt($(this).contents()[0].data, 10);
+      // zero indexed pages
+      pageNum = pageNum - 1;
+      requestView.setPage(pageNum);
+    }
+    /* Fiddle with the browser history to keep the URL in sync */
+    currentFilters = EveSRP.util.getFilterString(window.location.pathname);
+    currentFilters = EveSRP.util.parseFilterString(currentFilters);
+    History.pushState(currentFilters, null,
+      EveSRP.util.unparseFilters(currentFilters));
+    return false;
+  },
+
   getColumns: function getColumns($rows) {
     var $headerRow;
     if ($rows === undefined) {
@@ -110,11 +132,12 @@ EveSRP.ui.requestList = {
         requestView.on('update', requestView.render);
         EveSRP.ui.requestList.requestView = requestView
         $('ul.pagination > li > a').on('click', {requestView: requestView},
-          EveSRP.pourover.changePage);
+          EveSRP.ui.requestList.changePage);
       })
       .done(function(responses) {
         // Create Bloodhounds
-        var bloodhounds = [];
+        var bloodhounds = [],
+            tokenfield, state;
         $.each(arguments, function(i, data) {
           var key, value;
           if ($.isArray(data)) {
@@ -127,8 +150,13 @@ EveSRP.ui.requestList = {
                 key, value));
           }
         });
-        var tokenfield = EveSRP.tokenfield.attachTokenfield($('.filter-tokenfield'),
+        tokenfield = EveSRP.tokenfield.attachTokenfield($('.filter-tokenfield'),
           bloodhounds);
+        // If there's a state already there, sync everything with it
+        state = History.getState();
+        if (state.data !== undefined && '_keys' in state.data) {
+          EveSRP.ui.requestList.updateTokens(state.data);
+        }
       });
   },
 
@@ -185,13 +213,86 @@ EveSRP.ui.requestList = {
     $(window).on('statechange', function(ev) {
       var requestView = EveSRP.ui.requestList.requestView,
           state = History.getState();
-      if (state.data.page !== request_view.current_page) {
-        requestView.setPage(state.data.page);
-      }
-      if (state.data.sort !== request_view.getSort()) {
-        requestView.setSort(state.data.sort);
+      EveSRP.ui.requestList.updateFilters(state.data);
+      EveSRP.ui.requestList.updateTokens(state.data);
+    });
+  },
+
+  updateFilters: function updateFilters(filters) {
+    var _this = this,
+        isCompound = function(c) {
+          return _.isString(c) && c.match(/^(or|and|not)$/);
+        };
+    $.each(filters._keys, function(i, attr) {
+      var values = filters[attr],
+          currentValues = [],
+          filter, removed, added;
+      if (attr === 'page') {
+        if (value !== _this.requestView.current_page) {
+          _this.requestView.setPage(value);
+        }
+      } else if (attr === 'sort') {
+        // TODO
+      } else {
+        filter = _this.requests.filters[attr];
+        if ('current_query' in filter) {
+          $.each(filter.current_query.stack, function(i, query) {
+            if (isCompound(query[0])) {
+              currentValues.push(query[1][0][1]);
+            } else {
+              currentValues.push(query[1]);
+            }
+          });
+        }
+        added = _(values).difference(currentValues);
+        removed = _(currentValues).difference(values);
+        $.each(added, function(i, v) {
+          filter.unionQuery(v);
+        });
+        $.each(removed, function(i, v) {
+          filter.removeSingleQuery(v);
+        });
       }
     });
+  },
+
+  updateTokens: function updateTokens(filters_) {
+    var $tokenfield = $('.filter-tokenfield'),
+        tokens = $tokenfield.tokenfield('getTokens'),
+        filters = $.extend(true, {}, filters_),
+        index, attr, value, valIndex;
+    // Remove tokens not in the filter
+    for (index = 0; index < tokens.length; index++) {
+      attr = tokens[index].attr;
+      value = tokens[index].real_value;
+      if ($.inArray(attr, filters._keys) !== -1) {
+        valIndex = $.inArray(value, filters[attr]);
+        if (valIndex === -1) {
+          tokens.splice(index, 1);
+          index--;
+        } else {
+          filters[attr].splice(valIndex, 1);
+        }
+      } else {
+        tokens.splice(index, 1);
+      }
+    }
+    // Add tokens for things still in the filter
+    $.each(filters._keys, function(i, attr) {
+      var values = filters[attr];
+      if (attr !== 'page' && attr !== 'sort') {
+        $.each(values, function(i, value) {
+          var label = [attr, value].join(':');
+          tokens.push( {
+            attr: attr,
+            real_value: value,
+            label: label,
+            value: label
+          });
+        });
+      }
+    });
+    $tokenfield.tokenfield('setTokens', tokens);
   }
 };
 EveSRP.ui.requestList.getRequests();

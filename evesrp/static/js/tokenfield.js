@@ -9,12 +9,18 @@ EveSRP.tokenfield = {
   addedToken: function addedToken(ev) {
     /* Apply the filter */
     function _add(item) {
-      var requests = EveSRP.ui.requestList.requests;
-      if (item.attr === 'details') {
-        requests.filters.details.unionQuery(item.real_value);
-      } else {
-        requests.filters[item.attr].unionQuery(item.real_value);
+      var requests = EveSRP.ui.requestList.requests,
+          fullPath = EveSRP.util.splitFilterString(window.location.pathname),
+          filters;
+      filters = EveSRP.util.parseFilterString(fullPath[1]);
+      // Ensure there's a place to put new queries
+      if ($.inArray(item.attr, filters._keys) === -1) {
+        filters[item.attr] = [];
+        filters._keys.push(item.attr);
       }
+      filters[item.attr] = _(filters[item.attr]).union([item.real_value]);
+      fullPath[1] = EveSRP.util.unparseFilters(filters);
+      History.pushState(filters, null, '/' + fullPath.join('/'));
     }
     if (ev.attrs instanceof Array) {
       for (var i = 0; i < ev.attrs.length; ++i) {
@@ -57,8 +63,13 @@ EveSRP.tokenfield = {
   removedToken: function removedToken(ev) {
     /* Remove the filter */
     function _remove(item) {
-      var requests = EveSRP.ui.requestList.requests;
-      requests.filters[item.attr].removeSingleQuery(item.real_value);
+      var requests = EveSRP.ui.requestList.requests,
+          fullPath = EveSRP.util.splitFilterString(window.location.pathname),
+          filters;
+      filters = EveSRP.util.parseFilterString(fullPath[1]);
+      filters[item.attr] = _(filters[item.attr]).without(item.real_value);
+      fullPath[1] = EveSRP.util.unparseFilters(filters);
+      History.pushState(filters, null, '/' + fullPath.join('/'));
     }
     if (ev.attrs instanceof Array) {
       for (var i = 0; i < ev.attrs.length; ++i) {

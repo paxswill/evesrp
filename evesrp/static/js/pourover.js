@@ -80,29 +80,6 @@ EveSRP.pourover = {
     return collection;
   },
 
-  changePage: function changePage(ev) {
-    var requestView = ev.data.requestView,
-        newPath, pageNum;
-    /* Set the view to the new page */
-    if ($(this).attr('id') === 'prev_page') {
-      requestView.page(-1);
-    } else if ($(this).attr('id') == 'next_page') {
-      requestView.page(1);
-    } else {
-      var pageNum = parseInt($(this).contents()[0].data, 10);
-      // zero indexed pages
-      pageNum = pageNum - 1;
-      requestView.setPage(pageNum);
-    }
-    /* Fiddle with the browser history to keep the URL in sync */
-    newPath = window.location.pathname.replace(/\/?(?:\d+\/?)?$/, '');
-    newPath = newPath + '/' + (requestView.current_page + 1) + '/';
-    History.pushState( {
-        page: requestView.current_page,
-        sort: requestView.getSort()
-      }, null, newPath);
-    return false;
-  },
 
   BufferedFilter: PourOver.manualFilter.extend( {
     _getFn: this.getFn,
@@ -218,7 +195,7 @@ EveSRP.pourover = {
         }
       }
       $pager.find('li > a').on('click', {requestView: this},
-          EveSRP.pourover.changePage);
+          EveSRP.ui.requestList.changePage);
     }
-  }),
+  })
 }

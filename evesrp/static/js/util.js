@@ -121,5 +121,94 @@ EveSRP.util = {
       type: 'GET',
       url: $SCRIPT_ROOT + '/api/filter/' + attribute + '/'
     });
+  },
+
+  trimEmpty: function trimEmpty(arr) {
+    var newArr = arr.slice(0);
+    if (newArr[0] === '') {
+      newArr = newArr.slice(1);
+    }
+    if (newArr.slice(-1)[0] === '') {
+      newArr = newArr.slice(0, -1);
+    }
+    return newArr;
+  },
+
+  splitFilterString: function splitFilterString(pathname) {
+    var filterPath = pathname.split('/'),
+        known_attrs = ['page', 'division', 'alliance', 'corporation', 'pilot',
+                       'system', 'constellation', 'region', 'ship', 'status',
+                       'details'],
+        basePath = [];
+    filterPath = this.trimEmpty(filterPath);
+    filterPath.reverse();
+    while (filterPath.length > 0 &&
+        $.inArray(filterPath.slice(-1)[0], known_attrs) === -1) {
+      basePath.push(filterPath.pop());
+    }
+    filterPath.reverse();
+    return [basePath.join('/'), filterPath.join('/')]
+  },
+
+  parseFilterString: function parseFilterString(filterString) {
+    /* This is a straight port of the
+     * evesrp.views.requests.RequestListing.parseFilterString function from
+     * Python to Javascript.
+     */
+    var filters = {_keys: []},
+        splitString, i, attr, values;
+    // Fail early for empty filters
+    if (filterString === undefined || filterString === '') {
+      return filters;
+    }
+    splitString = filterString.split('/');
+    // Trim empty beginnings and/or ends
+    splitString = this.trimEmpty(splitString);
+    // Check for unpaired filters
+    if (splitString.length % 2 !== 0) {
+      return filters;
+    }
+    for (i = 0; i < splitString.length; i += 2) {
+      attr = splitString[i].toLowerCase();
+      values = splitString[i + 1];
+      if ($.inArray(attr, filters._keys) === -1) {
+        filters[attr] = [];
+        filters._keys.push(attr);
+      }
+      if (attr === 'details') {
+        filters[attr] = _(filters[attr]).union(values);
+      } else if (attr === 'page') {
+        filters[attr] = parseInt(values, 10);
+      } else if (values.indexOf(',') !== -1) {
+        values = values.split(',');
+        filters[attr] = _(filters[attr]).union(values);
+      } else {
+        filters[attr] = _(filters[attr]).union([values]);
+      }
+    }
+    return filters;
+  },
+
+  unparseFilters: function unparseFilters(filters) {
+    /* Like parseFilterString, this is a straight port of the
+     * evesrp.views.requests.RequestListing.unparseFilters function from
+     * Python to Javascript.
+     */
+    var filterStrings = [];
+    filters._keys.sort();
+    $.each(filters._keys, function(index, attr) {
+      var values = filters[attr];
+      if (attr === 'details') {
+        $.each(values, function(i, details) {
+          filterStrings.push('details/' + details);
+        });
+      } else if (attr === 'page') {
+        filterStrings.push('page/' + values);
+      } else if (values.length > 0) {
+        values.sort();
+        filterStrings.push(attr + '/' + values.join(','));
+      }
+    });
+    return filterStrings.join('/');
   }
 };

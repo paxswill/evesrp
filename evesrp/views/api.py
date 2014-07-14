@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from flask import url_for, redirect, abort, request, Blueprint
+from flask import url_for, redirect, abort, request, Blueprint, current_app
 from flask.ext.login import login_required, current_user
 import six
 from six.moves import filter, map
@@ -11,7 +11,7 @@ from ..models import Request, ActionType
 from ..auth import PermissionType
 from ..auth.models import Division, User, Group, Pilot, Entity
 from .requests import PermissionRequestListing, PersonalRequests
-from ..util import jsonify
+from ..util import jsonify, classproperty
 
 
 api = Blueprint('api', __name__)
@@ -186,7 +186,7 @@ def ship_list():
 
 
 class FiltersRequestListing(object):
-    @property
+    @classproperty
     def _load_options(self):
         """Returns a sequence of
         :py:class:`~sqlalchemy.orm.strategy_options.Load` objects specifying
@@ -213,7 +213,7 @@ class FiltersRequestListing(object):
         )
 
 
-    def dispatch_request(self, filters=None, **kwargs):
+    def dispatch_request(self, filters='', **kwargs):
         def request_dict(request):
             payout = request.payout
             return {
@@ -236,7 +236,7 @@ class FiltersRequestListing(object):
                 u'region': request.region,
             }
 
-        return jsonify(requests=map(request_dict, self.requests(filters)))
+        return jsonify(requests=map(request_dict, self.requests({})))
 
 
 class APIRequestListing(FiltersRequestListing, PermissionRequestListing): pass
@@ -260,20 +260,20 @@ def register_request_lists(state):
     # Attach the views to paths
     for prefix in state.app.request_prefixes:
         state.add_url_rule(prefix + '/', view_func=all_requests)
-        state.add_url_rule(prefix + '/<int:division_id>/',
+        state.add_url_rule(prefix + '/<path:filters>/',
                 view_func=all_requests)
         state.add_url_rule(prefix + '/personal/', view_func=user_requests)
-        state.add_url_rule(prefix + '/personal/<int:division_id>/',
+        state.add_url_rule(prefix + '/personal/<path:filters>/',
                 view_func=user_requests)
         state.add_url_rule(prefix + '/pending/', view_func=pending_requests)
-        state.add_url_rule(prefix + '/pending/<int:division_id>/',
+        state.add_url_rule(prefix + '/pending/<path:filters>/',
                 view_func=pending_requests)
         state.add_url_rule(prefix + '/pay/', view_func=pay_requests)
-        state.add_url_rule(prefix + '/pay/<int:division_id>/',
+        state.add_url_rule(prefix + '/pay/<path:filters>/',
                 view_func=pay_requests)
         state.add_url_rule(prefix + '/completed/',
                 view_func=completed_requests)
-        state.add_url_rule(prefix + '/completed/<int:division_id>/',
+        state.add_url_rule(prefix + '/completed/<path:filters>/',
                 view_func=completed_requests)
 
 

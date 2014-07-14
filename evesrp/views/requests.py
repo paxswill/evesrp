@@ -18,7 +18,7 @@ from wtforms.validators import InputRequired, AnyOf, URL, ValidationError,\
 from .. import db
 from ..models import Request, Modifier, Action, ActionType, ActionError,\
         ModifierError, AbsoluteModifier, RelativeModifier
-from ..util import xmlify, jsonify
+from ..util import xmlify, jsonify, classproperty
 from ..auth import PermissionType
 from ..auth.models import Division, Pilot, Permission, User, Group, Note,\
     APIKey
@@ -44,7 +44,64 @@ class RequestListing(View):
     #: Decorators to apply to the view functions
     decorators = [login_required]
 
-    def requests(self, filters=None):
+    @staticmethod
+    def parseFilterString(filter_string):
+        filters = {}
+        # Fail early for empty filters
+        if filter_string is None or filter_string == '':
+            return filters
+        split_filters = filter_string.split('/')
+        # Trim empty beginnings and/or ends
+        if split_filters[0] == '':
+            split_filters = split_filters[1:]
+        if split_filters[-1] == '':
+            split_filters = split_filters[:-1]
+        # Check for unpaired filters
+        if len(split_filters) % 2 != 0:
+            # FIXME: uneven length of filters
+            return filters
+        for i in range(0, len(split_filters), 2):
+            attr = split_filters[i].lower()
+            values = split_filters[i + 1]
+            # Use sets for deduplicating
+            # Prime the mapping with an empty set. Details are special filter
+            # types, and may contain commas. They are allowed to be specified
+            # multiple times.
+            if attr not in filters:
+                filters[attr] = set()
+            if attr == 'details':
+                filters[attr].add(values)
+            elif attr == 'page':
+                try:
+                    filters['page'] = int(values)
+                except TypeError:
+                    error_msg = u"Invalid value for page number: {}".format(
+                            values)
+                    flash(error_msg, u'warning')
+                    current_app.logger.warn(error_msg)
+            elif ',' in values:
+                values = values.split(',')
+                filters[attr].update(values)
+            else:
+                filters[attr].add(values)
+        return filters
+
+    @staticmethod
+    def unparseFilters(filters):
+        attrs = sorted(six.iterkeys(filters))
+        filter_strings = []
+        for attr in attrs:
+            if attr == 'details':
+                for details in sorted(filters[attr]):
+                    filter_strings.append('details/' + details)
+            elif attr == 'page':
+                filter_strings.append('page/' + filters['page'])
+            else:
+                values = sorted(filters[attr])
+                filter_strings.append(attr + '/' + ','.join(values))
+        return '/'.join(filter_strings)
+
+    def requests(self, filters):
         """Returns a list :py:class:`~.Request`\s belonging to
         the specified :py:class:`~.Division`, or all divisions if
         ``None``.
@@ -56,70 +113,56 @@ class RequestListing(View):
         requests = Request.query.options(*self._load_options)
         requests = requests.order_by(Request.timestamp.desc())
         # Apply the filters
-        known_filters = ('page', 'division', 'alliance', 'corporation',
-                'pilot', 'system', 'constellation', 'region', 'ship', 'status',
-                'details')
-        if filters is not None:
-            split_filters = filters.split('/')
-            # trim empty beginning and/or ends
-            if split_filters[0] == '':
-                split_filters = split_filters[1:]
-            if split_filters[-1] == '':
-                split_filters = split_filters[:-1]
-            if len(split_filters) % 2 != 0:
-                # TODO: uneven length of filters
-                pass
-            for i in range(0, len(split_filters), 2):
-                kind = split_filters[i]
-                arg = split_filters[i + 1]
-                # fix nice column names back to real names
-                if kind == 'division':
-                    kind = 'division_id'
-                elif kind == 'ship':
-                    kind = 'ship_type'
-                if kind == 'status':
-                    if ',' in arg:
-                        arg = arg.split(',')
+        known_attrs = ('page', 'division_id', 'alliance', 'corporation',
+                'pilot', 'system', 'constellation', 'region', 'ship_type',
+                'status', 'details')
+        for attr, values in six.iteritems(filters):
+            # massage pretty attribute names to the not-so-pretty ones
+            if attr == 'division':
+                real_attr = 'division_id'
+            elif attr == 'ship':
+                real_attr = 'ship_type'
+            else:
+                real_attr = attr
+            # Handle a couple attributes specially
+            if real_attr == 'status':
+                actions = set()
+                for action in values:
+                    if action in ('finalized', 'pending'):
+                        actions.update(getattr(ActionType, action))
+                    elif action == 'all':
+                        actions.update(ActionType.statuses)
                     else:
-                        arg = [arg]
-                    arg = map(lambda x: x.lower(), arg)
-                    actions = set()
-                    for action in arg:
-                        if action in ('finalized', 'pending'):
-                            actions.update(getattr(ActionType, action))
-                        elif action == 'all':
-                            actions.update(ActionType.statuses)
-                        else:
-                            actions.add(ActionType.from_string(action))
-                    requests = requests.filter(Request.status.in_(actions))
-                elif kind == 'details':
-                    requests = requests.filter(Request.details.match(arg)) 
-                elif kind == 'page':
-                    pager = requests.paginate(int(arg), per_page=20)
-                elif kind in known_filters:
-                    column = getattr(Request, kind)
-                    if ',' in arg:
-                        arg = arg.split(',')
-                        if arg == 'division_id':
-                            arg = map(int, arg)
-                        else:
-                            arg = map(lambda x: x.lower(), arg)
-                        requests = requests.filter(db.func.lower(column).in_(
-                                arg))
-                    else:
-                        requests = requests.filter(db.func.lower(column) ==
-                                db.func.lower(arg))
-                else:
-                    flash(u"Unknown filterable attribute name: {}".format(
-                            kind), u'warning')
+                        actions.add(ActionType.from_string(action))
+                requests = requests.filter(Request.status.in_(actions))
+            elif real_attr == 'details':
+                clauses = [Request.details.match(d) for d in values]
+                requests = requests.filter(db.or_(*clauses)) 
+            elif real_attr == 'page':
+                pager = requests.paginate(values, per_page=20)
+            elif real_attr in known_attrs:
+                column = getattr(Request, real_attr)
+                requests = requests.filter(column.in_(values))
+            else:
+                flash(u"Unknown filterable attribute name: {}".format(
+                        attr), u'warning')
         return requests
 
-    def dispatch_request(self, filters=None, **kwargs):
+    def dispatch_request(self, filters='', **kwargs):
         """Returns the response to requests.
 
         Part of the :py:class:`flask.views.View` interface.
         """
-        requests = self.requests(filters)
+        filter_map = self.parseFilterString(filters)
+        current_app.logger.debug(filter_map)
+        canonical_filter = self.unparseFilters(filter_map)
+        if canonical_filter != filters:
+            current_app.logger.debug(u"Redirecting to filter '{}' from filter"
+                                     u" '{}'.".format(canonical_filter,
+                                         filters))
+            return redirect(url_for(request.endpoint,
+                    filters=canonical_filter), code=301)
+        requests = self.requests(filter_map)
         if request.is_json or request.is_xhr:
             return jsonify(requests=requests)
         if request.is_rss:
@@ -134,8 +177,8 @@ class RequestListing(View):
             requests = requests.paginate(1, 20)
         return render_template(self.template, pager=requests, **kwargs)
 
-    @property
-    def _load_options(self):
+    @classproperty
+    def _load_options(cls):
         """Returns a sequence of
         :py:class:`~sqlalchemy.orm.strategy_options.Load` objects specifying
         which attributes to load (or really any load options necessary).
@@ -165,7 +208,7 @@ class PersonalRequests(RequestListing):
 
     methods = ['GET', 'POST']
 
-    def dispatch_request(self, filters=None, **kwargs):
+    def dispatch_request(self, filters='', **kwargs):
         if request.method == 'POST':
             form = APIKeyForm()
             if form.validate():
@@ -187,7 +230,7 @@ class PersonalRequests(RequestListing):
         return super(PersonalRequests, self).dispatch_request(filters,
                 key_form=APIKeyForm(formdata=None))
 
-    def requests(self, filters=None):
+    def requests(self, filters):
         requests = super(PersonalRequests, self).requests(filters)
         requests = requests\
                 .join(User)\
@@ -215,7 +258,7 @@ class PermissionRequestListing(RequestListing):
         self.permissions = (PermissionType.admin,) + tuple(permissions)
         self.statuses = statuses
 
-    def dispatch_request(self, filters=None, **kwargs):
+    def dispatch_request(self, filters='', **kwargs):
         if not current_user.has_permission(self.permissions):
             abort(403)
         else:
@@ -228,7 +271,7 @@ class PermissionRequestListing(RequestListing):
                     title=title,
                     **kwargs)
 
-    def requests(self, filters=None):
+    def requests(self, filters):
         user_perms = db.session.query(Permission.id.label('permission_id'),
                 Permission.division_id.label('division_id'),
                 Permission.permission.label('permission'))\
@@ -257,7 +300,7 @@ class PayoutListing(PermissionRequestListing):
         super(PayoutListing, self).__init__((PermissionType.pay,),
                 (ActionType.approved,))
 
-    def dispatch_request(self, filters=None, **kwargs):
+    def dispatch_request(self, filters='', **kwargs):
         if not current_user.has_permission(self.permissions):
             abort(403)
         return super(PayoutListing, self).dispatch_request(
@@ -318,7 +361,7 @@ def register_class_views(state):
             '/completed/', PermissionType.elevated, ActionType.finalized)
     # Special all listing, mainly intended for API users
     register_perm_request_listing(state, 'list_all_requests',
-            '/ll/', PermissionType.elevated, ActionType.statuses)
+            '/all/', PermissionType.elevated, ActionType.statuses)
 
 
 class ValidKillmail(URL):
