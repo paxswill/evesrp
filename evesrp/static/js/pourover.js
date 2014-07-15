@@ -126,7 +126,7 @@ EveSRP.pourover = {
   },
 
   RequestsView: PourOver.View.extend( {
-    page_size: 20,
+    page_size: 15,
     render: function () {
       /* Start with a clean slate (keep header separate from data rows) */
       var $rows = $('table#requests tr').not($('.popover tr')),

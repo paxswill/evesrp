@@ -53,23 +53,23 @@
     <div class="text-center">
       <ul class="pagination">
         {% if pager.has_prev %}
-        <li><a id="prev_page" href="{{ url_for(request.endpoint, page=pager.prev_num) }}">&laquo;</a></li>
+        <li><a id="prev_page" href="{{ url_for_page(pager, pager.prev_num) }}">&laquo;</a></li>
         {% else %}
         <li class="disabled"><span>&laquo;</span></li>
         {% endif %}
         {% for page in pager.iter_pages() %}
           {% if page %}
             {% if page != pager.page %}
-        <li><a href="{{ url_for(request.endpoint, page=page) }}">{{ page }}</a></li>
+        <li><a href="{{ url_for_page(request.endpoint, page) }}">{{ page }}</a></li>
             {% else %}
-        <li class="active"><a href="{{ url_for(request.endpoint, page=page) }}">{{ page }}<span class="sr-only"> (current)</span></a></li>
+        <li class="active"><a href="{{ url_for_page(pager, page) }}">{{ page }}<span class="sr-only"> (current)</span></a></li>
             {% endif %}
           {% else %}
         <li class="disabled"><span>&hellip;</span></li>
           {% endif %}
         {% endfor %}
         {% if pager.has_next %}
-        <li><a id="next_page" href="{{ url_for(request.endpoint, page=pager.next_num) }}">&raquo;</a></li>
+        <li><a id="prev_page" href="{{ url_for_page(pager, pager.next_num) }}">&raquo;</a></li>
         {% else %}
         <li class="disabled"><span>&raquo;</span></li>
         {% endif %}

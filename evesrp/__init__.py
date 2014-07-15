@@ -85,6 +85,7 @@ def create_app(config=None, **kwargs):
             'PermissionType': PermissionType,
             'app_version': __version__,
             'site_name': app.config['SRP_SITE_NAME'],
+            'url_for_page': requests.url_for_page,
         }
     # Auto-trim whitespace
     app.jinja_env.trim_blocks = True

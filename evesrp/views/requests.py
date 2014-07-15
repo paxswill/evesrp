@@ -45,7 +45,7 @@ class RequestListing(View):
     decorators = [login_required]
 
     @staticmethod
-    def parseFilterString(filter_string):
+    def parse_filter(filter_string):
         filters = {}
         # Fail early for empty filters
         if filter_string is None or filter_string == '':
@@ -87,15 +87,15 @@ class RequestListing(View):
         return filters
 
     @staticmethod
-    def unparseFilters(filters):
+    def unparse_filter(filters):
         attrs = sorted(six.iterkeys(filters))
         filter_strings = []
         for attr in attrs:
             if attr == 'details':
                 for details in sorted(filters[attr]):
                     filter_strings.append('details/' + details)
-            elif attr == 'page':
-                filter_strings.append('page/' + filters['page'])
+            elif attr in ('page', 'sort'):
+                filter_strings.append('{}/{}'.format(attr, filters[attr]))
             else:
                 values = sorted(filters[attr])
                 filter_strings.append(attr + '/' + ','.join(values))
@@ -139,7 +139,7 @@ class RequestListing(View):
                 clauses = [Request.details.match(d) for d in values]
                 requests = requests.filter(db.or_(*clauses)) 
             elif real_attr == 'page':
-                pager = requests.paginate(values, per_page=20)
+                continue
             elif real_attr in known_attrs:
                 column = getattr(Request, real_attr)
                 requests = requests.filter(column.in_(values))
@@ -153,9 +153,9 @@ class RequestListing(View):
 
         Part of the :py:class:`flask.views.View` interface.
         """
-        filter_map = self.parseFilterString(filters)
-        current_app.logger.debug(filter_map)
-        canonical_filter = self.unparseFilters(filter_map)
+        filter_map = self.parse_filter(filters)
+        current_app.logger.debug("Filter map: {}".format(filter_map))
+        canonical_filter = self.unparse_filter(filter_map)
         if canonical_filter != filters:
             current_app.logger.debug(u"Redirecting to filter '{}' from filter"
                                      u" '{}'.".format(canonical_filter,
@@ -163,18 +163,17 @@ class RequestListing(View):
             return redirect(url_for(request.endpoint,
                     filters=canonical_filter), code=301)
         requests = self.requests(filter_map)
+        requests = requests.paginate(filter_map.get('page', 1), 15)
         if request.is_json or request.is_xhr:
-            return jsonify(requests=requests)
+            return jsonify(requests=requests.items)
         if request.is_rss:
             return xmlify('rss.xml', content_type='application/rss+xml',
-                    requests=requests,
+                    requests=requests.items,
                     title=(kwargs['title'] if 'title' in kwargs else u''),
                     main_link=url_for(request.endpoint, filters=filters,
                         _external=True))
         if request.is_xml:
             return xmlify('request_list.xml', requests=requests)
-        if not isinstance(requests, Pagination):
-            requests = requests.paginate(1, 20)
         return render_template(self.template, pager=requests, **kwargs)
 
     @classproperty
@@ -190,6 +189,14 @@ class RequestListing(View):
                 db.Load(Division).joinedload('name'),
                 db.Load(Pilot).joinedload('name'),
         )
+
+
+def url_for_page(pager, page_num):
+    filters = request.view_args.get('filters', '')
+    filters = RequestListing.parse_filter(filters)
+    filters['page'] = page_num
+    return url_for(request.endpoint,
+            filters=RequestListing.unparse_filter(filters))
 
 
 class APIKeyForm(Form):
