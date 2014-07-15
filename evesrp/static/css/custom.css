@@ -5,3 +5,8 @@
 td form button.close {
   float: none;
 }
+
+.twitter-typeahead .token-input.tt-input {
+  height: 20px;
+}
+
