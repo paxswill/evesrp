@@ -371,7 +371,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     region = db.Column(db.String(25, convert_unicode=True), nullable=False,
             index=True)
 
-    @property
+    @hybrid_property
     def payout(self):
         """The resulting payout taking all active :py:attr:`modifiers` into
         account.
@@ -386,14 +386,17 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         # Evaluation method for payout:
         # almost_payout = (sum(absolute_modifiers) + base_payout)
         # payout = almost_payout + (sum(percentage_modifiers) * almost_payout)
+        voided = Modifier._voided_select()
         abs_mods = db.session.query(db.func.sum(AbsoluteModifier.value))\
                 .join(Request)\
                 .filter(Modifier.request_id==self.id)\
-                .filter(~Modifier.voided)
+                .filter(~voided.c.voided)\
+                .filter(voided.c.id==Modifier.id)
         rel_mods = db.session.query(db.func.sum(RelativeModifier.value))\
                 .join(Request)\
                 .filter(Modifier.request_id==self.id)\
-                .filter(~Modifier.voided)
+                .filter(~voided.c.voided)\
+                .filter(voided.c.id==Modifier.id)
         absolute = abs_mods.one()[0]
         if absolute is None:
             absolute = Decimal(0)
@@ -406,6 +409,84 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         payout = payout + (payout * relative)
 
         return PrettyDecimal(payout)
+
+    @classmethod
+    def _payout_expression(cls):
+        # Get the sum of all absolute and relative modifiers
+        voided = Modifier._voided_select()
+        # Was having trouble bending SQLAlchemy to my will
+        mod_table = Modifier.__table__
+        abs_table = AbsoluteModifier.__table__
+        rel_table = RelativeModifier.__table__
+        # Prepare subqueries for the eventual summing
+        absolute = db.select([
+                        mod_table.c.id.label('id'),
+                        abs_table.c.value.label('value'),
+                        mod_table.c.request_id.label('request_id')])\
+                .select_from(db.join(abs_table, mod_table,
+                        mod_table.c.id == abs_table.c.id))\
+                .alias()
+        absolute = db.select([
+                        absolute.c.value.label('value'),
+                        absolute.c.request_id.label('request_id')])\
+                .where(~voided.c.voided)\
+                .select_from(db.join(absolute, voided,
+                        absolute.c.id == voided.c.id)).alias()
+        relative = db.select([
+                        mod_table.c.id.label('id'),
+                        rel_table.c.value.label('value'),
+                        mod_table.c.request_id.label('request_id')])\
+                .select_from(db.join(rel_table, mod_table,
+                        mod_table.c.id == rel_table.c.id))\
+                .alias()
+        relative = db.select([
+                        relative.c.value.label('value'),
+                        relative.c.request_id.label('request_id')])\
+                .where(~voided.c.voided)\
+                .select_from(db.join(relative, voided,
+                        relative.c.id == voided.c.id)).alias()
+        # Build a sub-query with Request.id, Request.base_payout, and the two
+        # sums
+        abs_sum = db.select([
+                        cls.id.label('request_id'),
+                        cls.base_payout.label('base_payout'),
+                        db.func.sum(absolute.c.value).label('sum')])\
+                .select_from(db.outerjoin(Request, absolute,
+                        Request.id == absolute.c.request_id))\
+                .group_by(Request.id)\
+                .alias()
+        rel_sum = db.select([
+                        cls.id.label('request_id'),
+                        db.func.sum(relative.c.value).label('sum')])\
+                .select_from(db.outerjoin(Request, relative,
+                        Request.id == relative.c.request_id))\
+                .group_by(Request.id)\
+                .alias()
+        total_sum = db.select([
+                        abs_sum.c.request_id.label('request_id'),
+                        abs_sum.c.base_payout.label('base_payout'),
+                        db.case([(abs_sum.c.sum == None, Decimal(0))],
+                                else_=abs_sum.c.sum).label('absolute'),\
+                        db.case([(rel_sum.c.sum == None, Decimal(0))],
+                                else_=rel_sum.c.sum).label('relative')])\
+                .select_from(db.join(abs_sum, rel_sum,
+                        abs_sum.c.request_id == rel_sum.c.request_id))\
+                .alias()
+        # Do the math in a select statement
+        payouts = db.select([
+                    total_sum.c.request_id.label('id'),
+                    ((total_sum.c.base_payout + total_sum.c.absolute) *
+                            (1 + total_sum.c.relative)).label('payout')])\
+                .alias()
+        return payouts
+
+    @payout.expression
+    def payout(cls):
+        payouts = cls._payout_expression()
+        stmt = db.select([payouts.c.payout])\
+                .where(cls.id == payouts.c.id)\
+                .label('payout')
+        return stmt
 
     @hybrid_property
     def finalized(self):
