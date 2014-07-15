@@ -142,6 +142,7 @@ class Action(db.Model, AutoID, Timestamped, AutoName):
             self.type_ = type_
         self.user = user
         self.note = ensure_unicode(note)
+        self.timestamp = dt.datetime.utcnow()
         self.request = request
 
     @db.validates('type_')

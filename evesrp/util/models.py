@@ -11,13 +11,16 @@ class AutoID(object):
     id = db.Column(db.Integer, primary_key=True)
 
 
+def _utcnow(arg):
+    return dt.datetime.utcnow()
+
 class Timestamped(object):
     """Mixin adding a timestamp column.
 
     The timestamp defaults to the current time.
     """
     timestamp = db.Column(DateTime, nullable=False,
-            default=dt.datetime.utcnow)
+            default=_utcnow)
 
 
 class AutoName(object):
