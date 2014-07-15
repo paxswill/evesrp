@@ -170,7 +170,7 @@ EveSRP.util = {
     }
     for (i = 0; i < splitString.length; i += 2) {
       attr = splitString[i].toLowerCase();
-      values = splitString[i + 1];
+      values = decodeURIComponent(splitString[i + 1]);
       if ($.inArray(attr, filters._keys) === -1) {
         filters[attr] = [];
         filters._keys.push(attr);
