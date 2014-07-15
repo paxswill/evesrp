@@ -200,12 +200,24 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
         return self.voided_user is not None and \
                 self.voided_timestamp is not None
 
+    @classmethod
+    def _voided_select(cls):
+        user = db.select([cls.id.label('id'),
+                cls.voided_user_id.label('user_id')]).alias('user_sub')
+        timestamp = db.select([cls.id.label('id'),
+                cls.voided_timestamp.label('timestamp')]).alias('timestamp_sub')
+        columns = [
+            db.and_(
+                user.c.user_id != None,
+                timestamp.c.timestamp != None).label('voided'),
+            user.c.id.label('id'),
+        ]
+        return db.select(columns).where(user.c.id == timestamp.c.id)\
+                .alias('voided_sub')
+
     @voided.expression
     def voided(cls):
-        return db.and_(
-                cls.voided_user_id != None,
-                cls.voided_timestamp != None
-        )
+        return cls._voided_select().c.voided
 
     @declared_attr
     def __mapper_args__(cls):
