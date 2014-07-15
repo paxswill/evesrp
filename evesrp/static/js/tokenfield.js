@@ -8,18 +8,15 @@ EveSRP.tokenfield = {
 
   addedToken: function addedToken(ev) {
     /* Apply the filter */
+    var fullPath = EveSRP.util.splitFilterString(window.location.pathname),
+        filters = EveSRP.util.parseFilterString(fullPath[1]);
     function _add(item) {
-      var fullPath = EveSRP.util.splitFilterString(window.location.pathname),
-          filters;
-      filters = EveSRP.util.parseFilterString(fullPath[1]);
       // Ensure there's a place to put new queries
       if ($.inArray(item.attr, filters._keys) === -1) {
         filters[item.attr] = [];
         filters._keys.push(item.attr);
       }
       filters[item.attr] = _(filters[item.attr]).union([item.real_value]);
-      fullPath[1] = EveSRP.util.unparseFilters(filters);
-      History.pushState(filters, null, '/' + fullPath.join('/'));
     }
     if (ev.attrs instanceof Array) {
       for (var i = 0; i < ev.attrs.length; ++i) {
@@ -28,6 +25,8 @@ EveSRP.tokenfield = {
     } else {
       _add(ev.attrs);
     }
+    fullPath[1] = EveSRP.util.unparseFilters(filters);
+    History.pushState(filters, null, '/' + fullPath.join('/'));
   },
 
   modifyToken: function modifyToken(ev) {
@@ -60,14 +59,11 @@ EveSRP.tokenfield = {
   },
 
   removedToken: function removedToken(ev) {
+    var fullPath = EveSRP.util.splitFilterString(window.location.pathname),
+        filters = EveSRP.util.parseFilterString(fullPath[1]);
     /* Remove the filter */
     function _remove(item) {
-      var fullPath = EveSRP.util.splitFilterString(window.location.pathname),
-          filters;
-      filters = EveSRP.util.parseFilterString(fullPath[1]);
       filters[item.attr] = _(filters[item.attr]).without(item.real_value);
-      fullPath[1] = EveSRP.util.unparseFilters(filters);
-      History.pushState(filters, null, '/' + fullPath.join('/'));
     }
     if (ev.attrs instanceof Array) {
       for (var i = 0; i < ev.attrs.length; ++i) {
@@ -76,6 +72,8 @@ EveSRP.tokenfield = {
     } else {
       _remove(ev.attrs);
     }
+    fullPath[1] = EveSRP.util.unparseFilters(filters);
+    History.pushState(filters, null, '/' + fullPath.join('/'));
   },
 
   createBloodhound: function createTokenFieldBloodhound(attribute, values) {
@@ -171,6 +169,15 @@ EveSRP.tokenfield = {
     .on('tokenfield:createtoken', EveSRP.tokenfield.modifyToken)
     .on('tokenfield:createdtoken', EveSRP.tokenfield.addedToken)
     .on('tokenfield:removetoken', EveSRP.tokenfield.removedToken);
+    $(window).on('statechange', function() {
+      var state = History.getState(),
+          tokens;
+      if (! ('_keys' in state.data)) {
+        state.data._keys = []
+      }
+      tokens = EveSRP.tokenfield.tokensFromFilter(state.data);
+      $(tokenfield).tokenfield('setTokens', tokens);
+    });
     return tokenfield;
   },
 
