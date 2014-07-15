@@ -96,6 +96,10 @@ def create_app(config=None, **kwargs):
 
 # SQLAlchemy performance logging
 def sqlalchemy_before():
+    if DB_STATS.total_queries > 0:
+        current_app.logger.debug(u"{} queries in {} ms.".format(
+                DB_STATS.total_queries,
+                round(DB_STATS.total_time * 1000, 3)))
     DB_STATS.clear()
     g.DB_STATS = DB_STATS
 
