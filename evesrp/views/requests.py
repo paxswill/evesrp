@@ -115,14 +115,12 @@ class RequestListing(View):
         requests = Request.query.options(*self._load_options)
         requests = requests.order_by(Request.timestamp.desc())
         # Apply the filters
-        known_attrs = ('page', 'division_id', 'alliance', 'corporation',
+        known_attrs = ('page', 'division', 'alliance', 'corporation',
                 'pilot', 'system', 'constellation', 'region', 'ship_type',
                 'status', 'details')
         for attr, values in six.iteritems(filters):
             # massage pretty attribute names to the not-so-pretty ones
-            if attr == 'division':
-                real_attr = 'division_id'
-            elif attr == 'ship':
+            if attr == 'ship':
                 real_attr = 'ship_type'
             else:
                 real_attr = attr
@@ -179,7 +177,16 @@ class RequestListing(View):
                     requests = requests.order_by(column)
             elif real_attr in known_attrs:
                 column = getattr(Request, real_attr)
-                requests = requests.filter(column.in_(values))
+                # in_ isn't supported on relationships (yet).
+                if hasattr(column, 'mapper'):
+                    # This is black magic
+                    id_column = column.mapper.attrs.id.class_attribute
+                    name_column = column.mapper.attrs.name.class_attribute
+                    mapped = db.session.query(id_column)\
+                            .filter(name_column.in_(values)).subquery()
+                    requests = requests.join(mapped)
+                else:
+                    requests = requests.filter(column.in_(values))
             else:
                 flash(u"Unknown filterable attribute name: {}".format(
                         attr), u'warning')
