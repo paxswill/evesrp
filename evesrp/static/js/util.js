@@ -138,7 +138,7 @@ EveSRP.util = {
     var filterPath = pathname.split('/'),
         known_attrs = ['page', 'division', 'alliance', 'corporation', 'pilot',
                        'system', 'constellation', 'region', 'ship', 'status',
-                       'details'],
+                       'details', 'sort'],
         basePath = [];
     filterPath = this.trimEmpty(filterPath);
     filterPath.reverse();
@@ -176,9 +176,11 @@ EveSRP.util = {
         filters._keys.push(attr);
       }
       if (attr === 'details') {
-        filters[attr] = _(filters[attr]).union(values);
+        filters.details = _(filters[attr]).union(values);
       } else if (attr === 'page') {
-        filters[attr] = parseInt(values, 10);
+        filters.page = parseInt(values, 10);
+      } else if (attr === 'sort') {
+        filters.sort = values;
       } else if (values.indexOf(',') !== -1) {
         values = values.split(',');
         filters[attr] = _(filters[attr]).union(values);
@@ -204,6 +206,8 @@ EveSRP.util = {
         });
       } else if (attr === 'page') {
         filterStrings.push('page/' + values);
+      } else if (attr === 'sort') {
+        filterStrings.push('sort/' + values);
       } else if (values.length > 0) {
         values.sort();
         filterStrings.push(attr + '/' + values.join(','));

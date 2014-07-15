@@ -2,7 +2,17 @@
 {% import "macros.html" as macros %}
 
 {% macro request_header(attr, title, class=None) -%}
-<th id="col-{{ attr }}"{{ (' class="' ~ class ~ '"')|safe if class }}><a href="#" class="heading">{{ title }} <i></i></a></th>
+<th id="col-{{ attr }}"{{ (' class="' ~ class ~ '"')|safe if class }}><a href="#" class="heading">{{ title }} 
+{% if attr in filters.get('sort', 'submit_timestamp') %}
+{% if filters.get('sort', 'submit_timestamp')[0] == '-' %}
+<i class="fa fa-chevron-up"></i>
+{% else %}
+<i class="fa fa-chevron-down"></i>
+{% endif %}
+{% else %}
+<i></i>
+{% endif %}
+</a></th>
 {%- endmacro %}
 
 {% macro request_cell(attr, content) -%}

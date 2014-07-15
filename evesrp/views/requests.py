@@ -79,6 +79,8 @@ class RequestListing(View):
                             values)
                     flash(error_msg, u'warning')
                     current_app.logger.warn(error_msg)
+            elif attr == 'sort':
+                filters['sort'] = values.lower()
             elif ',' in values:
                 values = values.split(',')
                 filters[attr].update(values)
@@ -140,6 +142,41 @@ class RequestListing(View):
                 requests = requests.filter(db.or_(*clauses)) 
             elif real_attr == 'page':
                 continue
+            elif real_attr == 'sort':
+                if values[0] == '-':
+                    descending = True
+                    sort_attr = values[1:]
+                else:
+                    descending = False
+                    sort_attr = values
+                # massage special attribute names
+                if sort_attr == 'ship':
+                    sort_attr = 'ship_type'
+                elif sort_attr == 'submit_timestamp':
+                    sort_attr = 'timestamp'
+                # Handle special (joined) sorts
+                if sort_attr == 'division':
+                    if descending:
+                        column = db.func.lower(Division.name).desc()
+                    else:
+                        column = db.func.lower(Division.name).asc()
+                    requests = requests.order_by(None)
+                    requests = requests.join(Division).order_by(column)
+                elif sort_attr == 'pilot':
+                    if descending:
+                        column = db.func.lower(Pilot.name).desc()
+                    else:
+                        column = db.func.lower(Pilot.name).asc()
+                    requests = requests.order_by(None)
+                    requests = requests.join(Pilot).order_by(column)
+                else:
+                    column = getattr(Request, sort_attr)
+                    if descending:
+                        column = column.desc()
+                    else:
+                        column = column.asc()
+                    requests = requests.order_by(None)
+                    requests = requests.order_by(column)
             elif real_attr in known_attrs:
                 column = getattr(Request, real_attr)
                 requests = requests.filter(column.in_(values))
