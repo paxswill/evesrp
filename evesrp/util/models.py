@@ -17,7 +17,7 @@ class Timestamped(object):
     The timestamp defaults to the current time.
     """
     timestamp = db.Column(DateTime, nullable=False,
-            default=dt.datetime.utcnow())
+            default=dt.datetime.utcnow)
 
 
 class AutoName(object):
