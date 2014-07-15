@@ -3,7 +3,7 @@
 
 {% macro request_header(attr, title, class=None) -%}
 <th id="col-{{ attr }}"{{ (' class="' ~ class ~ '"')|safe if class }}><a href="#" class="heading">{{ title }} 
-{% if attr in filters.get('sort', 'submit_timestamp') %}
+{% if attr != None and attr in filters.get('sort', 'submit_timestamp') %}
 {% if filters.get('sort', 'submit_timestamp')[0] == '-' %}
 <i class="fa fa-chevron-up"></i>
 {% else %}
@@ -59,9 +59,9 @@
       </tr>
       {% endfor %}
     </table>
-    {% if pager.pages > 1 %}
     <div class="text-center">
       <ul class="pagination">
+        {% if pager.pages > 1 %}
         {% if pager.has_prev %}
         <li><a id="prev_page" href="{{ url_for_page(pager, pager.prev_num) }}">&laquo;</a></li>
         {% else %}
@@ -79,13 +79,13 @@
           {% endif %}
         {% endfor %}
         {% if pager.has_next %}
-        <li><a id="prev_page" href="{{ url_for_page(pager, pager.next_num) }}">&raquo;</a></li>
+        <li><a id="next_page" href="{{ url_for_page(pager, pager.next_num) }}">&raquo;</a></li>
         {% else %}
         <li class="disabled"><span>&raquo;</span></li>
         {% endif %}
+        {% endif %}
       </ul>
     </div>
-    {% endif %}
   </div>
 </div>
 {% endblock content %}

@@ -200,18 +200,20 @@ class RequestListing(View):
             return redirect(url_for(request.endpoint,
                     filters=canonical_filter), code=301)
         requests = self.requests(filter_map)
-        requests = requests.paginate(filter_map.get('page', 1), 15)
+        pager = requests.paginate(filter_map.get('page', 1), 15)
         if request.is_json or request.is_xhr:
-            return jsonify(requests=requests.items)
+            return jsonify(requests=pager.items,
+                    request_count=requests.count())
         if request.is_rss:
             return xmlify('rss.xml', content_type='application/rss+xml',
-                    requests=requests.items,
+                    requests=pager.items,
                     title=(kwargs['title'] if 'title' in kwargs else u''),
                     main_link=url_for(request.endpoint, filters=filters,
                         _external=True))
         if request.is_xml:
-            return xmlify('request_list.xml', requests=requests)
-        return render_template(self.template, pager=requests, **kwargs)
+            return xmlify('request_list.xml', requests=pager.items)
+        return render_template(self.template, pager=pager, filters=filter_map,
+                **kwargs)
 
     @classproperty
     def _load_options(cls):

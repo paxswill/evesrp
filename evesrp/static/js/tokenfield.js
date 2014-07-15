@@ -9,8 +9,7 @@ EveSRP.tokenfield = {
   addedToken: function addedToken(ev) {
     /* Apply the filter */
     function _add(item) {
-      var requests = EveSRP.ui.requestList.requests,
-          fullPath = EveSRP.util.splitFilterString(window.location.pathname),
+      var fullPath = EveSRP.util.splitFilterString(window.location.pathname),
           filters;
       filters = EveSRP.util.parseFilterString(fullPath[1]);
       // Ensure there's a place to put new queries
@@ -63,8 +62,7 @@ EveSRP.tokenfield = {
   removedToken: function removedToken(ev) {
     /* Remove the filter */
     function _remove(item) {
-      var requests = EveSRP.ui.requestList.requests,
-          fullPath = EveSRP.util.splitFilterString(window.location.pathname),
+      var fullPath = EveSRP.util.splitFilterString(window.location.pathname),
           filters;
       filters = EveSRP.util.parseFilterString(fullPath[1]);
       filters[item.attr] = _(filters[item.attr]).without(item.real_value);
@@ -105,7 +103,7 @@ EveSRP.tokenfield = {
   attachTokenfield: function attachTokenfield($input, bloodhounds) {
     /* Create the typeahead arguments */
     var typeahead_args = [],
-        tokenfield;
+        tokenfield, state, fullPath, filter, tokens;
     typeahead_args.push({
       hint: true,
       highlight: true
@@ -156,13 +154,41 @@ EveSRP.tokenfield = {
       },
       source: superBloodhound
     });
+    // Get the initial set of tokens
+    state = History.getState();
+    if ('_keys' in state.data) {
+      filter = state.data;
+    } else {
+      fullPath = EveSRP.util.splitFilterString(window.location.pathname);
+      filter = EveSRP.util.parseFilterString(fullPath[1]);
+    }
+    tokens = this.tokensFromFilter(filter);
     /* Create the tokenfield and listeners */
     tokenfield = $input.tokenfield({
-      typeahead: typeahead_args
+      typeahead: typeahead_args,
+      tokens: tokens
     })
     .on('tokenfield:createtoken', EveSRP.tokenfield.modifyToken)
     .on('tokenfield:createdtoken', EveSRP.tokenfield.addedToken)
     .on('tokenfield:removetoken', EveSRP.tokenfield.removedToken);
     return tokenfield;
+  },
+
+  tokensFromFilter: function tokensFromFilter(filter) {
+    var tokens = [];
+    $.each(filter._keys, function(i, attr) {
+      if (attr !== 'sort' && attr !== 'page') {
+        $.each(filter[attr], function (i2, value) {
+          var label = attr + ':' + value;
+          tokens.push( {
+            label: label,
+            value: label,
+            attr: attr,
+            real_value: value
+          });
+        });
+      }
+    });
+    return tokens;
   }
 }

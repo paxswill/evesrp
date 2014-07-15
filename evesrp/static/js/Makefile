@@ -15,7 +15,6 @@ SOURCE_NAMES := \
 	$(BOOTSTRAP)/modal \
 	$(THIRDPARTY)/handlebars/handlebars.runtime \
 	$(THIRDPARTY)/underscore/underscore \
-	$(THIRDPARTY)/pourover/pourover \
 	$(THIRDPARTY)/history.js/scripts/bundled/html4+html5/jquery.history \
 	$(THIRDPARTY)/bootstrap-tokenfield/js/bootstrap-tokenfield \
 	$(THIRDPARTY)/zeroclipboard/ZeroClipboard \
@@ -26,7 +25,6 @@ SOURCE_NAMES := \
 	ui-common \
 	ui-request \
 	ui-division \
-	pourover \
 	tokenfield \
 	ui-requestList
 JS_SOURCE = $(patsubst %,%.js,$(SOURCE_NAMES))
