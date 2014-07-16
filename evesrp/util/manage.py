@@ -139,18 +139,30 @@ class Populate(script.Command):
         users = []
         for user_num, authmethod in zip(range(num_users),
                 cycle(flask.current_app.config['SRP_AUTH_METHODS'])):
-            user = auth.models.User(u'User {}'.format(user_num),
-                    authmethod.name)
+            user_name = u'User {}'.format(user_num)
+            user = auth.models.User.query.filter_by(name=user_name).first()
+            if user is None:
+                user = auth.models.User(user_name, authmethod.name)
+                db.session.add(user)
             users.append(user)
-        db.session.add_all(users)
         divisions = []
         for division_num in range(num_divisions):
-            division = auth.models.Division(u'Division {}'.format(division_num))
+            division_name = u'Division {}'.format(division_num)
+            division = auth.models.Division.query.filter_by(
+                    name=division_name).first()
+            if division is None:
+                division = auth.models.Division(division_name)
+                db.session.add(division)
             divisions.append(division)
         db.session.add_all(divisions)
         for user in users:
             for division in divisions:
-                auth.models.Permission(division, auth.PermissionType.submit, user)
+                perm = auth.models.Permission.query.filter_by(division=division,
+                        permission=auth.PermissionType.submit,
+                        entity=user).first()
+                if perm is None:
+                    auth.models.Permission(division,
+                            auth.PermissionType.submit, user)
         db.session.commit()
         # load and start processing killmails
         with open(kill_file, 'rb') as f:
