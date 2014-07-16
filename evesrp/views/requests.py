@@ -81,6 +81,15 @@ class RequestListing(View):
                     current_app.logger.warn(error_msg)
             elif attr == 'sort':
                 filters['sort'] = values.lower()
+            elif attr == 'status':
+                actions = set()
+                if ',' in values:
+                    values = values.split(',')
+                else:
+                    values = [values]
+                for action in values:
+                    actions.add(ActionType.from_string(action))
+                filters[attr] = actions
             elif ',' in values:
                 values = values.split(',')
                 filters[attr].update(values)
@@ -98,6 +107,10 @@ class RequestListing(View):
                     filter_strings.append('details/' + details)
             elif attr in ('page', 'sort'):
                 filter_strings.append('{}/{}'.format(attr, filters[attr]))
+            elif attr == 'status':
+                values = [a.name for a in filters[attr]]
+                values = sorted(values)
+                filter_strings.append(attr + '/' + ','.join(values))
             else:
                 values = sorted(filters[attr])
                 filter_strings.append(attr + '/' + ','.join(values))
@@ -125,17 +138,7 @@ class RequestListing(View):
             else:
                 real_attr = attr
             # Handle a couple attributes specially
-            if real_attr == 'status':
-                actions = set()
-                for action in values:
-                    if action in ('finalized', 'pending'):
-                        actions.update(getattr(ActionType, action))
-                    elif action == 'all':
-                        actions.update(ActionType.statuses)
-                    else:
-                        actions.add(ActionType.from_string(action))
-                requests = requests.filter(Request.status.in_(actions))
-            elif real_attr == 'details':
+            if real_attr == 'details':
                 clauses = [Request.details.match(d) for d in values]
                 requests = requests.filter(db.or_(*clauses)) 
             elif real_attr == 'page':
