@@ -340,7 +340,7 @@ class PermissionRequestListing(RequestListing):
         requests = super(PermissionRequestListing, self).requests(filters)\
                 .join(perms, Request.division_id==perms.c.division_id)\
                 .filter(Request.status.in_(self.statuses))
-        return requests
+        return requests.distinct()
 
 
 class PayoutListing(PermissionRequestListing):
