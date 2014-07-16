@@ -446,8 +446,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
                 .where(~voided.c.voided)\
                 .select_from(db.join(relative, voided,
                         relative.c.id == voided.c.id)).alias()
-        # Build a sub-query with Request.id, Request.base_payout, and the two
-        # sums
+        # Sum modifiers grouped by request id
         abs_sum = db.select([
                         cls.id.label('request_id'),
                         cls.base_payout.label('base_payout'),
@@ -463,23 +462,23 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
                         Request.id == relative.c.request_id))\
                 .group_by(Request.id)\
                 .alias()
+        # Return a subquery with the request id and the caclulated payout.
+        # missing values are assumed to be 0.
         total_sum = db.select([
-                        abs_sum.c.request_id.label('request_id'),
-                        abs_sum.c.base_payout.label('base_payout'),
-                        db.case([(abs_sum.c.sum == None, Decimal(0))],
-                                else_=abs_sum.c.sum).label('absolute'),\
-                        db.case([(rel_sum.c.sum == None, Decimal(0))],
-                                else_=rel_sum.c.sum).label('relative')])\
+                        abs_sum.c.request_id.label('id'),
+                        ((
+                            abs_sum.c.base_payout.label('base_payout') +
+                            db.case([(abs_sum.c.sum == None, Decimal(0))],
+                                    else_=abs_sum.c.sum).label('absolute')) *
+                        (
+                            1 +
+                            db.case([(rel_sum.c.sum == None, Decimal(0))],
+                                    else_=rel_sum.c.sum).label('relative')))\
+                        .label('payout')])\
                 .select_from(db.join(abs_sum, rel_sum,
                         abs_sum.c.request_id == rel_sum.c.request_id))\
                 .alias()
-        # Do the math in a select statement
-        payouts = db.select([
-                    total_sum.c.request_id.label('id'),
-                    ((total_sum.c.base_payout + total_sum.c.absolute) *
-                            (1 + total_sum.c.relative)).label('payout')])\
-                .alias()
-        return payouts
+        return total_sum
 
     @payout.expression
     def payout(cls):
