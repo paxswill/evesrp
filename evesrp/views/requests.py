@@ -210,7 +210,12 @@ class RequestListing(View):
             return redirect(url_for(request.endpoint,
                     filters=canonical_filter), code=301)
         requests = self.requests(filter_map)
-        pager = requests.paginate(filter_map.get('page', 1), 15)
+        pager = requests.paginate(filter_map.get('page', 1), per_page=15,
+                error_out=False)
+        if len(pager.items) == 0 and pager.page > 1:
+            filter_map['page'] = pager.pages
+            return redirect(url_for(request.endpoint,
+                    filters=self.unparse_filter(filter_map)))
         if request.is_json or request.is_xhr:
             return jsonify(requests=pager.items,
                     request_count=requests.count())
