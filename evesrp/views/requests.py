@@ -21,7 +21,7 @@ from ..models import Request, Modifier, Action, ActionType, ActionError,\
 from ..util import xmlify, jsonify, classproperty
 from ..auth import PermissionType
 from ..auth.models import Division, Pilot, Permission, User, Group, Note,\
-    APIKey
+    APIKey, users_groups
 
 
 if six.PY3:
@@ -328,21 +328,19 @@ class PermissionRequestListing(RequestListing):
                     **kwargs)
 
     def requests(self, filters):
-        user_perms = db.session.query(Permission.id.label('permission_id'),
-                Permission.division_id.label('division_id'),
-                Permission.permission.label('permission'))\
-                .filter(Permission.entity==current_user)
-        group_perms = db.session.query(Permission.id.label('permission_id'),
-                Permission.division_id.label('division_id'),
-                Permission.permission.label('permission'))\
-                .join(Group)\
-                .filter(Group.users.contains(current_user))
-        perms = user_perms.union(group_perms)\
-                .filter(Permission.permission.in_(self.permissions))
-        perms = perms.subquery()
+        current_groups = db.select([users_groups.c.group_id])\
+                .where(users_groups.c.user_id == current_user.id).alias()
+        divisions = db.select([Permission.division_id.label('division_id')])\
+                .where(Permission.permission.in_(self.permissions))\
+                .where(db.or_(
+                        Permission.entity_id == current_user.id,
+                        Permission.entity_id.in_(current_groups)))\
+                .alias('permitted_divisions')
+        # modify filters
+        if 'status' not in filters:
+            filters['status'] = self.statuses
         requests = super(PermissionRequestListing, self).requests(filters)\
-                .join(perms, Request.division_id==perms.c.division_id)\
-                .filter(Request.status.in_(self.statuses))
+                .join(divisions, Request.division_id==divisions.c.division_id)
         return requests.distinct()
 
 
