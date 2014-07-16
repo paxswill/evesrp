@@ -333,7 +333,9 @@ def filter_corps():
 @filters.route('/alliance/')
 @login_required
 def filter_alliances():
-    alliances = db.session.query(Request.alliance).distinct()
+    alliances = db.session.query(Request.alliance)\
+            .filter(Request.alliance != None)\
+            .distinct()
     return jsonify(key=u'alliance', alliance=map(_first, alliances))
 
 
