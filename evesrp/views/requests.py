@@ -191,8 +191,8 @@ class RequestListing(View):
                 else:
                     requests = requests.filter(column.in_(values))
             else:
-                flash(u"Unknown filterable attribute name: {}".format(
-                        attr), u'warning')
+                flash(u"Unknown filter attribute name: {}".format(attr),
+                        u'warning')
         return requests
 
     def dispatch_request(self, filters='', **kwargs):
