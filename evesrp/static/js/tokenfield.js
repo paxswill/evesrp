@@ -25,6 +25,9 @@ EveSRP.tokenfield = {
     } else {
       _add(ev.attrs);
     }
+    // Go to page 1 when adding filters, so you don't end up in the middle or
+    // past the end of the results.
+    filters['page'] = 1;
     fullPath[1] = EveSRP.util.unparseFilters(filters);
     History.pushState(filters, null, '/' + fullPath.join('/'));
   },
