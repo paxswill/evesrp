@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 import datetime as dt
 from decimal import Decimal
-import locale
 import six
 from six.moves import filter, map, range
 from sqlalchemy.types import DateTime
@@ -11,55 +10,12 @@ from flask import Markup
 
 from . import db
 from .util import DeclEnum, classproperty, AutoID, Timestamped, AutoName,\
-        unistr, ensure_unicode
+        unistr, ensure_unicode, PrettyDecimal, PrettyNumeric
 from .auth import PermissionType
 
 
 if six.PY3:
     unicode = str
-
-
-class PrettyDecimal(Decimal):
-    """:py:class:`~.Decimal` subclass that can pretty-print itself."""
-
-    def currency(self, commas=True):
-        """Format the Decimal as a currency number.
-
-        Commas for the thousands separators, full stops for the decimal, two
-        decimal places. Commas are optional and controlled by the ``commas``
-        argument.
-
-        Adapted from https://docs.python.org/3.3/library/decimal.html#recipes
-        """
-        sign, digits, exp = self.quantize(Decimal('0.01')).as_tuple()
-        digits = list(map(unicode, digits))
-        result = []
-        for i in range(2):
-            result.append(digits.pop() if digits else u'0')
-        result.append(u'.')
-        if not digits:
-            result.append(u'0')
-        count = 0
-        while digits:
-            result.append(digits.pop())
-            count += 1
-            if count == 3 and digits and commas:
-                count = 0
-                result.append(u',')
-        result.append(u'-' if sign else u'')
-        return u''.join(reversed(result))
-
-
-class PrettyNumeric(db.TypeDecorator):
-    """Type Decorator for :py:class:`~.Numeric` that reformats the userland
-    values into :py:class:`PrettyDecimal`\s.
-    """
-
-    impl = db.Numeric
-
-    def process_result_value(self, value, dialect):
-        return PrettyDecimal(value) if value is not None else None
-
 
 class ActionType(DeclEnum):
 
@@ -105,21 +61,22 @@ class ActionError(ValueError):
     pass
 
 
-class ModifierError(ValueError):
-    """Error raised when a modification is attempted to a :py:class:`Request`
-    when it's in an invalid state.
-    """
-    pass
-
-
 class Action(db.Model, AutoID, Timestamped, AutoName):
     """Actions change the state of a Request.
     
-    With the exception of the comment action (which does nothing), actions
-    change the state of a Request.
+    :py:class:`Request`\s enforce permissions when actions are added to them.
+    If the user adding the action does not have the appropriate
+    :py:class:`~.Permission`\s in the request's :py:class:`Division`, an
+    :py:exc:`ActionError` will be raised.
+
+    With the exception of the :py:attr:`comment <ActionType.comment>` action
+    (which just adds text to a request), actions change the
+    :py:attr:`~Request.status` of a Request.
     """
 
     #: The action be taken. See :py:class:`ActionType` for possible values.
+    # See set_request_type below for the effect setting this attribute has on
+    # the parent Request.
     type_ = db.Column(ActionType.db_type(), nullable=False)
 
     #: The ID of the :py:class:`Request` this action applies to.
@@ -142,11 +99,18 @@ class Action(db.Model, AutoID, Timestamped, AutoName):
             self.type_ = type_
         self.user = user
         self.note = ensure_unicode(note)
+        # timestamp has to be an actual value (besides None) before the request
+        # is set so thhe request's validation doesn't fail.
         self.timestamp = dt.datetime.utcnow()
         self.request = request
 
     @db.validates('type_')
-    def set_request_type(self, attr, type_):
+    def _set_request_type(self, attr, type_):
+        """Validator action for :py:attr:`type_` for updating the parent
+        :py:class:`Request`\\'s :py:attr:`~Request.status`.
+
+        It only updates the status for non-``None`` and non-comment actions.
+        """
         if self.request is not None:
             if type_ != ActionType.comment and self.timestamp >=\
                     self.request.actions[0].timestamp:
@@ -158,12 +122,24 @@ class Action(db.Model, AutoID, Timestamped, AutoName):
                 format(x=self)
 
 
+class ModifierError(ValueError):
+    """Error raised when a modification is attempted to a :py:class:`Request`
+    when it's in an invalid state.
+    """
+    pass
+
+
 class Modifier(db.Model, AutoID, Timestamped, AutoName):
     """Modifiers apply bonuses or penalties to Requests.
 
     This is an abstract base class for the pair of concrete implementations.
     Modifiers can be voided at a later date. The user who voided a modifier and
-    when they did are recorded.
+    when it was voided are recorded.
+
+    :py:class:`Request`\s enforce permissions when modifiers are added. If the
+    user adding a modifier does not have the appropriate
+    :py:class:`~.Permission`\s in the request's :py:class:`~.Division`, a
+    :py:exc:`ModifierError` will be raised.
     """
 
     #: Discriminator column for SQLAlchemy
@@ -197,16 +173,33 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
 
     @hybrid_property
     def voided(self):
-        """Boolean of whether this modifier has been voided or not."""
         return self.voided_user is not None and \
                 self.voided_timestamp is not None
 
+    @classmethod
+    def _voided_select(cls):
+        """Create a subquery with two columns, ``modifier_id`` and ``voided``.
+
+        Used for the expressions of :py:attr:`voided` and
+        :py:attr:`Request.payout`.
+        """
+        user = db.select([cls.id.label('modifier_id'),
+                cls.voided_user_id.label('user_id')]).alias('user_sub')
+        timestamp = db.select([cls.id.label('modifier_id'),
+                cls.voided_timestamp.label('timestamp')]).alias('timestamp_sub')
+        columns = [
+            db.and_(
+                user.c.user_id != None,
+                timestamp.c.timestamp != None).label('voided'),
+            user.c.modifier_id.label('modifier_id'),
+        ]
+        return db.select(columns).where(
+                user.c.modifier_id == timestamp.c.modifier_id)\
+                .alias('voided_sub')
+
     @voided.expression
     def voided(cls):
-        return db.and_(
-                cls.voided_user_id != None,
-                cls.voided_timestamp != None
-        )
+        return cls._voided_select().c.voided
 
     @declared_attr
     def __mapper_args__(cls):
@@ -225,7 +218,6 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
         self.note = ensure_unicode(note)
         self.value = value
         self.request = request
-        self.timestamp = dt.datetime.utcnow()
 
     def __repr__(self):
         return ("{x.__class__.__name__}({x.request}, {x.user},"
@@ -319,7 +311,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     #: The ID of the :py:class:`~.Pilot` for the killmail.
     pilot_id = db.Column(db.Integer, db.ForeignKey('pilot.id'), nullable=False)
 
-    #: The :py:class:`~.Pilot` for the killmail this request is for.
+    #: The :py:class:`~.Pilot` who was the victim in the killmail.
     pilot = db.relationship('Pilot', back_populates='requests')
 
     #: The corporation of the :py:attr:`pilot` at the time of the killmail.
@@ -338,9 +330,13 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     #: The date and time of when the ship was destroyed.
     kill_timestamp = db.Column(DateTime, nullable=False, index=True)
 
-    #: The base payout for this request in millions of ISK.
-    #: :py:attr:`modifiers` apply to this value.
     base_payout = db.Column(PrettyNumeric(precision=15, scale=2), default=0.0)
+    """The base payout for this request.
+
+    This value is clamped to a lower limit of 0. It can only be changed when
+    this request is in an :py:attr:`~ActionType.evaluating` state, or else a
+    :py:exc:`ModifierError` will be raised.
+    """
 
     #: Supporting information for the request.
     details = db.deferred(db.Column(db.Text(convert_unicode=True)))
@@ -348,6 +344,43 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     #: The current status of this request
     status = db.Column(ActionType.db_type(), nullable=False,
             default=ActionType.evaluating)
+    """This attribute is automatically kept in sync as :py:class:`Action`\s are
+    added to the request. It should not be set otherwise.
+
+    At the time an :py:class:`Action` is added to this request, the type of
+    action is checked and the state diagram below is enforced. If the action is
+    invalid, an :py:exc:`ActionError` is raised.
+
+    .. digraph:: request_workflow
+
+        rankdir="LR";
+
+        sub [label="submitted", shape=plaintext];
+
+        node [style="dashed, filled"];
+
+        eval [label="evaluating", fillcolor="#fcf8e3"];
+        rej [label="rejected", style="solid, filled", fillcolor="#f2dede"];
+        app [label="approved", fillcolor="#d9edf7"];
+        inc [label="incomplete", fillcolor="#f2dede"];
+        paid [label="paid", style="solid, filled", fillcolor="#dff0d8"];
+
+        sub -> eval;
+        eval -> rej [label="R"];
+        eval -> app [label="R"];
+        eval -> inc [label="R"];
+        rej -> eval [label="R"];
+        inc -> eval [label="R, S"];
+        inc -> rej [label="R"];
+        app -> paid [label="P"];
+        app -> eval [label="R"];
+        paid -> eval [label="P"];
+        paid -> app [label="P"];
+
+    R means a reviewer can make that change, S means the submitter can make
+    that change, and P means payers can make that change. Solid borders are
+    terminal states.
+    """
 
     #: The solar system this loss occured in.
     system = db.Column(db.String(25, convert_unicode=True), nullable=False,
@@ -361,29 +394,22 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     region = db.Column(db.String(25, convert_unicode=True), nullable=False,
             index=True)
 
-    @property
+    @hybrid_property
     def payout(self):
-        """The resulting payout taking all active :py:attr:`modifiers` into
-        account.
-
-        The return value is an internal class that will return different
-        representations depending on the type it is being coerced to.
-        :py:class:`Strings <str>` will be formatted accroding to the current
-        locale with thousands separators, :py:func:`float`\s will be in
-        millions of ISK, and :py:func:`ints`\s will be the total ISK value
-        (equivalent to the string representation).
-        """
         # Evaluation method for payout:
         # almost_payout = (sum(absolute_modifiers) + base_payout)
         # payout = almost_payout + (sum(percentage_modifiers) * almost_payout)
+        voided = Modifier._voided_select()
         abs_mods = db.session.query(db.func.sum(AbsoluteModifier.value))\
                 .join(Request)\
                 .filter(Modifier.request_id==self.id)\
-                .filter(~Modifier.voided)
+                .filter(~voided.c.voided)\
+                .filter(voided.c.modifier_id==Modifier.id)
         rel_mods = db.session.query(db.func.sum(RelativeModifier.value))\
                 .join(Request)\
                 .filter(Modifier.request_id==self.id)\
-                .filter(~Modifier.voided)
+                .filter(~voided.c.voided)\
+                .filter(voided.c.modifier_id==Modifier.id)
         absolute = abs_mods.one()[0]
         if absolute is None:
             absolute = Decimal(0)
@@ -397,11 +423,86 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
 
         return PrettyDecimal(payout)
 
+    @classmethod
+    def _payout_expression(cls):
+        # Get the sum of all absolute and relative modifiers
+        voided = Modifier._voided_select()
+        # Was having trouble bending SQLAlchemy to my will, specifically with
+        # it adding joins for sublasses modifiers.
+        mod_table = Modifier.__table__
+        abs_table = AbsoluteModifier.__table__
+        rel_table = RelativeModifier.__table__
+        # Prepare subqueries for the eventual summing
+        absolute = db.select([
+                        mod_table.c.id.label('id'),
+                        abs_table.c.value.label('value'),
+                        mod_table.c.request_id.label('request_id')])\
+                .select_from(db.join(abs_table, mod_table,
+                        mod_table.c.id == abs_table.c.id))\
+                .alias()
+        absolute = db.select([
+                        absolute.c.value.label('value'),
+                        absolute.c.request_id.label('request_id')])\
+                .where(~voided.c.voided)\
+                .select_from(db.join(absolute, voided,
+                        absolute.c.id == voided.c.modifier_id)).alias()
+        relative = db.select([
+                        mod_table.c.id.label('id'),
+                        rel_table.c.value.label('value'),
+                        mod_table.c.request_id.label('request_id')])\
+                .select_from(db.join(rel_table, mod_table,
+                        mod_table.c.id == rel_table.c.id))\
+                .alias()
+        relative = db.select([
+                        relative.c.value.label('value'),
+                        relative.c.request_id.label('request_id')])\
+                .where(~voided.c.voided)\
+                .select_from(db.join(relative, voided,
+                        relative.c.id == voided.c.modifier_id)).alias()
+        # Sum modifiers grouped by request id
+        abs_sum = db.select([
+                        cls.id.label('request_id'),
+                        cls.base_payout.label('base_payout'),
+                        db.func.sum(absolute.c.value).label('sum')])\
+                .select_from(db.outerjoin(Request, absolute,
+                        Request.id == absolute.c.request_id))\
+                .group_by(Request.id)\
+                .alias()
+        rel_sum = db.select([
+                        cls.id.label('request_id'),
+                        db.func.sum(relative.c.value).label('sum')])\
+                .select_from(db.outerjoin(Request, relative,
+                        Request.id == relative.c.request_id))\
+                .group_by(Request.id)\
+                .alias()
+        # Return a subquery with the request id and the caclulated payout.
+        # missing values are assumed to be 0.
+        total_sum = db.select([
+                        abs_sum.c.request_id.label('id'),
+                        ((
+                            abs_sum.c.base_payout.label('base_payout') +
+                            db.case([(abs_sum.c.sum == None, Decimal(0))],
+                                    else_=abs_sum.c.sum).label('absolute')) *
+                        (
+                            1 +
+                            db.case([(rel_sum.c.sum == None, Decimal(0))],
+                                    else_=rel_sum.c.sum).label('relative')))\
+                        .label('payout')])\
+                .select_from(db.join(abs_sum, rel_sum,
+                        abs_sum.c.request_id == rel_sum.c.request_id))\
+                .alias()
+        return total_sum
+
+    @payout.expression
+    def payout(cls):
+        payouts = cls._payout_expression()
+        stmt = db.select([payouts.c.payout])\
+                .where(cls.id == payouts.c.id)\
+                .label('payout')
+        return stmt
+
     @hybrid_property
     def finalized(self):
-        """If this request is in a finalized status (``'paid'`` or
-        ``'rejected'``).
-        """
         return self.status in ActionType.finalized
 
     @finalized.expression
@@ -434,7 +535,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         super(Request, self).__init__(**kwargs)
 
     @db.validates('base_payout')
-    def validate_payout(self, attr, value):
+    def _validate_payout(self, attr, value):
         """Ensures that base_payout is positive. The value is clamped to 0."""
         if self.status == ActionType.evaluating or self.status is None:
             if value is None or value < 0:
@@ -480,40 +581,11 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         return filter(action_filter, possible_actions)
 
     @db.validates('status')
-    def validate_status(self, attr, new_status):
+    def _validate_status(self, attr, new_status):
         """Enforces that status changes follow the status state diagram below.
         When an invalid change is attempted, :py:class:`ActionError` is
         raised.
 
-        .. digraph:: request_workflow
-
-            rankdir="LR";
-
-            sub [label="submitted", shape=plaintext];
-
-            node [style="dashed, filled"];
-
-            eval [label="evaluating", fillcolor="#fcf8e3"];
-            rej [label="rejected", style="solid, filled", fillcolor="#f2dede"];
-            app [label="approved", fillcolor="#d9edf7"];
-            inc [label="incomplete", fillcolor="#f2dede"];
-            paid [label="paid", style="solid, filled", fillcolor="#dff0d8"];
-
-            sub -> eval;
-            eval -> rej [label="R"];
-            eval -> app [label="R"];
-            eval -> inc [label="R"];
-            rej -> eval [label="R"];
-            inc -> eval [label="R, S"];
-            inc -> rej [label="R"];
-            app -> paid [label="P"];
-            app -> eval [label="R"];
-            paid -> eval [label="P"];
-            paid -> app [label="P"];
-
-        R means a reviewer can make that change, S means the submitter can make
-        that change, and P means payers can make that change. Solid borders are
-        terminal states.
         """
 
         def check_status(*valid_states):
@@ -536,7 +608,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         return new_status
 
     @db.validates('actions')
-    def update_status_from_action(self, attr, action):
+    def _update_status_from_action(self, attr, action):
         """Updates :py:attr:`status` whenever a new :py:class:`~.Action`
         is added and verifies permissions.
         """
@@ -564,7 +636,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
                 format(x=self)
 
     @db.validates('modifiers')
-    def validate_add_modifier(self, attr, modifier):
+    def _validate_add_modifier(self, attr, modifier):
         if self.status != ActionType.evaluating:
             raise ModifierError(u"Modifiers can only be added when the request"
                                 u" is in an evaluating state.")
@@ -577,7 +649,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     def transformed(self):
         """Get a special HTML representation of an attribute.
 
-        Divisions can have a transformer defined on a for attributes that
+        Divisions can have a transformer defined on various attributes that
         output a URL associated with that attribute. This property provides
         easy access to the output of any transformed attributes on this
         request.

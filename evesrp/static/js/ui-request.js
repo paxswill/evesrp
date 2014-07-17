@@ -49,10 +49,10 @@ EveSRP.ui.request = {
     // Update Payout
     payout.tooltip('destroy');
     payout.tooltip({
-      title: 'Base Payout: ' + request.base_payout,
+      title: 'Base Payout: ' + request.base_payout_str,
       placement: 'right'
     });
-    payout.text(request.payout);
+    payout.text(request.payout_str);
     // Disable modifier and payout forms if not evaluating
     if (request.status === 'evaluating') {
       evaluatingOnly.prop('disabled', false);

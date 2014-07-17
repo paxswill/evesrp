@@ -6,6 +6,7 @@ from flask import render_template, abort, url_for, flash, Markup, request,\
     redirect, current_app, Blueprint, Markup, json, make_response
 from flask.views import View
 from flask.ext.login import login_required, current_user
+from flask.ext.sqlalchemy import Pagination
 from flask.ext.wtf import Form
 import six
 from six.moves import map
@@ -17,10 +18,10 @@ from wtforms.validators import InputRequired, AnyOf, URL, ValidationError,\
 from .. import db
 from ..models import Request, Modifier, Action, ActionType, ActionError,\
         ModifierError, AbsoluteModifier, RelativeModifier
-from ..util import xmlify, jsonify
+from ..util import xmlify, jsonify, classproperty
 from ..auth import PermissionType
 from ..auth.models import Division, Pilot, Permission, User, Group, Note,\
-    APIKey
+    APIKey, users_groups
 
 
 if six.PY3:
@@ -43,41 +44,194 @@ class RequestListing(View):
     #: Decorators to apply to the view functions
     decorators = [login_required]
 
-    def requests(self, division_id=None):
+    @staticmethod
+    def parse_filter(filter_string):
+        filters = {}
+        # Fail early for empty filters
+        if filter_string is None or filter_string == '':
+            return filters
+        split_filters = filter_string.split('/')
+        # Trim empty beginnings and/or ends
+        if split_filters[0] == '':
+            split_filters = split_filters[1:]
+        if split_filters[-1] == '':
+            split_filters = split_filters[:-1]
+        # Check for unpaired filters
+        if len(split_filters) % 2 != 0:
+            # FIXME: uneven length of filters
+            return filters
+        for i in range(0, len(split_filters), 2):
+            attr = split_filters[i].lower()
+            values = split_filters[i + 1]
+            # Use sets for deduplicating
+            # Prime the mapping with an empty set. Details are special filter
+            # types, and may contain commas. They are allowed to be specified
+            # multiple times.
+            if attr not in filters:
+                filters[attr] = set()
+            if attr == 'details':
+                filters[attr].add(values)
+            elif attr == 'page':
+                try:
+                    filters['page'] = int(values)
+                except TypeError:
+                    error_msg = u"Invalid value for page number: {}".format(
+                            values)
+                    flash(error_msg, u'warning')
+                    current_app.logger.warn(error_msg)
+            elif attr == 'sort':
+                filters['sort'] = values.lower()
+            elif attr == 'status':
+                actions = set()
+                if ',' in values:
+                    values = values.split(',')
+                else:
+                    values = [values]
+                for action in values:
+                    actions.add(ActionType.from_string(action))
+                filters[attr] = actions
+            elif ',' in values:
+                values = values.split(',')
+                filters[attr].update(values)
+            else:
+                filters[attr].add(values)
+        return filters
+
+    @staticmethod
+    def unparse_filter(filters):
+        attrs = sorted(six.iterkeys(filters))
+        filter_strings = []
+        for attr in attrs:
+            if attr == 'details':
+                for details in sorted(filters[attr]):
+                    filter_strings.append('details/' + details)
+            elif attr in ('page', 'sort'):
+                filter_strings.append('{}/{}'.format(attr, filters[attr]))
+            elif attr == 'status':
+                values = [a.name for a in filters[attr]]
+                values = sorted(values)
+                filter_strings.append(attr + '/' + ','.join(values))
+            else:
+                values = sorted(filters[attr])
+                filter_strings.append(attr + '/' + ','.join(values))
+        return '/'.join(filter_strings)
+
+    def requests(self, filters):
         """Returns a list :py:class:`~.Request`\s belonging to
         the specified :py:class:`~.Division`, or all divisions if
-        ``None``. Must be implemented by subclasses, as this is an abstract
-        method.
+        ``None``.
 
-        :param int division_id: ID number of a :py:class:`~.Division`, or
-            ``None``.
         :returns: :py:class:`~.models.Request`\s
         :rtype: iterable
         """
-        raise NotImplementedError()
+        # Start with a basic query for requests
+        requests = Request.query.options(*self._load_options)
+        requests = requests.order_by(Request.timestamp.desc())
+        # Apply the filters
+        known_attrs = ('page', 'division', 'alliance', 'corporation',
+                'pilot', 'system', 'constellation', 'region', 'ship_type',
+                'status', 'details')
+        for attr, values in six.iteritems(filters):
+            # massage pretty attribute names to the not-so-pretty ones
+            if attr == 'ship':
+                real_attr = 'ship_type'
+            else:
+                real_attr = attr
+            # Handle a couple attributes specially
+            if real_attr == 'details':
+                clauses = [Request.details.match(d) for d in values]
+                requests = requests.filter(db.or_(*clauses)) 
+            elif real_attr == 'page':
+                continue
+            elif real_attr == 'sort':
+                if values[0] == '-':
+                    descending = True
+                    sort_attr = values[1:]
+                else:
+                    descending = False
+                    sort_attr = values
+                # massage special attribute names
+                if sort_attr == 'ship':
+                    sort_attr = 'ship_type'
+                elif sort_attr == 'submit_timestamp':
+                    sort_attr = 'timestamp'
+                # Handle special (joined) sorts
+                if sort_attr == 'division':
+                    if descending:
+                        column = db.func.lower(Division.name).desc()
+                    else:
+                        column = db.func.lower(Division.name).asc()
+                    requests = requests.order_by(None)
+                    requests = requests.join(Division).order_by(column)
+                elif sort_attr == 'pilot':
+                    if descending:
+                        column = db.func.lower(Pilot.name).desc()
+                    else:
+                        column = db.func.lower(Pilot.name).asc()
+                    requests = requests.order_by(None)
+                    requests = requests.join(Pilot).order_by(column)
+                else:
+                    column = getattr(Request, sort_attr)
+                    if descending:
+                        column = column.desc()
+                    else:
+                        column = column.asc()
+                    requests = requests.order_by(None)
+                    requests = requests.order_by(column)
+            elif real_attr in known_attrs:
+                column = getattr(Request, real_attr)
+                # in_ isn't supported on relationships (yet).
+                if hasattr(column, 'mapper'):
+                    # This is black magic
+                    id_column = column.mapper.attrs.id.class_attribute
+                    name_column = column.mapper.attrs.name.class_attribute
+                    mapped = db.session.query(id_column)\
+                            .filter(name_column.in_(values)).subquery()
+                    requests = requests.join(mapped)
+                else:
+                    requests = requests.filter(column.in_(values))
+            else:
+                flash(u"Unknown filter attribute name: {}".format(attr),
+                        u'warning')
+        return requests
 
-    def dispatch_request(self, division_id=None, page=1, **kwargs):
+    def dispatch_request(self, filters='', **kwargs):
         """Returns the response to requests.
 
         Part of the :py:class:`flask.views.View` interface.
         """
+        filter_map = self.parse_filter(filters)
+        current_app.logger.debug("Filter map: {}".format(filter_map))
+        canonical_filter = self.unparse_filter(filter_map)
+        if canonical_filter != filters:
+            current_app.logger.debug(u"Redirecting to filter '{}' from filter"
+                                     u" '{}'.".format(canonical_filter,
+                                         filters))
+            return redirect(url_for(request.endpoint,
+                    filters=canonical_filter), code=301)
+        requests = self.requests(filter_map)
+        pager = requests.paginate(filter_map.get('page', 1), per_page=15,
+                error_out=False)
+        if len(pager.items) == 0 and pager.page > 1:
+            filter_map['page'] = pager.pages
+            return redirect(url_for(request.endpoint,
+                    filters=self.unparse_filter(filter_map)))
         if request.is_json or request.is_xhr:
-            return jsonify(requests=self.requests(division_id))
+            return jsonify(requests=pager.items,
+                    request_count=requests.count())
         if request.is_rss:
             return xmlify('rss.xml', content_type='application/rss+xml',
-                    requests=self.requests(division_id),
+                    requests=pager.items,
                     title=(kwargs['title'] if 'title' in kwargs else u''),
-                    main_link=url_for(request.endpoint,
-                        division_id=division_id, _external=True))
+                    main_link=url_for(request.endpoint, filters=filters,
+                        _external=True))
         if request.is_xml:
-            return xmlify('request_list.xml',
-                    requests=self.requests(division_id))
-        pager = self.requests(division_id).paginate(page, per_page=20)
-        return render_template(self.template,
-                pager=pager, **kwargs)
+            return xmlify('request_list.xml', requests=pager.items)
+        return render_template(self.template, pager=pager, filters=filter_map,
+                **kwargs)
 
-    @property
-    def _load_options(self):
+    @classproperty
+    def _load_options(cls):
         """Returns a sequence of
         :py:class:`~sqlalchemy.orm.strategy_options.Load` objects specifying
         which attributes to load (or really any load options necessary).
@@ -89,6 +243,14 @@ class RequestListing(View):
                 db.Load(Division).joinedload('name'),
                 db.Load(Pilot).joinedload('name'),
         )
+
+
+def url_for_page(pager, page_num):
+    filters = request.view_args.get('filters', '')
+    filters = RequestListing.parse_filter(filters)
+    filters['page'] = page_num
+    return url_for(request.endpoint,
+            filters=RequestListing.unparse_filter(filters))
 
 
 class APIKeyForm(Form):
@@ -107,7 +269,7 @@ class PersonalRequests(RequestListing):
 
     methods = ['GET', 'POST']
 
-    def dispatch_request(self, division_id=None, page=1, **kwargs):
+    def dispatch_request(self, filters='', **kwargs):
         if request.method == 'POST':
             form = APIKeyForm()
             if form.validate():
@@ -121,22 +283,19 @@ class PersonalRequests(RequestListing):
         # Handle API access in here, so we can add extra data
         if request.is_json or request.is_xhr:
             return jsonify(
-                    requests=self.requests(division_id),
+                    requests=self.requests(),
                     api_keys=current_user.api_keys)
         if request.is_xml:
             return xmlify('personal_list.xml',
-                    requests=self.requests(division_id))
-        return super(PersonalRequests, self).dispatch_request(
-                division_id, page, key_form=APIKeyForm(formdata=None))
+                    requests=self.requests())
+        return super(PersonalRequests, self).dispatch_request(filters,
+                key_form=APIKeyForm(formdata=None))
 
-    def requests(self, division_id=None):
-        requests = Request.query\
+    def requests(self, filters):
+        requests = super(PersonalRequests, self).requests(filters)
+        requests = requests\
                 .join(User)\
-                .filter(User.id==current_user.id)\
-                .options(*self._load_options)
-        if division_id is not None:
-            requests = requests.filter(Request.division_id==division_id)
-        requests = requests.order_by(Request.timestamp.desc())
+                .filter(User.id==current_user.id)
         return requests
 
 
@@ -160,7 +319,7 @@ class PermissionRequestListing(RequestListing):
         self.permissions = (PermissionType.admin,) + tuple(permissions)
         self.statuses = statuses
 
-    def dispatch_request(self, division_id=None, page=1, **kwargs):
+    def dispatch_request(self, filters='', **kwargs):
         if not current_user.has_permission(self.permissions):
             abort(403)
         else:
@@ -169,32 +328,25 @@ class PermissionRequestListing(RequestListing):
             else:
                 title = u', '.join(map(lambda s: s.description, self.statuses))
             return super(PermissionRequestListing, self).dispatch_request(
-                    division_id,
-                    page,
+                    filters,
                     title=title,
                     **kwargs)
 
-    def requests(self, division_id=None):
-        user_perms = db.session.query(Permission.id.label('permission_id'),
-                Permission.division_id.label('division_id'),
-                Permission.permission.label('permission'))\
-                .filter(Permission.entity==current_user)
-        group_perms = db.session.query(Permission.id.label('permission_id'),
-                Permission.division_id.label('division_id'),
-                Permission.permission.label('permission'))\
-                .join(Group)\
-                .filter(Group.users.contains(current_user))
-        perms = user_perms.union(group_perms)\
-                .filter(Permission.permission.in_(self.permissions))
-        if division_id is not None:
-            perms = perms.filter(Permission.division_id==division_id)
-        perms = perms.subquery()
-        requests = Request.query\
-                .join(perms, Request.division_id==perms.c.division_id)\
-                .filter(Request.status.in_(self.statuses))\
-                .order_by(Request.timestamp.desc())\
-                .options(*self._load_options)
-        return requests
+    def requests(self, filters):
+        current_groups = db.select([users_groups.c.group_id])\
+                .where(users_groups.c.user_id == current_user.id).alias()
+        divisions = db.select([Permission.division_id.label('division_id')])\
+                .where(Permission.permission.in_(self.permissions))\
+                .where(db.or_(
+                        Permission.entity_id == current_user.id,
+                        Permission.entity_id.in_(current_groups)))\
+                .alias('permitted_divisions')
+        # modify filters
+        if 'status' not in filters:
+            filters['status'] = self.statuses
+        requests = super(PermissionRequestListing, self).requests(filters)\
+                .join(divisions, Request.division_id==divisions.c.division_id)
+        return requests.distinct()
 
 
 class PayoutListing(PermissionRequestListing):
@@ -207,12 +359,11 @@ class PayoutListing(PermissionRequestListing):
         super(PayoutListing, self).__init__((PermissionType.pay,),
                 (ActionType.approved,))
 
-    def dispatch_request(self, division_id=None, page=1):
+    def dispatch_request(self, filters='', **kwargs):
         if not current_user.has_permission(self.permissions):
             abort(403)
         return super(PayoutListing, self).dispatch_request(
-                division_id,
-                page,
+                filters,
                 title=u', '.join(map(lambda s: s.description, self.statuses)),
                 form=ActionForm())
 
@@ -236,12 +387,7 @@ def register_perm_request_listing(app, endpoint, path, permissions, statuses):
             statuses=statuses)
     app.add_url_rule(path, view_func=view)
     app.add_url_rule('{}rss.xml'.format(path), view_func=view)
-    if path != '/':
-        app.add_url_rule('{}<int:division_id>/rss.xml'.format(path),
-                view_func=view)
-        app.add_url_rule('{}<int:page>/'.format(path), view_func=view)
-        app.add_url_rule('{}<int:page>/<int:division_id>/'.format(path),
-                view_func=view)
+    app.add_url_rule(path + '<path:filters>', view_func=view)
 
 
 @blueprint.record
@@ -259,20 +405,13 @@ def register_class_views(state):
     personal_view = PersonalRequests.as_view('personal_requests')
     state.add_url_rule('/personal/', view_func=personal_view)
     state.add_url_rule('/personal/rss.xml', view_func=personal_view)
-    state.add_url_rule('/personal/<int:division_id>/rss.xml',
-            view_func=personal_view)
-    state.add_url_rule('/personal/<int:page>/', view_func=personal_view)
-    state.add_url_rule('/personal/<int:page>/<int:division_id>',
-            view_func=personal_view)
+    state.add_url_rule('/personal/<path:filters>', view_func=personal_view)
     # Payout list
     payout_view = PayoutListing.as_view('list_approved_requests')
     payout_url_stub = '/pay/'
     state.add_url_rule(payout_url_stub, view_func=payout_view)
     state.add_url_rule(payout_url_stub + 'rss.xml', view_func=payout_view)
-    state.add_url_rule(payout_url_stub + '<int:division_id>/rss.xml',
-            view_func=payout_view)
-    state.add_url_rule(payout_url_stub + '<int:page>/', view_func=payout_view)
-    state.add_url_rule(payout_url_stub + '<int:page>/<int:division_id>/',
+    state.add_url_rule(payout_url_stub + '<path:filters>',
             view_func=payout_view)
     # Other more generalized listings
     register_perm_request_listing(state, 'list_pending_requests',
@@ -281,7 +420,7 @@ def register_class_views(state):
             '/completed/', PermissionType.elevated, ActionType.finalized)
     # Special all listing, mainly intended for API users
     register_perm_request_listing(state, 'list_all_requests',
-            '/', PermissionType.elevated, ActionType.statuses)
+            '/all/', PermissionType.elevated, ActionType.statuses)
 
 
 class ValidKillmail(URL):

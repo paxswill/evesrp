@@ -54,12 +54,14 @@ class GrabbagEncoder(JSONEncoder):
                 attrs = (u'killmail_url', u'kill_timestamp', u'pilot',
                          u'alliance', u'corporation', u'submitter',
                          u'division', u'status', u'base_payout', u'payout',
-                         u'details', u'id')
+                         u'details', u'id', u'ship_type', u'system',)
                 for attr in attrs:
                     if attr == u'pilot':
                         ret[attr] = str(o.pilot)
                     elif attr == u'status':
                         ret[attr] = o.status.value
+                    elif attr == u'ship_type':
+                        ret['ship'] = o.ship_type
                     elif u'payout' in attr:
                         payout = getattr(o, attr)
                         ret[attr] = payout.currency(commas=False)

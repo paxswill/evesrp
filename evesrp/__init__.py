@@ -13,7 +13,7 @@ db = SQLAlchemy()
 from .util import DB_STATS, AcceptRequest
 
 
-__version__ = u'0.9.1'
+__version__ = u'0.9.2'
 
 
 requests_session = requests.Session()
@@ -85,6 +85,7 @@ def create_app(config=None, **kwargs):
             'PermissionType': PermissionType,
             'app_version': __version__,
             'site_name': app.config['SRP_SITE_NAME'],
+            'url_for_page': requests.url_for_page,
         }
     # Auto-trim whitespace
     app.jinja_env.trim_blocks = True
@@ -95,6 +96,10 @@ def create_app(config=None, **kwargs):
 
 # SQLAlchemy performance logging
 def sqlalchemy_before():
+    if DB_STATS.total_queries > 0:
+        current_app.logger.debug(u"{} queries in {} ms.".format(
+                DB_STATS.total_queries,
+                round(DB_STATS.total_time * 1000, 3)))
     DB_STATS.clear()
     g.DB_STATS = DB_STATS
 

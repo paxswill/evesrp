@@ -5,12 +5,23 @@ from __future__ import print_function
 import os
 import os.path
 import argparse
+from itertools import cycle
+import json
+from decimal import Decimal
+import time
+import datetime as dt
 import flask
 from flask.ext import script
 from flask.ext.migrate import Migrate, MigrateCommand, _get_config, stamp
 from alembic.migration import MigrationContext
 from alembic.script import ScriptDirectory
-from .. import create_app, db, migrate
+import six
+from .. import create_app, db, migrate, models, auth, killmail
+from .utc import utc
+
+
+if six.PY3:
+    unicode = str
 
 
 manager = script.Manager(create_app)
@@ -97,6 +108,106 @@ def create(force=False):
         db.create_all()
         if current_rev is None:
             stamp()
+
+
+@manager.shell
+def shell_context():
+    return dict(
+            app=flask.current_app,
+            db=db,
+            models=models,
+            auth=auth)
+
+
+class PopulatedKillmail(killmail.Killmail, killmail.RequestsSessionMixin,
+        killmail.ShipNameMixin, killmail.LocationMixin):
+    pass
+
+
+class Populate(script.Command):
+    """Populate the database with data given from a list of losses form zKB."""
+
+    option_list = (
+        script.Option('--file', '-f', dest='kill_file', required=True),
+        script.Option('--users', '-u', dest='num_users', default=5, type=int),
+        script.Option('--divisions', '-d', dest='num_divisions', default=3,
+                type=int),
+    )
+
+    def run(self, kill_file, num_users, num_divisions, **kwargs):
+        # Set up users, divisions and permissions
+        users = []
+        for user_num, authmethod in zip(range(num_users),
+                cycle(flask.current_app.config['SRP_AUTH_METHODS'])):
+            user_name = u'User {}'.format(user_num)
+            user = auth.models.User.query.filter_by(name=user_name).first()
+            if user is None:
+                user = auth.models.User(user_name, authmethod.name)
+                db.session.add(user)
+            users.append(user)
+        divisions = []
+        for division_num in range(num_divisions):
+            division_name = u'Division {}'.format(division_num)
+            division = auth.models.Division.query.filter_by(
+                    name=division_name).first()
+            if division is None:
+                division = auth.models.Division(division_name)
+                db.session.add(division)
+            divisions.append(division)
+        db.session.add_all(divisions)
+        for user in users:
+            for division in divisions:
+                perm = auth.models.Permission.query.filter_by(division=division,
+                        permission=auth.PermissionType.submit,
+                        entity=user).first()
+                if perm is None:
+                    auth.models.Permission(division,
+                            auth.PermissionType.submit, user)
+        db.session.commit()
+        # load and start processing killmails
+        with open(kill_file, 'rb') as f:
+            kills = json.load(f)
+        for user, division, kill_info in zip(cycle(users), cycle(divisions), kills):
+            victim = kill_info[u'victim']
+            # make sure a Pilot exists for this killmail
+            pilot = auth.models.Pilot.query.get(victim['characterID'])
+            if pilot is None:
+                pilot = auth.models.Pilot(user, victim['characterName'],
+                        int(victim['characterID']))
+            db.session.commit()
+            pilot_user = pilot.user
+            # create a Killmail
+            args = dict(
+                    kill_id=int(kill_info[u'killID']),
+                    pilot_id=int(victim[u'characterID']),
+                    pilot=victim[u'characterName'],
+                    corp_id=int(victim[u'corporationID']),
+                    corp=victim[u'corporationName'],
+                    ship_id=int(victim[u'shipTypeID']),
+                    system_id=int(kill_info[u'solarSystemID']),
+                    verified=True)
+            if victim[u'allianceID'] != '0':
+                args['alliance_id'] = int(victim[u'allianceID'])
+                args['alliance'] = victim[u'allianceName']
+            time_struct = time.strptime(kill_info[u'killTime'], '%Y-%m-%d %H:%M:%S')
+            args['timestamp'] = dt.datetime(*(time_struct[0:6]), tzinfo=utc)
+            args['url'] = u'https://zkillboard.com/kill/{}'.format(
+                    args['kill_id'])
+            try:
+                args['value'] = Decimal(kill_info[u'zkb'][u'totalValue'])
+            except KeyError:
+                args['value'] = Decimal(0)
+            killmail = PopulatedKillmail(**args)
+            try:
+                killmail.ship
+            except KeyError:
+                continue
+            # Create a request for this killmail
+            models.Request(pilot_user, unicode(killmail), division, killmail)
+            db.session.commit()
+
+
+manager.add_command('populate', Populate())
 
 
 def main():

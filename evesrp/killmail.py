@@ -165,6 +165,7 @@ class Killmail(object):
         yield ('system', self.system)
         yield ('constellation', self.constellation)
         yield ('region', self.region)
+        yield ('pilot_id', self.pilot_id)
 
     #: A user-facing description of what killmails this Killmail
     #: validates/handles.

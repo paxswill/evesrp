@@ -6,7 +6,7 @@ Handlebars.registerHelper('capitalize', function(str) {
   return EveSRP.util.capitalize(str);
 });
 
-Handlebars.registerHelper('timefmt', function(date) {
+Handlebars.registerHelper('datefmt', function(date) {
   if (typeof date === 'string') {
     date = new Date(date);
   }
@@ -14,11 +14,12 @@ Handlebars.registerHelper('timefmt', function(date) {
     ' ' + date.getUTCFullYear();
 });
 
-Handlebars.registerHelper('datefmt', function(date) {
+Handlebars.registerHelper('timefmt', function(date) {
   if (typeof date === 'string') {
     date = new Date(date);
   }
-  return date.getUTCHours() + ':' + EveSRP.util.padNum(date.getUTCMinutes(), 2);
+  return [EveSRP.util.padNum(date.getUTCHours(), 2),
+          EveSRP.util.padNum(date.getUTCMinutes(), 2)].join(':');
 });
 
 
