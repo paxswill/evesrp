@@ -55,14 +55,15 @@ setup(
         u'https://github.com/bravecollective/api/tarball/develop#egg=brave.api'
     ],
     install_requires=[
-        'Flask==0.10.1',
+        'Flask>=0.10.1',
         'Flask-Login==0.2.10',
-        'Flask-Migrate==1.2.0',
+        'Flask-Migrate>=1.2.0',
         'Flask-Script==2.0.5',
         'Flask-SQLAlchemy==1.0',
         'Flask-WTF==0.9.4',
-        'SQLAlchemy==0.9.3',
+        'SQLAlchemy>=0.9.4',
         'WTForms==1.0.5',
+        'alembic>=0.6.5',
         'requests==2.2.1',
         'ecdsa==0.11',
         'six==1.7.3',
