@@ -37,10 +37,21 @@ matrix:
 install: make build-deps
 
 before_script:
-    - yes | sudo add-apt-repository ppa:ondrej/mysql-5.6
-    - sudo apt-get update -q
-    - sudo apt-get remove -y mysql-server-5.5 mysql-client-5.5 libmysqlclient-dev
-    - yes 'N' | sudo apt-get install -y mysql-server-5.6 mysql-client-5.6 libmysqlclient-dev
+    # Yanked and modifierd from https://gist.github.com/drogus/6718448
+    - "sudo apt-get remove mysql-common mysql-server-5.5 mysql-server-core-5.5 mysql-client-5.5 mysql-client-core-5.5"
+    - "sudo apt-get autoremove"
+    - "sudo apt-get install libaio1"
+    - "wget -O mysql-apt.deb http://dev.mysql.com/get/mysql-apt-config_0.2.1-1ubuntu12.04_all.deb"
+    - "sudo dpkg -i mysql-apt.deb"
+    - "sudo apt-get update -q"
+    - "sudo apt-get install -y mysql-server mysql-common mysql-client"
+    - "sudo cp /opt/mysql/server-5.6/support-files/mysql.server /etc/init.d/mysql.server"
+    - "sudo ln -s /opt/mysql/server-5.6/bin/* /usr/bin/"
+    # some config values were changed since 5.5
+    - "sudo sed -i'' 's/table_cache/table_open_cache/' /etc/mysql/my.cnf"
+    - "sudo sed -i'' 's/log_slow_queries/slow_query_log/' /etc/mysql/my.cnf"
+    - "sudo sed -i'' 's/basedir[^=]\\+=.*$/basedir = \\/opt\\/mysql\\/server-5.6/' /etc/mysql/my.cnf"
+    - "sudo /etc/init.d/mysql.server start"
     - psql -c 'CREATE DATABASE evesrp_test;' -U postgres
     - mysql -e 'CREATE DATABASE evesrp_test;'
     - make all
