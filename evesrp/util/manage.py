@@ -165,7 +165,7 @@ class Populate(script.Command):
                             auth.PermissionType.submit, user)
         db.session.commit()
         # load and start processing killmails
-        with open(kill_file, 'rb') as f:
+        with open(kill_file, 'r') as f:
             kills = json.load(f)
         for user, division, kill_info in zip(cycle(users), cycle(divisions), kills):
             victim = kill_info[u'victim']
