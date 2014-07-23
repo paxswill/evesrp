@@ -7,7 +7,7 @@ from evesrp.models import ActionType, ActionError, Action, Request,\
         AbsoluteModifier, RelativeModifier, ModifierError
 from evesrp.auth import PermissionType
 from evesrp.auth.models import Pilot, Division, Permission
-from evesrp.util.utc import utc
+from evesrp.util import utc
 
 
 class TestModels(TestLogin):

@@ -17,7 +17,7 @@ from alembic.migration import MigrationContext
 from alembic.script import ScriptDirectory
 import six
 from .. import create_app, db, migrate, models, auth, killmail
-from .utc import utc
+from .datetime import utc
 
 
 if six.PY3:
