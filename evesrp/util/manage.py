@@ -169,6 +169,9 @@ class Populate(script.Command):
             kills = json.load(f)
         for user, division, kill_info in zip(cycle(users), cycle(divisions), kills):
             victim = kill_info[u'victim']
+            # Skip corp-level kills (towers, pocos, etc)
+            if victim['characterID'] == '0':
+                continue
             # make sure a Pilot exists for this killmail
             pilot = auth.models.Pilot.query.get(victim['characterID'])
             if pilot is None:
