@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from flask import url_for
 from flask.json import JSONEncoder
 import six
+from decimal import Decimal
 from .models import Request, Action, Modifier
 from .auth.models import User, Group, Division, APIKey
 
@@ -90,7 +91,7 @@ class GrabbagEncoder(JSONEncoder):
                 if hasattr(o.value, 'currency'):
                     ret[u'value'] = o.value.currency(commas=False)
                 else:
-                    ret[u'value'] = o.value
+                    ret[u'value'] = unicode(o.value)
                 ret[u'value_str'] = unicode(o)
                 return ret
             elif isinstance(o, APIKey):

@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 import datetime as dt
 from sqlalchemy.types import DateTime
 from sqlalchemy.ext.declarative import declared_attr
+from .datetime import DateTime
+from .datetime import utc
 from .. import db
 
 
@@ -12,7 +14,7 @@ class AutoID(object):
 
 
 def _utcnow(arg):
-    return dt.datetime.utcnow()
+    return dt.datetime.now(utc)
 
 class Timestamped(object):
     """Mixin adding a timestamp column.

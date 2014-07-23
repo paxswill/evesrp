@@ -17,7 +17,7 @@ from alembic.migration import MigrationContext
 from alembic.script import ScriptDirectory
 import six
 from .. import create_app, db, migrate, models, auth, killmail
-from .utc import utc
+from .datetime import utc
 
 
 if six.PY3:
@@ -165,10 +165,13 @@ class Populate(script.Command):
                             auth.PermissionType.submit, user)
         db.session.commit()
         # load and start processing killmails
-        with open(kill_file, 'rb') as f:
+        with open(kill_file, 'r') as f:
             kills = json.load(f)
         for user, division, kill_info in zip(cycle(users), cycle(divisions), kills):
             victim = kill_info[u'victim']
+            # Skip corp-level kills (towers, pocos, etc)
+            if victim['characterID'] == '0':
+                continue
             # make sure a Pilot exists for this killmail
             pilot = auth.models.Pilot.query.get(victim['characterID'])
             if pilot is None:

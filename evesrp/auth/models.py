@@ -131,7 +131,8 @@ class User(Entity):
 
     #: If the user is an administrator. This allows the user to create and
     #: administer divisions.
-    admin = db.Column(db.Boolean, nullable=False, default=False)
+    admin = db.Column(db.Boolean(name='admin_bool'), nullable=False,
+            default=False)
 
     #: :py:class:`~.Request`\s this user has submitted.
     requests = db.relationship(Request, back_populates='submitter')

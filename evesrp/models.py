@@ -3,14 +3,15 @@ import datetime as dt
 from decimal import Decimal
 import six
 from six.moves import filter, map, range
-from sqlalchemy.types import DateTime
+from sqlalchemy import event
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.schema import DDL, DropIndex
 from flask import Markup
 
 from . import db
 from .util import DeclEnum, classproperty, AutoID, Timestamped, AutoName,\
-        unistr, ensure_unicode, PrettyDecimal, PrettyNumeric
+        unistr, ensure_unicode, PrettyDecimal, PrettyNumeric, DateTime
 from .auth import PermissionType
 
 
@@ -252,7 +253,8 @@ class AbsoluteModifier(Modifier):
     id = db.Column(db.Integer, db.ForeignKey('modifier.id'), primary_key=True)
 
     #: How much ISK to add or remove from the payout
-    value = db.Column(PrettyNumeric(precision=15, scale=2), nullable=False, default=0.0)
+    value = db.Column(PrettyNumeric(precision=15, scale=2), nullable=False,
+            default=Decimal(0))
 
     def __unicode__(self):
         return u'{}M ISK {}'.format(self.value / 1000000,
@@ -270,10 +272,15 @@ class RelativeModifier(Modifier):
     id = db.Column(db.Integer, db.ForeignKey('modifier.id'), primary_key=True)
 
     #: What percentage of the payout to add or remove
-    value = db.Column(db.Float, nullable=False, default=0.0)
+    value = db.Column(db.Numeric(precision=8, scale=5), nullable=False,
+            default=Decimal(0))
 
     def __unicode__(self):
-        return u'{}% {}'.format(self.value * 100,
+        pretty_value = unicode(self.value * 100)
+        pretty_value = pretty_value.lstrip('-')
+        pretty_value = pretty_value.rstrip('0')
+        pretty_value = pretty_value.rstrip('.')
+        return u'{}% {}'.format(pretty_value,
                 u'bonus' if self.value >= 0 else u'penalty')
 
 
@@ -416,8 +423,6 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         relative = rel_mods.one()[0]
         if relative is None:
             relative = Decimal(0)
-        else:
-            relative = Decimal.from_float(relative)
         payout = self.base_payout + absolute
         payout = payout + (payout * relative)
 
@@ -667,3 +672,24 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
             def __init__(self, request):
                 self._request = request
         return RequestTransformer(self)
+
+
+# The next few lines are responsible for adding a full text search index on the
+# Request.details column for MySQL.
+_create_fts = DDL('CREATE FULLTEXT INDEX ix_%(table)s_details_fulltext '
+                       'ON %(table)s (details);')
+_drop_fts = DDL('DROP INDEX ix_%(table)s_details_fulltext ON %(table)s')
+
+
+event.listen(
+        Request.__table__,
+        'after_create',
+        _create_fts.execute_if(dialect='mysql')
+)
+
+
+event.listen(
+        Request.__table__,
+        'before_drop',
+        _drop_fts.execute_if(dialect='mysql')
+)
