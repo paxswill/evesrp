@@ -457,18 +457,17 @@ class TestRequestVoidModifiers(TestRequest):
     def test_submitter_void_modifier(self):
         self._test_void_modifier(self.normal_name, False)
 
-    @expectedFailure
     def test_modifier_evaluation(self):
         with self.app.test_request_context():
-            self.assertEqual(int(self.request.payout), 73957900000)
-            Modifier(self.request, self.normal_user, 'Details',
-                    type_='absolute', value=10)
-            db.session.commit()
-            self.assertEqual(int(self.request.payout), 73957900000 + 10000000)
-            Modifier(self.request, self.normal_user, '', type_='absolute',
-                    value=(-10))
-            db.session.commit()
-            self.assertEqual(int(self.request.payout), 73957900000)
+            self._add_permission(self.admin_name, PermissionType.review)
+            self.assertEqual(self.request.payout, Decimal(73957900000))
+            self._add_modifier(self.admin_name, Decimal(10000000))
+            self.assertEqual(self.request.payout,
+                    Decimal(73957900000) + Decimal(10000000))
+            self._add_modifier(self.admin_name, Decimal('-0.1'), False)
+            self.assertEqual(self.request.payout,
+                    (Decimal(73957900000) + Decimal(10000000)) *
+                    (1 + Decimal('-0.1')))
 
 
 class TestChangeDivision(TestRequest):
