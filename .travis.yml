@@ -37,7 +37,7 @@ matrix:
 install: make build-deps
 
 before_script:
-    - sudo add-apt-repository ppa:ondrej/mysql-5.6
+    - yes | sudo add-apt-repository ppa:ondrej/mysql-5.6
     - sudo apt-get update -q
     - sudo apt-get remove -y mysql-server mysql-client
     - sudo apt-get install -y mysql-5.6
