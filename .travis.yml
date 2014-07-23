@@ -48,7 +48,7 @@ before_script:
     # some config values were changed since 5.5
     - "sudo sed -i'' 's/table_cache/table_open_cache/' /etc/mysql/my.cnf"
     - "sudo sed -i'' 's/log_slow_queries/slow_query_log/' /etc/mysql/my.cnf"
-    - "sudo /etc/init.d/mysql.server start"
+    - "sudo service mysql start"
     - psql -c 'CREATE DATABASE evesrp_test;' -U postgres
     - mysql -e 'CREATE DATABASE evesrp_test;'
     - make all
