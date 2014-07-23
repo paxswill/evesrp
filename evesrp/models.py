@@ -3,9 +3,11 @@ import datetime as dt
 from decimal import Decimal
 import six
 from six.moves import filter, map, range
+from sqlalchemy import event
 from sqlalchemy.types import DateTime
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.schema import DDL, DropIndex
 from flask import Markup
 
 from . import db
@@ -667,3 +669,24 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
             def __init__(self, request):
                 self._request = request
         return RequestTransformer(self)
+
+
+# The next few lines are responsible for adding a full text search index on the
+# Request.details column for MySQL.
+_create_fts = DDL('CREATE FULLTEXT INDEX ix_%(table)s_details_fulltext '
+                       'ON %(table)s (details);')
+_drop_fts = DDL('DROP INDEX ix_%(table)s_details_fulltext ON %(table)s')
+
+
+event.listen(
+        Request.__table__,
+        'after_create',
+        _create_fts.execute_if(dialect='mysql')
+)
+
+
+event.listen(
+        Request.__table__,
+        'before_drop',
+        _drop_fts.execute_if(dialect='mysql')
+)
