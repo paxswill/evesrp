@@ -34,9 +34,7 @@ matrix:
         - python: "pypy3"
     fast_finish: true
 
-install: make build-deps
-
-before_script:
+install:
     # Yanked and modifierd from https://gist.github.com/drogus/6718448
     - "sudo apt-get remove mysql-common mysql-server-5.5 mysql-server-core-5.5 mysql-client-5.5 mysql-client-core-5.5"
     - "sudo apt-get autoremove"
@@ -49,6 +47,9 @@ before_script:
     - "sudo sed -i'' 's/table_cache/table_open_cache/' /etc/mysql/my.cnf"
     - "sudo sed -i'' 's/log_slow_queries/slow_query_log/' /etc/mysql/my.cnf"
     - "sudo service mysql start"
+    - make build-deps
+
+before_script:
     - psql -c 'CREATE DATABASE evesrp_test;' -U postgres
     - mysql -e 'CREATE DATABASE evesrp_test;'
     - make all
