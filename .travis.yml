@@ -45,12 +45,9 @@ before_script:
     - "sudo dpkg -i mysql-apt.deb"
     - "sudo apt-get update -q"
     - "sudo apt-get -o Dpkg::Options::='--force-confold' install -y mysql-server mysql-common mysql-client"
-    - "sudo cp /opt/mysql/server-5.6/support-files/mysql.server /etc/init.d/mysql.server"
-    - "sudo ln -s /opt/mysql/server-5.6/bin/* /usr/bin/"
     # some config values were changed since 5.5
     - "sudo sed -i'' 's/table_cache/table_open_cache/' /etc/mysql/my.cnf"
     - "sudo sed -i'' 's/log_slow_queries/slow_query_log/' /etc/mysql/my.cnf"
-    - "sudo sed -i'' 's/basedir[^=]\\+=.*$/basedir = \\/opt\\/mysql\\/server-5.6/' /etc/mysql/my.cnf"
     - "sudo /etc/init.d/mysql.server start"
     - psql -c 'CREATE DATABASE evesrp_test;' -U postgres
     - mysql -e 'CREATE DATABASE evesrp_test;'
