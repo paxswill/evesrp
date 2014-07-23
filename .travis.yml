@@ -44,7 +44,7 @@ before_script:
     - "wget -O mysql-apt.deb http://dev.mysql.com/get/mysql-apt-config_0.2.1-1ubuntu12.04_all.deb"
     - "sudo dpkg -i mysql-apt.deb"
     - "sudo apt-get update -q"
-    - "sudo apt-get -o Dpkg::Options::='--force-confold' install -y mysql-server mysql-common mysql-client"
+    - "sudo apt-get -o Dpkg::Options::='--force-confold' install -y mysql-server mysql-common mysql-client libmysqlclient-dev"
     # some config values were changed since 5.5
     - "sudo sed -i'' 's/table_cache/table_open_cache/' /etc/mysql/my.cnf"
     - "sudo sed -i'' 's/log_slow_queries/slow_query_log/' /etc/mysql/my.cnf"
