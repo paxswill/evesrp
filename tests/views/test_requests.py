@@ -12,7 +12,7 @@ from evesrp.models import Request, Action, AbsoluteModifier, RelativeModifier,\
         ActionType, PrettyDecimal
 from evesrp.auth import PermissionType
 from evesrp.auth.models import User, Pilot, Division, Permission
-from evesrp.util.utc import utc
+from evesrp.util import utc
 from evesrp import views
 import six
 from wtforms.validators import StopValidation, ValidationError

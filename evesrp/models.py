@@ -4,7 +4,6 @@ from decimal import Decimal
 import six
 from six.moves import filter, map, range
 from sqlalchemy import event
-from sqlalchemy.types import DateTime
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.schema import DDL, DropIndex
@@ -12,7 +11,7 @@ from flask import Markup
 
 from . import db
 from .util import DeclEnum, classproperty, AutoID, Timestamped, AutoName,\
-        unistr, ensure_unicode, PrettyDecimal, PrettyNumeric
+        unistr, ensure_unicode, PrettyDecimal, PrettyNumeric, DateTime
 from .auth import PermissionType
 
 
