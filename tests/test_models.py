@@ -1,10 +1,11 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 import datetime as dt
+from decimal import Decimal
 from .util import TestLogin
 from evesrp import db
 from evesrp.models import ActionType, ActionError, Action, Request,\
-        AbsoluteModifier, RelativeModifier, ModifierError
+        Modifier, AbsoluteModifier, RelativeModifier, ModifierError
 from evesrp.auth import PermissionType
 from evesrp.auth.models import Pilot, Division, Permission
 from evesrp.util import utc
@@ -23,7 +24,7 @@ class TestModels(TestLogin):
                     alliance='Northern Coalition.',
                     killmail_url=('http://eve-kill.net/?a=kill_detail'
                         '&kll_id=12842852'),
-                    base_payout=73957900000,
+                    base_payout=Decimal(73957900000),
                     kill_timestamp=dt.datetime(2012, 3, 25, 0, 44, 0,
                         tzinfo=utc),
                     system='92D-OI',
@@ -43,8 +44,20 @@ class TestModels(TestLogin):
         return Request.query.first()
 
     def add_action(self, type_):
-        Action(self.request, self.admin_user, type_=type_)
+        action = Action(self.request, self.admin_user, type_=type_)
         db.session.commit()
+        return action.id
+
+    def add_modifier(self, value, absolute=True):
+        if absolute:
+            modifier = AbsoluteModifier(self.request, self.admin_user, None,
+                    Decimal(value))
+        else:
+            modifier = RelativeModifier(self.request, self.admin_user, None,
+                    Decimal(value))
+        db.session.add(modifier)
+        db.session.commit()
+        return modifier.id
 
 
 class TestModifiers(TestModels):
@@ -147,3 +160,31 @@ class TestActionStatus(TestModels):
             self.add_action(ActionType.paid)
             self.add_action(ActionType.evaluating)
             self.assertEqual(self.request.status, ActionType.evaluating)
+
+
+class TestDelete(TestModels):
+
+    def test_delete_action(self):
+        with self.app.test_request_context():
+            aid = self.add_action(ActionType.approved)
+            db.session.delete(Action.query.get(aid))
+            db.session.commit()
+            self.assertIsNotNone(self.request)
+
+    def test_delete_modifier(self):
+        with self.app.test_request_context():
+            mid = self.add_modifier(10)
+            db.session.delete(Modifier.query.get(mid))
+            db.session.commit()
+            self.assertIsNotNone(self.request)
+
+    def test_delete_request(self):
+        with self.app.test_request_context():
+            rid = self.request.id
+            mid = self.add_modifier(10)
+            aid = self.add_action(ActionType.approved)
+            db.session.delete(self.request)
+            db.session.commit()
+            self.assertIsNone(Modifier.query.get(mid))
+            self.assertIsNone(Action.query.get(aid))
+            self.assertIsNone(self.request)
