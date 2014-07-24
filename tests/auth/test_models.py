@@ -1,9 +1,12 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 from ..util import TestApp
+from ..test_models import TestModels
 from evesrp import db
+from evesrp.models import Request, Modifier, Action, ActionType
 from evesrp.auth import PermissionType
-from evesrp.auth.models import Entity, User, Group, Permission, Division
+from evesrp.auth.models import Entity, User, Group, Permission, Division,\
+    PermissionType, APIKey, Note
 
 
 class TestGroups(TestApp):
@@ -193,3 +196,61 @@ class TestPermissions(TestGroups):
             self.assertEqual(len(prime[PermissionType.submit]), 2)
             self.assertEqual(len(prime[PermissionType.review]), 0)
             self.assertEqual(len(prime[PermissionType.pay]), 1)
+
+
+class TestDelete(TestModels):
+
+    def test_delete_api_key(self):
+        with self.app.test_request_context():
+            admin_user = self.admin_user
+            api_key = APIKey(admin_user)
+            db.session.add(api_key)
+            db.session.commit()
+            key_id = api_key.id
+            db.session.delete(api_key)
+            db.session.commit()
+            self.assertIsNone(APIKey.query.get(key_id))
+            self.assertIsNotNone(self.admin_user)
+
+    def test_delete_note(self):
+        with self.app.test_request_context():
+            note = Note(self.normal_user, self.admin_user, 'A note.')
+            db.session.add(note)
+            db.session.commit()
+            note_id = note.id
+            db.session.delete(note)
+            db.session.commit()
+            self.assertIsNone(Note.query.get(note_id))
+            self.assertIsNotNone(self.normal_user)
+            self.assertIsNotNone(self.admin_user)
+
+    def test_delete_permission(self):
+        with self.app.test_request_context():
+            review_perm = Permission.query.filter_by(
+                    permission=PermissionType.review,
+                    entity=self.admin_user).one()
+            review_id = review_perm.id
+            division = Division.query.one()
+            division_id = division.id
+            db.session.delete(review_perm)
+            db.session.commit()
+            self.assertIsNone(Permission.query.get(review_id))
+            self.assertIsNotNone(self.admin_user)
+            self.assertIsNotNone(Division.query.get(division_id))
+
+
+    def test_delete_division(self):
+        with self.app.test_request_context():
+            review_perm = Permission.query.filter_by(
+                    permission=PermissionType.review,
+                    entity=self.admin_user).one()
+            review_id = review_perm.id
+            division = Division.query.one()
+            division_id = division.id
+            request = Request.query.one()
+            request_id = request.id
+            db.session.delete(division)
+            db.session.commit()
+            self.assertIsNone(Division.query.get(division_id))
+            self.assertIsNone(Permission.query.get(review_id))
+            self.assertIsNone(Request.query.get(request_id))
