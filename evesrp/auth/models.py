@@ -44,8 +44,10 @@ class Entity(db.Model, AutoID, AutoName):
     type_ = db.Column(db.String(50, convert_unicode=True))
 
     #: :py:class:`Permission`\s associated specifically with this entity.
-    entity_permissions = db.relationship('Permission', collection_class=set,
-            back_populates='entity', lazy='dynamic')
+    entity_permissions = db.relationship('Permission', back_populates='entity',
+            collection_class=set,
+            cascade='save-update,merge,refresh-expire,expunge',
+            lazy='dynamic')
 
     #: The name of the :py:class:`AuthMethod` for this entity.
     authmethod = db.Column(db.String(50, convert_unicode=True), nullable=False)
@@ -108,7 +110,8 @@ class APIKey(db.Model, AutoID, AutoName, Timestamped):
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-    user = db.relationship('User', back_populates='api_keys')
+    user = db.relationship('User', back_populates='api_keys',
+            cascade='save-update,merge,refresh-expire,expunge')
 
     key = db.Column(db.LargeBinary(32), nullable=False)
 
@@ -219,6 +222,7 @@ class Note(db.Model, AutoID, Timestamped, AutoName):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     user = db.relationship(User, back_populates='notes',
+            cascade='save-update,merge,refresh-expire,expunge',
             foreign_keys=[user_id])
 
     content = db.Column(db.Text(convert_unicode=True), nullable=False)
@@ -226,6 +230,7 @@ class Note(db.Model, AutoID, Timestamped, AutoName):
     noter_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     noter = db.relationship(User, back_populates='notes_made',
+            cascade='save-update,merge,refresh-expire,expunge',
             foreign_keys=[noter_id])
 
     def __init__(self, user, noter, note):
@@ -301,13 +306,15 @@ class Permission(db.Model, AutoID, AutoName):
 
     #: The division this permission is granting access to
     division = db.relationship('Division',
-            back_populates='division_permissions')
+            back_populates='division_permissions',
+            cascade='save-update,merge,refresh-expire,expunge')
 
     entity_id = db.Column(db.Integer, db.ForeignKey('entity.id'),
             nullable=False)
 
     #: The :py:class:`Entity` being granted access
-    entity = db.relationship(Entity, back_populates='entity_permissions')
+    entity = db.relationship(Entity, back_populates='entity_permissions',
+            cascade='save-update,merge,refresh-expire,expunge')
 
     #: The permission being granted.
     permission = db.Column(PermissionType.db_type(), nullable=False)
@@ -344,7 +351,8 @@ class TransformerRef(db.Model, AutoID, AutoName):
 
     #: The division the transformer is associated with
     division = db.relationship('Division',
-            back_populates='division_transformers')
+            back_populates='division_transformers',
+            cascade='save-update,merge,refresh-expire,expunge')
 
     @db.validates('transformer')
     def prune_null_transformers(self, attr, transformer):
@@ -367,15 +375,17 @@ class Division(db.Model, AutoID, AutoName):
     name = db.Column(db.String(128, convert_unicode=True), nullable=False)
 
     #: All :py:class:`Permission`\s associated with this division.
-    division_permissions = db.relationship(Permission, collection_class=set,
-            back_populates='division')
+    division_permissions = db.relationship(Permission,
+            back_populates='division', cascade='all,delete-orphan',
+            collection_class=set)
 
     #: :py:class:`Request` s filed under this division.
-    requests = db.relationship(Request, back_populates='division')
+    requests = db.relationship(Request, back_populates='division',
+            cascade='all,delete-orphan')
 
     division_transformers = db.relationship(TransformerRef,
             collection_class=attribute_mapped_collection('attribute_name'),
-            back_populates='division', cascade='delete,delete-orphan')
+            back_populates='division', cascade='all,delete-orphan')
 
     #: A mapping of attribute names to :py:class:`~.transformer.Transformer`
     #: instances.
