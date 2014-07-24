@@ -84,13 +84,15 @@ class Action(db.Model, AutoID, Timestamped, AutoName):
     request_id = db.Column(db.Integer, db.ForeignKey('request.id'))
 
     #: The :py:class:`Request` this action applies to.
-    request = db.relationship('Request', back_populates='actions')
+    request = db.relationship('Request', back_populates='actions',
+            cascade='save-update,merge,refresh-expire,expunge')
 
     #: The ID of the :py:class:`~.User` who made this action.
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     #: The :py:class:`~.User` who made this action.
-    user = db.relationship('User', back_populates='actions')
+    user = db.relationship('User', back_populates='actions',
+            cascade='save-update,merge,refresh-expire,expunge')
 
     #: Any additional notes for this action.
     note = db.Column(db.Text(convert_unicode=True))
@@ -150,13 +152,15 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
     request_id = db.Column(db.Integer, db.ForeignKey('request.id'))
 
     #: The :py:class:`Request` this modifier applies to.
-    request = db.relationship('Request', back_populates='modifiers')
+    request = db.relationship('Request', back_populates='modifiers',
+            cascade='save-update,merge,refresh-expire,expunge')
 
     #: The ID of the :py:class`~.User` who added this modifier.
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     #: The :py:class:`~.User` who added this modifier.
-    user = db.relationship('User', foreign_keys=[user_id])
+    user = db.relationship('User', foreign_keys=[user_id],
+            cascade='save-update,merge,refresh-expire,expunge')
 
     #: Any notes explaining this modification.
     note = db.Column(db.Text(convert_unicode=True))
@@ -166,7 +170,8 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
             nullable=True)
 
     #: The :py:class:`~.User` who voided this modifier if it has been voided.
-    voided_user = db.relationship('User', foreign_keys=[voided_user_id])
+    voided_user = db.relationship('User', foreign_keys=[voided_user_id],
+            cascade='save-update,merge,refresh-expire,expunge')
 
     #: If this modifier has been voided, this will be the timestamp of when it
     #: was voided.
@@ -291,25 +296,29 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     submitter_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     #: The :py:class:`~.User` who submitted this request.
-    submitter = db.relationship('User', back_populates='requests')
+    submitter = db.relationship('User', back_populates='requests',
+            cascade='save-update,merge,refresh-expire,expunge')
 
     #: The ID of the :py:class`~.Division` this request was submitted to.
     division_id = db.Column(db.Integer, db.ForeignKey('division.id'),
             nullable=False)
 
     #: The :py:class:`~.Division` this request was submitted to.
-    division = db.relationship('Division', back_populates='requests')
+    division = db.relationship('Division', back_populates='requests',
+            cascade='save-update,merge,refresh-expire,expunge')
 
     #: A list of :py:class:`Action`\s that have been applied to this request,
     #: sorted in the order they were applied.
     actions = db.relationship('Action', back_populates='request',
+            cascade='all,delete-orphan',
             order_by='desc(Action.timestamp)')
 
     #: A list of all :py:class:`Modifier`\s that have been applied to this
     #: request, regardless of wether they have been voided or not. They're
     #: sorted in the order they were added.
     modifiers = db.relationship('Modifier', back_populates='request',
-            order_by='desc(Modifier.timestamp)', lazy='dynamic')
+            cascade='all,delete-orphan',
+            lazy='dynamic', order_by='desc(Modifier.timestamp)')
 
     #: The URL of the source killmail.
     killmail_url = db.Column(db.String(512, convert_unicode=True),
@@ -319,7 +328,8 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     pilot_id = db.Column(db.Integer, db.ForeignKey('pilot.id'), nullable=False)
 
     #: The :py:class:`~.Pilot` who was the victim in the killmail.
-    pilot = db.relationship('Pilot', back_populates='requests')
+    pilot = db.relationship('Pilot', back_populates='requests',
+            cascade='save-update,merge,refresh-expire,expunge')
 
     #: The corporation of the :py:attr:`pilot` at the time of the killmail.
     corporation = db.Column(db.String(150, convert_unicode=True),
