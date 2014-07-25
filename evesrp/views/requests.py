@@ -514,6 +514,8 @@ def submit_request():
     form.url.description = get_killmail_descriptions()
     # Create a list of divisions this user can submit to
     form.division.choices = current_user.submit_divisions()
+    if len(form.division.choices) == 1:
+        form.division.data = 1
 
     if form.validate_on_submit():
         mail = form.killmail
