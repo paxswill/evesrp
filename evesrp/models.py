@@ -563,27 +563,33 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
 
     state_rules = {
         ActionType.evaluating: {
-            ActionType.incomplete: (PermissionType.review,),
-            ActionType.rejected: (PermissionType.review,),
-            ActionType.approved: (PermissionType.review,),
+            ActionType.incomplete: (PermissionType.review,
+                PermissionType.admin),
+            ActionType.rejected: (PermissionType.review,
+                PermissionType.admin),
+            ActionType.approved: (PermissionType.review,
+                PermissionType.admin),
             ActionType.evaluating: (PermissionType.review,
-                PermissionType.submit),
+                PermissionType.admin, PermissionType.submit),
         },
         ActionType.incomplete: {
-            ActionType.rejected: (PermissionType.review,),
+            ActionType.rejected: (PermissionType.review,
+                PermissionType.admin),
             ActionType.evaluating: (PermissionType.review,
-                PermissionType.submit),
+                PermissionType.admin, PermissionType.submit),
         },
         ActionType.rejected: {
-            ActionType.evaluating: (PermissionType.review,),
+            ActionType.evaluating: (PermissionType.review,
+                PermissionType.admin),
         },
         ActionType.approved: {
-            ActionType.evaluating: (PermissionType.review,),
-            ActionType.paid: (PermissionType.pay,),
+            ActionType.evaluating: (PermissionType.review,
+                PermissionType.admin),
+            ActionType.paid: (PermissionType.pay, PermissionType.admin),
         },
         ActionType.paid: {
-            ActionType.approved: (PermissionType.pay,),
-            ActionType.evaluating: (PermissionType.pay,),
+            ActionType.approved: (PermissionType.pay, PermissionType.admin),
+            ActionType.evaluating: (PermissionType.pay, PermissionType.admin),
         },
     }
 
@@ -640,7 +646,9 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
                                   u"action.")
         elif action.type_ == ActionType.comment:
             if action.user != self.submitter \
-                    and not action.user.has_permission(PermissionType.elevated,
+                    and not action.user.has_permission(
+                            (PermissionType.review, PermissionType.pay,
+                                PermissionType.admin),
                             self.division):
                 raise ActionError(u"You must either own or have special"
                                   u"privileges to comment on this request.")
