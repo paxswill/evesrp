@@ -8,16 +8,16 @@
         <th>Submitters</th>
         <th>Reviewers</th>
         <th>Payers</th>
+        <th>Auditors</th>
         <th>Admins</th>
       </tr>
       {% if divisions %}
       {% for division in divisions %}
       <tr>
         <td><a href="{{ url_for('divisions.get_division_details', division_id=division.id) }}">{{ division.name }}</a></td>
-        <td><a href="{{ url_for('divisions.get_division_details', division_id=division.id)}}#submit">{{ division.permissions[PermissionType.submit]|length }}</a></td>
-        <td><a href="{{ url_for('divisions.get_division_details', division_id=division.id)}}#review">{{ division.permissions[PermissionType.review]|length }}</a></td>
-        <td><a href="{{ url_for('divisions.get_division_details', division_id=division.id)}}#pay">{{ division.permissions[PermissionType.pay]|length }}</a></td>
-        <td><a href="{{ url_for('divisions.get_division_details', division_id=division.id)}}#admin">{{ division.permissions[PermissionType.admin]|length }}</a></td>
+        {% for perm in (PermissionType.submit, PermissionType.review, PermissionType.pay,  PermissionType.audit, PermissionType.admin) %}
+        <td><a href="{{ url_for('divisions.get_division_details', division_id=division.id) }}#{{ perm.value }}">{{ division.permissions[perm]|length }}</a></td>
+        {% endfor %}
       </tr>
       {% endfor %}
       {% endif %}

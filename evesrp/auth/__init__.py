@@ -95,10 +95,17 @@ class PermissionType(DeclEnum):
     #: :py:class:`~.Division`\-level administrator permission
     admin = u'admin', u'Administrator'
 
+    #: A special permission for allowing read-only elevated access
+    audit = u'audit', u'Auditor'
+
     @classproperty
     def elevated(cls):
-        return frozenset((cls.review, cls.pay, cls.admin))
+        return frozenset((cls.review, cls.pay, cls.admin, cls.audit))
 
     @classproperty
     def all(cls):
-        return frozenset((cls.submit, cls.review, cls.pay, cls.admin))
+        return frozenset((cls.submit,
+                          cls.review,
+                          cls.pay,
+                          cls.admin,
+                          cls.audit))

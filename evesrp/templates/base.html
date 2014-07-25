@@ -38,13 +38,13 @@
           <ul class="nav navbar-nav">
             {% block navitems %}
             {% if current_user.is_authenticated() %}
-            {% if current_user.has_permission(PermissionType.review) %}
+            {% if current_user.has_permission((PermissionType.review, PermissionType.audit)) %}
             {{ macros.navbar_button('Pending', 'requests.list_pending_requests', request_count(PermissionType.review))|indent(12)|safe }}
             {% endif %}
             {% if current_user.has_permission(PermissionType.pay) %}
             {{ macros.navbar_button('Pay Outs', 'requests.list_approved_requests', request_count(PermissionType.pay))|indent(12)|safe }}
             {% endif %}
-            {% if current_user.has_permission(PermissionType.pay) or current_user.has_permission(PermissionType.review) %}
+            {% if current_user.has_permission(PermissionType.elevated) %}
             {{ macros.navbar_button('Completed', 'requests.list_completed_requests')|indent(12)|safe }}
             {% endif %}
             {% endif %}
