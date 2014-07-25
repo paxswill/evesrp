@@ -608,14 +608,6 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         raised.
 
         """
-
-        def check_status(*valid_states):
-            if new_status not in valid_states:
-                raise ActionError(u"{} is not a valid status to change "
-                        u"to from {} (valid options: {})".format(new_status,
-                                self.status, valid_states))
-
-
         if new_status == ActionType.comment:
             raise ValueError(u"ActionType.comment is not a valid status")
         # Initial status
@@ -639,6 +631,8 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
             return action
         elif action.type_ != ActionType.comment:
             rules = self.state_rules[self.status]
+            # Setting the status checks that it's a valid type of action to
+            # move to
             self.status = action.type_
             permissions = rules[action.type_]
             if not action.user.has_permission(permissions, self.division):
