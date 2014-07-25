@@ -80,24 +80,26 @@
       {{ action_form.id_ }}
       {{ action_form.type_ }}
       {{ action_form.csrf_token }}
-      <div class="form-group input-group">
-        {{ action_form.note(class="form-control") }}
-        <div class="input-group-btn" id="actionMenu">
-          <button type="submit" id="comment" class="btn btn-default">Comment</button>
-          {% for action in srp_request.valid_actions(current_user) %}
-            {% if loop.first %}
-          <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-            <span class="caret"></span>
-            <span class="sr-only">Toggle Dropdown</span>
-          </button>
-          <ul class="dropdown-menu" role="menu" id="actionMenu">
-            {% endif %}
-            <li><a href="#" id="{{ action.value }}">{{ action.description }}</a></li>
-            {% if loop.last %}
-          </ul>
-            {% endif %}
-          {% endfor %}
-          </ul>
+      <div class="form-group">
+        <div class="input-group">
+          {{ action_form.note(class="form-control") }}
+          <div class="input-group-btn" id="actionMenu">
+            <button type="submit" id="comment" class="btn btn-default">Comment</button>
+            {% for action in srp_request.valid_actions(current_user) %}
+              {% if loop.first %}
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+              <span class="caret"></span>
+              <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu" role="menu" id="actionMenu">
+              {% endif %}
+              <li><a href="#" id="{{ action.value }}">{{ action.description }}</a></li>
+              {% if loop.last %}
+            </ul>
+              {% endif %}
+            {% endfor %}
+            </ul>
+          </div>
         </div>
       </div>
     </form>
