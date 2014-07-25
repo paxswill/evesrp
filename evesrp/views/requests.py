@@ -721,8 +721,12 @@ def _change_details(srp_request):
                 u"pending.", u'error')
     elif form.validate():
         archive_note = u"Old Details: " + srp_request.details
+        if srp_request.status == ActionType.evaluating:
+            action_type = ActionType.comment
+        else:
+            action_type = ActionType.evaluating
         archive_action = Action(srp_request, current_user, archive_note,
-                ActionType.evaluating)
+                action_type)
         srp_request.details = form.details.data
         db.session.commit()
     return get_request_details(srp_request=srp_request)
@@ -818,8 +822,11 @@ def request_change_division(request_id):
         archive_note = u"Moving from division '{}' to division '{}'.".format(
                 srp_request.division.name,
                 new_division.name)
-        archive_action = Action(srp_request, current_user, archive_note,
-                ActionType.evaluating)
+        if srp_request.status == ActionType.evaluating:
+            type_ = ActionType.comment
+        else:
+            type_ = ActionType.evaluating
+        archive_action = Action(srp_request, current_user, archive_note, type_)
         srp_request.division = new_division
         db.session.commit()
         flash(u'Request #{} moved to {} division'.format(srp_request.id,
