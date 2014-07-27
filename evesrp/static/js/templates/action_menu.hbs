@@ -1,5 +1,16 @@
+<button type="submit" id="comment" class="btn btn-default">Comment</button>
 {{#each this.valid_actions}}
-<li>
-  <a href="#" id="{{this}}">{{capitalize this}}</a>
-</li>
+  {{#if @first}}
+<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+  <span class="caret"></span>
+  <span class="sr-only">Toggle Dropdown</span>
+</button>
+<ul class="dropdown-menu" role="menu">
+  {{/if}}
+  <li>
+    <a href="#" id="{{this}}">{{capitalize this}}</a>
+  </li>
+{{#if @last}}
+</ul>
+{{/if}}
 {{/each}}

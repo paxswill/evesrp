@@ -493,27 +493,35 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
 
     state_rules = {
         ActionType.evaluating: {
-            ActionType.incomplete: (PermissionType.review,),
-            ActionType.rejected: (PermissionType.review,),
-            ActionType.approved: (PermissionType.review,),
-            ActionType.evaluating: (PermissionType.review,
-                PermissionType.submit),
+            ActionType.incomplete: (PermissionType.review,
+                PermissionType.admin),
+            ActionType.rejected: (PermissionType.review,
+                PermissionType.admin),
+            ActionType.approved: (PermissionType.review,
+                PermissionType.admin),
         },
         ActionType.incomplete: {
-            ActionType.rejected: (PermissionType.review,),
+            ActionType.rejected: (PermissionType.review,
+                PermissionType.admin),
+            # Special case: the submitter can change it to evaluating by
+            # changing the division or updating the details.
             ActionType.evaluating: (PermissionType.review,
-                PermissionType.submit),
+                PermissionType.admin),
         },
         ActionType.rejected: {
-            ActionType.evaluating: (PermissionType.review,),
+            ActionType.evaluating: (PermissionType.review,
+                PermissionType.admin),
         },
         ActionType.approved: {
-            ActionType.evaluating: (PermissionType.review,),
-            ActionType.paid: (PermissionType.pay,),
+            # Special case: the submitter can change it to evaluating by
+            # changing the division.
+            ActionType.evaluating: (PermissionType.review,
+                PermissionType.admin),
+            ActionType.paid: (PermissionType.pay, PermissionType.admin),
         },
         ActionType.paid: {
-            ActionType.approved: (PermissionType.pay,),
-            ActionType.evaluating: (PermissionType.pay,),
+            ActionType.approved: (PermissionType.pay, PermissionType.admin),
+            ActionType.evaluating: (PermissionType.pay, PermissionType.admin),
         },
     }
 
@@ -530,16 +538,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         """Enforces that status changes follow the status state diagram below.
         When an invalid change is attempted, :py:class:`ActionError` is
         raised.
-
         """
-
-        def check_status(*valid_states):
-            if new_status not in valid_states:
-                raise ActionError(u"{} is not a valid status to change "
-                        u"to from {} (valid options: {})".format(new_status,
-                                self.status, valid_states))
-
-
         if new_status == ActionType.comment:
             raise ValueError(u"ActionType.comment is not a valid status")
         # Initial status
@@ -562,15 +561,28 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
             # be set later to let it slide now.
             return action
         elif action.type_ != ActionType.comment:
-            rules = self.state_rules[self.status]
+            old_status = self.status
+            # Setting the status checks that it's a valid type of action to
+            # move to.
             self.status = action.type_
+            rules = self.state_rules[old_status]
             permissions = rules[action.type_]
+            # Handle the special casess called out in state_rules
+            if action.user == self.submitter and \
+                    action.type_ == ActionType.evaluating and \
+                    old_status in ActionType.pending:
+                # Equivalent to old_status in (approved, incomplete) as
+                # going from evaluating to evaluating is invalid (as checked by
+                # the status validator above).
+                return action
             if not action.user.has_permission(permissions, self.division):
                 raise ActionError(u"Insufficient permissions to perform that "
                                   u"action.")
         elif action.type_ == ActionType.comment:
             if action.user != self.submitter \
-                    and not action.user.has_permission(PermissionType.elevated,
+                    and not action.user.has_permission(
+                            (PermissionType.review, PermissionType.pay,
+                                PermissionType.admin),
                             self.division):
                 raise ActionError(u"You must either own or have special"
                                   u"privileges to comment on this request.")

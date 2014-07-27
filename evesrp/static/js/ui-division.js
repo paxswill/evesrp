@@ -10,7 +10,7 @@ if (! ('ui' in EveSRP)) {
 
 EveSRP.ui.division = {
   render: function render(entities) {
-    var perms = ['submit', 'review', 'pay', 'admin'], i;
+    var perms = ['submit', 'review', 'pay', 'audit', 'admin'], i;
     for (i = 0; i < perms.length; ++i) {
       var perm = perms[i],
           $table = $('#' + perm).find('table'),

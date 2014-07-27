@@ -420,7 +420,8 @@ def register_class_views(state):
             view_func=payout_view)
     # Other more generalized listings
     register_perm_request_listing(state, 'list_pending_requests',
-            '/pending/', (PermissionType.review,), ActionType.pending)
+            '/pending/', (PermissionType.review, PermissionType.audit),
+            ActionType.pending)
     register_perm_request_listing(state, 'list_completed_requests',
             '/completed/', PermissionType.elevated, ActionType.finalized)
     # Special all listing, mainly intended for API users
@@ -582,7 +583,6 @@ class ActionForm(Form):
             validators=[AnyOf(list(ActionType.values()))])
 
 
-
 class ChangeDetailsForm(Form):
     id_ = HiddenField(default='details')
     details = TextAreaField(u'Details', validators=[InputRequired()])
@@ -626,7 +626,8 @@ def get_request_details(request_id=None, srp_request=None):
         template = 'request_review.html'
     elif current_user.has_permission(PermissionType.pay, srp_request.division):
         template = 'request_pay.html'
-    elif current_user == srp_request.submitter:
+    elif current_user == srp_request.submitter or current_user.has_permission(
+            PermissionType.audit):
         template = 'request_detail.html'
     else:
         abort(403)
@@ -727,8 +728,12 @@ def _change_details(srp_request):
                 u"pending.", u'error')
     elif form.validate():
         archive_note = u"Old Details: " + srp_request.details
-        archive_action = Action(srp_request, current_user, archive_note)
-        archive_action.type_ = ActionType.evaluating
+        if srp_request.status == ActionType.evaluating:
+            action_type = ActionType.comment
+        else:
+            action_type = ActionType.evaluating
+        archive_action = Action(srp_request, current_user, archive_note,
+                action_type)
         srp_request.details = form.details.data
         db.session.commit()
     return get_request_details(srp_request=srp_request)
@@ -824,8 +829,11 @@ def request_change_division(request_id):
         archive_note = u"Moving from division '{}' to division '{}'.".format(
                 srp_request.division.name,
                 new_division.name)
-        archive_action = Action(srp_request, current_user, archive_note)
-        archive_action.type_ = ActionType.evaluating
+        if srp_request.status == ActionType.evaluating:
+            type_ = ActionType.comment
+        else:
+            type_ = ActionType.evaluating
+        archive_action = Action(srp_request, current_user, archive_note, type_)
         srp_request.division = new_division
         db.session.commit()
         flash(u'Request #{} moved to {} division'.format(srp_request.id,
