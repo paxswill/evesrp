@@ -206,7 +206,7 @@ EveSRP.ui.requestList = {
       filters.sort = '';
     }
     if (filters.sort === '') {
-      filters.sort = 'submit_timestamp';
+      filters.sort = '-submit_timestamp';
     }
     // Determine new sort
     if (filters.sort.slice(1) === colName || filters.sort === colName) {
@@ -221,9 +221,9 @@ EveSRP.ui.requestList = {
     // Update the arrows
     $headings.find('i.fa').removeClass();
     if (filters.sort.charAt(0) === '-') {
-      $this.find('i').addClass('fa fa-chevron-up');
-    } else {
       $this.find('i').addClass('fa fa-chevron-down');
+    } else {
+      $this.find('i').addClass('fa fa-chevron-up');
     }
     // Push a new history state to trigger a refresh of the requests
     fullPath[1] = EveSRP.util.unparseFilters(filters);
