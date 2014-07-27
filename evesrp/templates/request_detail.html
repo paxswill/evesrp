@@ -75,7 +75,7 @@
       </dd>
       {% endblock info %}
     </dl>
-    {% block action_form %}
+    {% if current_user.has_permission((PermissionType.review, PermissionType.pay), srp_request) or current_user == srp_request.submitter %}
     <form id="actionForm" class="form" method='post'>
       {{ action_form.id_ }}
       {{ action_form.type_ }}
@@ -103,7 +103,7 @@
         </div>
       </div>
     </form>
-    {% endblock action_form %}
+    {% endif %}
     {% block action_list %}
     <div class="list-group" id="actionList">
       {% for action in srp_request.actions %}
