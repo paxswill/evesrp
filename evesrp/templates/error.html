@@ -4,7 +4,20 @@
 
 {% block content %}
 <div class="jumbotron">
-  <h1>{{ code }}</h1>
+  <h1>
+    {{ code }}
+    {% if code == 400 %}
+    <small>Bad Request</small>
+    {% elif code == 403 %}
+    <small>Forbidden</small>
+    {% elif code == 404 %}
+    <small>Not Found</small>
+    {% elif code == 500 %}
+    <small>Internal Server Error</small
+    {% elif code == 503 %}
+    <small>Service Unavailable</small>
+    {% endif %}
+  </h1>
   <p>{{ description }}</p>
 </div>
 {% endblock content %}
