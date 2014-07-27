@@ -245,6 +245,36 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
         self.voided_user = user
         self.voided_timestamp = dt.datetime.utcnow()
 
+    @db.validates('request')
+    @db.validates('voided_user')
+    def _update_request_payout(self, attr, srp_request):
+        # Evaluation method for payout:
+        # almost_payout = (sum(absolute_modifiers) + base_payout)
+        # payout = almost_payout + (sum(percentage_modifiers) * almost_payout)
+        voided = self._voided_select()
+        abs_mods = db.session.query(db.func.sum(AbsoluteModifier.value))\
+                .join(Request)\
+                .filter(Modifier.request_id==srp_request.id)\
+                .filter(~voided.c.voided)\
+                .filter(voided.c.modifier_id==Modifier.id)\
+                .filter(Modifier.id != self.id)
+        rel_mods = db.session.query(db.func.sum(RelativeModifier.value))\
+                .join(Request)\
+                .filter(Modifier.request_id==srp_request.id)\
+                .filter(~voided.c.voided)\
+                .filter(voided.c.modifier_id==Modifier.id)\
+                .filter(Modifier.id != self.id)
+        absolute = abs_mods.one()[0]
+        if absolute is None:
+            absolute = Decimal(0)
+        relative = rel_mods.one()[0]
+        if relative is None:
+            relative = Decimal(0)
+        raise Exception
+        payout = self.base_payout + absolute
+        srp_request.payout = payout + (payout * relative)
+        return srp_request
+
 
 @unistr
 class AbsoluteModifier(Modifier):
@@ -347,13 +377,18 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     #: The date and time of when the ship was destroyed.
     kill_timestamp = db.Column(DateTime, nullable=False, index=True)
 
-    base_payout = db.Column(PrettyNumeric(precision=15, scale=2), default=0.0)
+    base_payout = db.Column(PrettyNumeric(precision=15, scale=2),
+            default=Decimal(0))
     """The base payout for this request.
 
     This value is clamped to a lower limit of 0. It can only be changed when
     this request is in an :py:attr:`~ActionType.evaluating` state, or else a
     :py:exc:`ModifierError` will be raised.
     """
+
+    #: The payout for this requests taking into account all active modifiers.
+    payout = db.Column(PrettyNumeric(precision=15, scale=2),
+            default=Decimal(0), index=True, nullable=False)
 
     #: Supporting information for the request.
     details = db.deferred(db.Column(db.Text(convert_unicode=True)))
@@ -410,111 +445,6 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     #: The region this loss occured in.
     region = db.Column(db.String(25, convert_unicode=True), nullable=False,
             index=True)
-
-    @hybrid_property
-    def payout(self):
-        # Evaluation method for payout:
-        # almost_payout = (sum(absolute_modifiers) + base_payout)
-        # payout = almost_payout + (sum(percentage_modifiers) * almost_payout)
-        voided = Modifier._voided_select()
-        abs_mods = db.session.query(db.func.sum(AbsoluteModifier.value))\
-                .join(Request)\
-                .filter(Modifier.request_id==self.id)\
-                .filter(~voided.c.voided)\
-                .filter(voided.c.modifier_id==Modifier.id)
-        rel_mods = db.session.query(db.func.sum(RelativeModifier.value))\
-                .join(Request)\
-                .filter(Modifier.request_id==self.id)\
-                .filter(~voided.c.voided)\
-                .filter(voided.c.modifier_id==Modifier.id)
-        absolute = abs_mods.one()[0]
-        if absolute is None:
-            absolute = Decimal(0)
-        relative = rel_mods.one()[0]
-        if relative is None:
-            relative = Decimal(0)
-        payout = self.base_payout + absolute
-        payout = payout + (payout * relative)
-
-        return PrettyDecimal(payout)
-
-    @classmethod
-    def _payout_expression(cls):
-        # Get the sum of all absolute and relative modifiers
-        voided = Modifier._voided_select()
-        # Was having trouble bending SQLAlchemy to my will, specifically with
-        # it adding joins for sublasses modifiers.
-        mod_table = Modifier.__table__
-        abs_table = AbsoluteModifier.__table__
-        rel_table = RelativeModifier.__table__
-        # Prepare subqueries for the eventual summing
-        absolute = db.select([
-                        mod_table.c.id.label('id'),
-                        abs_table.c.value.label('value'),
-                        mod_table.c.request_id.label('request_id')])\
-                .select_from(db.join(abs_table, mod_table,
-                        mod_table.c.id == abs_table.c.id))\
-                .alias()
-        absolute = db.select([
-                        absolute.c.value.label('value'),
-                        absolute.c.request_id.label('request_id')])\
-                .where(~voided.c.voided)\
-                .select_from(db.join(absolute, voided,
-                        absolute.c.id == voided.c.modifier_id)).alias()
-        relative = db.select([
-                        mod_table.c.id.label('id'),
-                        rel_table.c.value.label('value'),
-                        mod_table.c.request_id.label('request_id')])\
-                .select_from(db.join(rel_table, mod_table,
-                        mod_table.c.id == rel_table.c.id))\
-                .alias()
-        relative = db.select([
-                        relative.c.value.label('value'),
-                        relative.c.request_id.label('request_id')])\
-                .where(~voided.c.voided)\
-                .select_from(db.join(relative, voided,
-                        relative.c.id == voided.c.modifier_id)).alias()
-        # Sum modifiers grouped by request id
-        abs_sum = db.select([
-                        cls.id.label('request_id'),
-                        cls.base_payout.label('base_payout'),
-                        db.func.sum(absolute.c.value).label('sum')])\
-                .select_from(db.outerjoin(Request, absolute,
-                        Request.id == absolute.c.request_id))\
-                .group_by(Request.id)\
-                .alias()
-        rel_sum = db.select([
-                        cls.id.label('request_id'),
-                        db.func.sum(relative.c.value).label('sum')])\
-                .select_from(db.outerjoin(Request, relative,
-                        Request.id == relative.c.request_id))\
-                .group_by(Request.id)\
-                .alias()
-        # Return a subquery with the request id and the caclulated payout.
-        # missing values are assumed to be 0.
-        total_sum = db.select([
-                        abs_sum.c.request_id.label('id'),
-                        ((
-                            abs_sum.c.base_payout.label('base_payout') +
-                            db.case([(abs_sum.c.sum == None, Decimal(0))],
-                                    else_=abs_sum.c.sum).label('absolute')) *
-                        (
-                            1 +
-                            db.case([(rel_sum.c.sum == None, Decimal(0))],
-                                    else_=rel_sum.c.sum).label('relative')))\
-                        .label('payout')])\
-                .select_from(db.join(abs_sum, rel_sum,
-                        abs_sum.c.request_id == rel_sum.c.request_id))\
-                .alias()
-        return total_sum
-
-    @payout.expression
-    def payout(cls):
-        payouts = cls._payout_expression()
-        stmt = db.select([payouts.c.payout])\
-                .where(cls.id == payouts.c.id)\
-                .label('payout')
-        return stmt
 
     @hybrid_property
     def finalized(self):
@@ -652,9 +582,11 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
 
     @db.validates('modifiers')
     def _validate_add_modifier(self, attr, modifier):
+        # Check request status
         if self.status != ActionType.evaluating:
             raise ModifierError(u"Modifiers can only be added when the request"
                                 u" is in an evaluating state.")
+        # Check permissions
         if not modifier.user.has_permission(PermissionType.review,
                 self.division):
             raise ModifierError(u"Only reviewers can add modifiers.")
