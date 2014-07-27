@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import locale
 import os
 import requests
-from flask import Flask, current_app, g, abort, request
+from flask import Flask, current_app, g
 from flask.ext import sqlalchemy
 from flask.ext.wtf.csrf import CsrfProtect
 from sqlalchemy.ext.declarative import declarative_base
@@ -30,7 +30,7 @@ def _patch_metadata():
 _patch_metadata()
 
 
-from .util import DB_STATS, AcceptRequest, database
+from .util import DB_STATS, AcceptRequest
 
 
 __version__ = u'0.9.5-dev'
@@ -65,11 +65,6 @@ def create_app(config=None, **kwargs):
 
     db.init_app(app)
 
-    # Check that the database schema is the latest (current) version, and throw
-    # an error until it's been updated.
-    app.is_latest_schema = False
-    app.before_request(check_db_revision)
-
     from .views.login import login_manager
     login_manager.init_app(app)
 
@@ -81,7 +76,7 @@ def create_app(config=None, **kwargs):
 
     from .views import index, error_page, divisions, login, requests, api
     app.add_url_rule(rule=u'/', view_func=index)
-    for error_code in (400, 403, 404, 500, 503):
+    for error_code in (400, 403, 404, 500):
         app.register_error_handler(error_code, error_page)
     app.register_blueprint(divisions.blueprint, url_prefix='/division')
     app.register_blueprint(login.blueprint)
@@ -127,21 +122,6 @@ def sqlalchemy_before():
                 round(DB_STATS.total_time * 1000, 3)))
     DB_STATS.clear()
     g.DB_STATS = DB_STATS
-
-
-# Schema version check
-def check_db_revision():
-    if request.endpoint == 'static' or current_app.is_latest_schema:
-        return
-    current_rev = database.get_current(current_app)
-    latest_rev = database.get_latest(current_app)
-    if current_rev == latest_rev:
-        current_app.is_latest_schema = True
-    else:
-        current_app.logger.error(u"Current DB revision: {}. Latest DB "
-                                 u"revision: {}".format(
-                                     current_rev, latest_rev))
-        abort(503, "The database needs a schema migration.")
 
 
 # Auth setup

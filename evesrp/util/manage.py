@@ -17,7 +17,6 @@ from alembic.migration import MigrationContext
 from alembic.script import ScriptDirectory
 import six
 from .. import create_app, db, migrate, models, auth, killmail
-from . import database
 from .datetime import utc
 
 
@@ -95,11 +94,20 @@ manager.add_option('-c', '--config', dest='config', required=True,
 def create(force=False):
     """Create tables if the database has not been configured yet."""
     # Fail if there's an alembic version set
-    if not database.is_current(flask.current_app) and not force:
+    engine = db.get_engine(flask.current_app)
+    conn = engine.connect()
+    context = MigrationContext.configure(conn)
+    current_rev = context.get_current_revision()
+    alembic_config = _get_config(directory=migrate_path)
+    script = ScriptDirectory.from_config(alembic_config)
+    latest_rev = script.get_current_head()
+    if current_rev == latest_rev and not force:
         print(u"You need to run 'evesrp -c config.py db migrate' to "
               u"migrate to the latest database schema.")
     else:
-        database.create_all()
+        db.create_all()
+        if current_rev is None:
+            stamp()
 
 
 @manager.shell
