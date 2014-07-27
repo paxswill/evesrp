@@ -10,3 +10,6 @@ td form button.close {
   height: 20px;
 }
 
+.hidden {
+  display: none;
+}
