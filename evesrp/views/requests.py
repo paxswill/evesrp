@@ -18,7 +18,7 @@ from wtforms.validators import InputRequired, AnyOf, URL, ValidationError,\
 from .. import db
 from ..models import Request, Modifier, Action, ActionType, ActionError,\
         ModifierError, AbsoluteModifier, RelativeModifier
-from ..util import xmlify, jsonify, classproperty
+from ..util import xmlify, jsonify, classproperty, PrettyDecimal
 from ..auth import PermissionType
 from ..auth.models import Division, Pilot, Permission, User, Group, Note,\
     APIKey, users_groups
@@ -210,6 +210,10 @@ class RequestListing(View):
             return redirect(url_for(request.endpoint,
                     filters=canonical_filter), code=301)
         requests = self.requests(filter_map)
+        total_payouts = requests.with_entities(db.func.sum(Request.payout))\
+                .scalar()
+        if total_payouts is None:
+            total_payouts = PrettyDecimal(0)
         pager = requests.paginate(filter_map.get('page', 1), per_page=15,
                 error_out=False)
         if len(pager.items) == 0 and pager.page > 1:
@@ -218,7 +222,8 @@ class RequestListing(View):
                     filters=self.unparse_filter(filter_map)))
         if request.is_json or request.is_xhr:
             return jsonify(requests=pager.items,
-                    request_count=requests.count())
+                    request_count=requests.count(),
+                    total_payouts=total_payouts.currency())
         if request.is_rss:
             return xmlify('rss.xml', content_type='application/rss+xml',
                     requests=pager.items,
@@ -228,7 +233,7 @@ class RequestListing(View):
         if request.is_xml:
             return xmlify('request_list.xml', requests=pager.items)
         return render_template(self.template, pager=pager, filters=filter_map,
-                **kwargs)
+                total_payouts=total_payouts, **kwargs)
 
     @classproperty
     def _load_options(cls):

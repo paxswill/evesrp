@@ -60,8 +60,11 @@
       {% endfor %}
     </table>
     <div class="text-center">
+      {% if pager.pages > 1 %}
       <ul class="pagination">
-        {% if pager.pages > 1 %}
+      {% else %}
+      <ul class="pagination hidden">
+      {% endif %}
         {% if pager.has_prev %}
         <li><a id="prev_page" href="{{ url_for_page(pager, pager.prev_num) }}">&laquo;</a></li>
         {% else %}
@@ -83,8 +86,10 @@
         {% else %}
         <li class="disabled"><span>&raquo;</span></li>
         {% endif %}
-        {% endif %}
       </ul>
+      <p class="text-muted" id="requestsSummary">
+        {{ pager.total }} requests &bull; {{ total_payouts.currency() }} ISK
+      </p>
     </div>
   </div>
 </div>

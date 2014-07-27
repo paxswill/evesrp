@@ -90,6 +90,7 @@ EveSRP.ui.requestList = {
         isPayout = false,
         $pager = $('ul.pagination'),
         requests = data.requests,
+        $summary = $('#requestsSummary'),
         $copyButtons, $newRows, currentPage;
     if ($oldRows.length != 0) {
       /* Remove the tooltips and unattach the clipboard client from any
@@ -115,6 +116,10 @@ EveSRP.ui.requestList = {
       $newRows = Handlebars.templates.request_rows(requests);
     }
     $rowsParent.append($newRows);
+    // Update the summary
+    $summary.text(data['request_count'] + ' requests • ' +
+                  data['total_payouts'] + ' ISK');
+    // Render the pager
     if ($.inArray('page', filters._keys) === -1) {
       currentPage = 0;
     } else {
@@ -128,6 +133,7 @@ EveSRP.ui.requestList = {
         numPages = Math.ceil(numRequests/this.pageSize - 1) + 1;
     $pager.empty();
     if (numPages > 1) {
+      $pager.removeClass('hidden');
       /* prev arrow */
       if (currentPage === 0) {
         $pager.append('<li class="disabled"><span>&laquo;</span></li>');
@@ -153,6 +159,8 @@ EveSRP.ui.requestList = {
       } else {
         $pager.append('<li><a id="next_page" href="#">&raquo;</a></li>');
       }
+    } else {
+      $pager.addClass('hidden');
     }
   },
 
