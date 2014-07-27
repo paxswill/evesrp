@@ -41,7 +41,7 @@ def upgrade():
 def downgrade():
     relative_modifier = table('relative_modifier',
             column('id', sa.Integer),
-            column('value', sa.NUmeric(precision=8, scale=5)),
+            column('value', sa.Numeric(precision=8, scale=5)),
             column('float_value', sa.Float))
     op.add_column('relative_modifier', sa.Column('float_value', sa.Float))
     conn = op.get_bind()
