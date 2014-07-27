@@ -105,8 +105,12 @@ class RequestListing(View):
             if attr == 'details':
                 for details in sorted(filters[attr]):
                     filter_strings.append('details/' + details)
-            elif attr in ('page', 'sort'):
-                filter_strings.append('{}/{}'.format(attr, filters[attr]))
+            elif attr == 'page':
+                if filters['page'] != 1:
+                    filter_strings.append('page/{}'.format(filters['page']))
+            elif attr == 'sort':
+                if filters['sort'] != '-submit_timestamp':
+                    filter_strings.append('sort/{}'.format(filters['sort']))
             elif attr == 'status':
                 values = [a.name for a in filters[attr]]
                 values = sorted(values)

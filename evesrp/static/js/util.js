@@ -205,9 +205,13 @@ EveSRP.util = {
           filterStrings.push('details/' + details);
         });
       } else if (attr === 'page') {
-        filterStrings.push('page/' + values);
+        if (values !== 1) {
+          filterStrings.push('page/' + values);
+        }
       } else if (attr === 'sort') {
-        filterStrings.push('sort/' + values);
+        if (values !== '-submit_timestamp') {
+          filterStrings.push('sort/' + values);
+        }
       } else if (values.length > 0) {
         values.sort();
         filterStrings.push(attr + '/' + values.join(','));
