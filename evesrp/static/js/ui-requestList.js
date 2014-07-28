@@ -91,7 +91,7 @@ EveSRP.ui.requestList = {
         $pager = $('ul.pagination'),
         requests = data.requests,
         $summary = $('#requestsSummary'),
-        $copyButtons, $newRows, currentPage;
+        $copyButtons, $newRows;
     if ($oldRows.length != 0) {
       /* Remove the tooltips and unattach the clipboard client from any
        * buttons
@@ -120,12 +120,7 @@ EveSRP.ui.requestList = {
     $summary.text(data['request_count'] + ' requests • ' +
                   data['total_payouts'] + ' ISK');
     // Render the pager
-    if ($.inArray('page', filters._keys) === -1) {
-      currentPage = 0;
-    } else {
-      currentPage = filters.page - 1;
-    }
-    this.renderPager(data.request_count, currentPage);
+    this.renderPager(data.request_count, filters.page - 1);
   },
 
   renderPager: function renderPager(numRequests, currentPage) {
@@ -200,14 +195,6 @@ EveSRP.ui.requestList = {
     } else {
       filters = EveSRP.util.parseFilterString(fullPath[1]);
     }
-    // Default to sorting by ascending submit time
-    if ($.inArray('sort', filters._keys) === -1) {
-      filters._keys.push('sort');
-      filters.sort = '';
-    }
-    if (filters.sort === '') {
-      filters.sort = '-submit_timestamp';
-    }
     // Determine new sort
     if (filters.sort.slice(1) === colName || filters.sort === colName) {
       if (filters.sort.charAt(0) === '-') {
@@ -236,11 +223,6 @@ EveSRP.ui.requestList = {
         filters = EveSRP.util.parseFilterString(fullPath[1]),
         $target = $(ev.target),
         pageNum;
-    // Default to page 1
-    if ($.inArray('page', filters._keys) === -1) {
-      filters._keys.push('page');
-      filters.page = 1;
-    }
     if ($target.attr('id') === 'prev_page') {
       filters.page = filters.page - 1;
     } else if ($target.attr('id') == 'next_page') {

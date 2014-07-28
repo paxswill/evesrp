@@ -188,6 +188,13 @@ EveSRP.util = {
         filters[attr] = _(filters[attr]).union([values]);
       }
     }
+    // Set default values for page and sort
+    if (! ('sort' in filters)) {
+      filters.sort = '-submit_timestamp';
+    }
+    if (! ('page' in filters)) {
+      filters.page = 1;
+    }
     return filters;
   },
 
