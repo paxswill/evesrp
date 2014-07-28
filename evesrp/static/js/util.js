@@ -157,6 +157,7 @@ EveSRP.util = {
      */
     var filters = {},
         splitString, i, attr, values;
+    _.defaults(filters, {page: 1, sort: '-submit_timestamp'});
     // Fail early for empty filters
     if (filterString === undefined || filterString === '') {
       return filters;
@@ -186,13 +187,6 @@ EveSRP.util = {
       } else {
         filters[attr] = _(filters[attr]).union([values]);
       }
-    }
-    // Set default values for page and sort
-    if (! ('sort' in filters)) {
-      filters.sort = '-submit_timestamp';
-    }
-    if (! ('page' in filters)) {
-      filters.page = 1;
     }
     return filters;
   },
