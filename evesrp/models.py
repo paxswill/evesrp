@@ -6,6 +6,7 @@ from six.moves import filter, map, range
 from sqlalchemy import event
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.event import listens_for
 from sqlalchemy.schema import DDL, DropIndex
 from flask import Markup
 
@@ -106,19 +107,6 @@ class Action(db.Model, AutoID, Timestamped, AutoName):
         # is set so thhe request's validation doesn't fail.
         self.timestamp = dt.datetime.utcnow()
         self.request = request
-
-    @db.validates('type_')
-    def _set_request_type(self, attr, type_):
-        """Validator action for :py:attr:`type_` for updating the parent
-        :py:class:`Request`\\'s :py:attr:`~Request.status`.
-
-        It only updates the status for non-``None`` and non-comment actions.
-        """
-        if self.request is not None:
-            if type_ != ActionType.comment and self.timestamp >=\
-                    self.request.actions[0].timestamp:
-                self.request.status = type_
-        return type_
 
     def __repr__(self):
         return "{x.__class__.__name__}({x.request}, {x.user}, {x.type_})".\
@@ -246,34 +234,14 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
         self.voided_timestamp = dt.datetime.utcnow()
 
     @db.validates('request')
-    @db.validates('voided_user')
-    def _update_request_payout(self, attr, srp_request):
-        # Evaluation method for payout:
-        # almost_payout = (sum(absolute_modifiers) + base_payout)
-        # payout = almost_payout + (sum(percentage_modifiers) * almost_payout)
-        voided = self._voided_select()
-        abs_mods = db.session.query(db.func.sum(AbsoluteModifier.value))\
-                .join(Request)\
-                .filter(Modifier.request_id==srp_request.id)\
-                .filter(~voided.c.voided)\
-                .filter(voided.c.modifier_id==Modifier.id)\
-                .filter(Modifier.id != self.id)
-        rel_mods = db.session.query(db.func.sum(RelativeModifier.value))\
-                .join(Request)\
-                .filter(Modifier.request_id==srp_request.id)\
-                .filter(~voided.c.voided)\
-                .filter(voided.c.modifier_id==Modifier.id)\
-                .filter(Modifier.id != self.id)
-        absolute = abs_mods.one()[0]
-        if absolute is None:
-            absolute = Decimal(0)
-        relative = rel_mods.one()[0]
-        if relative is None:
-            relative = Decimal(0)
-        raise Exception
-        payout = self.base_payout + absolute
-        srp_request.payout = payout + (payout * relative)
-        return srp_request
+    def _check_request_status(self, attr, request):
+        if request.status != ActionType.evaluating:
+            raise ModifierError(u"Modifiers can only be added when the request"
+                                u" is in an evaluating state.")
+        if not self.user.has_permission(PermissionType.review,
+                request.division):
+            raise ModifierError(u"Only reviewers can add modifiers.")
+        return request
 
 
 @unistr
@@ -482,6 +450,8 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     @db.validates('base_payout')
     def _validate_payout(self, attr, value):
         """Ensures that base_payout is positive. The value is clamped to 0."""
+        # Allow self.status == None, as the base payout may be set in the
+        # initializing state before the status has been set.
         if self.status == ActionType.evaluating or self.status is None:
             if value is None or value < 0:
                 return Decimal('0')
@@ -535,7 +505,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
 
     @db.validates('status')
     def _validate_status(self, attr, new_status):
-        """Enforces that status changes follow the status state diagram below.
+        """Enforces that status changes follow the status state machine.
         When an invalid change is attempted, :py:class:`ActionError` is
         raised.
         """
@@ -552,28 +522,31 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         return new_status
 
     @db.validates('actions')
-    def _update_status_from_action(self, attr, action):
-        """Updates :py:attr:`status` whenever a new :py:class:`~.Action`
-        is added and verifies permissions.
-        """
+    def _verify_action_permissions(self, attr, action):
+        """Verifies that permissions for Actions being added to a Request."""
         if action.type_ is None:
             # Action.type_ are not nullable, so rely on the fact that it will
             # be set later to let it slide now.
             return action
         elif action.type_ != ActionType.comment:
-            old_status = self.status
-            # Setting the status checks that it's a valid type of action to
-            # move to.
-            self.status = action.type_
+            # Peek behind the curtain to see the history of the status
+            # attribute.
+            status_history = db.inspect(self).attrs.status.history
+            if status_history.has_changes():
+                new_status = status_history.added[0]
+                old_status = status_history.deleted[0]
+            else:
+                new_status = action.type_
+                old_status = self.status
             rules = self.state_rules[old_status]
-            permissions = rules[action.type_]
-            # Handle the special casess called out in state_rules
+            permissions = rules[new_status]
+            # Handle the special cases called out in state_rules
             if action.user == self.submitter and \
-                    action.type_ == ActionType.evaluating and \
+                    new_status == ActionType.evaluating and \
                     old_status in ActionType.pending:
-                # Equivalent to old_status in (approved, incomplete) as
+                # Equivalent to self.status in (approved, incomplete) as
                 # going from evaluating to evaluating is invalid (as checked by
-                # the status validator above).
+                # the status validator).
                 return action
             if not action.user.has_permission(permissions, self.division):
                 raise ActionError(u"Insufficient permissions to perform that "
@@ -591,18 +564,6 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     def __repr__(self):
         return "{x.__class__.__name__}({x.submitter}, {x.division}, {x.id})".\
                 format(x=self)
-
-    @db.validates('modifiers')
-    def _validate_add_modifier(self, attr, modifier):
-        # Check request status
-        if self.status != ActionType.evaluating:
-            raise ModifierError(u"Modifiers can only be added when the request"
-                                u" is in an evaluating state.")
-        # Check permissions
-        if not modifier.user.has_permission(PermissionType.review,
-                self.division):
-            raise ModifierError(u"Only reviewers can add modifiers.")
-        return modifier
 
     @property
     def transformed(self):
@@ -626,6 +587,81 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
             def __init__(self, request):
                 self._request = request
         return RequestTransformer(self)
+
+
+# Define event listeners for syncing the various denormalized attributes
+
+@listens_for(Action.type_, 'set')
+def _action_type_to_request_status(action, new_status, old_status, initiator):
+    """Set the Action's Request's status when the Action's type is changed."""
+    if action.request is not None and new_status != ActionType.comment:
+        action.request.status = new_status
+
+
+@listens_for(Request.actions, 'append')
+def _request_status_from_actions(srp_request, action, initiator):
+    """Updates Request.status when new Actions are added."""
+    # Pass when Action.type_ is None, as it'll get updated later
+    if action.type_ is not None and action.type_ != ActionType.comment:
+        srp_request.status = action.type_
+
+
+@listens_for(Request.base_payout, 'set')
+def _recalculate_payout_from_request(srp_request, base_payout, *args):
+    """Recalculate a Request's payout when the base payout changes."""
+    if base_payout is None:
+        base_payout = Decimal(0)
+    voided = Modifier._voided_select()
+    modifiers = srp_request.modifiers.join(voided,
+                voided.c.modifier_id==Modifier.id)\
+            .filter(~voided.c.voided)
+    absolute = modifiers.with_entities(db.func.sum(AbsoluteModifier.value))\
+            .scalar()
+    if not isinstance(absolute, Decimal):
+        absolute = Decimal(0)
+    relative = modifiers.with_entities(db.func.sum(RelativeModifier.value))\
+            .scalar()
+    if not isinstance(relative, Decimal):
+        relative = Decimal(0)
+    payout = (base_payout + absolute) * (Decimal(1) + relative)
+    srp_request.payout = PrettyDecimal(payout)
+
+
+@listens_for(Modifier.request, 'set', propagate=True)
+@listens_for(Modifier.voided_user, 'set', propagate=True)
+def _recalculate_payout_from_modifier(modifier, value, *args):
+    """Recalculate a Request's payout when it gains a Modifier or when one of
+    its Modifiers is voided.
+    """
+    if isinstance(value, Request):
+        srp_request = value
+    else:
+        srp_request = modifier.request
+    voided = Modifier._voided_select()
+    modifiers = srp_request.modifiers.join(voided,
+                voided.c.modifier_id==Modifier.id)\
+            .filter(~voided.c.voided)
+    absolute = modifiers.with_entities(db.func.sum(AbsoluteModifier.value))\
+            .scalar()
+    if not isinstance(absolute, Decimal):
+        absolute = Decimal(0)
+    relative = modifiers.with_entities(db.func.sum(RelativeModifier.value))\
+            .scalar()
+    if not isinstance(relative, Decimal):
+        relative = Decimal(0)
+    # The modifier that's changed isn't reflected yet in the dtabase, so we
+    # apply it here.
+    if not isinstance(value, Request):
+        direction = Decimal(-1)
+    else:
+        direction = Decimal(1)
+    if isinstance(modifier, AbsoluteModifier):
+        absolute += direction * modifier.value
+    elif isinstance(modifier, RelativeModifier):
+        relative += direction * modifier.value
+    payout = (srp_request.base_payout + absolute) * \
+            (Decimal(1) + relative)
+    srp_request.payout = PrettyDecimal(payout)
 
 
 # The next few lines are responsible for adding a full text search index on the
