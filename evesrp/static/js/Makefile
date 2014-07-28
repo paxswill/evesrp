@@ -19,6 +19,7 @@ SOURCE_NAMES := \
 	$(THIRDPARTY)/bootstrap-tokenfield/js/bootstrap-tokenfield \
 	$(THIRDPARTY)/zeroclipboard/ZeroClipboard \
 	$(THIRDPARTY)/typeahead.js/dist/typeahead.bundle \
+	polyfill \
 	util \
 	handlebars-helpers \
 	handlebars-templates \

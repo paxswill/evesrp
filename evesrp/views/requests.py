@@ -46,7 +46,8 @@ class RequestListing(View):
 
     @staticmethod
     def parse_filter(filter_string):
-        filters = {}
+        # Set defaults that are skipped by unparse_filter
+        filters = {'page': 1, 'sort': '-submit_timestamp'}
         # Fail early for empty filters
         if filter_string is None or filter_string == '':
             return filters
@@ -105,8 +106,12 @@ class RequestListing(View):
             if attr == 'details':
                 for details in sorted(filters[attr]):
                     filter_strings.append('details/' + details)
-            elif attr in ('page', 'sort'):
-                filter_strings.append('{}/{}'.format(attr, filters[attr]))
+            elif attr == 'page':
+                if filters['page'] != 1:
+                    filter_strings.append('page/{}'.format(filters['page']))
+            elif attr == 'sort':
+                if filters['sort'] != '-submit_timestamp':
+                    filter_strings.append('sort/{}'.format(filters['sort']))
             elif attr == 'status':
                 values = [a.name for a in filters[attr]]
                 values = sorted(values)
@@ -214,7 +219,7 @@ class RequestListing(View):
                 .scalar()
         if total_payouts is None:
             total_payouts = PrettyDecimal(0)
-        pager = requests.paginate(filter_map.get('page', 1), per_page=15,
+        pager = requests.paginate(filter_map['page'], per_page=15,
                 error_out=False)
         if len(pager.items) == 0 and pager.page > 1:
             filter_map['page'] = pager.pages
