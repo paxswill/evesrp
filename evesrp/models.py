@@ -234,34 +234,14 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
         self.voided_timestamp = dt.datetime.utcnow()
 
     @db.validates('request')
-    @db.validates('voided_user')
-    def _update_request_payout(self, attr, srp_request):
-        # Evaluation method for payout:
-        # almost_payout = (sum(absolute_modifiers) + base_payout)
-        # payout = almost_payout + (sum(percentage_modifiers) * almost_payout)
-        voided = self._voided_select()
-        abs_mods = db.session.query(db.func.sum(AbsoluteModifier.value))\
-                .join(Request)\
-                .filter(Modifier.request_id==srp_request.id)\
-                .filter(~voided.c.voided)\
-                .filter(voided.c.modifier_id==Modifier.id)\
-                .filter(Modifier.id != self.id)
-        rel_mods = db.session.query(db.func.sum(RelativeModifier.value))\
-                .join(Request)\
-                .filter(Modifier.request_id==srp_request.id)\
-                .filter(~voided.c.voided)\
-                .filter(voided.c.modifier_id==Modifier.id)\
-                .filter(Modifier.id != self.id)
-        absolute = abs_mods.one()[0]
-        if absolute is None:
-            absolute = Decimal(0)
-        relative = rel_mods.one()[0]
-        if relative is None:
-            relative = Decimal(0)
-        raise Exception
-        payout = self.base_payout + absolute
-        srp_request.payout = payout + (payout * relative)
-        return srp_request
+    def _check_request_status(self, attr, request):
+        if request.status != ActionType.evaluating:
+            raise ModifierError(u"Modifiers can only be added when the request"
+                                u" is in an evaluating state.")
+        if not self.user.has_permission(PermissionType.review,
+                request.division):
+            raise ModifierError(u"Only reviewers can add modifiers.")
+        return request
 
 
 @unistr
@@ -542,19 +522,28 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         return new_status
 
     @db.validates('actions')
-    def _update_status_from_action(self, attr, action):
+    def _verify_action_permissions(self, attr, action):
         """Verifies that permissions for Actions being added to a Request."""
         if action.type_ is None:
             # Action.type_ are not nullable, so rely on the fact that it will
             # be set later to let it slide now.
             return action
         elif action.type_ != ActionType.comment:
-            rules = self.state_rules[self.status]
-            permissions = rules[action.type_]
+            # Peek behind the curtain to see the history of the status
+            # attribute.
+            status_history = db.inspect(self).attrs.status.history
+            if status_history.has_changes():
+                new_status = status_history.added[0]
+                old_status = status_history.deleted[0]
+            else:
+                new_status = action.type_
+                old_status = self.status
+            rules = self.state_rules[old_status]
+            permissions = rules[new_status]
             # Handle the special cases called out in state_rules
             if action.user == self.submitter and \
-                    action.type_ == ActionType.evaluating and \
-                    self.status in ActionType.pending:
+                    new_status == ActionType.evaluating and \
+                    old_status in ActionType.pending:
                 # Equivalent to self.status in (approved, incomplete) as
                 # going from evaluating to evaluating is invalid (as checked by
                 # the status validator).
@@ -575,18 +564,6 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     def __repr__(self):
         return "{x.__class__.__name__}({x.submitter}, {x.division}, {x.id})".\
                 format(x=self)
-
-    @db.validates('modifiers')
-    def _validate_add_modifier(self, attr, modifier):
-        # Check request status
-        if self.status != ActionType.evaluating:
-            raise ModifierError(u"Modifiers can only be added when the request"
-                                u" is in an evaluating state.")
-        # Check permissions
-        if not modifier.user.has_permission(PermissionType.review,
-                self.division):
-            raise ModifierError(u"Only reviewers can add modifiers.")
-        return modifier
 
     @property
     def transformed(self):
@@ -627,6 +604,64 @@ def _request_status_from_actions(srp_request, action, initiator):
     # Pass when Action.type_ is None, as it'll get updated later
     if action.type_ is not None and action.type_ != ActionType.comment:
         srp_request.status = action.type_
+
+
+@listens_for(Request.base_payout, 'set')
+def _recalculate_payout_from_request(srp_request, base_payout, *args):
+    """Recalculate a Request's payout when the base payout changes."""
+    if base_payout is None:
+        base_payout = Decimal(0)
+    voided = Modifier._voided_select()
+    modifiers = srp_request.modifiers.join(voided,
+                voided.c.modifier_id==Modifier.id)\
+            .filter(~voided.c.voided)
+    absolute = modifiers.with_entities(db.func.sum(AbsoluteModifier.value))\
+            .scalar()
+    if not isinstance(absolute, Decimal):
+        absolute = Decimal(0)
+    relative = modifiers.with_entities(db.func.sum(RelativeModifier.value))\
+            .scalar()
+    if not isinstance(relative, Decimal):
+        relative = Decimal(0)
+    payout = (base_payout + absolute) * (Decimal(1) + relative)
+    srp_request.payout = PrettyDecimal(payout)
+
+
+@listens_for(Modifier.request, 'set', propagate=True)
+@listens_for(Modifier.voided_user, 'set', propagate=True)
+def _recalculate_payout_from_modifier(modifier, value, *args):
+    """Recalculate a Request's payout when it gains a Modifier or when one of
+    its Modifiers is voided.
+    """
+    if isinstance(value, Request):
+        srp_request = value
+    else:
+        srp_request = modifier.request
+    voided = Modifier._voided_select()
+    modifiers = srp_request.modifiers.join(voided,
+                voided.c.modifier_id==Modifier.id)\
+            .filter(~voided.c.voided)
+    absolute = modifiers.with_entities(db.func.sum(AbsoluteModifier.value))\
+            .scalar()
+    if not isinstance(absolute, Decimal):
+        absolute = Decimal(0)
+    relative = modifiers.with_entities(db.func.sum(RelativeModifier.value))\
+            .scalar()
+    if not isinstance(relative, Decimal):
+        relative = Decimal(0)
+    # The modifier that's changed isn't reflected yet in the dtabase, so we
+    # apply it here.
+    if not isinstance(value, Request):
+        direction = Decimal(-1)
+    else:
+        direction = Decimal(1)
+    if isinstance(modifier, AbsoluteModifier):
+        absolute += direction * modifier.value
+    elif isinstance(modifier, RelativeModifier):
+        relative += direction * modifier.value
+    payout = (srp_request.base_payout + absolute) * \
+            (Decimal(1) + relative)
+    srp_request.payout = PrettyDecimal(payout)
 
 
 # The next few lines are responsible for adding a full text search index on the
