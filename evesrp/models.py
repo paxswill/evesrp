@@ -6,6 +6,7 @@ from six.moves import filter, map, range
 from sqlalchemy import event
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.event import listens_for
 from sqlalchemy.schema import DDL, DropIndex
 from flask import Markup
 
@@ -106,19 +107,6 @@ class Action(db.Model, AutoID, Timestamped, AutoName):
         # is set so thhe request's validation doesn't fail.
         self.timestamp = dt.datetime.utcnow()
         self.request = request
-
-    @db.validates('type_')
-    def _set_request_type(self, attr, type_):
-        """Validator action for :py:attr:`type_` for updating the parent
-        :py:class:`Request`\\'s :py:attr:`~Request.status`.
-
-        It only updates the status for non-``None`` and non-comment actions.
-        """
-        if self.request is not None:
-            if type_ != ActionType.comment and self.timestamp >=\
-                    self.request.actions[0].timestamp:
-                self.request.status = type_
-        return type_
 
     def __repr__(self):
         return "{x.__class__.__name__}({x.request}, {x.user}, {x.type_})".\
@@ -482,6 +470,8 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     @db.validates('base_payout')
     def _validate_payout(self, attr, value):
         """Ensures that base_payout is positive. The value is clamped to 0."""
+        # Allow self.status == None, as the base payout may be set in the
+        # initializing state before the status has been set.
         if self.status == ActionType.evaluating or self.status is None:
             if value is None or value < 0:
                 return Decimal('0')
@@ -535,7 +525,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
 
     @db.validates('status')
     def _validate_status(self, attr, new_status):
-        """Enforces that status changes follow the status state diagram below.
+        """Enforces that status changes follow the status state machine.
         When an invalid change is attempted, :py:class:`ActionError` is
         raised.
         """
@@ -553,27 +543,21 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
 
     @db.validates('actions')
     def _update_status_from_action(self, attr, action):
-        """Updates :py:attr:`status` whenever a new :py:class:`~.Action`
-        is added and verifies permissions.
-        """
+        """Verifies that permissions for Actions being added to a Request."""
         if action.type_ is None:
             # Action.type_ are not nullable, so rely on the fact that it will
             # be set later to let it slide now.
             return action
         elif action.type_ != ActionType.comment:
-            old_status = self.status
-            # Setting the status checks that it's a valid type of action to
-            # move to.
-            self.status = action.type_
-            rules = self.state_rules[old_status]
+            rules = self.state_rules[self.status]
             permissions = rules[action.type_]
-            # Handle the special casess called out in state_rules
+            # Handle the special cases called out in state_rules
             if action.user == self.submitter and \
                     action.type_ == ActionType.evaluating and \
-                    old_status in ActionType.pending:
-                # Equivalent to old_status in (approved, incomplete) as
+                    self.status in ActionType.pending:
+                # Equivalent to self.status in (approved, incomplete) as
                 # going from evaluating to evaluating is invalid (as checked by
-                # the status validator above).
+                # the status validator).
                 return action
             if not action.user.has_permission(permissions, self.division):
                 raise ActionError(u"Insufficient permissions to perform that "
@@ -626,6 +610,23 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
             def __init__(self, request):
                 self._request = request
         return RequestTransformer(self)
+
+
+# Define event listeners for syncing the various denormalized attributes
+
+@listens_for(Action.type_, 'set')
+def _action_type_to_request_status(action, new_status, old_status, initiator):
+    """Set the Action's Request's status when the Action's type is changed."""
+    if action.request is not None and new_status != ActionType.comment:
+        action.request.status = new_status
+
+
+@listens_for(Request.actions, 'append')
+def _request_status_from_actions(srp_request, action, initiator):
+    """Updates Request.status when new Actions are added."""
+    # Pass when Action.type_ is None, as it'll get updated later
+    if action.type_ is not None and action.type_ != ActionType.comment:
+        srp_request.status = action.type_
 
 
 # The next few lines are responsible for adding a full text search index on the
