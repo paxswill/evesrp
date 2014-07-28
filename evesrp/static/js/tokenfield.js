@@ -9,7 +9,9 @@ EveSRP.tokenfield = {
   addedToken: function addedToken(ev) {
     /* Apply the filter */
     var fullPath = EveSRP.util.splitFilterString(window.location.pathname),
-        filters = EveSRP.util.parseFilterString(fullPath[1]);
+        filters = EveSRP.util.parseFilterString(fullPath[1]),
+        state = History.getState(),
+        diffKeys;
     function _add(item) {
       // Ensure there's a place to put new queries
       if (! (item.attr in filters)) {
@@ -24,11 +26,20 @@ EveSRP.tokenfield = {
     } else {
       _add(ev.attrs);
     }
-    // Go to page 1 when adding filters, so you don't end up in the middle or
-    // past the end of the results.
-    filters['page'] = 1;
-    fullPath[1] = EveSRP.util.unparseFilters(filters);
-    History.pushState(filters, null, '/' + fullPath.join('/'));
+    // Double check that the default 'filters' are present
+    _.defaults(state.data, {page: 1, sort: '-submit_timestamp'});
+    _.defaults(filters, {page: 1, sort: '-submit_timestamp'});
+    // Only push a new state if there's actually new filters
+    if (! _.isEqual(state.data, filters)) {
+      // Compare the existing filters to the new filters
+      diffKeys = EveSRP.util.keyDifference(state.data, filters);
+      // Go to page 1 when changing filters
+      if (! _.contains(diffKeys, 'page')) {
+        filters.page = 1;
+      }
+      fullPath[1] = EveSRP.util.unparseFilters(filters);
+      History.pushState(filters, null, '/' + fullPath.join('/'));
+    }
   },
 
   modifyToken: function modifyToken(ev) {
@@ -66,6 +77,9 @@ EveSRP.tokenfield = {
     /* Remove the filter */
     function _remove(item) {
       filters[item.attr] = _(filters[item.attr]).without(item.real_value);
+      if (_.isEmpty(filters[item.attr])) {
+        delete filters[item.attr];
+      }
     }
     if (ev.attrs instanceof Array) {
       for (var i = 0; i < ev.attrs.length; ++i) {

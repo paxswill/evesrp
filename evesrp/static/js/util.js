@@ -219,5 +219,40 @@ EveSRP.util = {
       }
     });
     return filterStrings.join('/');
+  },
+
+  keyDifference: function keyDifference(obj1, obj2) {
+    var allKeys = _.union(_.keys(obj1), _.keys(obj2)),
+        results = [],
+        i, key;
+    for (i = 0; i < allKeys.length; i++) {
+      key = allKeys[i];
+      // Skip old '_keys' properties that might be lingering around
+      if (key === '_keys') {
+        continue;
+      }
+      // Prune empty properties
+      if (key !== 'page') {
+        if (key in obj1 && _.isEmpty(obj1[key])) {
+          delete obj1[key];
+          if (! (key in obj2)) {
+            allKeys.splice(i--, 1);
+          }
+        }
+        if (key in obj2 && _.isEmpty(obj2[key])) {
+          delete obj2[key];
+          if (! (key in obj1)) {
+            allKeys.splice(i--, 1);
+          }
+        }
+      }
+      // Actual checking
+      if (! (key in obj1) || ! (key in obj2)) {
+        results.push(key);
+      } else if (! _.isEqual(obj1[key], obj2[key])) {
+        results.push(key)
+      }
+    };
+    return results;
   }
 };
