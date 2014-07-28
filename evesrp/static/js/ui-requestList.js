@@ -166,7 +166,7 @@ EveSRP.ui.requestList = {
       url: state.url,
       success: function(data) {
         var filters, fullPath;
-        if ('_keys' in state.data) {
+        if (! _.isEmpty(state.data)) {
           filters = state.data;
         } else {
           fullPath = EveSRP.util.splitFilterString(window.location.pathname);
@@ -190,7 +190,7 @@ EveSRP.ui.requestList = {
       return false;
     }
     // Check for a history state object first, fallback to parsing the URL
-    if ('data' in state && '_keys' in state.data) {
+    if (! _.isEmpty(state.data)) {
       filters = state.data;
     } else {
       filters = EveSRP.util.parseFilterString(fullPath[1]);

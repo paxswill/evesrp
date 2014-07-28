@@ -155,7 +155,7 @@ EveSRP.util = {
      * evesrp.views.requests.RequestListing.parseFilterString function from
      * Python to Javascript.
      */
-    var filters = {_keys: []},
+    var filters = {},
         splitString, i, attr, values;
     // Fail early for empty filters
     if (filterString === undefined || filterString === '') {
@@ -171,9 +171,8 @@ EveSRP.util = {
     for (i = 0; i < splitString.length; i += 2) {
       attr = splitString[i].toLowerCase();
       values = decodeURIComponent(splitString[i + 1]);
-      if ($.inArray(attr, filters._keys) === -1) {
+      if (! (attr in filters)) {
         filters[attr] = [];
-        filters._keys.push(attr);
       }
       if (attr === 'details') {
         filters.details = _(filters[attr]).union(values);
@@ -203,9 +202,10 @@ EveSRP.util = {
      * evesrp.views.requests.RequestListing.unparseFilters function from
      * Python to Javascript.
      */
-    var filterStrings = [];
-    filters._keys.sort();
-    $.each(filters._keys, function(index, attr) {
+    var filterStrings = [], keys;
+    keys = Object.keys(filters);
+    keys.sort()
+    $.each(keys, function(index, attr) {
       var values = filters[attr];
       if (attr === 'details') {
         $.each(values, function(i, details) {

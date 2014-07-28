@@ -12,9 +12,8 @@ EveSRP.tokenfield = {
         filters = EveSRP.util.parseFilterString(fullPath[1]);
     function _add(item) {
       // Ensure there's a place to put new queries
-      if ($.inArray(item.attr, filters._keys) === -1) {
+      if (! (item.attr in filters)) {
         filters[item.attr] = [];
-        filters._keys.push(item.attr);
       }
       filters[item.attr] = _(filters[item.attr]).union([item.real_value]);
     }
@@ -157,7 +156,7 @@ EveSRP.tokenfield = {
     });
     // Get the initial set of tokens
     state = History.getState();
-    if ('_keys' in state.data) {
+    if (! _.isEmpty(state.data)) {
       filter = state.data;
     } else {
       fullPath = EveSRP.util.splitFilterString(window.location.pathname);
@@ -175,9 +174,6 @@ EveSRP.tokenfield = {
     $(window).on('statechange', function() {
       var state = History.getState(),
           tokens;
-      if (! ('_keys' in state.data)) {
-        state.data._keys = []
-      }
       tokens = EveSRP.tokenfield.tokensFromFilter(state.data);
       $(tokenfield).tokenfield('setTokens', tokens);
     });
@@ -186,7 +182,7 @@ EveSRP.tokenfield = {
 
   tokensFromFilter: function tokensFromFilter(filter) {
     var tokens = [];
-    $.each(filter._keys, function(i, attr) {
+    $.each(Object.keys(filter), function(i, attr) {
       if (attr !== 'sort' && attr !== 'page') {
         $.each(filter[attr], function (i2, value) {
           var label = attr + ':' + value;
