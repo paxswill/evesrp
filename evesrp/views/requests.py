@@ -142,6 +142,22 @@ class RequestListing(View):
                 real_attr = 'ship_type'
             else:
                 real_attr = attr
+            # massage negative/range filters
+            if attr not in ('page', 'sort', 'details', 'status'):
+                new_values = set()
+                for value in values:
+                    if value.startswith(('-', '<', '>')):
+                        new_values.add((value[:1], value[1:]))
+                    elif value.startswith(('<=', '>=')):
+                        new_values.add((value[:1], value[:2]))
+                        new_values.add(('=', value[:2]))
+                    else:
+                        new_values.add(('=', value))
+                grouped = {'=': set(), '<': set(), '>': set(), '-': set()}
+                for value in new_values:
+                    grouped[value[0]].add(value[1])
+            else:
+                grouped = {'=': values, '-':[], '<':[], '>':[]}
             # Handle a couple attributes specially
             if real_attr == 'details':
                 clauses = [Request.details.match(d) for d in values]
@@ -190,11 +206,34 @@ class RequestListing(View):
                     # This is black magic
                     id_column = column.mapper.attrs.id.class_attribute
                     name_column = column.mapper.attrs.name.class_attribute
-                    mapped = db.session.query(id_column)\
-                            .filter(name_column.in_(values)).subquery()
-                    requests = requests.join(mapped)
+                    mapped = db.session.query(id_column)
+                    filtered = False
+                    if grouped['=']:
+                        mapped = mapped.filter(name_column.in_(grouped['=']))
+                        filtered = True
+                    if grouped['-']:
+                        mapped = mapped.filter(~name_column.in_(grouped['-']))
+                        filtered = True
+                    if grouped['<']:
+                        for lt_val in grouped['<']:
+                            mapped = mapped.filter(name_column < lt_val)
+                        filtered = True
+                    if grouped['>']:
+                        for gt_val in grouped['>']:
+                            mapped = mapped.filter(name_column > gt_val)
+                        filtered = True
+                    if filtered:
+                        mapped = mapped.subquery()
+                        requests = requests.join(mapped)
                 else:
-                    requests = requests.filter(column.in_(values))
+                    if grouped['=']:
+                        requests = requests.filter(column.in_(grouped['=']))
+                    if grouped['-']:
+                        requests = requests.filter(~column.in_(grouped['-']))
+                    for lt_val in grouped['<']:
+                        requests = requests.filter(column < lt_val)
+                    for gt_val in grouped['>']:
+                        requests = requests.filter(column > gt_val)
             else:
                 flash(u"Unknown filter attribute name: {}".format(attr),
                         u'warning')
