@@ -108,13 +108,21 @@ EveSRP.tokenfield = {
     var source, bloodhound;
     source = []
     $.each(values, function(i, value) {
-      $.each(['=', '-', '<', '>'], function(i, sign) {
+      if (! _.contains(['details', 'status'], attribute)) {
+        $.each(['=', '-', '<', '>'], function(i, sign) {
+          source.push({
+            real_value: value,
+            attr: attribute,
+            sign: sign
+          });
+        });
+      } else {
         source.push({
           real_value: value,
           attr: attribute,
-          sign: sign
+          sign: '='
         });
-      });
+      }
     });
     bloodhound = new Bloodhound({
       name: attribute,
