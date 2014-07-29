@@ -13,11 +13,17 @@ EveSRP.tokenfield = {
         state = History.getState(),
         diffKeys;
     function _add(item) {
+      var fullValue;
       // Ensure there's a place to put new queries
       if (! (item.attr in filters)) {
         filters[item.attr] = [];
       }
-      filters[item.attr] = _(filters[item.attr]).union([item.real_value]);
+      if (item.sign !== '=') {
+        fullValue = item.sign + item.real_value;
+      } else {
+        fullValue = item.real_value;
+      }
+      filters[item.attr] = _(filters[item.attr]).union([fullValue]);
     }
     if (ev.attrs instanceof Array) {
       for (var i = 0; i < ev.attrs.length; ++i) {
@@ -76,7 +82,13 @@ EveSRP.tokenfield = {
         filters = EveSRP.util.parseFilterString(fullPath[1]);
     /* Remove the filter */
     function _remove(item) {
-      filters[item.attr] = _(filters[item.attr]).without(item.real_value);
+      var fullValue;
+      if (item.sign !== '=') {
+        fullValue = item.sign + item.real_value;
+      } else {
+        fullValue = item.real_value;
+      }
+      filters[item.attr] = _(filters[item.attr]).without(fullValue);
       if (_.isEmpty(filters[item.attr])) {
         delete filters[item.attr];
       }
@@ -94,20 +106,46 @@ EveSRP.tokenfield = {
 
   createBloodhound: function createTokenFieldBloodhound(attribute, values) {
     var source, bloodhound;
-    source = $.map(values, function(v) {
-      return {
-        real_value: v,
-        attr: attribute
-      };
+    source = []
+    $.each(values, function(i, value) {
+      $.each(['=', '-', '<', '>'], function(i, sign) {
+        source.push({
+          real_value: value,
+          attr: attribute,
+          sign: sign
+        });
+      });
     });
     bloodhound = new Bloodhound({
       name: attribute,
       datumTokenizer: function(datum) {
-        var tokens = datum.real_value.split(/\s+/);
-        tokens.push(datum.attr + ':' + tokens[0]);
+        var base_tokens, tokens = [];
+        base_tokens = datum.real_value.split(/\s+/);
+        $.each(base_tokens, function(index, token) {
+          if (datum.sign === '=') {
+            tokens.push(token);
+          }
+          tokens.push(datum.sign + token);
+        });
+        if (datum.sign === '=') {
+          tokens.push(datum.attr + ':' + base_tokens[0]);
+        }
+        tokens.push(datum.attr + ':' + datum.sign + base_tokens[0]);
         return tokens;
       },
-      queryTokenizer: Bloodhound.tokenizers.whitespace,
+      queryTokenizer: function(query) {
+        var tokens, sign;
+        if (_.contains(['-', '=', '<', '>'], query.slice(0, 1))) {
+          sign = query.slice(0, 1);
+          tokens = query.slice(1).split(/\s+/);
+          tokens = _.map(tokens, function(value) {
+            return sign + tokens;
+          });
+        } else {
+          tokens = query.split(/\s+/);
+        }
+        return tokens;
+      },
       local: source
     });
     bloodhound.initialize();
@@ -163,7 +201,11 @@ EveSRP.tokenfield = {
           capitalized = capitalized + value.real_value.slice(1);
           return value.attr + ':' + capitalized;
         } else {
-          return value.attr + ':' + value.real_value;
+          if (value.sign === '=') {
+            return value.attr + ':' + value.real_value;
+          } else {
+            return value.attr + ':' + value.sign + value.real_value;
+          }
         }
       },
       source: superBloodhound
@@ -199,12 +241,21 @@ EveSRP.tokenfield = {
     $.each(Object.keys(filter), function(i, attr) {
       if (attr !== 'sort' && attr !== 'page') {
         $.each(filter[attr], function (i2, value) {
-          var label = attr + ':' + value;
+          var label = attr + ':' + value,
+              sign, realValue;
+          if (_.contains('=-<>', value.slice(0, 1))) {
+            sign = value.slice(0, 1);
+            realValue = value.slice(1);
+          } else {
+            sign = '=';
+            realValue = value;
+          }
           tokens.push( {
             label: label,
             value: label,
             attr: attr,
-            real_value: value
+            real_value: realValue,
+            sign: sign
           });
         });
       }
