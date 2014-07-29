@@ -208,7 +208,11 @@ EveSRP.tokenfield = {
           }
         }
       },
-      source: superBloodhound
+      source: superBloodhound,
+      // Use a Handlebars template here for the autoescaping
+      templates: {
+        suggestion: Handlebars.templates.filter_suggestion
+      }
     });
     // Get the initial set of tokens
     state = History.getState();
