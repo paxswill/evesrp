@@ -18,7 +18,7 @@ from wtforms.validators import InputRequired, AnyOf, URL, ValidationError,\
 from .. import db
 from ..models import Request, Modifier, Action, ActionType, ActionError,\
         ModifierError, AbsoluteModifier, RelativeModifier
-from ..util import xmlify, jsonify, classproperty, PrettyDecimal
+from ..util import xmlify, jsonify, classproperty, PrettyDecimal, varies
 from ..auth import PermissionType
 from ..auth.models import Division, Pilot, Permission, User, Group, Note,\
     APIKey, users_groups
@@ -42,7 +42,7 @@ class RequestListing(View):
     template = 'list_requests.html'
 
     #: Decorators to apply to the view functions
-    decorators = [login_required]
+    decorators = [login_required, varies('Accept', 'X-Requested-With')]
 
     @staticmethod
     def parse_filter(filter_string):
@@ -648,6 +648,7 @@ killmail_re = re.compile(r'#(\d+)')
 
 @blueprint.route('/<int:request_id>/', methods=['GET'])
 @login_required
+@varies('Accept')
 def get_request_details(request_id=None, srp_request=None):
     """Handles responding to all of the :py:class:`~.models.Request` detail
     functions.
@@ -675,7 +676,7 @@ def get_request_details(request_id=None, srp_request=None):
         template = 'request_detail.html'
     else:
         abort(403)
-    if request.is_json:
+    if request.is_json or request.is_xhr:
         # dump the load to encode srp_request as json and then get a dictionary
         # form of it. We need this to add a few bits of information to the
         # standard request encoding

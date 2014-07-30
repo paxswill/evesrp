@@ -13,7 +13,7 @@ from wtforms.validators import InputRequired, AnyOf, NumberRange
 from ..models import db
 from ..auth import PermissionType
 from ..auth.models import Division, Permission, Entity
-from ..util import jsonify
+from ..util import jsonify, varies
 
 
 blueprint = Blueprint('divisions', __name__)
@@ -113,6 +113,7 @@ def transformer_choices(attr):
 
 @blueprint.route('/<int:division_id>/', methods=['GET'])
 @login_required
+@varies('Accept', 'X-Requested-With')
 def get_division_details(division_id=None, division=None):
     """Generate a page showing the details of a division.
 

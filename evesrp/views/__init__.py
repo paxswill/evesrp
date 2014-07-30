@@ -6,7 +6,7 @@ from .. import db
 from ..models import Request, ActionType
 from ..auth import PermissionType
 from ..auth.models import Permission, Division
-from ..util import jsonify
+from ..util import jsonify, varies
 
 
 @login_required
@@ -15,6 +15,7 @@ def index():
     return redirect(url_for('requests.personal_requests'))
 
 
+@varies('Accept', 'X-Requested-With')
 def error_page(error):
     """View function for displaying error pages."""
     # Try to get some meaningful bits of information about the error
