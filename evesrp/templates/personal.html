@@ -4,22 +4,6 @@
 {% block content %}
 <div class="row">
   <div class="col-md-10 col-md-offset-1">
-    <table class="table">
-      <tr>
-        <th>Division</th>
-        <th>Permissions</th>
-      </tr>
-      {% for grouper, grouped in current_user.permissions|groupby('division.name') %}
-      <tr>
-        <td>{{ grouper }}</td>
-        {% with grouped_permissions = grouped|map(attribute='permission')|groupby('value') %}
-        <td>{{ grouped_permissions|map('last')|map('first')|map(attribute='description')|join(', ') }}</td>
-        {% endwith %}
-      </tr>
-      {% endfor %}
-    </table>
-  </div>
-  <div class="col-md-10 col-md-offset-1">
     <table id="apikeys" class="table table-condensed">
         <tr>
           <th>Key</th>

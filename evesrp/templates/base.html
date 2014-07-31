@@ -60,7 +60,7 @@
             {% endif %}
             {{ macros.navbar_button('Personal', 'requests.personal_requests', request_count(PermissionType.submit))|indent(12)|safe }}
             {% if current_user.admin or current_user.has_permission(PermissionType.admin) %}
-            {{ macros.navbar_button('Admin', 'divisions.list_divisions')|indent(12)|safe }}
+            {{ macros.navbar_button('Permissions', 'divisions.permissions')|indent(12)|safe }}
             {% endif %}
             {{ macros.navbar_button('Log Out', 'login.logout')|indent(12)|safe }}
             {% endif %}
