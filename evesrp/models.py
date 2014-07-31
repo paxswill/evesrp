@@ -614,7 +614,8 @@ def _recalculate_payout_from_request(srp_request, base_payout, *args):
     voided = Modifier._voided_select()
     modifiers = srp_request.modifiers.join(voided,
                 voided.c.modifier_id==Modifier.id)\
-            .filter(~voided.c.voided)
+            .filter(~voided.c.voided)\
+            .order_by(False)
     absolute = modifiers.with_entities(db.func.sum(AbsoluteModifier.value))\
             .scalar()
     if not isinstance(absolute, Decimal):
@@ -640,7 +641,8 @@ def _recalculate_payout_from_modifier(modifier, value, *args):
     voided = Modifier._voided_select()
     modifiers = srp_request.modifiers.join(voided,
                 voided.c.modifier_id==Modifier.id)\
-            .filter(~voided.c.voided)
+            .filter(~voided.c.voided)\
+            .order_by(False)
     absolute = modifiers.with_entities(db.func.sum(AbsoluteModifier.value))\
             .scalar()
     if not isinstance(absolute, Decimal):
