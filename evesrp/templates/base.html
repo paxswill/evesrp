@@ -58,11 +58,17 @@
             {% if current_user.has_permission(PermissionType.submit) %}
             {{ macros.navbar_button('Submit', 'requests.submit_request')|indent(12)|safe }}
             {% endif %}
-            {{ macros.navbar_button('Personal', 'requests.personal_requests', request_count(PermissionType.submit))|indent(12)|safe }}
-            {% if current_user.admin or current_user.has_permission(PermissionType.admin) %}
-            {{ macros.navbar_button('Admin', 'divisions.list_divisions')|indent(12)|safe }}
-            {% endif %}
-            {{ macros.navbar_button('Log Out', 'login.logout')|indent(12)|safe }}
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span class="caret"></span> {{ current_user.name }}</a>
+              <ul class="dropdown-menu">
+                {{ macros.navbar_button('Personal Requests', 'requests.personal_requests', request_count(PermissionType.submit))|indent(16)|safe }}
+                {% if current_user.admin or current_user.has_permission(PermissionType.admin) %}
+                {{ macros.navbar_button('Admin', 'divisions.list_divisions')|indent(16)|safe }}
+                {% endif %}
+                <li class="divider"></li>
+                {{ macros.navbar_button('Log Out', 'login.logout')|indent(16)|safe }}
+              </ul>
+            </li>
             {% endif %}
             {% endblock navitems_right %}
           </ul>
