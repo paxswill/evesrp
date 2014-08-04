@@ -62,9 +62,7 @@
               <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span class="caret"></span> {{ current_user.name }}</a>
               <ul class="dropdown-menu">
                 {{ macros.navbar_button('Requests', 'requests.personal_requests', request_count(PermissionType.submit))|indent(16)|safe }}
-                {% if current_user.admin or current_user.has_permission(PermissionType.admin) %}
                 {{ macros.navbar_button('Permissions', 'divisions.permissions')|indent(16)|safe }}
-                {% endif %}
                 <li class="divider"></li>
                 {{ macros.navbar_button('Log Out', 'login.logout')|indent(16)|safe }}
               </ul>
