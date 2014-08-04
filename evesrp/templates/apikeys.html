@@ -1,4 +1,4 @@
-{% extends "list_requests.html" %}
+{% extends "base.html" %}
 {% from "macros.html" import clipboard_button %}
 
 {% block content %}
@@ -18,9 +18,9 @@
           <td>{{ key.timestamp.strftime('%d %b %Y @ %H:%M') }}</td>
           <td>
             <form class="" method="post">
-              {{ key_form.csrf_token }}
-              {{ key_form.action(value='delete') }}
-              {{ key_form.key_id(value=key.id) }}
+              {{ form.csrf_token }}
+              {{ form.action(value='delete') }}
+              {{ form.key_id(value=key.id) }}
               <button type="submit" class="close">&times;</button>
             </form>
           </td>
@@ -31,8 +31,8 @@
         </td>
         <td class="">
           <form class="pull-right" method="post">
-            {{ key_form.csrf_token }}
-            {{ key_form.action(value='add') }}
+            {{ form.csrf_token }}
+            {{ form.action(value='add') }}
             <button type="submit" class="btn btn-sm btn-info" id="createKey" data-toggle="tooltip" data-placement="bottom" title="This creates a key for this app's API, not the EVE API.">Create API Key</button>
           </form>
         </td>
@@ -40,5 +40,4 @@
     </table>
   </div>
 </div>
-{{ super() }}
 {% endblock content %}

@@ -62,6 +62,7 @@
               <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span class="caret"></span> {{ current_user.name }}</a>
               <ul class="dropdown-menu">
                 {{ macros.navbar_button('Requests', 'requests.personal_requests', request_count(PermissionType.submit))|indent(16)|safe }}
+                {{ macros.navbar_button('API Keys', 'login.api_keys')|indent(16)|safe }}
                 {{ macros.navbar_button('Permissions', 'divisions.permissions')|indent(16)|safe }}
                 <li class="divider"></li>
                 {{ macros.navbar_button('Log Out', 'login.logout')|indent(16)|safe }}

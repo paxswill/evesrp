@@ -302,43 +302,12 @@ def url_for_page(pager, page_num):
             filters=RequestListing.unparse_filter(filters))
 
 
-class APIKeyForm(Form):
-    action = HiddenField(validators=[AnyOf(['add', 'delete'])])
-    key_id = HiddenField()
-
-
 class PersonalRequests(RequestListing):
     """Shows a list of all personally submitted requests and divisions the user
     has permissions in.
 
     It will show all requests the current user has submitted.
     """
-
-    template = 'personal.html'
-
-    methods = ['GET', 'POST']
-
-    def dispatch_request(self, filters='', **kwargs):
-        if request.method == 'POST':
-            form = APIKeyForm()
-            if form.validate():
-                if form.action.data == 'add':
-                    key = APIKey(current_user)
-                else:
-                    key = APIKey.query.get(int(form.key_id.data))
-                    if key is not None:
-                        db.session.delete(key)
-                db.session.commit()
-        # Handle API access in here, so we can add extra data
-        if request.is_json or request.is_xhr:
-            return jsonify(
-                    requests=self.requests(),
-                    api_keys=current_user.api_keys)
-        if request.is_xml:
-            return xmlify('personal_list.xml',
-                    requests=self.requests())
-        return super(PersonalRequests, self).dispatch_request(filters,
-                key_form=APIKeyForm(formdata=None))
 
     def requests(self, filters):
         requests = super(PersonalRequests, self).requests(filters)
