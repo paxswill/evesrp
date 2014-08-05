@@ -57,6 +57,7 @@ EveSRP.tokenfield = {
           item.attr = 'details';
           item.real_value = data[0];
           item.value = 'details:' + data[0];
+          item.sign = '=';
         } else {
           item.attr = data[0];
           if (item.attr === 'status') {
@@ -165,7 +166,7 @@ EveSRP.tokenfield = {
     var typeahead_args = [],
         tokenfield, state, fullPath, filter, tokens;
     typeahead_args.push({
-      hint: true,
+      hint: false,
       highlight: true
     });
     function superBloodhound(query, cb) {
