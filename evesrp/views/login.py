@@ -100,7 +100,7 @@ def login():
             abort(400)
         if form.validate():
             return auth_method.login(form)
-    return render_template('login.html', forms=forms)
+    return render_template('login.html', forms=forms, title=u'Log In')
 
 
 login_manager.login_view = 'login.login'

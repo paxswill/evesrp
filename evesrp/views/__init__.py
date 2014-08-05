@@ -35,7 +35,7 @@ def error_page(error):
         pass
     else:
         response_content = render_template('error.html', code=code,
-                description=description, name=name)
+                description=description, name=name, title=code)
     # Give a default response code for generic exceptions
     return make_response(response_content, code)
 

@@ -57,8 +57,9 @@ def add_division():
         division = Division(form.name.data)
         db.session.add(division)
         db.session.commit()
-        return redirect(url_for('.get_division_details', division_id=division.id))
-    return render_template('form.html', form=form)
+        return redirect(url_for('.get_division_details',
+            division_id=division.id))
+    return render_template('form.html', form=form, title=u'Create Division')
 
 
 class ChangeEntity(Form):

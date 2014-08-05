@@ -18,7 +18,8 @@ from wtforms.validators import InputRequired, AnyOf, URL, ValidationError,\
 from .. import db
 from ..models import Request, Modifier, Action, ActionType, ActionError,\
         ModifierError, AbsoluteModifier, RelativeModifier
-from ..util import xmlify, jsonify, classproperty, PrettyDecimal, varies
+from ..util import xmlify, jsonify, classproperty, PrettyDecimal, varies,\
+        ensure_unicode
 from ..auth import PermissionType
 from ..auth.models import Division, Pilot, Permission, User, Group, Note,\
     APIKey, users_groups
@@ -43,6 +44,8 @@ class RequestListing(View):
 
     #: Decorators to apply to the view functions
     decorators = [login_required, varies('Accept', 'X-Requested-With')]
+
+    title = u'Requests'
 
     @staticmethod
     def parse_filter(filter_string):
@@ -276,8 +279,12 @@ class RequestListing(View):
                         _external=True))
         if request.is_xml:
             return xmlify('request_list.xml', requests=pager.items)
+        if 'title' in kwargs:
+            title = kwargs.pop('title')
+        else:
+            title = self.title
         return render_template(self.template, pager=pager, filters=filter_map,
-                total_payouts=total_payouts, **kwargs)
+                total_payouts=total_payouts, title=title, **kwargs)
 
     @classproperty
     def _load_options(cls):
@@ -316,6 +323,13 @@ class PersonalRequests(RequestListing):
                 .filter(User.id==current_user.id)
         return requests
 
+    @property
+    def title(self):
+        if current_user.name[:-1] == u's':
+            return u"{}' Requests".format(current_user.name)
+        else:
+            return u"{}'s Requests".format(current_user.name)
+
 
 class PermissionRequestListing(RequestListing):
     """Show all requests that the current user has permissions to access.
@@ -323,7 +337,7 @@ class PermissionRequestListing(RequestListing):
     This is used for the various permission-specific views.
     """
 
-    def __init__(self, permissions, statuses):
+    def __init__(self, permissions, statuses, title=None):
         """Create a :py:class:`PermissionRequestListing` for the given
         permissions and statuses.
 
@@ -336,18 +350,18 @@ class PermissionRequestListing(RequestListing):
         # complicated query in requests()
         self.permissions = (PermissionType.admin,) + tuple(permissions)
         self.statuses = statuses
+        if title is None:
+            self.title = u', '.join(map(lambda s: s.description, self.statuses))
+        else:
+            self.title = ensure_unicode(title)
 
     def dispatch_request(self, filters='', **kwargs):
         if not current_user.has_permission(self.permissions):
             abort(403)
         else:
-            if 'title' in kwargs:
-                title = kwargs.pop('title')
-            else:
-                title = u', '.join(map(lambda s: s.description, self.statuses))
             return super(PermissionRequestListing, self).dispatch_request(
                     filters,
-                    title=title,
+                    title=self.title,
                     **kwargs)
 
     def requests(self, filters):
@@ -375,18 +389,18 @@ class PayoutListing(PermissionRequestListing):
     def __init__(self):
         # Just a special case of PermissionRequestListing
         super(PayoutListing, self).__init__((PermissionType.pay,),
-                (ActionType.approved,))
+                (ActionType.approved,), u'Pay Outs')
 
     def dispatch_request(self, filters='', **kwargs):
         if not current_user.has_permission(self.permissions):
             abort(403)
         return super(PayoutListing, self).dispatch_request(
                 filters,
-                title=u', '.join(map(lambda s: s.description, self.statuses)),
                 form=ActionForm())
 
 
-def register_perm_request_listing(app, endpoint, path, permissions, statuses):
+def register_perm_request_listing(app, endpoint, path, permissions, statuses,
+        title=None):
     """Utility function for creating :py:class:`PermissionRequestListing`
     views.
 
@@ -402,7 +416,7 @@ def register_perm_request_listing(app, endpoint, path, permissions, statuses):
     if not path.endswith('/'):
         path += '/'
     view = PermissionRequestListing.as_view(endpoint, permissions=permissions,
-            statuses=statuses)
+            statuses=statuses, title=title)
     app.add_url_rule(path, view_func=view)
     app.add_url_rule('{}rss.xml'.format(path), view_func=view)
     app.add_url_rule(path + '<path:filters>', view_func=view)
@@ -434,12 +448,14 @@ def register_class_views(state):
     # Other more generalized listings
     register_perm_request_listing(state, 'list_pending_requests',
             '/pending/', (PermissionType.review, PermissionType.audit),
-            ActionType.pending)
+            ActionType.pending, u'Pending Requests')
     register_perm_request_listing(state, 'list_completed_requests',
-            '/completed/', PermissionType.elevated, ActionType.finalized)
+            '/completed/', PermissionType.elevated, ActionType.finalized,
+            u'Completed Requests')
     # Special all listing, mainly intended for API users
     register_perm_request_listing(state, 'list_all_requests',
-            '/all/', PermissionType.elevated, ActionType.statuses)
+            '/all/', PermissionType.elevated, ActionType.statuses,
+            u'All Requests')
 
 
 class ValidKillmail(URL):
@@ -561,7 +577,7 @@ def submit_request():
             flash(u"This kill has already been submitted", u'warning')
             return redirect(url_for('.get_request_details',
                 request_id=srp_request.id))
-    return render_template('form.html', form=form)
+    return render_template('form.html', form=form, title=u'Submit Request')
 
 
 class ModifierForm(Form):
@@ -666,7 +682,8 @@ def get_request_details(request_id=None, srp_request=None):
             action_form=ActionForm(formdata=None),
             void_form=VoidModifierForm(formdata=None),
             details_form=ChangeDetailsForm(formdata=None, obj=srp_request),
-            note_form=AddNote(formdata=None))
+            note_form=AddNote(formdata=None),
+            title=u'Request #{}'.format(srp_request.id))
 
 
 def _add_modifier(srp_request):
@@ -862,4 +879,5 @@ def request_change_division(request_id):
         current_app.logger.warn(u"Form validation failed for division change:"
                                 u" {}.".format(form.errors))
     form.division.data = srp_request.division.id
-    return render_template('form.html', form=form)
+    return render_template('form.html', form=form,
+            title=u"Change #{}'s Division".format(srp_request.id))
