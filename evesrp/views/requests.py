@@ -257,7 +257,8 @@ class RequestListing(View):
             return redirect(url_for(request.endpoint,
                     filters=canonical_filter), code=301)
         requests = self.requests(filter_map)
-        total_payouts = requests.with_entities(db.func.sum(Request.payout))\
+        total_payouts = requests.order_by(False).\
+                with_entities(db.func.sum(Request.payout))\
                 .scalar()
         if total_payouts is None:
             total_payouts = PrettyDecimal(0)
