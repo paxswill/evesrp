@@ -50,6 +50,7 @@ EveSRP.ui.apiKeys = {
   },
 
   setupEvents: function setupAPIKeyEvents() {
+    EveSRP.ui.setupClipboard();
     $('#apikeys').on('submit', EveSRP.ui.apiKeys.modifyKey);
     $('#ckreateKey').on('submit', EveSRP.ui.apiKeys.modifyKey);
   }
