@@ -27,7 +27,7 @@ EveSRP.ui.requestList = {
   },
 
   setupTokenField: function setupTokenfield() {
-    var deferredRequests, deferred, attributes;
+    var deferredRequests, deferred, attributes, bloodhound;
     attributes = [
       'pilot',
       'corporation',
@@ -40,31 +40,91 @@ EveSRP.ui.requestList = {
       'division',
       'details'
     ];
+    bloodhound = new Bloodhound({
+      name: 'tokens',
+      local: [],
+      datumTokenizer: function(datum) {
+        var base_tokens, tokens = [];
+        base_tokens = datum.real_value.split(/\s+/);
+        // Push each whitespace split of real_value with the sign
+        $.each(base_tokens, function(index, token) {
+          if (datum.sign === '=') {
+            // Push just the attribute name for scoped queries
+            tokens.push(datum.attr)
+            // Push the bare value for exact queries
+            tokens.push(token);
+          }
+          tokens.push(datum.sign + token);
+        });
+        return tokens;
+      },
+      queryTokenizer: function(query) {
+        var tokens = [],
+            sign, attribute, attributeQuery, valueQuery, tempTokens;
+        // Add the attribute if this query is scoped (in the form of attr:value)
+        attributeQuery = query.split(':');
+        attribute = attributeQuery[0];
+        valueQuery = attributeQuery.slice(1).join(':');
+        if (valueQuery === '') {
+          valueQuery = attribute;
+        } else {
+          tokens.push(attribute);
+        }
+        // Add search tokens for the value
+        if (_.contains(['-', '=', '<', '>'], valueQuery.slice(0, 1))) {
+          sign = valueQuery.slice(0, 1);
+          tempTokens = valueQuery.slice(1).split(/\s+/);
+          tempTokens = _.map(tokens, function(value) {
+            return sign + tokens;
+          });
+        } else {
+          tempTokens = valueQuery.split(/\s+/);
+        }
+        Array.prototype.push.apply(tokens, tempTokens);
+        return tokens;
+      },
+    });
     // Get promises for all the requests
     deferredRequests = $.map(attributes, function(column) {
       return EveSRP.util.getAttributeChoices(column);
     });
-    // And wait for them all to complete
+    // And wait for them all to complete (after the bloodhound is initialized)
+    bloodhound.initialize();
     deferred = $.when.apply($, deferredRequests);
     deferred.done(function(responses) {
       // Create Bloodhounds
-      var bloodhounds = [],
-          tokenfield, state;
+      var tokenfield, state;
       $.each(arguments, function(i, data) {
-        var key, value;
+        var source = [],
+            key, values;
         if ($.isArray(data)) {
           data = data[0];
         }
         key = data.key;
-        value = data[data.key];
-        if (value !== null) {
-          bloodhounds.push(EveSRP.tokenfield.createBloodhound(
-              key, value));
+        values = data[data.key];
+        if (values !== null) {
+          $.each(values, function(i, value) {
+            if (! _.contains(['details', 'status'], key)) {
+              $.each(['=', '-', '<', '>'], function(i, sign) {
+                source.push({
+                  real_value: value,
+                  attr: key,
+                  sign: sign
+                });
+              });
+            } else {
+              source.push({
+                real_value: value,
+                attr: key,
+                sign: '='
+              });
+            }
+          });
+          bloodhound.add(source);
         }
       });
       tokenfield = EveSRP.tokenfield.attachTokenfield($('.filter-tokenfield'),
-        bloodhounds);
-      // If there's a state already there, sync everything with it
+        bloodhound);
     });
   },
 
