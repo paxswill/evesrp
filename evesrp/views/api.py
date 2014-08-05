@@ -277,35 +277,37 @@ def register_request_lists(state):
                 view_func=completed_requests)
 
 
+def _first(o):
+    return o[0]
+
+
 @filters.route('/ship/')
 @login_required
 def filter_ships():
-    return jsonify(key=u'ship', ship=list(six.itervalues(ships.ships)))
+    ships = db.session.query(Request.ship_type).distinct()
+    return jsonify(key=u'ship', ship=map(_first, ships))
 
 
 @filters.route('/system/')
 @login_required
 def filter_systems():
-    return jsonify(key=u'system',
-            system=list(six.itervalues(systems.system_names)))
+    systems = db.session.query(Request.system).distinct()
+    return jsonify(key=u'system', system=map(_first, systems))
 
 
 @filters.route('/constellation/')
 @login_required
 def filter_constellations():
+    constellations = db.session.query(Request.constellation).distinct()
     return jsonify(key=u'constellation',
-            constellation=list(six.itervalues(systems.constellation_names)))
+            constellation=map(_first, constellations))
 
 
 @filters.route('/region/')
 @login_required
 def filter_regions():
-    return jsonify(key=u'region',
-            region=list(six.itervalues(systems.region_names)))
-
-
-def _first(o):
-    return o[0]
+    regions = db.session.query(Request.region).distinct()
+    return jsonify(key=u'region', region=map(_first, regions))
 
 
 @filters.route('/details/<path:query>')
