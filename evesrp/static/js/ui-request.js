@@ -169,4 +169,6 @@ EveSRP.ui.request = {
     });
   },
 };
-EveSRP.ui.request.setupEvents();
+if ($('#actionMenu').length !== 0) {
+  EveSRP.ui.request.setupEvents();
+}

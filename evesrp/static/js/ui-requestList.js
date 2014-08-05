@@ -238,12 +238,7 @@ EveSRP.ui.requestList = {
   },
 
   setupEvents: function setupRequestListEvents() {
-    // Setup ZeroClipboard
-    ZeroClipboard.config({
-      moviePath: $SCRIPT_ROOT + '/static/ZeroClipboard.swf'
-    })
-    /* Attach the pastboard object */
-    EveSRP.ui.clipboardClient = new ZeroClipboard($('.copy-btn'));
+    EveSRP.ui.setupClipboard();
     /* Initialize tooltips */
     $('.copy-btn').tooltip({trigger: 'manual'});
     EveSRP.ui.clipboardClient.on('mouseover', function (ev) {
@@ -261,5 +256,7 @@ EveSRP.ui.requestList = {
     $(window).on('statechange', this.getRequests);
   }
 };
-EveSRP.ui.requestList.setupEvents();
-EveSRP.ui.requestList.setupTokenField();
+if ($('.filter-tokenfield').length !== 0) {
+  EveSRP.ui.requestList.setupEvents();
+  EveSRP.ui.requestList.setupTokenField();
+}

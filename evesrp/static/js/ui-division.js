@@ -146,4 +146,6 @@ EveSRP.ui.division = {
     $(".permission").submit(EveSRP.ui.division.changePermission);
   }
 };
-EveSRP.ui.division.setupEvents();
+if ($('.entity-typeahead').length !== 0) {
+  EveSRP.ui.division.setupEvents();
+}

@@ -3,12 +3,16 @@ from base64 import urlsafe_b64decode
 import binascii
 from flask import render_template, url_for, abort, session, redirect, request,\
         current_app, g, Blueprint
-from flask.ext.login import login_required, logout_user, LoginManager
+from flask.ext.login import login_required, logout_user, LoginManager,\
+    current_user
+from flask.ext.wtf import Form
 from six.moves import map
+from wtforms.fields import HiddenField
+from wtforms.validators import AnyOf
 from sqlalchemy.orm.exc import NoResultFound
-from .. import csrf
+from .. import csrf, db
 from ..auth.models import User, APIKey
-from ..util import ensure_unicode
+from ..util import ensure_unicode, jsonify, xmlify
 
 
 blueprint = Blueprint('login', __name__)
@@ -46,6 +50,29 @@ def apikey_loader(request):
 
     # returning None signifies failure for this method
     return None
+
+
+class APIKeyForm(Form):
+    action = HiddenField(validators=[AnyOf(['add', 'delete'])])
+    key_id = HiddenField()
+
+
+@blueprint.route('/apikeys/', methods=['GET', 'POST'])
+def api_keys():
+    form = APIKeyForm()
+    if form.validate_on_submit():
+        if form.action.data == 'add':
+            key = APIKey(current_user)
+        else:
+            key = APIKey.query.get(int(form.key_id.data))
+            if key is not None:
+                db.session.delete(key)
+        db.session.commit()
+    if request.is_json or request.is_xhr:
+        return jsonify(api_keys=current_user.api_keys)
+    if request.is_xml:
+        return xmlify('apikeys.xml')
+    return render_template('apikeys.html', form=form)
 
 
 @blueprint.route('/login/', methods=['GET', 'POST'])

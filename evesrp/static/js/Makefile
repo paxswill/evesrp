@@ -27,7 +27,8 @@ SOURCE_NAMES := \
 	ui-request \
 	ui-division \
 	tokenfield \
-	ui-requestList
+	ui-requestList \
+	ui-apiKeys
 JS_SOURCE = $(patsubst %,%.js,$(SOURCE_NAMES))
 
 all: evesrp.min.js
