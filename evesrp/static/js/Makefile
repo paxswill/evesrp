@@ -19,6 +19,7 @@ SOURCE_NAMES := \
 	$(THIRDPARTY)/bootstrap-tokenfield/js/bootstrap-tokenfield \
 	$(THIRDPARTY)/zeroclipboard/ZeroClipboard \
 	$(THIRDPARTY)/typeahead.js/dist/typeahead.bundle \
+	polyfill \
 	util \
 	handlebars-helpers \
 	handlebars-templates \
@@ -26,7 +27,8 @@ SOURCE_NAMES := \
 	ui-request \
 	ui-division \
 	tokenfield \
-	ui-requestList
+	ui-requestList \
+	ui-apiKeys
 JS_SOURCE = $(patsubst %,%.js,$(SOURCE_NAMES))
 
 all: evesrp.min.js

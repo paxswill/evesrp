@@ -64,17 +64,21 @@ EveSRP.ui.request = {
   },
 
   submitAction: function submitAction(ev) {
-    var $link = $(ev.target);
-    var form = $link.closest("form");
-    form.find("input[name='type_']").attr("value", $link.attr("id"));
+    var $target = $(ev.target);
+    var $form = $target.closest("form");
+    if ($target.prop('nodeName') !== 'A' &&
+        $target.hasClass('dropdown-toggle')) {
+      return true
+    }
+    $form.find("input[name='type_']").attr("value", $target.attr("id"));
     $.post(
       window.location.pathname,
-      form.serialize(),
+      $form.serialize(),
       function(data) {
         // Reset the action form
-        form.find('textarea').val('');
-        if (!$link.hasClass('btn')) {
-          form.find('button.dropdown-toggle').dropdown('toggle');
+        $form.find('textarea').val('');
+        if (!$target.hasClass('btn')) {
+          $form.find('button.dropdown-toggle').dropdown('toggle');
         }
         // Update everything
         EveSRP.ui.request.render(data);
@@ -149,9 +153,7 @@ EveSRP.ui.request = {
 
   setupEvents: function setupRequestEvents() {
     // Attach listeners for the action button/dropdown
-    $('form#actionForm ul').click(EveSRP.ui.request.submitAction);
-    $('form#actionForm button[type="submit"]').click(
-      EveSRP.ui.request.submitAction);
+    $('#actionMenu').click(EveSRP.ui.request.submitAction);
     // event handler for adding modifiers
     $('ul#request-modifier-type li a').click(EveSRP.ui.request.submitModifier);
     // event handler for voiding modifiers
@@ -167,4 +169,6 @@ EveSRP.ui.request = {
     });
   },
 };
-EveSRP.ui.request.setupEvents();
+if ($('#actionMenu').length !== 0) {
+  EveSRP.ui.request.setupEvents();
+}

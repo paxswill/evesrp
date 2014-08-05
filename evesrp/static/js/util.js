@@ -155,8 +155,9 @@ EveSRP.util = {
      * evesrp.views.requests.RequestListing.parseFilterString function from
      * Python to Javascript.
      */
-    var filters = {_keys: []},
+    var filters = {},
         splitString, i, attr, values;
+    _.defaults(filters, {page: 1, sort: '-submit_timestamp'});
     // Fail early for empty filters
     if (filterString === undefined || filterString === '') {
       return filters;
@@ -171,9 +172,8 @@ EveSRP.util = {
     for (i = 0; i < splitString.length; i += 2) {
       attr = splitString[i].toLowerCase();
       values = decodeURIComponent(splitString[i + 1]);
-      if ($.inArray(attr, filters._keys) === -1) {
+      if (! (attr in filters)) {
         filters[attr] = [];
-        filters._keys.push(attr);
       }
       if (attr === 'details') {
         filters.details = _(filters[attr]).union(values);
@@ -196,23 +196,63 @@ EveSRP.util = {
      * evesrp.views.requests.RequestListing.unparseFilters function from
      * Python to Javascript.
      */
-    var filterStrings = [];
-    filters._keys.sort();
-    $.each(filters._keys, function(index, attr) {
+    var filterStrings = [], keys;
+    keys = Object.keys(filters);
+    keys.sort()
+    $.each(keys, function(index, attr) {
       var values = filters[attr];
       if (attr === 'details') {
         $.each(values, function(i, details) {
           filterStrings.push('details/' + details);
         });
       } else if (attr === 'page') {
-        filterStrings.push('page/' + values);
+        if (values !== 1) {
+          filterStrings.push('page/' + values);
+        }
       } else if (attr === 'sort') {
-        filterStrings.push('sort/' + values);
+        if (values !== '-submit_timestamp') {
+          filterStrings.push('sort/' + values);
+        }
       } else if (values.length > 0) {
         values.sort();
         filterStrings.push(attr + '/' + values.join(','));
       }
     });
     return filterStrings.join('/');
+  },
+
+  keyDifference: function keyDifference(obj1, obj2) {
+    var allKeys = _.union(_.keys(obj1), _.keys(obj2)),
+        results = [],
+        i, key;
+    for (i = 0; i < allKeys.length; i++) {
+      key = allKeys[i];
+      // Skip old '_keys' properties that might be lingering around
+      if (key === '_keys') {
+        continue;
+      }
+      // Prune empty properties
+      if (key !== 'page') {
+        if (key in obj1 && _.isEmpty(obj1[key])) {
+          delete obj1[key];
+          if (! (key in obj2)) {
+            allKeys.splice(i--, 1);
+          }
+        }
+        if (key in obj2 && _.isEmpty(obj2[key])) {
+          delete obj2[key];
+          if (! (key in obj1)) {
+            allKeys.splice(i--, 1);
+          }
+        }
+      }
+      // Actual checking
+      if (! (key in obj1) || ! (key in obj2)) {
+        results.push(key);
+      } else if (! _.isEqual(obj1[key], obj2[key])) {
+        results.push(key)
+      }
+    };
+    return results;
   }
 };

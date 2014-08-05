@@ -5,6 +5,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from flask import flash, url_for, redirect, abort, current_app, request
 from hashlib import sha256
 from binascii import unhexlify
+from copy import deepcopy
 
 from .. import db, requests_session
 from ..util import ensure_unicode
@@ -58,8 +59,9 @@ class BraveCore(AuthMethod):
                     group = CoreGroup(group_name, self.name)
                     db.session.add(group)
                 user.groups.add(group)
-            for group in user.groups:
-                if group.name not in info.tags:
+            user_groups = deepcopy(user.groups)
+            for group in user_groups:
+                if group.name not in info.tags and group in user.groups:
                     user.groups.remove(group)
             # Sync pilot (just the primary for now)
             pilot = Pilot.query.get(info.character.id)

@@ -18,7 +18,8 @@ from wtforms.validators import InputRequired, AnyOf, URL, ValidationError,\
 from .. import db
 from ..models import Request, Modifier, Action, ActionType, ActionError,\
         ModifierError, AbsoluteModifier, RelativeModifier
-from ..util import xmlify, jsonify, classproperty
+from ..util import xmlify, jsonify, classproperty, PrettyDecimal, varies,\
+        ensure_unicode
 from ..auth import PermissionType
 from ..auth.models import Division, Pilot, Permission, User, Group, Note,\
     APIKey, users_groups
@@ -42,11 +43,14 @@ class RequestListing(View):
     template = 'list_requests.html'
 
     #: Decorators to apply to the view functions
-    decorators = [login_required]
+    decorators = [login_required, varies('Accept', 'X-Requested-With')]
+
+    title = u'Requests'
 
     @staticmethod
     def parse_filter(filter_string):
-        filters = {}
+        # Set defaults that are skipped by unparse_filter
+        filters = {'page': 1, 'sort': '-submit_timestamp'}
         # Fail early for empty filters
         if filter_string is None or filter_string == '':
             return filters
@@ -105,8 +109,12 @@ class RequestListing(View):
             if attr == 'details':
                 for details in sorted(filters[attr]):
                     filter_strings.append('details/' + details)
-            elif attr in ('page', 'sort'):
-                filter_strings.append('{}/{}'.format(attr, filters[attr]))
+            elif attr == 'page':
+                if filters['page'] != 1:
+                    filter_strings.append('page/{}'.format(filters['page']))
+            elif attr == 'sort':
+                if filters['sort'] != '-submit_timestamp':
+                    filter_strings.append('sort/{}'.format(filters['sort']))
             elif attr == 'status':
                 values = [a.name for a in filters[attr]]
                 values = sorted(values)
@@ -137,6 +145,22 @@ class RequestListing(View):
                 real_attr = 'ship_type'
             else:
                 real_attr = attr
+            # massage negative/range filters
+            if attr not in ('page', 'sort', 'details', 'status'):
+                new_values = set()
+                for value in values:
+                    if value.startswith(('-', '<', '>')):
+                        new_values.add((value[:1], value[1:]))
+                    elif value.startswith(('<=', '>=')):
+                        new_values.add((value[:1], value[:2]))
+                        new_values.add(('=', value[:2]))
+                    else:
+                        new_values.add(('=', value))
+                grouped = {'=': set(), '<': set(), '>': set(), '-': set()}
+                for value in new_values:
+                    grouped[value[0]].add(value[1])
+            else:
+                grouped = {'=': values, '-':[], '<':[], '>':[]}
             # Handle a couple attributes specially
             if real_attr == 'details':
                 clauses = [Request.details.match(d) for d in values]
@@ -185,11 +209,34 @@ class RequestListing(View):
                     # This is black magic
                     id_column = column.mapper.attrs.id.class_attribute
                     name_column = column.mapper.attrs.name.class_attribute
-                    mapped = db.session.query(id_column)\
-                            .filter(name_column.in_(values)).subquery()
-                    requests = requests.join(mapped)
+                    mapped = db.session.query(id_column)
+                    filtered = False
+                    if grouped['=']:
+                        mapped = mapped.filter(name_column.in_(grouped['=']))
+                        filtered = True
+                    if grouped['-']:
+                        mapped = mapped.filter(~name_column.in_(grouped['-']))
+                        filtered = True
+                    if grouped['<']:
+                        for lt_val in grouped['<']:
+                            mapped = mapped.filter(name_column < lt_val)
+                        filtered = True
+                    if grouped['>']:
+                        for gt_val in grouped['>']:
+                            mapped = mapped.filter(name_column > gt_val)
+                        filtered = True
+                    if filtered:
+                        mapped = mapped.subquery()
+                        requests = requests.join(mapped)
                 else:
-                    requests = requests.filter(column.in_(values))
+                    if grouped['=']:
+                        requests = requests.filter(column.in_(grouped['=']))
+                    if grouped['-']:
+                        requests = requests.filter(~column.in_(grouped['-']))
+                    for lt_val in grouped['<']:
+                        requests = requests.filter(column < lt_val)
+                    for gt_val in grouped['>']:
+                        requests = requests.filter(column > gt_val)
             else:
                 flash(u"Unknown filter attribute name: {}".format(attr),
                         u'warning')
@@ -210,7 +257,12 @@ class RequestListing(View):
             return redirect(url_for(request.endpoint,
                     filters=canonical_filter), code=301)
         requests = self.requests(filter_map)
-        pager = requests.paginate(filter_map.get('page', 1), per_page=15,
+        total_payouts = requests.order_by(False).\
+                with_entities(db.func.sum(Request.payout))\
+                .scalar()
+        if total_payouts is None:
+            total_payouts = PrettyDecimal(0)
+        pager = requests.paginate(filter_map['page'], per_page=15,
                 error_out=False)
         if len(pager.items) == 0 and pager.page > 1:
             filter_map['page'] = pager.pages
@@ -218,7 +270,8 @@ class RequestListing(View):
                     filters=self.unparse_filter(filter_map)))
         if request.is_json or request.is_xhr:
             return jsonify(requests=pager.items,
-                    request_count=requests.count())
+                    request_count=requests.count(),
+                    total_payouts=total_payouts.currency())
         if request.is_rss:
             return xmlify('rss.xml', content_type='application/rss+xml',
                     requests=pager.items,
@@ -227,8 +280,12 @@ class RequestListing(View):
                         _external=True))
         if request.is_xml:
             return xmlify('request_list.xml', requests=pager.items)
+        if 'title' in kwargs:
+            title = kwargs.pop('title')
+        else:
+            title = self.title
         return render_template(self.template, pager=pager, filters=filter_map,
-                **kwargs)
+                total_payouts=total_payouts, title=title, **kwargs)
 
     @classproperty
     def _load_options(cls):
@@ -253,43 +310,12 @@ def url_for_page(pager, page_num):
             filters=RequestListing.unparse_filter(filters))
 
 
-class APIKeyForm(Form):
-    action = HiddenField(validators=[AnyOf(['add', 'delete'])])
-    key_id = HiddenField()
-
-
 class PersonalRequests(RequestListing):
     """Shows a list of all personally submitted requests and divisions the user
     has permissions in.
 
     It will show all requests the current user has submitted.
     """
-
-    template = 'personal.html'
-
-    methods = ['GET', 'POST']
-
-    def dispatch_request(self, filters='', **kwargs):
-        if request.method == 'POST':
-            form = APIKeyForm()
-            if form.validate():
-                if form.action.data == 'add':
-                    key = APIKey(current_user)
-                else:
-                    key = APIKey.query.get(int(form.key_id.data))
-                    if key is not None:
-                        db.session.delete(key)
-                db.session.commit()
-        # Handle API access in here, so we can add extra data
-        if request.is_json or request.is_xhr:
-            return jsonify(
-                    requests=self.requests(),
-                    api_keys=current_user.api_keys)
-        if request.is_xml:
-            return xmlify('personal_list.xml',
-                    requests=self.requests())
-        return super(PersonalRequests, self).dispatch_request(filters,
-                key_form=APIKeyForm(formdata=None))
 
     def requests(self, filters):
         requests = super(PersonalRequests, self).requests(filters)
@@ -298,6 +324,13 @@ class PersonalRequests(RequestListing):
                 .filter(User.id==current_user.id)
         return requests
 
+    @property
+    def title(self):
+        if current_user.name[:-1] == u's':
+            return u"{}' Requests".format(current_user.name)
+        else:
+            return u"{}'s Requests".format(current_user.name)
+
 
 class PermissionRequestListing(RequestListing):
     """Show all requests that the current user has permissions to access.
@@ -305,7 +338,7 @@ class PermissionRequestListing(RequestListing):
     This is used for the various permission-specific views.
     """
 
-    def __init__(self, permissions, statuses):
+    def __init__(self, permissions, statuses, title=None):
         """Create a :py:class:`PermissionRequestListing` for the given
         permissions and statuses.
 
@@ -318,18 +351,18 @@ class PermissionRequestListing(RequestListing):
         # complicated query in requests()
         self.permissions = (PermissionType.admin,) + tuple(permissions)
         self.statuses = statuses
+        if title is None:
+            self.title = u', '.join(map(lambda s: s.description, self.statuses))
+        else:
+            self.title = ensure_unicode(title)
 
     def dispatch_request(self, filters='', **kwargs):
         if not current_user.has_permission(self.permissions):
             abort(403)
         else:
-            if 'title' in kwargs:
-                title = kwargs.pop('title')
-            else:
-                title = u', '.join(map(lambda s: s.description, self.statuses))
             return super(PermissionRequestListing, self).dispatch_request(
                     filters,
-                    title=title,
+                    title=self.title,
                     **kwargs)
 
     def requests(self, filters):
@@ -357,18 +390,18 @@ class PayoutListing(PermissionRequestListing):
     def __init__(self):
         # Just a special case of PermissionRequestListing
         super(PayoutListing, self).__init__((PermissionType.pay,),
-                (ActionType.approved,))
+                (ActionType.approved,), u'Pay Outs')
 
     def dispatch_request(self, filters='', **kwargs):
         if not current_user.has_permission(self.permissions):
             abort(403)
         return super(PayoutListing, self).dispatch_request(
                 filters,
-                title=u', '.join(map(lambda s: s.description, self.statuses)),
                 form=ActionForm())
 
 
-def register_perm_request_listing(app, endpoint, path, permissions, statuses):
+def register_perm_request_listing(app, endpoint, path, permissions, statuses,
+        title=None):
     """Utility function for creating :py:class:`PermissionRequestListing`
     views.
 
@@ -384,7 +417,7 @@ def register_perm_request_listing(app, endpoint, path, permissions, statuses):
     if not path.endswith('/'):
         path += '/'
     view = PermissionRequestListing.as_view(endpoint, permissions=permissions,
-            statuses=statuses)
+            statuses=statuses, title=title)
     app.add_url_rule(path, view_func=view)
     app.add_url_rule('{}rss.xml'.format(path), view_func=view)
     app.add_url_rule(path + '<path:filters>', view_func=view)
@@ -415,12 +448,15 @@ def register_class_views(state):
             view_func=payout_view)
     # Other more generalized listings
     register_perm_request_listing(state, 'list_pending_requests',
-            '/pending/', (PermissionType.review,), ActionType.pending)
+            '/pending/', (PermissionType.review, PermissionType.audit),
+            ActionType.pending, u'Pending Requests')
     register_perm_request_listing(state, 'list_completed_requests',
-            '/completed/', PermissionType.elevated, ActionType.finalized)
+            '/completed/', PermissionType.elevated, ActionType.finalized,
+            u'Completed Requests')
     # Special all listing, mainly intended for API users
     register_perm_request_listing(state, 'list_all_requests',
-            '/all/', PermissionType.elevated, ActionType.statuses)
+            '/all/', PermissionType.elevated, ActionType.statuses,
+            u'All Requests')
 
 
 class ValidKillmail(URL):
@@ -475,8 +511,7 @@ def get_killmail_descriptions():
 
 class RequestForm(Form):
     url = URLField(u'Killmail URL')
-    details = TextAreaField(u'Details', validators=[InputRequired()],
-            description=u'Supporting details about your loss.')
+    details = TextAreaField(u'Details', validators=[InputRequired()])
     division = SelectField(u'Division', coerce=int)
     submit = SubmitField(u'Submit')
 
@@ -512,8 +547,11 @@ def submit_request():
     # Do it in here so we can access current_app (needs to be in an app
     # context)
     form.url.description = get_killmail_descriptions()
+    form.details.description = current_app.config['SRP_DETAILS_DESCRIPTION']
     # Create a list of divisions this user can submit to
     form.division.choices = current_user.submit_divisions()
+    if len(form.division.choices) == 1:
+        form.division.data = 1
 
     if form.validate_on_submit():
         mail = form.killmail
@@ -540,7 +578,7 @@ def submit_request():
             flash(u"This kill has already been submitted", u'warning')
             return redirect(url_for('.get_request_details',
                 request_id=srp_request.id))
-    return render_template('form.html', form=form)
+    return render_template('form.html', form=form, title=u'Submit Request')
 
 
 class ModifierForm(Form):
@@ -575,7 +613,6 @@ class ActionForm(Form):
             validators=[AnyOf(list(ActionType.values()))])
 
 
-
 class ChangeDetailsForm(Form):
     id_ = HiddenField(default='details')
     details = TextAreaField(u'Details', validators=[InputRequired()])
@@ -597,6 +634,7 @@ killmail_re = re.compile(r'#(\d+)')
 
 @blueprint.route('/<int:request_id>/', methods=['GET'])
 @login_required
+@varies('Accept')
 def get_request_details(request_id=None, srp_request=None):
     """Handles responding to all of the :py:class:`~.models.Request` detail
     functions.
@@ -619,11 +657,12 @@ def get_request_details(request_id=None, srp_request=None):
         template = 'request_review.html'
     elif current_user.has_permission(PermissionType.pay, srp_request.division):
         template = 'request_pay.html'
-    elif current_user == srp_request.submitter:
+    elif current_user == srp_request.submitter or current_user.has_permission(
+            PermissionType.audit):
         template = 'request_detail.html'
     else:
         abort(403)
-    if request.is_json:
+    if request.is_json or request.is_xhr:
         # dump the load to encode srp_request as json and then get a dictionary
         # form of it. We need this to add a few bits of information to the
         # standard request encoding
@@ -644,7 +683,8 @@ def get_request_details(request_id=None, srp_request=None):
             action_form=ActionForm(formdata=None),
             void_form=VoidModifierForm(formdata=None),
             details_form=ChangeDetailsForm(formdata=None, obj=srp_request),
-            note_form=AddNote(formdata=None))
+            note_form=AddNote(formdata=None),
+            title=u'Request #{}'.format(srp_request.id))
 
 
 def _add_modifier(srp_request):
@@ -720,8 +760,12 @@ def _change_details(srp_request):
                 u"pending.", u'error')
     elif form.validate():
         archive_note = u"Old Details: " + srp_request.details
-        archive_action = Action(srp_request, current_user, archive_note)
-        archive_action.type_ = ActionType.evaluating
+        if srp_request.status == ActionType.evaluating:
+            action_type = ActionType.comment
+        else:
+            action_type = ActionType.evaluating
+        archive_action = Action(srp_request, current_user, archive_note,
+                action_type)
         srp_request.details = form.details.data
         db.session.commit()
     return get_request_details(srp_request=srp_request)
@@ -817,8 +861,11 @@ def request_change_division(request_id):
         archive_note = u"Moving from division '{}' to division '{}'.".format(
                 srp_request.division.name,
                 new_division.name)
-        archive_action = Action(srp_request, current_user, archive_note)
-        archive_action.type_ = ActionType.evaluating
+        if srp_request.status == ActionType.evaluating:
+            type_ = ActionType.comment
+        else:
+            type_ = ActionType.evaluating
+        archive_action = Action(srp_request, current_user, archive_note, type_)
         srp_request.division = new_division
         db.session.commit()
         flash(u'Request #{} moved to {} division'.format(srp_request.id,
@@ -833,4 +880,5 @@ def request_change_division(request_id):
         current_app.logger.warn(u"Form validation failed for division change:"
                                 u" {}.".format(form.errors))
     form.division.data = srp_request.division.id
-    return render_template('form.html', form=form)
+    return render_template('form.html', form=form,
+            title=u"Change #{}'s Division".format(srp_request.id))

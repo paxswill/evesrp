@@ -9,14 +9,21 @@ EveSRP.tokenfield = {
   addedToken: function addedToken(ev) {
     /* Apply the filter */
     var fullPath = EveSRP.util.splitFilterString(window.location.pathname),
-        filters = EveSRP.util.parseFilterString(fullPath[1]);
+        filters = EveSRP.util.parseFilterString(fullPath[1]),
+        state = History.getState(),
+        diffKeys;
     function _add(item) {
+      var fullValue;
       // Ensure there's a place to put new queries
-      if ($.inArray(item.attr, filters._keys) === -1) {
+      if (! (item.attr in filters)) {
         filters[item.attr] = [];
-        filters._keys.push(item.attr);
       }
-      filters[item.attr] = _(filters[item.attr]).union([item.real_value]);
+      if (item.sign !== '=') {
+        fullValue = item.sign + item.real_value;
+      } else {
+        fullValue = item.real_value;
+      }
+      filters[item.attr] = _(filters[item.attr]).union([fullValue]);
     }
     if (ev.attrs instanceof Array) {
       for (var i = 0; i < ev.attrs.length; ++i) {
@@ -25,11 +32,20 @@ EveSRP.tokenfield = {
     } else {
       _add(ev.attrs);
     }
-    // Go to page 1 when adding filters, so you don't end up in the middle or
-    // past the end of the results.
-    filters['page'] = 1;
-    fullPath[1] = EveSRP.util.unparseFilters(filters);
-    History.pushState(filters, null, '/' + fullPath.join('/'));
+    // Double check that the default 'filters' are present
+    _.defaults(state.data, {page: 1, sort: '-submit_timestamp'});
+    _.defaults(filters, {page: 1, sort: '-submit_timestamp'});
+    // Only push a new state if there's actually new filters
+    if (! _.isEqual(state.data, filters)) {
+      // Compare the existing filters to the new filters
+      diffKeys = EveSRP.util.keyDifference(state.data, filters);
+      // Go to page 1 when changing filters
+      if (! _.contains(diffKeys, 'page')) {
+        filters.page = 1;
+      }
+      fullPath[1] = EveSRP.util.unparseFilters(filters);
+      History.pushState(filters, null, '/' + fullPath.join('/'));
+    }
   },
 
   modifyToken: function modifyToken(ev) {
@@ -66,7 +82,16 @@ EveSRP.tokenfield = {
         filters = EveSRP.util.parseFilterString(fullPath[1]);
     /* Remove the filter */
     function _remove(item) {
-      filters[item.attr] = _(filters[item.attr]).without(item.real_value);
+      var fullValue;
+      if (item.sign !== '=') {
+        fullValue = item.sign + item.real_value;
+      } else {
+        fullValue = item.real_value;
+      }
+      filters[item.attr] = _(filters[item.attr]).without(fullValue);
+      if (_.isEmpty(filters[item.attr])) {
+        delete filters[item.attr];
+      }
     }
     if (ev.attrs instanceof Array) {
       for (var i = 0; i < ev.attrs.length; ++i) {
@@ -81,20 +106,54 @@ EveSRP.tokenfield = {
 
   createBloodhound: function createTokenFieldBloodhound(attribute, values) {
     var source, bloodhound;
-    source = $.map(values, function(v) {
-      return {
-        real_value: v,
-        attr: attribute
-      };
+    source = []
+    $.each(values, function(i, value) {
+      if (! _.contains(['details', 'status'], attribute)) {
+        $.each(['=', '-', '<', '>'], function(i, sign) {
+          source.push({
+            real_value: value,
+            attr: attribute,
+            sign: sign
+          });
+        });
+      } else {
+        source.push({
+          real_value: value,
+          attr: attribute,
+          sign: '='
+        });
+      }
     });
     bloodhound = new Bloodhound({
       name: attribute,
       datumTokenizer: function(datum) {
-        var tokens = datum.real_value.split(/\s+/);
-        tokens.push(datum.attr + ':' + tokens[0]);
+        var base_tokens, tokens = [];
+        base_tokens = datum.real_value.split(/\s+/);
+        $.each(base_tokens, function(index, token) {
+          if (datum.sign === '=') {
+            tokens.push(token);
+          }
+          tokens.push(datum.sign + token);
+        });
+        if (datum.sign === '=') {
+          tokens.push(datum.attr + ':' + base_tokens[0]);
+        }
+        tokens.push(datum.attr + ':' + datum.sign + base_tokens[0]);
         return tokens;
       },
-      queryTokenizer: Bloodhound.tokenizers.whitespace,
+      queryTokenizer: function(query) {
+        var tokens, sign;
+        if (_.contains(['-', '=', '<', '>'], query.slice(0, 1))) {
+          sign = query.slice(0, 1);
+          tokens = query.slice(1).split(/\s+/);
+          tokens = _.map(tokens, function(value) {
+            return sign + tokens;
+          });
+        } else {
+          tokens = query.split(/\s+/);
+        }
+        return tokens;
+      },
       local: source
     });
     bloodhound.initialize();
@@ -150,14 +209,22 @@ EveSRP.tokenfield = {
           capitalized = capitalized + value.real_value.slice(1);
           return value.attr + ':' + capitalized;
         } else {
-          return value.attr + ':' + value.real_value;
+          if (value.sign === '=') {
+            return value.attr + ':' + value.real_value;
+          } else {
+            return value.attr + ':' + value.sign + value.real_value;
+          }
         }
       },
-      source: superBloodhound
+      source: superBloodhound,
+      // Use a Handlebars template here for the autoescaping
+      templates: {
+        suggestion: Handlebars.templates.filter_suggestion
+      }
     });
     // Get the initial set of tokens
     state = History.getState();
-    if ('_keys' in state.data) {
+    if (! _.isEmpty(state.data)) {
       filter = state.data;
     } else {
       fullPath = EveSRP.util.splitFilterString(window.location.pathname);
@@ -175,9 +242,6 @@ EveSRP.tokenfield = {
     $(window).on('statechange', function() {
       var state = History.getState(),
           tokens;
-      if (! ('_keys' in state.data)) {
-        state.data._keys = []
-      }
       tokens = EveSRP.tokenfield.tokensFromFilter(state.data);
       $(tokenfield).tokenfield('setTokens', tokens);
     });
@@ -186,15 +250,24 @@ EveSRP.tokenfield = {
 
   tokensFromFilter: function tokensFromFilter(filter) {
     var tokens = [];
-    $.each(filter._keys, function(i, attr) {
+    $.each(Object.keys(filter), function(i, attr) {
       if (attr !== 'sort' && attr !== 'page') {
         $.each(filter[attr], function (i2, value) {
-          var label = attr + ':' + value;
+          var label = attr + ':' + value,
+              sign, realValue;
+          if (_.contains('=-<>', value.slice(0, 1))) {
+            sign = value.slice(0, 1);
+            realValue = value.slice(1);
+          } else {
+            sign = '=';
+            realValue = value;
+          }
           tokens.push( {
             label: label,
             value: label,
             attr: attr,
-            real_value: value
+            real_value: realValue,
+            sign: sign
           });
         });
       }

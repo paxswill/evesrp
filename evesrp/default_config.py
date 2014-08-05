@@ -14,3 +14,5 @@ SQLALCHEMY_DATABASE_URI = 'sqlite://'
 SRP_KILLMAIL_SOURCES = [ZKillmail, CRESTMail]
 
 SRP_SITE_NAME = 'EVE-SRP'
+
+SRP_DETAILS_DESCRIPTION = 'Supporting details about your loss.'

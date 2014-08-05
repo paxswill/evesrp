@@ -1,4 +1,4 @@
-{% extends "request_list.xml" %}
+{% extends "base.xml" %}
 {% block content %}
 <apikeys>
   {% for key in current_user.api_keys %}

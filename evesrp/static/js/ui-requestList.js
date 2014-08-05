@@ -90,7 +90,8 @@ EveSRP.ui.requestList = {
         isPayout = false,
         $pager = $('ul.pagination'),
         requests = data.requests,
-        $copyButtons, $newRows, currentPage;
+        $summary = $('#requestsSummary'),
+        $copyButtons, $newRows;
     if ($oldRows.length != 0) {
       /* Remove the tooltips and unattach the clipboard client from any
        * buttons
@@ -115,12 +116,11 @@ EveSRP.ui.requestList = {
       $newRows = Handlebars.templates.request_rows(requests);
     }
     $rowsParent.append($newRows);
-    if ($.inArray('page', filters._keys) === -1) {
-      currentPage = 0;
-    } else {
-      currentPage = filters.page - 1;
-    }
-    this.renderPager(data.request_count, currentPage);
+    // Update the summary
+    $summary.text(data['request_count'] + ' requests • ' +
+                  data['total_payouts'] + ' ISK');
+    // Render the pager
+    this.renderPager(data.request_count, filters.page - 1);
   },
 
   renderPager: function renderPager(numRequests, currentPage) {
@@ -128,6 +128,7 @@ EveSRP.ui.requestList = {
         numPages = Math.ceil(numRequests/this.pageSize - 1) + 1;
     $pager.empty();
     if (numPages > 1) {
+      $pager.removeClass('hidden');
       /* prev arrow */
       if (currentPage === 0) {
         $pager.append('<li class="disabled"><span>&laquo;</span></li>');
@@ -153,6 +154,8 @@ EveSRP.ui.requestList = {
       } else {
         $pager.append('<li><a id="next_page" href="#">&raquo;</a></li>');
       }
+    } else {
+      $pager.addClass('hidden');
     }
   },
 
@@ -163,7 +166,7 @@ EveSRP.ui.requestList = {
       url: state.url,
       success: function(data) {
         var filters, fullPath;
-        if ('_keys' in state.data) {
+        if (! _.isEmpty(state.data)) {
           filters = state.data;
         } else {
           fullPath = EveSRP.util.splitFilterString(window.location.pathname);
@@ -187,18 +190,10 @@ EveSRP.ui.requestList = {
       return false;
     }
     // Check for a history state object first, fallback to parsing the URL
-    if ('data' in state && '_keys' in state.data) {
+    if (! _.isEmpty(state.data)) {
       filters = state.data;
     } else {
       filters = EveSRP.util.parseFilterString(fullPath[1]);
-    }
-    // Default to sorting by ascending submit time
-    if ($.inArray('sort', filters._keys) === -1) {
-      filters._keys.push('sort');
-      filters.sort = '';
-    }
-    if (filters.sort === '') {
-      filters.sort = 'submit_timestamp';
     }
     // Determine new sort
     if (filters.sort.slice(1) === colName || filters.sort === colName) {
@@ -213,9 +208,9 @@ EveSRP.ui.requestList = {
     // Update the arrows
     $headings.find('i.fa').removeClass();
     if (filters.sort.charAt(0) === '-') {
-      $this.find('i').addClass('fa fa-chevron-up');
-    } else {
       $this.find('i').addClass('fa fa-chevron-down');
+    } else {
+      $this.find('i').addClass('fa fa-chevron-up');
     }
     // Push a new history state to trigger a refresh of the requests
     fullPath[1] = EveSRP.util.unparseFilters(filters);
@@ -228,11 +223,6 @@ EveSRP.ui.requestList = {
         filters = EveSRP.util.parseFilterString(fullPath[1]),
         $target = $(ev.target),
         pageNum;
-    // Default to page 1
-    if ($.inArray('page', filters._keys) === -1) {
-      filters._keys.push('page');
-      filters.page = 1;
-    }
     if ($target.attr('id') === 'prev_page') {
       filters.page = filters.page - 1;
     } else if ($target.attr('id') == 'next_page') {
@@ -248,12 +238,7 @@ EveSRP.ui.requestList = {
   },
 
   setupEvents: function setupRequestListEvents() {
-    // Setup ZeroClipboard
-    ZeroClipboard.config({
-      moviePath: $SCRIPT_ROOT + '/static/ZeroClipboard.swf'
-    })
-    /* Attach the pastboard object */
-    EveSRP.ui.clipboardClient = new ZeroClipboard($('.copy-btn'));
+    EveSRP.ui.setupClipboard();
     /* Initialize tooltips */
     $('.copy-btn').tooltip({trigger: 'manual'});
     EveSRP.ui.clipboardClient.on('mouseover', function (ev) {
@@ -271,5 +256,7 @@ EveSRP.ui.requestList = {
     $(window).on('statechange', this.getRequests);
   }
 };
-EveSRP.ui.requestList.setupEvents();
-EveSRP.ui.requestList.setupTokenField();
+if ($('.filter-tokenfield').length !== 0) {
+  EveSRP.ui.requestList.setupEvents();
+  EveSRP.ui.requestList.setupTokenField();
+}

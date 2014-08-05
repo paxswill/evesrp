@@ -64,10 +64,10 @@ class TestModifiers(TestModels):
 
     def test_add_modifier(self):
         with self.app.test_request_context():
-            start_payout = float(self.request.payout)
+            start_payout = self.request.payout
             AbsoluteModifier(self.request, self.admin_user, '', 10)
             db.session.commit()
-            self.assertEqual(float(self.request.payout), start_payout + 10)
+            self.assertEqual(self.request.payout, start_payout + 10)
         return start_payout
 
     def test_void_modifier(self):
@@ -75,7 +75,7 @@ class TestModifiers(TestModels):
         with self.app.test_request_context():
             mod = self.request.modifiers[0].void(self.admin_user)
             db.session.commit()
-            self.assertEqual(float(self.request.payout), start_payout)
+            self.assertEqual(self.request.payout, start_payout)
 
     def test_add_modifier_bad_status(self):
         with self.app.test_request_context():
@@ -92,7 +92,7 @@ class TestModifiers(TestModels):
             with self.assertRaises(ModifierError):
                 mod.void(self.admin_user)
                 db.session.commit()
-            self.assertNotEqual(float(self.request.payout), start_payout)
+            self.assertNotEqual(self.request.payout, start_payout)
 
     def test_add_modifier_bad_permissions(self):
         with self.app.test_request_context():
@@ -107,7 +107,7 @@ class TestModifiers(TestModels):
             with self.assertRaises(ModifierError):
                 mod.void(self.normal_user)
                 db.session.commit()
-            self.assertNotEqual(float(self.request.payout), start_payout)
+            self.assertNotEqual(self.request.payout, start_payout)
 
 
 class TestActionStatus(TestModels):

@@ -1,10 +1,13 @@
 from __future__ import absolute_import
+from decimal import Decimal
 import locale
 import os
 import requests
 from flask import Flask, current_app, g
 from flask.ext import sqlalchemy
 from flask.ext.wtf.csrf import CsrfProtect
+import six
+from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.schema import MetaData
 
@@ -33,7 +36,7 @@ _patch_metadata()
 from .util import DB_STATS, AcceptRequest
 
 
-__version__ = u'0.9.4'
+__version__ = u'0.9.5'
 
 
 requests_session = requests.Session()
@@ -167,3 +170,27 @@ def _config_requests_session():
 # Killmail verification
 def _config_killmails():
     current_app.killmail_sources = current_app.config['SRP_KILLMAIL_SOURCES']
+
+
+# Work around DBAPI-specific issues with Decimal subclasses.
+# Specifically, almost everything besides pysqlite and psycopg2 raise
+# exceptions if an instance of a Decimal subclass as opposed to an instance of
+# Decimal itself is passed in as a value for a Numeric column.
+@db.event.listens_for(Engine, 'before_execute', retval=True)
+def _workaround_decimal_subclasses(conn, clauseelement, multiparams, params):
+    def filter_decimal_subclasses(parameters):
+        for key in six.iterkeys(parameters):
+            value = parameters[key]
+            # Only get instances of subclasses of Decimal, not direct
+            # Decimal instances
+            if type(value) != Decimal and isinstance(value, Decimal):
+                parameters[key] = Decimal(value)
+
+    if multiparams:
+        for mp in multiparams:
+            if isinstance(mp, dict):
+                filter_decimal_subclasses(mp)
+            elif isinstance(mp, list):
+                for parameters in mp:
+                    filter_decimal_subclasses(parameters)
+    return clauseelement, multiparams, params

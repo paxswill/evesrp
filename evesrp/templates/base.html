@@ -7,7 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf_token" content="{{ csrf_token() }}">
-    <title>{% block title %}{{ site_name }}{% endblock %}</title>
+    <title>{% block title %}{{ site_name }}{{ (': ' ~ title)|safe if title }}{% endblock %}</title>
     <link href="{{ url_for('static', filename='css/custom.css') }}" rel="stylesheet">
     <!-- Bootstrap -->
     <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
@@ -38,13 +38,13 @@
           <ul class="nav navbar-nav">
             {% block navitems %}
             {% if current_user.is_authenticated() %}
-            {% if current_user.has_permission(PermissionType.review) %}
+            {% if current_user.has_permission((PermissionType.review, PermissionType.audit)) %}
             {{ macros.navbar_button('Pending', 'requests.list_pending_requests', request_count(PermissionType.review))|indent(12)|safe }}
             {% endif %}
             {% if current_user.has_permission(PermissionType.pay) %}
             {{ macros.navbar_button('Pay Outs', 'requests.list_approved_requests', request_count(PermissionType.pay))|indent(12)|safe }}
             {% endif %}
-            {% if current_user.has_permission(PermissionType.pay) or current_user.has_permission(PermissionType.review) %}
+            {% if current_user.has_permission(PermissionType.elevated) %}
             {{ macros.navbar_button('Completed', 'requests.list_completed_requests')|indent(12)|safe }}
             {% endif %}
             {% endif %}
@@ -58,11 +58,16 @@
             {% if current_user.has_permission(PermissionType.submit) %}
             {{ macros.navbar_button('Submit', 'requests.submit_request')|indent(12)|safe }}
             {% endif %}
-            {{ macros.navbar_button('Personal', 'requests.personal_requests', request_count(PermissionType.submit))|indent(12)|safe }}
-            {% if current_user.admin or current_user.has_permission(PermissionType.admin) %}
-            {{ macros.navbar_button('Admin', 'divisions.list_divisions')|indent(12)|safe }}
-            {% endif %}
-            {{ macros.navbar_button('Log Out', 'login.logout')|indent(12)|safe }}
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span class="caret"></span> {{ current_user.name }}</a>
+              <ul class="dropdown-menu">
+                {{ macros.navbar_button('Requests', 'requests.personal_requests', request_count(PermissionType.submit))|indent(16)|safe }}
+                {{ macros.navbar_button('API Keys', 'login.api_keys')|indent(16)|safe }}
+                {{ macros.navbar_button('Permissions', 'divisions.permissions')|indent(16)|safe }}
+                <li class="divider"></li>
+                {{ macros.navbar_button('Log Out', 'login.logout')|indent(16)|safe }}
+              </ul>
+            </li>
             {% endif %}
             {% endblock navitems_right %}
           </ul>

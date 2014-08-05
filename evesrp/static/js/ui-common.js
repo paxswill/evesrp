@@ -33,3 +33,11 @@ EveSRP.ui.setupEvents = function setupUIEvents() {
   });
 };
 EveSRP.ui.setupEvents();
+
+EveSRP.ui.setupClipboard = function setupClipboard() {
+  ZeroClipboard.config({
+    moviePath: $SCRIPT_ROOT + '/static/ZeroClipboard.swf'
+  })
+  /* Attach the pastboard object */
+  EveSRP.ui.clipboardClient = new ZeroClipboard($('.copy-btn'));
+}

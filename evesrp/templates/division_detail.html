@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% import "macros.html" as macros with context %}
 
+{% block title %}{{ site_name }}: {{ division.name }}{% endblock title %}
+
 {% block content %}
 <div class="row">
   <div class="col-xs-12">
@@ -16,7 +18,7 @@
     </form>
   </div>
   <div class="col-md-9 col-md-pull-3">
-  {% for permission in (PermissionType.submit, PermissionType.review, PermissionType.pay, PermissionType.admin) %}
+  {% for permission in (PermissionType.submit, PermissionType.review, PermissionType.pay, PermissionType.audit, PermissionType.admin) %}
   <div class="row permission" id="{{ permission.name }}">
     <div class="col-xs-12">
       <h3>{{ permission }}s</h3>

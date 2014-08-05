@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% from "macros.html" import clipboard_button %}
+
+{% block title %}{{ site_name }}: API Keys{% endblock title %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-10 col-md-offset-1">
+    <h3>API Keys</h3>
+    <p>
+    You can create API keys for this app's
+    {% if '-dev' in app_version %}
+    <a href="https://eve-srp.readthedocs.org/en/latest/api.html">
+    {% else %}
+    <a href="{{ "https://eve-srp.readthedocs.org/en/v" ~ app_version ~ "/api.html" }}">
+    {% endif %}
+    external API</a> using the button below. This is unrelated to the official EVE API from CCP.
+    </p>
+    <table id="apikeys" class="table table-condensed">
+        <tr>
+          <th>Key</th>
+          <th>Created</th>
+          <th>Remove</th>
+        </tr>
+        {% for key in current_user.api_keys %}
+        <tr>
+          <td class="key-button">
+            {{ clipboard_button(key.hex_key, "bottom", "") }}
+          </td>
+          <td>{{ key.timestamp.strftime('%d %b %Y @ %H:%M') }}</td>
+          <td>
+            <form class="" method="post">
+              {{ form.csrf_token }}
+              {{ form.action(value='delete') }}
+              {{ form.key_id(value=key.id) }}
+              <button type="submit" class="close">&times;</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td class="text-center" colspan="3">No API keys created.</td>
+        </tr>
+        {% endfor %}
+      <tr>
+        <td colspan="2">
+        </td>
+        <td class="">
+          <form class="pull-right" method="post">
+            {{ form.csrf_token }}
+            {{ form.action(value='add') }}
+            <button type="submit" class="btn btn-sm btn-info" id="createKey">Create API Key</button>
+          </form>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+{% endblock content %}

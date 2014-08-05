@@ -13,7 +13,7 @@ from wtforms.validators import InputRequired, AnyOf, NumberRange
 from ..models import db
 from ..auth import PermissionType
 from ..auth.models import Division, Permission, Entity
-from ..util import jsonify
+from ..util import jsonify, varies
 
 
 blueprint = Blueprint('divisions', __name__)
@@ -21,10 +21,8 @@ blueprint = Blueprint('divisions', __name__)
 
 @blueprint.route('/')
 @login_required
-def list_divisions():
+def permissions():
     """Show a page listing all divisions.
-
-    Accesible only to administrators.
     """
     if current_user.admin:
         return render_template('divisions.html',
@@ -36,6 +34,7 @@ def list_divisions():
         divisions = db.session.query(Division).\
                 filter(Division.id.in_(admin_permissions))
         return render_template('divisions.html', divisions=divisions)
+    return render_template('permissions.html')
     return abort(403)
 
 
@@ -58,8 +57,9 @@ def add_division():
         division = Division(form.name.data)
         db.session.add(division)
         db.session.commit()
-        return redirect(url_for('.get_division_details', division_id=division.id))
-    return render_template('form.html', form=form)
+        return redirect(url_for('.get_division_details',
+            division_id=division.id))
+    return render_template('form.html', form=form, title=u'Create Division')
 
 
 class ChangeEntity(Form):
@@ -113,6 +113,7 @@ def transformer_choices(attr):
 
 @blueprint.route('/<int:division_id>/', methods=['GET'])
 @login_required
+@varies('Accept', 'X-Requested-With')
 def get_division_details(division_id=None, division=None):
     """Generate a page showing the details of a division.
 

@@ -10,8 +10,9 @@ Handlebars.registerHelper('datefmt', function(date) {
   if (typeof date === 'string') {
     date = new Date(date);
   }
-  return date.getUTCDate() + ' ' + EveSRP.util.monthAbbr(date.getUTCMonth()) +
-    ' ' + date.getUTCFullYear();
+  return [EveSRP.util.padNum(date.getUTCDate(), 2),
+          EveSRP.util.monthAbbr(date.getUTCMonth()),
+          date.getUTCFullYear()].join(' ');
 });
 
 Handlebars.registerHelper('timefmt', function(date) {

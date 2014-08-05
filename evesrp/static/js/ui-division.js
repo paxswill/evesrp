@@ -10,7 +10,7 @@ if (! ('ui' in EveSRP)) {
 
 EveSRP.ui.division = {
   render: function render(entities) {
-    var perms = ['submit', 'review', 'pay', 'admin'], i;
+    var perms = ['submit', 'review', 'pay', 'audit', 'admin'], i;
     for (i = 0; i < perms.length; ++i) {
       var perm = perms[i],
           $table = $('#' + perm).find('table'),
@@ -146,4 +146,6 @@ EveSRP.ui.division = {
     $(".permission").submit(EveSRP.ui.division.changePermission);
   }
 };
-EveSRP.ui.division.setupEvents();
+if ($('.entity-typeahead').length !== 0) {
+  EveSRP.ui.division.setupEvents();
+}

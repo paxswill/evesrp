@@ -16,7 +16,7 @@
   ],
   "dependencies": {
     "bootstrap-tokenfield": "https://github.com/paxswill/bootstrap-tokenfield.git#master",
-    "bootstrap": "~3.1.1",
+    "bootstrap": "~3.2.0",
     "font-awesome": "~4.1.0",
     "history.js": "~1.8.0",
     "typeahead.js": "~0.10.2",
@@ -25,6 +25,7 @@
     "handlebars": "2.0.0-alpha.4"
   },
   "resolutions": {
-    "jquery": ">= 1.9.0"
+    "jquery": ">= 1.9.0",
+    "bootstrap": "~3.2.0"
   }
 }

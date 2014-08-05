@@ -10,3 +10,12 @@ td form button.close {
   height: 20px;
 }
 
+.hidden {
+  display: none;
+}
+
+.input-group-btn .btn {
+  height: 100%;
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+}

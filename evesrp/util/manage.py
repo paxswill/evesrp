@@ -112,11 +112,17 @@ def create(force=False):
 
 @manager.shell
 def shell_context():
-    return dict(
-            app=flask.current_app,
-            db=db,
-            models=models,
-            auth=auth)
+    ctx = dict(
+        app=flask.current_app,
+        db=db)
+    for cls in ('Request', 'Action', 'ActionType', 'Modifier',
+                'AbsoluteModifier', 'RelativeModifier'):
+        ctx[cls] = getattr(models, cls)
+    for cls in ('Entity', 'User', 'Group', 'Note', 'APIKey', 'Permission',
+            'Division', 'Pilot'):
+        ctx[cls] = getattr(auth.models, cls)
+    ctx['PermissionType'] = auth.PermissionType
+    return ctx
 
 
 class PopulatedKillmail(killmail.Killmail, killmail.RequestsSessionMixin,
