@@ -510,8 +510,7 @@ def get_killmail_descriptions():
 
 class RequestForm(Form):
     url = URLField(u'Killmail URL')
-    details = TextAreaField(u'Details', validators=[InputRequired()],
-            description=u'Supporting details about your loss.')
+    details = TextAreaField(u'Details', validators=[InputRequired()])
     division = SelectField(u'Division', coerce=int)
     submit = SubmitField(u'Submit')
 
@@ -547,6 +546,7 @@ def submit_request():
     # Do it in here so we can access current_app (needs to be in an app
     # context)
     form.url.description = get_killmail_descriptions()
+    form.details.description = current_app.config['SRP_DETAILS_DESCRIPTION']
     # Create a list of divisions this user can submit to
     form.division.choices = current_user.submit_divisions()
     if len(form.division.choices) == 1:
