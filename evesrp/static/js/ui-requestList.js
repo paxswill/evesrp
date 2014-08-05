@@ -27,7 +27,7 @@ EveSRP.ui.requestList = {
   },
 
   setupTokenField: function setupTokenfield() {
-    var deferredRequests, deferred, attributes, bloodhound;
+    var attributes, bloodhound, bhDeferred;
     attributes = [
       'pilot',
       'corporation',
@@ -40,6 +40,7 @@ EveSRP.ui.requestList = {
       'division',
       'details'
     ];
+    // Create the bloodhound
     bloodhound = new Bloodhound({
       name: 'tokens',
       local: [],
@@ -84,17 +85,11 @@ EveSRP.ui.requestList = {
         return tokens;
       },
     });
-    // Get promises for all the requests
-    deferredRequests = $.map(attributes, function(column) {
-      return EveSRP.util.getAttributeChoices(column);
-    });
-    // And wait for them all to complete (after the bloodhound is initialized)
-    bloodhound.initialize();
-    deferred = $.when.apply($, deferredRequests);
-    deferred.done(function(responses) {
-      // Create Bloodhounds
-      var tokenfield, state;
-      $.each(arguments, function(i, data) {
+    bhDeferred = bloodhound.initialize();
+    // Add the values for each attribute to the bloodhound
+    $.each(attributes, function(i, attr) {
+      var ajax = EveSRP.util.getAttributeChoices(attr);
+      $.when(ajax, bhDeferred).done(function(data, bhDeferred) {
         var source = [],
             key, values;
         if ($.isArray(data)) {
@@ -123,9 +118,10 @@ EveSRP.ui.requestList = {
           bloodhound.add(source);
         }
       });
-      tokenfield = EveSRP.tokenfield.attachTokenfield($('.filter-tokenfield'),
-        bloodhound);
     });
+    // Attach the tokenfield
+    tokenfield = EveSRP.tokenfield.attachTokenfield($('.filter-tokenfield'),
+      bloodhound);
   },
 
   getColumns: function getColumns($rows) {
