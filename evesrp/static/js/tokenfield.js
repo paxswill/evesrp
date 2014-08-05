@@ -57,6 +57,7 @@ EveSRP.tokenfield = {
           item.attr = 'details';
           item.real_value = data[0];
           item.value = 'details:' + data[0];
+          item.sign = '=';
         } else {
           item.attr = data[0];
           if (item.attr === 'status') {
@@ -104,108 +105,20 @@ EveSRP.tokenfield = {
     History.pushState(filters, null, '/' + fullPath.join('/'));
   },
 
-  createBloodhound: function createTokenFieldBloodhound(attribute, values) {
-    var source, bloodhound;
-    source = []
-    $.each(values, function(i, value) {
-      if (! _.contains(['details', 'status'], attribute)) {
-        $.each(['=', '-', '<', '>'], function(i, sign) {
-          source.push({
-            real_value: value,
-            attr: attribute,
-            sign: sign
-          });
-        });
-      } else {
-        source.push({
-          real_value: value,
-          attr: attribute,
-          sign: '='
-        });
-      }
-    });
-    bloodhound = new Bloodhound({
-      name: attribute,
-      datumTokenizer: function(datum) {
-        var base_tokens, tokens = [];
-        base_tokens = datum.real_value.split(/\s+/);
-        $.each(base_tokens, function(index, token) {
-          if (datum.sign === '=') {
-            tokens.push(token);
-          }
-          tokens.push(datum.sign + token);
-        });
-        if (datum.sign === '=') {
-          tokens.push(datum.attr + ':' + base_tokens[0]);
-        }
-        tokens.push(datum.attr + ':' + datum.sign + base_tokens[0]);
-        return tokens;
-      },
-      queryTokenizer: function(query) {
-        var tokens, sign;
-        if (_.contains(['-', '=', '<', '>'], query.slice(0, 1))) {
-          sign = query.slice(0, 1);
-          tokens = query.slice(1).split(/\s+/);
-          tokens = _.map(tokens, function(value) {
-            return sign + tokens;
-          });
-        } else {
-          tokens = query.split(/\s+/);
-        }
-        return tokens;
-      },
-      local: source
-    });
-    bloodhound.initialize();
-    return bloodhound;
-  },
-
-  attachTokenfield: function attachTokenfield($input, bloodhounds) {
+  attachTokenfield: function attachTokenfield($input, bloodhound) {
     /* Create the typeahead arguments */
     var typeahead_args = [],
         tokenfield, state, fullPath, filter, tokens;
     typeahead_args.push({
-      hint: true,
+      hint: false,
       highlight: true
     });
-    function superBloodhound(query, cb) {
-      var category_query = query.split(':');
-      attribute = category_query[0];
-      real_query = category_query.slice(1).join(':');
-      if (real_query === '') {
-        real_query = attribute;
-        attribute = '';
-      }
-      if (bloodhounds[attribute] !== undefined) {
-        bloodhounds[attribute].get(real_query, cb);
-      } else {
-        var results = new Object;
-        for (attr in bloodhounds) {
-          bloodhounds[attr].get(real_query, function(matches) {
-            results[attr] = matches;
-            var all_back = true;
-            for (attr2 in bloodhounds) {
-              if (results[attr2] === undefined) {
-                all_back = false;
-                break;
-              }
-            }
-            if (all_back) {
-              var all_matches = [];
-              $.each(results, function(key) {
-                Array.prototype.push.apply(all_matches, results[key]);
-              });
-              cb(all_matches);
-            }
-          });
-        }
-      }
-    }
     typeahead_args.push({
       name: 'all_args',
       displayKey: function(value) {
+        var capitalized;
         if (value.attr === 'status') {
-          var capitalized = value.real_value.substr(0, 1).toUpperCase();
+          capitalized = value.real_value.substr(0, 1).toUpperCase();
           capitalized = capitalized + value.real_value.slice(1);
           return value.attr + ':' + capitalized;
         } else {
@@ -216,7 +129,7 @@ EveSRP.tokenfield = {
           }
         }
       },
-      source: superBloodhound,
+      source: bloodhound.ttAdapter(),
       // Use a Handlebars template here for the autoescaping
       templates: {
         suggestion: Handlebars.templates.filter_suggestion

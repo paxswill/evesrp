@@ -15,8 +15,12 @@
 </a></th>
 {%- endmacro %}
 
-{% macro request_cell(attr, content) -%}
-<td class="col-{{ attr }}">{{ content }}</td>
+{% macro request_cell(attr, content, filterable=True) -%}
+{% if (filterable == None and attr not in ['id', 'submit_timestamp', 'payout']) or filterable == True %}
+<td class="filterable" data-attribute="{{ attr }}"><a href="#">{{ content }}</a></td>
+{% else %}
+<td data-attribute="{{ attr }}">{{ content }}</td>
+{% endif %}
 {%- endmacro %}
 
 {% block head %}

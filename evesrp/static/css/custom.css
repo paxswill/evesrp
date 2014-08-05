@@ -19,3 +19,7 @@ td form button.close {
   -moz-box-sizing: content-box;
   box-sizing: content-box;
 }
+
+td.filterable a {
+  color: #333;
+}
