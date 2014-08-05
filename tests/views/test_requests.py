@@ -213,7 +213,8 @@ class TestRequestList(TestLogin):
         resp = client.get(path, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
         soup = BeautifulSoup(resp.get_data())
-        request_id_cols = soup.find_all('td', class_='col-status')
+        request_id_cols = soup.find_all('td',
+                attrs={'data-attribute': 'status'})
         self.assertEqual(len(request_id_cols), expected)
 
     def elevated_list_checker(self, path, expected):
