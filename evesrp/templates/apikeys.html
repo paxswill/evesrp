@@ -25,6 +25,10 @@
             </form>
           </td>
         </tr>
+        {% else %}
+        <tr>
+          <td class="text-center" colspan="3">No API keys created.</td>
+        </tr>
         {% endfor %}
       <tr>
         <td colspan="2">

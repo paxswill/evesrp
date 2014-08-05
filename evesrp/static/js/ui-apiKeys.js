@@ -21,17 +21,24 @@ EveSRP.ui.apiKeys = {
     $copyButtons.find('.copy-btn').each(function(i, btn) {
       $(btn).tooltip('destroy');
     });
-    // Attach event listeners and tooltips
-    $newRows = $(Handlebars.templates.api_keys(data));
-    $copyButtons = $newRows.find('.copy-btn');
-    EveSRP.ui.clipboardClient.clip($copyButtons);
-    $copyButtons.tooltip({
-      placement: 'bottom',
-      title: 'Copy to clipboard',
-      trigger: 'manual focus'
-    });
-    // Out with the old, in with the new
+    // Remove old rows
     $oldRows.remove();
+    // Add new rows, or a placeholder if ther're no API keys currently
+    if (data.api_keys.length !== 0) {
+      // Attach event listeners and tooltips
+      $newRows = $(Handlebars.templates.api_keys(data));
+      $copyButtons = $newRows.find('.copy-btn');
+      EveSRP.ui.clipboardClient.clip($copyButtons);
+      $copyButtons.tooltip({
+        placement: 'bottom',
+        title: 'Copy to clipboard',
+        trigger: 'manual focus'
+      });
+      // Add new rows in
+    } else {
+      $newRows = $(
+        '<tr><td class="text-center" colspan="3">No API keys created.</td></tr>');
+    }
     $heading.after($newRows);
   },
 
