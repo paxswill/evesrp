@@ -93,9 +93,7 @@ EveSRP.ui.requestList = {
         $summary = $('#requestsSummary'),
         $copyButtons, $newRows;
     if ($oldRows.length != 0) {
-      /* Remove the tooltips and unattach the clipboard client from any
-       * buttons
-       * */
+      // Remove the tooltips and unattach the clipboard client from any buttons
       $copyButtons = $oldRows.find('.copy-btn');
       if ($copyButtons.length != 0) {
         isPayout = true;
@@ -116,6 +114,8 @@ EveSRP.ui.requestList = {
       $newRows = Handlebars.templates.request_rows(requests);
     }
     $rowsParent.append($newRows);
+    $rowsParent.find('.filterable a')
+      .on('click', EveSRP.ui.requestList.addQuickFilter);
     // Update the summary
     $summary.text(data['request_count'] + ' requests • ' +
                   data['total_payouts'] + ' ISK');
@@ -237,6 +237,19 @@ EveSRP.ui.requestList = {
     return false;
   },
 
+  addQuickFilter: function addQuickFilter(ev) {
+    var $cell = $(ev.target).closest('td'),
+        token = {sign: '='};
+    token.attr = $cell.data('attribute');
+    token.real_value = $cell.text();
+    if (token.attr === 'status') {
+      token.real_value = token.real_value.toLowerCase();
+    }
+    token.value = token.label = token.attr + ':' + token.real_value;
+    $('.filter-tokenfield').tokenfield('createToken', token);
+    return false;
+  },
+
   setupEvents: function setupRequestListEvents() {
     EveSRP.ui.setupClipboard();
     /* Initialize tooltips */
@@ -252,6 +265,8 @@ EveSRP.ui.requestList = {
     $('th a.heading').on('click', this.changeSort);
     // Attach page number change listeners
     $('ul.pagination').on('click', EveSRP.ui.requestList.changePage);
+    // Attach quick filtering listeners
+    $('.filterable a').on('click', EveSRP.ui.requestList.addQuickFilter);
     // Watch the history for state changes
     $(window).on('statechange', this.getRequests);
   }
