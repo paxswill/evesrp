@@ -13,7 +13,7 @@
 
 
 {% block table_row %}
-{{ request_cell('pilot', clipboard_button(request.pilot.name)) }}
+{{ request_cell('pilot', clipboard_button(request.pilot.name), False) }}
 {{ request_cell('id', clipboard_button(request.id)) }}
 {{ request_cell('payout', clipboard_button(request.payout.currency())) }}
 <td>
