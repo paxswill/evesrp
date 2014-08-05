@@ -256,5 +256,7 @@ EveSRP.ui.requestList = {
     $(window).on('statechange', this.getRequests);
   }
 };
-EveSRP.ui.requestList.setupEvents();
-EveSRP.ui.requestList.setupTokenField();
+if ($('.filter-tokenfield').length !== 0) {
+  EveSRP.ui.requestList.setupEvents();
+  EveSRP.ui.requestList.setupTokenField();
+}

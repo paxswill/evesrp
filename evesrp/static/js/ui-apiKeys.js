@@ -55,4 +55,6 @@ EveSRP.ui.apiKeys = {
     $('#ckreateKey').on('submit', EveSRP.ui.apiKeys.modifyKey);
   }
 };
-EveSRP.ui.apiKeys.setupEvents();
+if ($('#apikeys').length !== 0) {
+  EveSRP.ui.apiKeys.setupEvents();
+}
