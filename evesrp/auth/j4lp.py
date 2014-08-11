@@ -9,14 +9,16 @@ from .models import User, Group, Pilot
 def tokengetter():
     return session.get('j4lp_token', None)
 
+
 class J4OAuth(AuthMethod):
-    def __init__(self, key, secret, **kwargs):
+    def __init__(self, key, secret, base_url, 
+                 access_token_url, authorize_url, **kwargs):
         self.j4lp = oauth.remote_app('j4lp',
-            base_url='https://j4lp.com/oauth/api/v1/',
+            base_url=base_url,
             request_token_url=None,
-            access_token_url='https://j4lp.com/oauth/token',
+            access_token_url=access_token_url,
             access_token_method='GET',
-            authorize_url='https://j4lp.com/oauth/authorize',
+            authorize_url=authorize_url,
             consumer_key=key,
             consumer_secret=secret,
             request_token_params={'scope': ['auth_info', 'auth_groups',
@@ -73,6 +75,8 @@ class J4OAuth(AuthMethod):
             if group.name not in auth_groups and group in user.groups:
                 user.groups.remove(group)
         
+        print(self.j4lp.get('characters').data['characters'])
+
         pilot = Pilot.query.get(auth_user['main_character_id'])
         if not pilot:
             pilot = Pilot(user, auth_user['main_character'],
