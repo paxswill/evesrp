@@ -262,7 +262,15 @@ class RequestListing(View):
                 .scalar()
         if total_payouts is None:
             total_payouts = PrettyDecimal(0)
-        pager = requests.paginate(filter_map['page'], per_page=15,
+        # API requests (including RSS) should have a limit of 200 requests,
+        # otherwise go with the standard 15. THe standard 15 includes
+        # XmlHttpRequest-based requests as those are going to be used to
+        # rebuild the contents of an HTML view.
+        if request.is_json or request.is_xml or request.is_rss:
+            per_page = 200
+        else:
+            per_page = 15
+        pager = requests.paginate(filter_map['page'], per_page=per_page,
                 error_out=False)
         if len(pager.items) == 0 and pager.page > 1:
             filter_map['page'] = pager.pages
