@@ -39,6 +39,12 @@ class BraveCore(AuthMethod):
         token = ensure_unicode(request.args.get('token'))
         if token is not None:
             info = self.api.core.info(token=token)
+            # Fail if we don't get anything back from Core
+            if info is None:
+                flash(u"Login failed.", u'error')
+                current_app.logger.info(u"Empty response from Core API for "
+                                        u"token {}".format(token))
+                return redirect(url_for('login.login'))
             char_name = info.character.name
             try:
                 user = CoreUser.query.filter_by(name=char_name,
