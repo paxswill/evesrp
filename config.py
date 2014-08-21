@@ -1,7 +1,3 @@
-from evesrp.auth.testauth import TestAuth
-from evesrp.auth.bravecore import BraveCore
-
-
 DEBUG = True
 
 SQLALCHEMY_ECHO = False
@@ -10,8 +6,13 @@ SRP_USER_AGENT_EMAIL = u'paxswill@paxswill.com'
 
 SQLALCHEMY_DATABASE_URI = 'postgres://localhost:5432/evesrp'
 
+# Object instances are specified as dictionaries with a 'type' key. All other
+# keys are passed as keyword arguments to the initializer for that type.
 SRP_AUTH_METHODS = [
-        TestAuth(admins=[u'paxswill',]),
+    {
+        'type': 'evesrp.auth.testauth.TestAuth',
+        'admins': [u'paxswill'],
+    },
 ]
 
 # Killmail sources are a string with the import path to a type.

@@ -55,6 +55,7 @@ csrf = CsrfProtect()
 # Ensure models are declared
 from . import models
 from .auth import models as auth_models
+from .auth import AuthMethod
 
 
 def create_app(config=None, **kwargs):
@@ -146,7 +147,16 @@ def _deprecated_object_instance(key, value):
 
 # Auth setup
 def _copy_config_to_authmethods():
-    current_app.auth_methods = current_app.config['SRP_AUTH_METHODS']
+    auth_methods = []
+    # Once the deprecated config value support is removed, this can be
+    # rewritten as a dict comprehension
+    for method in current_app.config['SRP_AUTH_METHODS']:
+        if isinstance(method, dict):
+            auth_methods.append(_instance_from_dict(method))
+        elif isinstance(method, AuthMethod):
+            _deprecated_object_instance('SRP_AUTH_METHODS', method)
+            auth_methods.append(method)
+    current_app.auth_methods = auth_methods
 
 
 # Request detail URL setup
