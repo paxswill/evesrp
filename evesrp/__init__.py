@@ -3,6 +3,7 @@ from decimal import Decimal
 import locale
 import os
 import requests
+import warnings
 from flask import Flask, current_app, g
 from flask.ext import sqlalchemy
 from flask.ext.wtf.csrf import CsrfProtect
@@ -10,6 +11,8 @@ import six
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.schema import MetaData
+from werkzeug.utils import import_string
+from .transformers import Transformer
 
 
 db = sqlalchemy.SQLAlchemy()
@@ -52,6 +55,7 @@ csrf = CsrfProtect()
 # Ensure models are declared
 from . import models
 from .auth import models as auth_models
+from .auth import AuthMethod
 
 
 def create_app(config=None, **kwargs):
@@ -93,10 +97,10 @@ def create_app(config=None, **kwargs):
     from .json import SRPEncoder
     app.json_encoder=SRPEncoder
 
-    app.before_first_request(_copy_config_to_authmethods)
+    app.before_first_request(_config_to_authmethods)
     app.before_first_request(_config_requests_session)
     app.before_first_request(_config_killmails)
-    app.before_first_request(_copy_url_converter_config)
+    app.before_first_request(_url_converter_config)
 
     # Configure the Jinja context
     # Inject variables into the context
@@ -127,29 +131,69 @@ def sqlalchemy_before():
     g.DB_STATS = DB_STATS
 
 
+# Utility function for creating instances from dicts
+def _instance_from_dict(instance_descriptor):
+    type_name = instance_descriptor.pop('type')
+    Type = import_string(type_name)
+    return Type(**instance_descriptor)
+
+
+# Utility function for raising config deprecation warnings
+def _deprecated_object_instance(key, value):
+    warnings.warn(u"Non-basic data types in configuration values are deprecated"
+                 u"({}: {})".format(key, value), DeprecationWarning,
+                 stacklevel=2)
+
+
 # Auth setup
-def _copy_config_to_authmethods():
-    current_app.auth_methods = current_app.config['SRP_AUTH_METHODS']
+def _config_to_authmethods():
+    auth_methods = []
+    # Once the deprecated config value support is removed, this can be
+    # rewritten as a dict comprehension
+    for method in current_app.config['SRP_AUTH_METHODS']:
+        if isinstance(method, dict):
+            auth_methods.append(_instance_from_dict(method))
+        elif isinstance(method, AuthMethod):
+            _deprecated_object_instance('SRP_AUTH_METHODS', method)
+            auth_methods.append(method)
+    current_app.auth_methods = auth_methods
 
 
 # Request detail URL setup
-def _copy_url_converter_config():
+def _url_converter_config():
     url_transformers = {}
     for config_key, config_value in current_app.config.items():
+        # Skip null config values
         if config_value is None:
             continue
-        index = config_key.rfind('_URL_TRANSFORMERS')
+        # Look for config keys in the format 'SRP_*_URL_TRANSFORMERS'
         if not config_key.endswith('_URL_TRANSFORMERS')\
                 or not config_key.startswith('SRP_'):
             continue
         attribute = config_key.replace('SRP_', '', 1)
         attribute = attribute.replace('_URL_TRANSFORMERS', '', 1)
         attribute = attribute.lower()
-        url_transformers[attribute] = {t.name:t for t in config_value}
+        # Create Transformer instances for this attribute
+        transformers = {}
+        for transformer_config in config_value:
+            if isinstance(transformer_config, tuple):
+                # Special case for Transformers: A 2-tuple in the form:
+                # (u'Transformer Name',
+                #     'http://example.com/transformer/slug/{}')
+                transformer = Transformer(*transformer_config)
+            elif isinstance(transformer_config, dict):
+                # Standard instance dictionary format
+                # Provide a default type value
+                transformer_config.setdefault('type',
+                        'evesrp.transformers.Transformer')
+                transformer = _instance_from_dict(transformer_config)
+            elif isinstance(transformer_config, Transformer):
+                # DEPRECATED: raw Transformer instance
+                _deprecated_object_instance(config_key, transformer_config)
+                transformer = transformer_config
+            transformers[transformer.name] = transformer
+        url_transformers[attribute] = transformers
     current_app.url_transformers = url_transformers
-    # temporary compatibility
-    current_app.ship_urls = url_transformers.get('ship_type', None)
-    current_app.pilot_urls = url_transformers.get('pilot', None)
 
 
 # Requests session setup
@@ -169,7 +213,16 @@ def _config_requests_session():
 
 # Killmail verification
 def _config_killmails():
-    current_app.killmail_sources = current_app.config['SRP_KILLMAIL_SOURCES']
+    killmail_sources = []
+    # For now, use a loop with checks. After removing the depecated config
+    # method it can be rewritten as a list comprehension
+    for source in current_app.config['SRP_KILLMAIL_SOURCES']:
+        if isinstance(source, six.string_types):
+            killmail_sources.append(import_string(source))
+        elif isinstance(source, type):
+            _deprecated_object_instance('SRP_KILLMAIL_SOURCES', source)
+            killmail_sources.append(source)
+    current_app.killmail_sources = killmail_sources
 
 
 # Work around DBAPI-specific issues with Decimal subclasses.

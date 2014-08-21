@@ -1,20 +1,3 @@
-from evesrp.killmail import CRESTMail, ZKillmail
-from evesrp.transformers import Transformer
-from evesrp.auth.testauth import TestAuth
-from evesrp.auth.bravecore import BraveCore
-
-
-class TestZKillboard(ZKillmail):
-    def __init__(self, *args, **kwargs):
-        super(TestZKillboard, self).__init__(*args, **kwargs)
-        if self.domain not in ('zkb.pleaseignore.com', 'kb.pleaseignore.com'):
-            raise ValueError(u"This killmail is from the wrong killboard")
-
-    @property
-    def value(self):
-        return 0
-
-
 DEBUG = True
 
 SQLALCHEMY_ECHO = False
@@ -23,20 +6,33 @@ SRP_USER_AGENT_EMAIL = u'paxswill@paxswill.com'
 
 SQLALCHEMY_DATABASE_URI = 'postgres://localhost:5432/evesrp'
 
+# Object instances are specified as dictionaries with a 'type' key. All other
+# keys are passed as keyword arguments to the initializer for that type.
 SRP_AUTH_METHODS = [
-        TestAuth(admins=[u'paxswill',]),
+    {
+        'type': 'evesrp.auth.testauth.TestAuth',
+        'admins': [u'paxswill'],
+    },
 ]
 
+# Killmail sources are a string with the import path to a type.
+# Custom killmail handers can be put in the instance folder or next to the
+# app's definition file.
 SRP_KILLMAIL_SOURCES = [
-        TestZKillboard,
+    'custom_killmails.TestZKillboard',
 ]
 
+# Transformers can be specified as 2-tuples of the name and slug...
 SRP_SHIP_TYPE_URL_TRANSFORMERS = [
-    Transformer(u'TEST Reimbursement Wiki',
+    (u'TEST Reimbursement Wiki',
         'https://wiki.pleaseignore.com/wiki/Reimbursement:{}'),
 ]
 
+# ...or, like other object instances in the config file, as a dictionary.
 SRP_PILOT_URL_TRANSFORMERS = [
-    Transformer(u'TEST Auth page',
-        'https://auth.pleaseignore.com/eve/character/{0.id}/'),
+    {
+        'type': 'evesrp.transformers.Transformer',
+        'name': u'TEST Auth page',
+        'slug': 'https://auth.pleaseignore.com/eve/character/{0.id}/',
+    },
 ]
