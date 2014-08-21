@@ -97,10 +97,10 @@ def create_app(config=None, **kwargs):
     from .json import SRPEncoder
     app.json_encoder=SRPEncoder
 
-    app.before_first_request(_copy_config_to_authmethods)
+    app.before_first_request(_config_to_authmethods)
     app.before_first_request(_config_requests_session)
     app.before_first_request(_config_killmails)
-    app.before_first_request(_copy_url_converter_config)
+    app.before_first_request(_url_converter_config)
 
     # Configure the Jinja context
     # Inject variables into the context
@@ -146,7 +146,7 @@ def _deprecated_object_instance(key, value):
 
 
 # Auth setup
-def _copy_config_to_authmethods():
+def _config_to_authmethods():
     auth_methods = []
     # Once the deprecated config value support is removed, this can be
     # rewritten as a dict comprehension
@@ -160,7 +160,7 @@ def _copy_config_to_authmethods():
 
 
 # Request detail URL setup
-def _copy_url_converter_config():
+def _url_converter_config():
     url_transformers = {}
     for config_key, config_value in current_app.config.items():
         # Skip null config values
