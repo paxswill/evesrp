@@ -3,6 +3,7 @@ from decimal import Decimal
 import locale
 import os
 import requests
+import warnings
 from flask import Flask, current_app, g
 from flask.ext import sqlalchemy
 from flask.ext.wtf.csrf import CsrfProtect
@@ -10,6 +11,8 @@ import six
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.schema import MetaData
+from werkzeug.utils import import_string
+from .transformers import Transformer
 
 
 db = sqlalchemy.SQLAlchemy()
@@ -127,6 +130,20 @@ def sqlalchemy_before():
     g.DB_STATS = DB_STATS
 
 
+# Utility function for creating instances from dicts
+def _instance_from_dict(instance_descriptor):
+    type_name = instance_descriptor.pop('type')
+    Type = import_string(type_name)
+    return Type(**instance_descriptor)
+
+
+# Utility function for raising config deprecation warnings
+def _deprecated_object_instance(key, value):
+    warnings.warn(u"Raw object instances in configuration values are deprecated"
+                 u"({}: {})".format(key, value), DeprecationWarning,
+                 stacklevel=2)
+
+
 # Auth setup
 def _copy_config_to_authmethods():
     current_app.auth_methods = current_app.config['SRP_AUTH_METHODS']
@@ -136,16 +153,36 @@ def _copy_config_to_authmethods():
 def _copy_url_converter_config():
     url_transformers = {}
     for config_key, config_value in current_app.config.items():
+        # Skip null config values
         if config_value is None:
             continue
-        index = config_key.rfind('_URL_TRANSFORMERS')
+        # Look for config keys in the format 'SRP_*_URL_TRANSFORMERS'
         if not config_key.endswith('_URL_TRANSFORMERS')\
                 or not config_key.startswith('SRP_'):
             continue
         attribute = config_key.replace('SRP_', '', 1)
         attribute = attribute.replace('_URL_TRANSFORMERS', '', 1)
         attribute = attribute.lower()
-        url_transformers[attribute] = {t.name:t for t in config_value}
+        # Create Transformer instances for this attribute
+        transformers = {}
+        for transformer_config in config_value:
+            if isinstance(transformer_config, tuple):
+                # Special case for Transformers: A 2-tuple in the form:
+                # (u'Transformer Name',
+                #     'http://example.com/transformer/slug/{}')
+                transformer = Transformer(*transformer_config)
+            elif isinstance(transformer_config, dict):
+                # Standard instance dictionary format
+                # Provide a default type value
+                transformer_config.setdefault('type',
+                        'evesrp.transformers.Transformer')
+                transformer = _instance_from_dict(transformer_config)
+            elif isinstance(transformer_config, Transformer):
+                # DEPRECATED: raw Transformer instance
+                _deprecated_object_instance(config_key, transformer_config)
+                transformer = transformer_config
+            transformers[transformer.name] = transformer
+        url_transformers[attribute] = transformers
     current_app.url_transformers = url_transformers
     # temporary compatibility
     current_app.ship_urls = url_transformers.get('ship_type', None)
