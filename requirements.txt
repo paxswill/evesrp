@@ -2,6 +2,7 @@
 Flask==0.10.1
 Flask-Login==0.2.10
 Flask-Migrate==1.2.0
+Flask-OAuthlib==0.6.0
 Flask-SQLAlchemy==1.0
 Flask-Script==2.0.5
 Flask-WTF==0.9.4
@@ -25,6 +26,7 @@ httmock==1.2.2
 itsdangerous==0.23
 marrow.util==1.2.3
 mock==1.0.1
+oauthlib==0.6.3
 requests==2.2.1
 simple-pbkdf2==1.0
 six==1.7.3

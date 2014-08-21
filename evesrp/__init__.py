@@ -53,6 +53,9 @@ locale.setlocale(locale.LC_ALL, '')
 csrf = CsrfProtect()
 
 
+oauth = OAuth()
+
+
 # Ensure models are declared
 from . import models
 from .auth import models as auth_models
@@ -84,6 +87,10 @@ def create_app(config=None, **kwargs):
     # is the template function.
     app.before_request_funcs[None] = before_csrf
 
+    # Hook up OAuth
+    oauth.init_app(app)
+
+    # Connect views
     from .views import index, error_page, divisions, login, requests, api
     app.add_url_rule(rule=u'/', view_func=index)
     for error_code in (400, 403, 404, 500):
