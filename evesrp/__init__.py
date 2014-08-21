@@ -139,7 +139,7 @@ def _instance_from_dict(instance_descriptor):
 
 # Utility function for raising config deprecation warnings
 def _deprecated_object_instance(key, value):
-    warnings.warn(u"Raw object instances in configuration values are deprecated"
+    warnings.warn(u"Non-basic data types in configuration values are deprecated"
                  u"({}: {})".format(key, value), DeprecationWarning,
                  stacklevel=2)
 
