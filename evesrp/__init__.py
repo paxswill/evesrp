@@ -184,9 +184,6 @@ def _copy_url_converter_config():
             transformers[transformer.name] = transformer
         url_transformers[attribute] = transformers
     current_app.url_transformers = url_transformers
-    # temporary compatibility
-    current_app.ship_urls = url_transformers.get('ship_type', None)
-    current_app.pilot_urls = url_transformers.get('pilot', None)
 
 
 # Requests session setup
