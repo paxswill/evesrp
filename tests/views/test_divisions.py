@@ -51,7 +51,7 @@ class TestDivisionDetails(TestLogin):
                     id=10))
             db.session.commit()
         self.app.config['SRP_SHIP_TYPE_URL_TRANSFORMERS'] = [
-            Transformer('Test Transformer', '')
+            ('Test Transformer', ''),
         ]
 
     def test_add_entity_by_id(self):
@@ -93,14 +93,14 @@ class TestDivisionDetails(TestLogin):
         with self.app.test_request_context():
             division = Division.query.get(1)
             self.assertEqual(division.transformers['ship_type'],
-                    self.app.config['SRP_SHIP_TYPE_URL_TRANSFORMERS'][0])
+                    self.app.url_transformers['ship_type']['Test Transformer'])
 
     def test_unset_url_transformer(self):
         client = self.login(self.admin_name)
         with self.app.test_request_context():
             division = Division.query.get(1)
             division.ship_transformer = \
-                    self.app.config['SRP_SHIP_TYPE_URL_TRANSFORMERS'][0]
+                    self.app.url_transformers['ship_type']['Test Transformer']
             db.session.commit()
         resp = client.post('/division/1/', follow_redirects=True, data={
                 'transformer': 'none',

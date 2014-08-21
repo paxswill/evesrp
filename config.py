@@ -1,17 +1,5 @@
-from evesrp.killmail import CRESTMail, ZKillmail
 from evesrp.auth.testauth import TestAuth
 from evesrp.auth.bravecore import BraveCore
-
-
-class TestZKillboard(ZKillmail):
-    def __init__(self, *args, **kwargs):
-        super(TestZKillboard, self).__init__(*args, **kwargs)
-        if self.domain not in ('zkb.pleaseignore.com', 'kb.pleaseignore.com'):
-            raise ValueError(u"This killmail is from the wrong killboard")
-
-    @property
-    def value(self):
-        return 0
 
 
 DEBUG = True
@@ -26,8 +14,11 @@ SRP_AUTH_METHODS = [
         TestAuth(admins=[u'paxswill',]),
 ]
 
+# Killmail sources are a string with the import path to a type.
+# Custom killmail handers can be put in the instance folder or next to the
+# app's definition file.
 SRP_KILLMAIL_SOURCES = [
-        TestZKillboard,
+    'custom_killmails.TestZKillboard',
 ]
 
 # Transformers can be specified as 2-tuples of the name and slug...

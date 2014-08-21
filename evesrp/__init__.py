@@ -203,7 +203,16 @@ def _config_requests_session():
 
 # Killmail verification
 def _config_killmails():
-    current_app.killmail_sources = current_app.config['SRP_KILLMAIL_SOURCES']
+    killmail_sources = []
+    # For now, use a loop with checks. After removing the depecated config
+    # method it can be rewritten as a list comprehension
+    for source in current_app.config['SRP_KILLMAIL_SOURCES']:
+        if isinstance(source, six.string_types):
+            killmail_sources.append(import_string(source))
+        elif isinstance(source, type):
+            _deprecated_object_instance('SRP_KILLMAIL_SOURCES', source)
+            killmail_sources.append(source)
+    current_app.killmail_sources = killmail_sources
 
 
 # Work around DBAPI-specific issues with Decimal subclasses.
