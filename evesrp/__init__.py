@@ -97,10 +97,10 @@ def create_app(config=None, **kwargs):
     from .json import SRPEncoder
     app.json_encoder=SRPEncoder
 
-    app.before_first_request(_config_to_authmethods)
-    app.before_first_request(_config_requests_session)
-    app.before_first_request(_config_killmails)
-    app.before_first_request(_url_converter_config)
+    _config_authmethods(app)
+    _config_requests_session(app)
+    _config_killmails(app)
+    _config_url_converters(app)
 
     # Configure the Jinja context
     # Inject variables into the context
@@ -146,23 +146,23 @@ def _deprecated_object_instance(key, value):
 
 
 # Auth setup
-def _config_to_authmethods():
+def _config_authmethods(app):
     auth_methods = []
     # Once the deprecated config value support is removed, this can be
     # rewritten as a dict comprehension
-    for method in current_app.config['SRP_AUTH_METHODS']:
+    for method in app.config['SRP_AUTH_METHODS']:
         if isinstance(method, dict):
             auth_methods.append(_instance_from_dict(method))
         elif isinstance(method, AuthMethod):
             _deprecated_object_instance('SRP_AUTH_METHODS', method)
             auth_methods.append(method)
-    current_app.auth_methods = auth_methods
+    app.auth_methods = auth_methods
 
 
 # Request detail URL setup
-def _url_converter_config():
+def _config_url_converters(app):
     url_transformers = {}
-    for config_key, config_value in current_app.config.items():
+    for config_key, config_value in app.config.items():
         # Skip null config values
         if config_value is None:
             continue
@@ -193,36 +193,36 @@ def _url_converter_config():
                 transformer = transformer_config
             transformers[transformer.name] = transformer
         url_transformers[attribute] = transformers
-    current_app.url_transformers = url_transformers
+    app.url_transformers = url_transformers
 
 
 # Requests session setup
-def _config_requests_session():
+def _config_requests_session(app):
     try:
-        ua_string = current_app.config['SRP_USER_AGENT_STRING']
+        ua_string = app.config['SRP_USER_AGENT_STRING']
     except KeyError as outer_exc:
         try:
             ua_string = 'EVE-SRP/{version} ({email})'.format(
-                    email=current_app.config['SRP_USER_AGENT_EMAIL'],
+                    email=app.config['SRP_USER_AGENT_EMAIL'],
                     version=__version__)
         except KeyError as inner_exc:
             raise inner_exc
     requests_session.headers.update({'User-Agent': ua_string})
-    current_app.user_agent = ua_string
+    app.user_agent = ua_string
 
 
 # Killmail verification
-def _config_killmails():
+def _config_killmails(app):
     killmail_sources = []
     # For now, use a loop with checks. After removing the depecated config
     # method it can be rewritten as a list comprehension
-    for source in current_app.config['SRP_KILLMAIL_SOURCES']:
+    for source in app.config['SRP_KILLMAIL_SOURCES']:
         if isinstance(source, six.string_types):
             killmail_sources.append(import_string(source))
         elif isinstance(source, type):
             _deprecated_object_instance('SRP_KILLMAIL_SOURCES', source)
             killmail_sources.append(source)
-    current_app.killmail_sources = killmail_sources
+    app.killmail_sources = killmail_sources
 
 
 # Work around DBAPI-specific issues with Decimal subclasses.
