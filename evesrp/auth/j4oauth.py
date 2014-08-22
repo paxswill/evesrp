@@ -37,11 +37,6 @@ class J4OAuth(AuthMethod):
         redirect_url = url_for('login.auth_method_login', _external=True, 
                                auth_method=self.safe_name)
         return self.j4lp.authorize(callback=redirect_url)
-    
-    def list_groups(self, user=None):
-        # i don't even know what this does
-        # thanks brave
-        pass
 
     def view(self, res):
         if res is None:
@@ -88,47 +83,7 @@ class J4OAuth(AuthMethod):
         self.login_user(user)
         return redirect(url_for('index'))
 
-#            info = self.api.core.info(token=token)
-#            char_name = info.character.name
-#            try:
-#                user = CoreUser.query.filter_by(name=char_name,
-#                        authmethod=self.name).one()
-#                user.token = token
-#            except NoResultFound:
-#                user = CoreUser(name=char_name, authmethod=self.name,
-#                        token=token)
-#                db.session.add(user)
-#            # Apply admin flag
-#            user.admin = user.name in self.admins
-#            # Sync up group membership
-#            for group_name in info.tags:
-#                try:
-#                    group = CoreGroup.query.filter_by(name=group_name,
-#                            authmethod=self.name).one()
-#                except NoResultFound:
-#                    group = CoreGroup(group_name, self.name)
-#                    db.session.add(group)
-#                user.groups.add(group)
-#            user_groups = deepcopy(user.groups)
-#            for group in user_groups:
-#                if group.name not in info.tags and group in user.groups:
-#                    user.groups.remove(group)
-#            # Sync pilot (just the primary for now)
-#            pilot = Pilot.query.get(info.character.id)
-#            if not pilot:
-#                pilot = Pilot(user, char_name, info.character.id)
-#                db.session.add(pilot)
-#            else:
-#                pilot.user = user
-#            db.session.commit()
-#            self.login_user(user)
-#            # TODO Have a meaningful redirect for this
-#            return redirect(url_for('index'))
-#        else:
-#            flash(u"Login failed.", u'error')
-#            return redirect(url_for('login.login'))
-#
-#
+
 class J4LPUser(User):
     id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
 
