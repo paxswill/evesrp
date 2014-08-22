@@ -61,7 +61,6 @@ from . import models
 from .auth import models as auth_models
 from .auth import AuthMethod
 
-oauth = OAuth()
 
 def create_app(config=None, **kwargs):
     app = Flask('evesrp', **kwargs)
@@ -76,7 +75,6 @@ def create_app(config=None, **kwargs):
     app.before_request(sqlalchemy_before)
 
     db.init_app(app)
-    oauth.init_app(app)
 
     from .views.login import login_manager
     login_manager.init_app(app)
