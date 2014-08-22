@@ -1,93 +1,74 @@
-from flask import current_app, redirect, url_for, flash, session
-from copy import deepcopy
+from __future__ import absolute_import
+from flask import request
 from sqlalchemy.orm.exc import NoResultFound
 
-from .. import db, oauth
-from . import AuthMethod
-from .models import User, Group, Pilot
-
-def tokengetter():
-    return session.get('j4lp_token', None)
+from .. import db
+from .oauth import OAuthMethod, OAuthUser
+from .models import Group, Pilot
 
 
-class J4OAuth(AuthMethod):
-    def __init__(self, key, secret, base_url, 
-                 access_token_url, authorize_url, **kwargs):
-        self.j4lp = oauth.remote_app('j4lp',
-            base_url=base_url,
-            request_token_url=None,
-            access_token_url=access_token_url,
-            access_token_method='GET',
-            authorize_url=authorize_url,
-            consumer_key=key,
-            consumer_secret=secret,
-            request_token_params={'scope': ['auth_info', 'auth_groups',
-                                            'characters']},
-        )
-        
-        if 'name' not in kwargs:
-            kwargs['name'] = 'J4LP'
-        
-        self.view = self.j4lp.authorized_handler(self.view)
-        self.j4lp.tokengetter(tokengetter)
+class J4OAuth(OAuthMethod):
+    """:py:class:`AuthMethod` for using
+    `J4OAuth <https://github.com/J4LP/J4OAuth>`_ as an authentication source.
+    """
 
+    def __init__(self, **kwargs):
+        kwargs.setdefault('base_url', 'https://j4lp.com/oauth/api/v1/')
+        kwargs.setdefault('access_token_url', 'https://j4lp.com/oauth/token')
+        kwargs.setdefault('authorize_url', 'https://j4lp.com/oauth/authorize')
+        kwargs.setdefault('access_token_method', 'GET')
+        kwargs.setdefault('request_token_params',
+                {'scope': ['auth_info', 'auth_groups', 'characters']})
+        kwargs.setdefault('name', u'J4OAuth')
         super(J4OAuth, self).__init__(**kwargs)
-        
-    def login(self, form):
-        redirect_url = url_for('login.auth_method_login', _external=True, 
-                               auth_method=self.safe_name)
-        return self.j4lp.authorize(callback=redirect_url)
 
-    def view(self, res):
-        if res is None:
-            flash('Auth denied', 'danger')
-            return redirect(url_for('login.login'))
-        
-        session['j4lp_token'] = (res['access_token'], '')
-        auth_user = self.j4lp.get('auth_user').data['user']
+    def _get_user_data(self, token):
+        if not hasattr(request, '_auth_user_data'):
+            resp = self.oauth.get('auth_user', token=token)
+            request._auth_user_data = resp.data[u'user']
+        return request._auth_user_data
+
+    def get_user(self, token):
+        auth_user = self._get_user_data(token)
         try:
-            user = J4LPUser.query.filter_by(name=auth_user['main_character'],
+            user = OAuthUser.query.filter_by(name=auth_user['main_character'],
                                             authmethod=self.name).one()
         except NoResultFound:
-            user = J4LPUser(name=auth_user['main_character'], authmethod=self.name)
+            user = OAuthUser(name=auth_user['main_character'],
+                    authmethod=self.name)
             db.session.add(user)
-        user.admin = user.name in self.admins
+            db.session.commit()
+        return user
 
-        auth_groups = self.j4lp.get('auth_groups').data['groups']
-        auth_groups.append('{} alliance'.format(auth_user['alliance']))
+    def get_pilots(self, token):
+        pilots = []
+        auth_characters = self.oauth.get('characters', token=token)\
+                .data[u'characters']
+        for character in auth_characters:
+            pilot = Pilot.query.get(int(character[u'characterID']))
+            if pilot is None:
+                # Pass 'None' as the user, it will get set later
+                pilot = Pilot(None, character[u'characterName'],
+                        character[u'characterID'])
+                db.session.add(pilot)
+            pilots.append(pilot)
+        return pilots
 
+    def get_groups(self, token):
+        groups = []
+        auth_groups = self.oauth.get('auth_groups',
+                token=token).data[u'groups']
+        # Append the user's alliance to the normal list of groups
+        auth_user = self._get_user_data(token)
+        auth_groups.append(u'{} alliance'.format(auth_user[u'alliance']))
+        # Create/Retrieve Group objects for every group name
         for group_name in auth_groups:
             try:
-                group = J4LPGroup.query.filter_by(name=group_name,
-                                                  authmethod=self.name).one()
+                group = Group.query.filter_by(name=group_name,
+                        authmethod=self.name).one()
             except NoResultFound:
-                group = J4LPGroup(group_name, self.name)
+                group = Group(group_name, self.name)
                 db.session.add(group)
-            user.groups.add(group)
-
-        user_groups = deepcopy(user.groups)
-        for group in user_groups:
-            if group.name not in auth_groups and group in user.groups:
-                user.groups.remove(group)
-        
-        print(self.j4lp.get('characters').data['characters'])
-
-        pilot = Pilot.query.get(auth_user['main_character_id'])
-        if not pilot:
-            pilot = Pilot(user, auth_user['main_character'],
-                          auth_user['main_character_id'])
-            db.session.add(pilot)
-        else:
-            pilot.user = user
+            groups.append(group)
         db.session.commit()
-        self.login_user(user)
-        return redirect(url_for('index'))
-
-
-class J4LPUser(User):
-    id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
-
-
-class J4LPGroup(Group):
-    id = db.Column(db.Integer, db.ForeignKey('group.id'), primary_key=True)
-    description = db.Column(db.Text(convert_unicode=True))
+        return groups
