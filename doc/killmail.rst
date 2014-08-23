@@ -190,5 +190,3 @@ Developer API
 
 .. autoclass:: LocationMixin
     :exclude-members: __weakref__
-
-.. autofunction:: ShipURLMixin

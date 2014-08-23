@@ -38,12 +38,6 @@ class Killmail(object):
 
         The human readable name of the ship lost for this killmail.
 
-    .. py:attribute:: ship_url
-
-        This is an optional atribute for subclasses to implement. It's intended
-        to be used for requests to link to a custom, possibly external,
-        ship-specific page.
-
     .. py:attribute:: pilot_id
 
         The ID number of the pilot who lost the ship. Referred to by CCP as
@@ -75,15 +69,16 @@ class Killmail(object):
     .. py:attribute:: url
 
         A URL for viewing this killmail's information later. Typically an
-        online killboard such as `zKillboard <https://zkillboard.com>`, but
+        online killboard such as `zKillboard <https://zkillboard.com>`_, but
         other kinds of links may be used.
 
     .. py:attribute:: value
 
         The extimated ISK loss for the ship destroyed in this killmail. This is
         an optional attribute, and is ``None`` if unsupported. If this
-        attribute is set, it should be a :py:class:`~.Decimal` or a type that
-        can be used as the value for the Decimal constructor.
+        attribute is set, it should be a :py:class:`~.Decimal` or at least a
+        type that can be used as the value for the :py:class:`~.Decimal`
+        constructor.
 
     .. py:attribute:: timestamp
 
@@ -97,11 +92,20 @@ class Killmail(object):
         :py:class:`~evesrp.models.Request`.
 
     .. py:attribute:: system
+
+        The name of the system where the kill occured.
+
     .. py:attribute:: system_id
+
+        The ID of the system where the kill occured.
+
     .. py:attribute:: constellation
+
+        The name of the constellation where the kill occured.
+
     .. py:attribute:: region
 
-        The system/constellation/region where the kill occured.
+        The name of the region where the kill occured.
     """
 
     def __init__(self, **kwargs):
@@ -114,10 +118,10 @@ class Killmail(object):
         :param: keyword arguments corresponding to attributes.
         """
         self._data = defaultdict(lambda: None)
-        for attr in (u'kill_id', u'ship_id', u'ship', u'pilot_id', u'pilot',
-                u'corp_id', u'corp', u'alliance_id', u'alliance', u'verified',
-                u'url', u'value', u'timestamp', u'system', u'constellation',
-                u'region', u'system_id'):
+        for attr in ('kill_id', 'ship_id', 'ship', 'pilot_id', 'pilot',
+                     'corp_id', 'corp', 'alliance_id', 'alliance', 'verified',
+                     'url', 'value', 'timestamp', 'system', 'constellation',
+                     'region', 'system_id'):
             try:
                 setattr(self, attr, kwargs[attr])
             except KeyError:
@@ -126,9 +130,9 @@ class Killmail(object):
                 del kwargs[attr]
         super(Killmail, self).__init__(**kwargs)
 
-    # Any attribute not starting with an underscore will now be stored in a
-    # separate, private attribute. This is to allow attribute on Killmail to be
-    # redfined as a property.
+    # Any attribute not starting with an underscore will be stored in a
+    # separate, private attribute. This is to allow attributes on Killmail to
+    # be redfined as a property.
 
     def __getattr__(self, name):
         try:
@@ -151,9 +155,9 @@ class Killmail(object):
         """Iterate over the attributes of this killmail.
 
         Yields tuples in the form ``('<name>', <value>)``. This is used by
-        :py:meth:`evesrp.models.Request.__init__` to initialize its data
-        quickly. The `<name>` in the returned tuples is the name of the
-        attribute on the :py:class:`~evesrp.models.Request`.
+        :py:meth:`Request.__init__ <evesrp.models.Request.__init__>` to
+        initialize its data quickly. ``<name>`` in the returned tuples is the
+        name of the attribute on the :py:class:`~evesrp.models.Request`.
         """
         yield ('id', self.kill_id)
         yield ('ship_type', self.ship)
@@ -167,10 +171,12 @@ class Killmail(object):
         yield ('region', self.region)
         yield ('pilot_id', self.pilot_id)
 
-    #: A user-facing description of what killmails this Killmail
-    #: validates/handles.
-    description = (u"A generic Killmail. If you see this text, you need to"
-                   u"reconfigure your application.")
+    #: A user-facing description of what kind of killmails this
+    #: :py:class:`Killmail` validates/handles. This text is displayed below
+    #: the text field for a killmail URL to let users know what kinds of links
+    #: are acceptable.
+    description = (u"A generic Killmail. If you see this text, you need to "
+                   u"configure your application.")
 
 
 class ShipNameMixin(object):
@@ -240,7 +246,7 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
     zkb_regex = re.compile(r'/(detail|kill)/(?P<kill_id>\d+)/?')
 
     def __init__(self, url, **kwargs):
-        """Create a killmail from the given URL.
+        """Create a killmail from the given zKillboard URL.
 
         :param str url: The URL of the killmail.
         :raises ValueError: if ``url`` isn't a valid zKillboard killmail.
