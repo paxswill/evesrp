@@ -107,38 +107,6 @@ class TestAuth(AuthMethod):
             # an invalid response.
             abort(403)
 
-    def list_groups(self, user=None):
-        """Return a list of groups descriptors.
-
-        If user is None, return _all_ groups. Otherwise, return the groups a
-        member is part of.
-        """
-        if user is None:
-            response = requests_session.get(
-                    'https://auth.pleaseignore.com/api/1.0/info',
-                    params={'request': 'groups'})
-            # TODO Handle possible errors
-            groups = set()
-            for group in response.json():
-                group_tuple = (group[u'name'], cls.__name__)
-                groups.add(group_tuple)
-            return groups
-        else:
-            # NOTE: THis might not be a secure/proper check. Test it.
-            if user.authmethod() != cls:
-                # TODO: Raise an exception here, this is the wrong authmethod
-                # for this user.
-                return None
-            # TODO: Needs an Auth API key passed in somehow
-            response = requests_session.get(
-                    'https://auth.pleaseignore.com/api/1.0/user',
-                    params={'userid': user.auth_id(), 'apikey': self.apikey})
-            groups = set()
-            for group in response.json()[u'groups']:
-                group_tuple = (group[u'name'], cls.__name__)
-                groups.add(group_tuple)
-            return groups
-
 
 class TestUser(User):
     id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)

@@ -32,9 +32,6 @@ class AuthMethod(object):
         """
         pass
 
-    def list_groups(self, user=None):
-        pass
-
     def view(self):
         """Optional method for providing secondary views.
 

@@ -32,9 +32,6 @@ class BraveCore(AuthMethod):
         core_url = response[u'location']
         return redirect(core_url)
 
-    def list_groups(self, user=None):
-        pass
-
     def view(self):
         token = ensure_unicode(request.args.get('token'))
         if token is not None:
