@@ -15,6 +15,23 @@ from .models import User, Group, Pilot
 class BraveCore(AuthMethod):
     def __init__(self, client_key, server_key, identifier,
             url='https://core.braveineve.com', **kwargs):
+        """
+        Authentication method using a `Brave Core
+        <https://github.com/bravecollective/core>` instance.
+
+        Uses the native Core API to authenticate users. Currently only supports
+        a single character at a time due to limitations in Core's API.
+
+        :param client_key: The client's private key.
+        :type client_key: :py:class:`ecdsa.SigningKey`
+        :param server_key: The server's public key for this app.
+        :type server_key: :py:class:`ecdsa.VerifyingKey`
+        :param str identifier: The identifier for this app in Core.
+        :param str url: The URL of the Core instance to authenticate against.
+            Default: 'https://core.braveineve.com'
+        :param str name: The user-facing name for this authentication method.
+            Default: 'Brave Core'
+        """
         self.api = API(url, identifier, client_key, server_key,
                 requests_session).api
         if 'name' not in kwargs:
@@ -75,7 +92,6 @@ class BraveCore(AuthMethod):
                 pilot.user = user
             db.session.commit()
             self.login_user(user)
-            # TODO Have a meaningful redirect for this
             return redirect(url_for('index'))
         else:
             flash(u"Login failed.", u'error')
@@ -83,10 +99,16 @@ class BraveCore(AuthMethod):
 
 
 class CoreUser(User):
+
     id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+
+    #: The token given by Core to retrieve information about this user.
+    #: Typically valid for 30 days.
     token = db.Column(db.String(100, convert_unicode=True))
 
 
 class CoreGroup(Group):
+
     id = db.Column(db.Integer, db.ForeignKey('group.id'), primary_key=True)
+
     description = db.Column(db.Text(convert_unicode=True))

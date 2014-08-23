@@ -122,10 +122,10 @@ With these in mind, let's implement our :py:class:`AuthMethod` subclass::
 
 
 That's all that's necessary for a very simple :py:class:`AuthMethod`. This
-example cuts some corners, and isn't really ready for production-level use, but
+example cuts some corners, and isn't ready for production-level use, but
 it serves as a quick example of what's necessary to write a custom
-authentication method. Feel free to look at the sources for the provided
-:py:class:`AuthMethod`\s to gather ideas on how to use more complicated
+authentication method. Feel free to look at the sources for the included
+:py:class:`AuthMethod`\s below to gather ideas on how to use more complicated
 mechanisms.
 
 Included Authentication Methods
@@ -136,29 +136,16 @@ Included Authentication Methods
 TEST Legacy
 -----------
 
-Authenticates against TEST Auth instances using the legacy (a.k.a. version 1)
-API.
-
 .. autoclass:: TestAuth
     :show-inheritance:
-
-.. autoclass:: TestUser
-
-.. autoclass:: TestGroup
 
 .. py:module:: evesrp.auth.bravecore
 
 Brave Core
 ----------
 
-Authenticates against instances of Brave Core using the native Core API.
-
 .. autoclass:: BraveCore
     :show-inheritance:
-
-.. autoclass:: CoreUser
-
-.. autoclass:: CoreGroup
 
 Low-Level API
 =============
