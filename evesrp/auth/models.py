@@ -33,8 +33,8 @@ class Entity(db.Model, AutoID, AutoName):
     Group subclasses such as automatically defining the table name and mapper
     arguments.
 
-    You should `not` inherit fomr this class directly, and should instead
-    inherit from either :py:class:`User` or :py:class:`Group`.
+    This class should `not` be inherited from directly, instead either
+    :py:class:`User` or :py:class:`Group` should be used.
     """
 
     #: The name of the entity. Usually a nickname.
@@ -78,15 +78,15 @@ class Entity(db.Model, AutoID, AutoName):
     def has_permission(self, permissions, division_or_request=None):
         """Returns if this entity has been granted a permission in a division.
 
-        If ``division`` is ``None``, this method checks if this group has the
-        given permission in `any` division.
+        If ``division_or_request`` is ``None``, this method checks if this
+        group has the given permission in `any` division.
 
         :param permissions: The series of permissions to check
         :type permissions: iterable
         :param division_or_request: The division to check. May also be ``None``
             or an SRP request.
         :type division: :py:class:`Division` or :py:class:`~.models.Request`
-        :rtype bool:
+        :rtype: bool
         """
         if permissions in PermissionType.all:
             permissions = (permissions,)
@@ -107,12 +107,15 @@ class Entity(db.Model, AutoID, AutoName):
 
 
 class APIKey(db.Model, AutoID, AutoName, Timestamped):
+    """Represents an API key for use with the :ref:`external-api`."""
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
+    #: The :py:class:`User` this key belongs to.
     user = db.relationship('User', back_populates='api_keys',
             cascade='save-update,merge,refresh-expire,expunge')
 
+    #: The raw key data.
     key = db.Column(db.LargeBinary(32), nullable=False)
 
     def __init__(self, user):
@@ -121,6 +124,7 @@ class APIKey(db.Model, AutoID, AutoName, Timestamped):
 
     @property
     def hex_key(self):
+        """The key data in a modified base-64 format safe for use in URLs."""
         return urlsafe_b64encode(self.key).decode('utf-8').replace(u'=', u',')
 
 
@@ -218,17 +222,21 @@ class User(Entity):
 
 
 class Note(db.Model, AutoID, Timestamped, AutoName):
+    """A note about a particular :py:class:`User`."""
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
+    #: The :py:class:`User` this note refers to.
     user = db.relationship(User, back_populates='notes',
             cascade='save-update,merge,refresh-expire,expunge',
             foreign_keys=[user_id])
 
+    #: The actual contents of this note.
     content = db.Column(db.Text(convert_unicode=True), nullable=False)
 
     noter_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
+    #: The author of this note.
     noter = db.relationship(User, back_populates='notes_made',
             cascade='save-update,merge,refresh-expire,expunge',
             foreign_keys=[noter_id])

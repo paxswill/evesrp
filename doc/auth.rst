@@ -59,6 +59,8 @@ customize thier behavior.
   :py:meth:`AuthMethod.view` method can be implemented to handle requests made
   to ``login/safe_name`` where ``safe_name`` is the output of
   :py:attr:`AuthMethod.safe_name`\.
+* Finally, the initializer should be overridden to provide a default name for
+  your :py:class:`AuthMethod` other than ``Base Authentication``.
 * Finally, the initializer can be overridden to handle specialized
   configurations.
 
@@ -126,8 +128,40 @@ authentication method. Feel free to look at the sources for the provided
 :py:class:`AuthMethod`\s to gather ideas on how to use more complicated
 mechanisms.
 
-API Documentation
-=================
+Included Authentication Methods
+===============================
+
+.. py:module:: evesrp.auth.testauth
+
+TEST Legacy
+-----------
+
+Authenticates against TEST Auth instances using the legacy (a.k.a. version 1)
+API.
+
+.. autoclass:: TestAuth
+    :show-inheritance:
+
+.. autoclass:: TestUser
+
+.. autoclass:: TestGroup
+
+.. py:module:: evesrp.auth.bravecore
+
+Brave Core
+----------
+
+Authenticates against instances of Brave Core using the native Core API.
+
+.. autoclass:: BraveCore
+    :show-inheritance:
+
+.. autoclass:: CoreUser
+
+.. autoclass:: CoreGroup
+
+Low-Level API
+=============
 
 .. py:module:: evesrp.auth
 
@@ -151,29 +185,22 @@ API Documentation
     :exclude-members: type_
 
 .. autoclass:: User
+    :show-inheritance:
+
+.. autoclass:: Pilot
+    :exclude-members: user_id
+
+.. autoclass:: APIKey
+
+.. autoclass:: Note
 
 .. autoclass:: Group
+    :show-inheritance:
 
 .. autoclass:: Permission
     :exclude-members: division_id, entity_id
 
 .. autoclass:: Division
 
-.. autoclass:: Pilot
-    :exclude-members: user_id
-
-.. py:module:: evesrp.auth.testauth
-
-.. autoclass:: TestAuth
-
-.. autoclass:: TestUser
-
-.. autoclass:: TestGroup
-
-.. py:module:: evesrp.auth.bravecore
-
-.. autoclass:: BraveCore
-
-.. autoclass:: CoreUser
-
-.. autoclass:: CoreGroup
+.. autoclass:: TransformerRef
+    :exclude-members: prune_null_transformers, __init__

@@ -14,7 +14,15 @@ class AuthForm(Form):
 
 
 class AuthMethod(object):
+    """Represents an authentication mechanism for users."""
+
     def __init__(self, admins=None, name=u'Base Authentication', **kwargs):
+        """
+        :param admins: A list of usernames to treat as site-wide
+            administrators. Useful for initial setup.
+        :type admins: list
+        :param str name: The user-facing name for this authentication method.
+        """
         if admins is None:
             self.admins = []
         else:
@@ -22,7 +30,7 @@ class AuthMethod(object):
         self.name = ensure_unicode(name)
 
     def form(self):
-        """Return a form class to login with."""
+        """Return a :py:class:`flask.ext.wtf.Form` subclass to login with."""
         return AuthForm
 
     def login(self, form):
@@ -49,8 +57,8 @@ class AuthMethod(object):
     def login_user(user):
         """Signal to the authentication systems that a new user has logged in.
 
-        Handles sending the :py:data:`flask.ext.principal.identity_changed`
-        signal and calling :py:func:`flask.ext.login.login_user` for you.
+        Handles calling :py:func:`flask.ext.login.login_user` and any other
+        related housekeeping functions for you.
 
         :param user: The user that has been authenticated and is logging in.
         :type user: :py:class:`~models.User`
@@ -62,8 +70,8 @@ class AuthMethod(object):
         """Normalizes a string to be a valid Python identifier (along with a few
         other things).
 
-        Specifically, all letters are lower cased, only ASCII characters, and
-        whitespace replaced by underscores.
+        Specifically, all letters are lower cased and non-ASCII and whitespace
+        are replaced by underscores.
 
         :returns: The normalized string.
         :rtype str:
@@ -77,7 +85,7 @@ class AuthMethod(object):
 
 
 class PermissionType(DeclEnum):
-    """Enumerated type for the typers of permissions available. """
+    """Enumerated type for the types of permissions available. """
 
     #: Permission allowing submission of :py:class:`~.Request`\s to a
     #: :py:class:`~.Division`.
