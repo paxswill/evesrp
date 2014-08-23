@@ -482,9 +482,15 @@ class ValidKillmail(URL):
         except ValueError as e:
             if six.PY2:
                 raise ValidationError(unicode(e))
+            else:
+                # Py3 chains the exceptions
+                raise ValidationError
         except LookupError as e:
             if six.PY2:
                 raise ValidationError(unicode(e))
+            else:
+                # Py3 chains the exceptions
+                raise ValidationError
         else:
             if mail.verified:
                 form.killmail = mail
