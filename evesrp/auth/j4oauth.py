@@ -8,11 +8,27 @@ from .models import Group, Pilot
 
 
 class J4OAuth(OAuthMethod):
-    """:py:class:`AuthMethod` for using
-    `J4OAuth <https://github.com/J4LP/J4OAuth>`_ as an authentication source.
-    """
 
     def __init__(self, **kwargs):
+        """:py:class:`~.AuthMethod` for using
+        `J4OAuth <https://github.com/J4LP/J4OAuth>`_ as an authentication
+        source.
+
+        :param str authorize_url: The URL to request OAuth authorization
+            tokens. Default:
+            ``'https://j4lp.com/oauth/authorize'``.
+        :param str access_token_url: The URL for OAuth token exchange. Default:
+            ``'https://j4lp.com/oauth/token'``.
+        :param str base_str: The base URL for API requests. Default:
+            ``'https://j4lp.com/oauth/api/v1/'``.
+        :param dict request_token_params: Additional parameters to include with
+            the authorization token request. Default: ``{'scope':
+            ['auth_info', 'auth_groups', 'characters']}``.
+        :param str access_token_method: HTTP Method to use for exchanging
+            authorization tokens for access tokens. Default: ``'GET'``.
+        :param str name: The name for this authentication method. Default:
+            ``'J4OAuth'``.
+        """
         kwargs.setdefault('base_url', 'https://j4lp.com/oauth/api/v1/')
         kwargs.setdefault('access_token_url', 'https://j4lp.com/oauth/token')
         kwargs.setdefault('authorize_url', 'https://j4lp.com/oauth/authorize')

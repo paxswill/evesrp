@@ -19,13 +19,48 @@ def token_getter():
 
 
 class OAuthMethod(AuthMethod):
-    """Abstract :py:class:`~.AuthMethod` for OAuth-based login methods.
-
-    Implementing classes need to implement :py:meth:`get_user`\,
-    :py:meth:`get_pilots`\, and :py:meth:`get_groups`\.
-    """
 
     def __init__(self, **kwargs):
+        """Abstract :py:class:`~.AuthMethod` for OAuth-based login methods.
+
+        Implementing classes need to implement :py:meth:`get_user`\,
+        :py:meth:`get_pilots`\, and :py:meth:`get_groups`\.
+
+        In addition to the keyword arguments from :py:class:`~.AuthMethod`,
+        this initializer accepts the following arguments that will be used in
+        the creation of the :py:attr:`OAuthMethod.oauth` object (See the
+        documentation for :py:class:`~flask_oauthlib.client.OAuthRemoteApp` for
+        more details):
+
+        * ``base_url``
+        * ``request_token_url``
+        * ``access_token_url``
+        * ``authorize_url``
+        * ``consumer_key``
+        * ``consumer_secret``
+        * ``request_token_params``
+        * ``access_token_params``
+        * ``access_token_method``
+        * ``content_type``
+        * ``app_key``
+        * ``encoding``
+
+        As a convenience, the ``key`` and ``secret`` keyword arguments will be
+        treated as ``consumer_key`` and ``consumer_secret`` respectively. The
+        ``name`` argument is used for both :py:class:`~.AuthMethod` and for
+        :py:class:`~flask_oauthlib.client.OAuthRemoteApp`.
+
+        Subclasses for providers that may be used by more than one entity are
+        encouraged to provide their own defaults for the above arguments.
+
+        The redirect URL for derived classes is based off of the
+        :py:attr:`~.AuthMethod.safe_name` of the implementing
+        :py:class:`~.AuthMethod`, specifically the URL for
+        :py:meth:`~.AuthMethod.view`. For example, the default redirect URL for
+        :py:class:`~.TestOAuth` is similar to
+        ``https://example.com/login/test_oauth/`` (Note the trailing slash, it
+        is significant).
+        """
         # Allow using 'secret' and 'key' instead of 'consumer_[secret|key]'
         if 'key' in kwargs:
             kwargs['consumer_key'] = kwargs.pop('key')

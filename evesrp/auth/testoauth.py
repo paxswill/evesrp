@@ -12,6 +12,27 @@ from .models import Group, Pilot
 class TestOAuth(OAuthMethod):
 
     def __init__(self, devtest=False, **kwargs):
+        """:py:class:`~.AuthMethod` using TEST Auth's OAuth-based API for
+        authentication and authorization.
+
+        :param bool devtest: Testing parameter that changes the default domain
+            for URLs from 'https://auth.pleaseignore.com' to
+            'https://auth.devtest.pleaseignore.com`. Default: ``False``.
+        :param str authorize_url: The URL to request OAuth authorization
+            tokens. Default:
+            ``'https://auth.pleaseignore.com/oauth2/authorize'``.
+        :param str access_token_url: The URL for OAuth token exchange. Default:
+            ``'https://auth.pleaseignore.com/oauth2/access_token'``.
+        :param str base_str: The base URL for API requests. Default:
+            ``'https://auth.pleaseignore.com/api/v3/'``.
+        :param dict request_token_params: Additional parameters to include with
+            the authorization token request. Default: ``{'scope':
+            'private-read'}``.
+        :param str access_token_method: HTTP Method to use for exchanging
+            authorization tokens for access tokens. Default: ``'POST'``.
+        :param str name: The name for this authentication method. Default:
+            ``'Test OAuth'``.
+        """
         if not devtest:
             domain = 'https://auth.pleaseignore.com'
         else:
@@ -84,7 +105,9 @@ class TestOAuth(OAuthMethod):
 
 
 class TestOAuthUser(OAuthUser):
+
     id = db.Column(db.Integer, db.ForeignKey(OAuthUser.id), primary_key=True)
+
     auth_id = db.Column(db.Integer, nullable=False, index=True)
 
     def __init__(self, username, auth_id, authmethod, groups=None, **kwargs):
@@ -93,7 +116,9 @@ class TestOAuthUser(OAuthUser):
 
 
 class TestOAuthGroup(Group):
+
     id = db.Column(db.Integer, db.ForeignKey(Group.id), primary_key=True)
+
     auth_id = db.Column(db.Integer, nullable=False, index=True)
 
     def __init__(self, name, auth_id, authmethod, **kwargs):
