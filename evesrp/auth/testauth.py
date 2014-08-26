@@ -22,7 +22,7 @@ class TestLoginForm(AuthForm):
 class TestAuth(AuthMethod):
     def __init__(self, api_key=None, **kwargs):
         """Authentication method using `TEST Auth
-        <https://github.com/nikdoof/test-auth>`'s legacy (a.k.a v1) API.
+        <https://github.com/nikdoof/test-auth>`_'s legacy (a.k.a v1) API.
 
         :param str api_key: (optional) An Auth API key. Without this, only
             primary characters are able to be accessed/used.

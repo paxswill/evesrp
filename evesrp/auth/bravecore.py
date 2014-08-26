@@ -17,7 +17,7 @@ class BraveCore(AuthMethod):
             url='https://core.braveineve.com', **kwargs):
         """
         Authentication method using a `Brave Core
-        <https://github.com/bravecollective/core>` instance.
+        <https://github.com/bravecollective/core>`_ instance.
 
         Uses the native Core API to authenticate users. Currently only supports
         a single character at a time due to limitations in Core's API.
