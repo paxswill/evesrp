@@ -97,10 +97,10 @@ def create_app(config=None, **kwargs):
     from .json import SRPEncoder
     app.json_encoder=SRPEncoder
 
-    _config_authmethods(app)
     _config_requests_session(app)
-    _config_killmails(app)
     _config_url_converters(app)
+    _config_authmethods(app)
+    _config_killmails(app)
 
     # Configure the Jinja context
     # Inject variables into the context
@@ -207,8 +207,9 @@ def _config_requests_session(app):
                     version=__version__)
         except KeyError as inner_exc:
             raise inner_exc
+    requests_session = requests.Session()
     requests_session.headers.update({'User-Agent': ua_string})
-    app.user_agent = ua_string
+    app.requests_session = requests_session
 
 
 # Killmail verification

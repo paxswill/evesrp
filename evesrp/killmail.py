@@ -9,7 +9,7 @@ import sys
 import six
 from .util import unistr, urlparse, urlunparse, utc
 
-from flask import Markup
+from flask import Markup, current_app
 import requests
 from sqlalchemy import create_engine, Table, MetaData
 from sqlalchemy.sql import select
@@ -234,7 +234,10 @@ class RequestsSessionMixin(object):
         :type requests: :py:class:`~requests.Session`
         """
         if requests_session is None:
-            self.requests_session = requests.Session()
+            if hasattr(current_app, 'requests_session'):
+                self.requests_session = current_app.requests_session
+            else:
+                self.requests_session = requests.Session()
         else:
             self.requests_session = requests_session
         super(RequestsSessionMixin, self).__init__(**kwargs)
