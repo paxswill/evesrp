@@ -6,7 +6,7 @@ from six.moves.urllib.parse import urlparse
 from os import environ as env
 import httmock
 from httmock import urlmatch
-from evesrp import create_app, db
+from evesrp import create_app, db, init_app
 from evesrp.auth import AuthMethod, AuthForm
 from evesrp.auth.models import User
 from wtforms.fields import StringField
@@ -77,6 +77,7 @@ class TestLogin(TestApp):
                 NullAuth(name='Null Auth 2'),
         ]
         self.app.config['SRP_AUTH_METHODS'] = self.auth_methods
+        init_app(self.app)
         self.normal_name = 'Normal User'
         self.admin_name = 'Admin User'
         self.default_authmethod = self.auth_methods[0]

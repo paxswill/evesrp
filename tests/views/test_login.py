@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 from ..util import TestApp, TestLogin
+import evesrp
 from evesrp import db
 from evesrp.auth import AuthMethod, AuthForm
 from evesrp.auth.models import User
@@ -55,6 +56,7 @@ class TestMethodTabs(TestLogin):
     def test_single_auth_method(self):
         # Remove the second auth method
         self.app.config['SRP_AUTH_METHODS'].pop()
+        evesrp.init_app(self.app)
         # Test
         resp = self.app.test_client().get('/login', follow_redirects=True)
         self.assertIn('Null Auth 1', resp.get_data(as_text=True))

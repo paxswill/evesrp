@@ -97,11 +97,6 @@ def create_app(config=None, **kwargs):
     from .json import SRPEncoder
     app.json_encoder=SRPEncoder
 
-    _config_requests_session(app)
-    _config_url_converters(app)
-    _config_authmethods(app)
-    _config_killmails(app)
-
     # Configure the Jinja context
     # Inject variables into the context
     from .auth import PermissionType
@@ -118,7 +113,16 @@ def create_app(config=None, **kwargs):
     app.jinja_env.trim_blocks = True
     app.jinja_env.lstrip_blocks = True
 
+    init_app(app)
+
     return app
+
+
+def init_app(app):
+    _config_requests_session(app)
+    _config_url_converters(app)
+    _config_authmethods(app)
+    _config_killmails(app)
 
 
 # SQLAlchemy performance logging

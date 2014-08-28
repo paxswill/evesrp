@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 from ..util import TestLogin
+import evesrp
 from evesrp import db
 from evesrp.auth import PermissionType
 from evesrp.auth.models import User, Group, Division, Permission
@@ -53,6 +54,7 @@ class TestDivisionDetails(TestLogin):
         self.app.config['SRP_SHIP_TYPE_URL_TRANSFORMERS'] = [
             ('Test Transformer', ''),
         ]
+        evesrp.init_app(self.app)
 
     def test_add_entity_by_id(self):
         client = self.login(self.admin_name)
