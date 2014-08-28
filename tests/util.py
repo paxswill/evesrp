@@ -17,14 +17,15 @@ from flask import redirect, url_for, request, render_template
 class TestApp(TestCase):
 
     def setUp(self):
-        self.app = create_app()
-        self.app.testing = True
-        self.app.config['SECRET_KEY'] = 'testing'
-        self.app.config['SRP_USER_AGENT_EMAIL'] = 'testing@example.com'
-        self.app.config['WTF_CSRF_ENABLED'] = False
-        if 'DB' in env:
-            # Default is an in-memroy SQLite database
-            self.app.config['SQLALCHEMY_DATABASE_URI'] = env['DB']
+        config = {
+            'SECRET_KEY': 'testing',
+            'SRP_USER_AGENT_EMAIL': 'testing@example.com',
+            'WTF_CSRF_ENABLED': False,
+        }
+        # Default to an ephemeral SQLite DB for testing unless given another
+        # database to connect to.
+        config['SQLALCHEMY_DATABASE_URI'] = env.get('DB', 'sqlite:///')
+        self.app = create_app(config)
         db.create_all(app=self.app)
 
     def tearDown(self):

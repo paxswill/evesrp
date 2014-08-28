@@ -62,8 +62,19 @@ def create_app(config=None, **kwargs):
     app = Flask('evesrp', **kwargs)
     app.request_class = AcceptRequest
     app.config.from_object('evesrp.default_config')
-    if config is not None:
-        app.config.from_pyfile(config)
+    # Check in config is a dict, python config file, or importable object name,
+    # in that order. Finally, check the EVESRP_SETTINGS environment variable
+    # as a last resort.
+    if isinstance(config, dict):
+        app.config.update(config)
+    elif isinstance(config, six.string_types):
+        if config.endswith(('.txt', '.py', '.cfg')):
+            app.config.from_pyfile(config)
+        else:
+            app.config.from_object(config)
+    elif config is None and 'EVESRP_SETTINGS' in os.environ:
+        app.config.from_envvar('EVESRP_SETTINGS')
+    # Look for the secret key config value as an environment variable
     if app.config['SECRET_KEY'] is None and 'SECRET_KEY' in os.environ:
         app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 
