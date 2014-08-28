@@ -234,9 +234,9 @@ class RequestsSessionMixin(object):
         :type requests: :py:class:`~requests.Session`
         """
         if requests_session is None:
-            if hasattr(current_app, 'requests_session'):
+            try:
                 self.requests_session = current_app.requests_session
-            else:
+            except (AttributeError, RuntimeError):
                 self.requests_session = requests.Session()
         else:
             self.requests_session = requests_session
