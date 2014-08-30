@@ -131,6 +131,15 @@ mechanisms.
 Included Authentication Methods
 ===============================
 
+
+.. py:module:: evesrp.auth.bravecore
+
+Brave Core
+----------
+
+.. autoclass:: BraveCore
+    :show-inheritance:
+
 .. py:module:: evesrp.auth.testauth
 
 TEST Legacy
@@ -139,12 +148,37 @@ TEST Legacy
 .. autoclass:: TestAuth
     :show-inheritance:
 
-.. py:module:: evesrp.auth.bravecore
 
-Brave Core
-----------
+.. py:module:: evesrp.auth.oauth
 
-.. autoclass:: BraveCore
+OAuth
+-----
+
+A number of external authentication services have an OAuth provider for
+external applications to use with their API. To facilitate usage of thses
+services, an :py:class:`OAuthMethod` class has been provided for easy
+integration. Subclasses will need to implement the :py:meth:`~.get_user`\,
+:py:meth:`~.get_pilots` and :py:meth:`~.get_groups` methods. Additionally,
+implementations for :py:class:`JFLP's provider <evesrp.auth.j4oauth.J4OAuth>`
+and :py:class:`TEST's provider <evesrp.auth.testoauth.TestOAuth>` have been
+provided as a reference.
+
+.. autoclass:: OAuthMethod
+
+.. py:module:: evesrp.auth.j4oauth
+
+J4OAuth
+^^^^^^^
+
+.. autoclass:: J4OAuth
+    :show-inheritance:
+
+.. py:module:: evesrp.auth.testoauth
+
+TestOAuth
+^^^^^^^^^
+
+.. autoclass:: TestOAuth
     :show-inheritance:
 
 Low-Level API
