@@ -100,10 +100,19 @@ class OAuthMethod(AuthMethod):
             resp = self.oauth.authorized_response()
         else:
             resp = self.oauth.handle_response()
+        # Check that the response was successful
         # Yeah, an exception as a return value. I don't know either.
         if isinstance(resp, OAuthException):
             flash(u"Login failed: {} ({})".format(resp.type, resp.message),
                     u'error')
+            return redirect(url_for('login.login'))
+        # Handle other kinds of errors
+        elif resp is None:
+            reason = ensure_unicode(request.args.get('error',
+                    u'Unknown error'))
+            if reason == u'access_denied':
+                reason = u'Access denied'
+            flash(u"Login failed: {}".format(reason), u'error')
             return redirect(url_for('login.login'))
         # Check CSRF token
         csrf_token = request.args['state']
