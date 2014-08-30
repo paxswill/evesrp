@@ -51,7 +51,7 @@ class TestOAuth(OAuthMethod):
 
     def _get_user_data(self, token):
         if not hasattr(request, '_auth_user_data'):
-            resp = self.oauth.get('user', token=token)
+            resp = self.oauth.get('profile', token=token)
             try:
                 current_app.logger.debug(u"Test OAuth API response: {}".format(
                         resp.data))
