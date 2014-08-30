@@ -257,12 +257,23 @@ class RequestListing(View):
             return redirect(url_for(request.endpoint,
                     filters=canonical_filter), code=301)
         requests = self.requests(filter_map)
-        total_payouts = requests.order_by(False).\
-                with_entities(db.func.sum(Request.payout))\
+        sub_requests = requests.with_entities(Request.payout)\
+                .subquery(with_labels=True)
+        total_payouts = db.session.query(db.func.sum(
+                        sub_requests.c.request_payout))\
+                .select_from(sub_requests)\
                 .scalar()
         if total_payouts is None:
             total_payouts = PrettyDecimal(0)
-        pager = requests.paginate(filter_map['page'], per_page=15,
+        # API requests (including RSS) should have a limit of 200 requests,
+        # otherwise go with the standard 15. THe standard 15 includes
+        # XmlHttpRequest-based requests as those are going to be used to
+        # rebuild the contents of an HTML view.
+        if request.is_json or request.is_xml or request.is_rss:
+            per_page = 200
+        else:
+            per_page = 15
+        pager = requests.paginate(filter_map['page'], per_page=per_page,
                 error_out=False)
         if len(pager.items) == 0 and pager.page > 1:
             filter_map['page'] = pager.pages
@@ -474,9 +485,15 @@ class ValidKillmail(URL):
         except ValueError as e:
             if six.PY2:
                 raise ValidationError(unicode(e))
+            else:
+                # Py3 chains the exceptions
+                raise ValidationError
         except LookupError as e:
             if six.PY2:
                 raise ValidationError(unicode(e))
+            else:
+                # Py3 chains the exceptions
+                raise ValidationError
         else:
             if mail.verified:
                 form.killmail = mail

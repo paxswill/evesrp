@@ -23,12 +23,12 @@ SOURCE_NAMES := \
 	util \
 	handlebars-helpers \
 	handlebars-templates \
-	ui-common \
-	ui-request \
-	ui-division \
+	ui/common \
+	ui/request \
+	ui/division \
 	tokenfield \
-	ui-requestList \
-	ui-apiKeys
+	ui/requestList \
+	ui/apiKeys
 JS_SOURCE = $(patsubst %,%.js,$(SOURCE_NAMES))
 
 all: evesrp.min.js

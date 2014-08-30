@@ -6,7 +6,7 @@ from six.moves.urllib.parse import urlparse
 from os import environ as env
 import httmock
 from httmock import urlmatch
-from evesrp import create_app, db
+from evesrp import create_app, db, init_app
 from evesrp.auth import AuthMethod, AuthForm
 from evesrp.auth.models import User
 from wtforms.fields import StringField
@@ -17,14 +17,15 @@ from flask import redirect, url_for, request, render_template
 class TestApp(TestCase):
 
     def setUp(self):
-        self.app = create_app()
-        self.app.testing = True
-        self.app.config['SECRET_KEY'] = 'testing'
-        self.app.config['SRP_USER_AGENT_EMAIL'] = 'testing@example.com'
-        self.app.config['WTF_CSRF_ENABLED'] = False
-        if 'DB' in env:
-            # Default is an in-memroy SQLite database
-            self.app.config['SQLALCHEMY_DATABASE_URI'] = env['DB']
+        config = {
+            'SECRET_KEY': 'testing',
+            'SRP_USER_AGENT_EMAIL': 'testing@example.com',
+            'WTF_CSRF_ENABLED': False,
+        }
+        # Default to an ephemeral SQLite DB for testing unless given another
+        # database to connect to.
+        config['SQLALCHEMY_DATABASE_URI'] = env.get('DB', 'sqlite:///')
+        self.app = create_app(config)
         db.create_all(app=self.app)
 
     def tearDown(self):
@@ -77,6 +78,7 @@ class TestLogin(TestApp):
                 NullAuth(name='Null Auth 2'),
         ]
         self.app.config['SRP_AUTH_METHODS'] = self.auth_methods
+        init_app(self.app)
         self.normal_name = 'Normal User'
         self.admin_name = 'Admin User'
         self.default_authmethod = self.auth_methods[0]

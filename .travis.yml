@@ -32,6 +32,8 @@ matrix:
     allow_failures:
         - python: "pypy"
         - python: "pypy3"
+        - python: "2.7"
+          env: DB="mysql+mysqldb://root@127.0.0.1/evesrp_test"
     fast_finish: true
 
 install:
