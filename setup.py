@@ -45,7 +45,7 @@ setup(
         ],
     },
     classifiers=[
-        u'Development Status :: 3 - Beta',
+        u'Development Status :: 4 - Beta',
         u'Framework :: Flask',
         u'License :: OSI Approved :: BSD License',
         u'Programming Language :: Python :: 3',
