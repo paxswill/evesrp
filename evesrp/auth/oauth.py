@@ -124,8 +124,8 @@ class OAuthMethod(AuthMethod):
         # Get the User object for this user, creating one if needed
         user = self.get_user(token)
         if user is not None:
-            # Apply site admin flag
-            user.admin = user.name in self.admins
+            # Apply site-wide admin flag
+            user.admin = self.is_admin(user)
             # Login the user, so current_user will work
             self.login_user(user)
         else:
@@ -168,6 +168,20 @@ class OAuthMethod(AuthMethod):
         :rtype: :py:class:`OAuthUser`
         """
         raise NotImplementedError
+
+    def is_admin(self, user):
+        """Returns wether this user should be treated as a site-wide
+        administrator.
+
+        The default implementation checks if the user's name is contained
+        within the list of administrators supplied as an argument to
+        :py:class:`OAuthMethod`\.
+
+        :param user: The user to check.
+        :type user: :py:class:`~.OAuthUser`
+        :rtype: bool
+        """
+        return user.name in self.admins
 
     def get_pilots(self, token):
         """Return a :py:class:`list` of :py:class:`~.Pilot`\s for the given

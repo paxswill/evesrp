@@ -15,6 +15,9 @@ class TestOAuth(OAuthMethod):
         """:py:class:`~.AuthMethod` using TEST Auth's OAuth-based API for
         authentication and authorization.
 
+        :param list admins: Two types of values are accepted as values in this
+            list, either a string specifying a user's primary character's name,
+            or their Auth ID as an integer.
         :param bool devtest: Testing parameter that changes the default domain
             for URLs from 'https://auth.pleaseignore.com' to
             'https://auth.devtest.pleaseignore.com`. Default: ``False``.
@@ -74,6 +77,13 @@ class TestOAuth(OAuthMethod):
             db.session.add(user)
             db.session.commit()
         return user
+
+    def is_admin(self, user):
+        data = self._get_user_data(user.token)
+        return super(TestOAuth, self).is_admin(user) or \
+                user.auth_id in self.admins or \
+                data[u'is_staff'] or \
+                data[u'is_superuser']
 
     def get_pilots(self, token):
         data = self._get_user_data(token)
