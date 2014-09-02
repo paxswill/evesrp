@@ -49,8 +49,8 @@ class BraveCore(AuthMethod):
     @property
     def api(self):
         if not hasattr(self, '_api'):
-            self._api = API(self._identifier, self._client_key,
-                    self._server_key, current_app.requests_session)
+            self._api = API(self._url, self._identifier, self._client_key,
+                    self._server_key, current_app.requests_session).api
         return self._api
 
     def login(self, form):
