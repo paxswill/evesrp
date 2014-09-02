@@ -23,10 +23,8 @@ class BraveCore(AuthMethod):
         Uses the native Core API to authenticate users. Currently only supports
         a single character at a time due to limitations in Core's API.
 
-        :param client_key: The client's private key.
-        :type client_key: :py:class:`ecdsa.SigningKey`
-        :param server_key: The server's public key for this app.
-        :type server_key: :py:class:`ecdsa.VerifyingKey`
+        :param str client_key: The client's private key in hex form.
+        :param str server_key: The server's public key for this app in hex form.
         :param str identifier: The identifier for this app in Core.
         :param str url: The URL of the Core instance to authenticate against.
             Default: 'https://core.braveineve.com'
@@ -34,8 +32,26 @@ class BraveCore(AuthMethod):
             Default: 'Brave Core'
         """
         self._identifier = identifier
-        self._client_key = client_key
-        self._server_key = server_key
+        self._url = url
+        # Allow raw object instances of the keys for the time being
+        # Client Key
+        if isinstance(client_key, SigningKey):
+            self._client_key = client_key
+        else:
+            try:
+                self._client_key = self.hex2key(client_key)
+            except ValueError:
+                raise ValueError(u"BraveCore: client_key must be the key in "
+                                 u"hex form.")
+        # Server Key
+        if isinstance(server_key, VerifyingKey):
+            self._server_key = server_key
+        else:
+            try:
+                self._server_key = self.hex2key(server_key)
+            except ValueError:
+                raise ValueError(u"BraveCore: server_key must be the key in "
+                                 u"hex form.")
         if 'name' not in kwargs:
             kwargs['name'] = u'Brave Core'
         super(BraveCore, self).__init__(**kwargs)
@@ -52,6 +68,18 @@ class BraveCore(AuthMethod):
             self._api = API(self._url, self._identifier, self._client_key,
                     self._server_key, current_app.requests_session).api
         return self._api
+
+    @staticmethod
+    def hex2key(hex_key):
+        key_bytes = unhexlify(hex_key)
+        if len(hex_key) == 64:
+            return SigningKey.from_string(key_bytes, curve=NIST256p,
+                    hashfunc=sha256)
+        elif len(hex_key) == 128:
+            return VerifyingKey.from_string(key_bytes, curve=NIST256p,
+                    hashfunc=sha256)
+        else:
+            raise ValueError("Key in hex form is of the wrong length.")
 
     def login(self, form):
         # Redirect to Core for the authorization token. Give URLs to return to.

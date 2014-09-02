@@ -57,8 +57,8 @@ example with Postgres, creating the database might look something like this:
 
 Now you need to create the configuration file. This will tell EVE-SRP how to
 connect to the database, how users should log in, and other things like that.
-Here's an example that will authenticate using [Brave's Core][core] that you
-can build off of.
+Here's an example that will authenticate using [Brave's Core][core] and Test's
+OAuth provider that you can build off of.
 
     # The database connection URI. Consult the SQLAlchemy documentation for
     # more details.
@@ -78,10 +78,17 @@ can build off of.
     SRP_AUTH_METHODS = [
         {
             'type': 'evesrp.auth.testoauth.TestOAuth',
-            'admins': [u'paxswill'],
+            'admins': [u'Paxswill'],
             'name': 'Test Auth',
             'key': 'consumer_key_here',
             'secret': 'consumer_secret_here',
+        },
+        {
+            'type': 'evesrp.auth.bravecore.BraveCore',
+            'admins': [u'Paxswill'],
+            'client_key': 'client_private_key_here',
+            'server_key': 'server_public_key_here',
+            'identifier': 'core_id_here',
         },
     ]
     
