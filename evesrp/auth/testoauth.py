@@ -66,13 +66,16 @@ class TestOAuth(OAuthMethod):
 
     def get_user(self, token):
         data = self._get_user_data(token)
-        username = data[u'username']
+        char_data = self.oauth.get('evecharacter', token=token).data
+        primary_character = char_data[u'objects'][0][u'name']
         user_id = data[u'id']
         try:
             user = TestOAuthUser.query.filter_by(auth_id=data[u'id'],
                     authmethod=self.name).one()
+            # The primary character can change
+            user.name = primary_character
         except NoResultFound:
-            user = TestOAuthUser(username, user_id, self.name,
+            user = TestOAuthUser(primary_character, user_id, self.name,
                     token=token['access_token'])
             db.session.add(user)
             db.session.commit()
