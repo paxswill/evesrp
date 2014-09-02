@@ -78,9 +78,6 @@ def create_app(config=None, **kwargs):
             app.config.from_object(config)
     elif config is None and 'EVESRP_SETTINGS' in os.environ:
         app.config.from_envvar('EVESRP_SETTINGS')
-    # Look for the secret key config value as an environment variable
-    if app.config['SECRET_KEY'] is None and 'SECRET_KEY' in os.environ:
-        app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 
     # Register SQLAlchemy monitoring before the DB is connected
     app.before_request(sqlalchemy_before)
