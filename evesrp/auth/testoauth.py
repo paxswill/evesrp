@@ -87,12 +87,15 @@ class TestOAuth(OAuthMethod):
 
     def get_pilots(self, token):
         data = self._get_user_data(token)
-        pilots = []
+        # The Auth API will duplicate characters when there's more than one API
+        # key for them.
+        pilots = {}
         for character in data[u'characters']:
             pilot = Pilot.query.get(int(character[u'id']))
             if pilot is None:
                 pilot = Pilot(None, character[u'name'], character[u'id'])
-            pilots.append(pilot)
+            pilots[character[u'id']] = pilot
+        pilots = list(pilots.values())
         return pilots
 
     def get_groups(self, token):
