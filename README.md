@@ -60,8 +60,6 @@ connect to the database, how users should log in, and other things like that.
 Here's an example that will authenticate using [Brave's Core][core] that you
 can build off of.
 
-    from evesrp.auth.bravecore import BraveCore
-    
     # The database connection URI. Consult the SQLAlchemy documentation for
     # more details.
     SQLALCHEMY_DATABASE_URI = 'engine://connect/args'
@@ -74,15 +72,17 @@ can build off of.
     # The contact email used in the user agent when accessing external APIs
     SRP_USER_AGENT_EMAIL = u'email@example.com'
     
-    # Sets mechanisms users can log in.
-    # Put usernames in an arrary given to the admins argument to grant
+    # Sets authentication mechanisms users can log in with.
+    # Put usernames in an array given to the admins argument to grant
     # site-admin privileges to special users (like for initial setup).
     SRP_AUTH_METHODS = [
-        BraveCore(
-            private_key,
-            public_key,
-            identifier,
-            admins=['admin_username',]),
+        {
+            'type': 'evesrp.auth.testoauth.TestOAuth',
+            'admins': [u'paxswill'],
+            'name': 'Test Auth',
+            'key': 'consumer_key_here',
+            'secret': 'consumer_secret_here',
+        },
     ]
     
     # Customize the site's title/branding
