@@ -3,6 +3,7 @@ from decimal import Decimal
 import locale
 import os
 import requests
+import sys
 import warnings
 from flask import Flask, current_app, g
 from flask.ext import sqlalchemy
@@ -85,6 +86,8 @@ def create_app(config=None, **kwargs):
     app = Flask('evesrp', **kwargs)
     app.request_class = AcceptRequest
     app.config.from_object('evesrp.default_config')
+    # Push the instance folder path onto sys.path to allow importing from there
+    sys.path.insert(0, app.instance_path)
     # Check in config is a dict, python config file, or importable object name,
     # in that order. Finally, check the EVESRP_SETTINGS environment variable
     # as a last resort.
