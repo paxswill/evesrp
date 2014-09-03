@@ -665,12 +665,17 @@ def _recalculate_payout_from_modifier(modifier, value, *args):
             scalar()
     if not isinstance(relative, Decimal):
         relative = Decimal(0)
-    # The modifier that's changed isn't reflected yet in the dtabase, so we
+    # The modifier that's changed isn't reflected yet in the database, so we
     # apply it here.
-    if not isinstance(value, Request):
-        direction = Decimal(-1)
-    else:
+    if isinstance(value, Request):
+        # A modifier being added to the Request
+        if modifier.voided:
+            # The modifier being added is already void
+            return
         direction = Decimal(1)
+    else:
+        # A modifier already on a request is being voided
+        direction = Decimal(-1)
     if isinstance(modifier, AbsoluteModifier):
         absolute += direction * modifier.value
     elif isinstance(modifier, RelativeModifier):
