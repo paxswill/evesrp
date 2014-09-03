@@ -642,21 +642,27 @@ def _recalculate_payout_from_modifier(modifier, value, *args):
     """Recalculate a Request's payout when it gains a Modifier or when one of
     its Modifiers is voided.
     """
+    db.session.flush()
+    # Get the request for this modifier
     if isinstance(value, Request):
+        # Triggered by setting Modifier.request
         srp_request = value
     else:
+        # Triggered by setting Modifier.voided_user
         srp_request = modifier.request
     voided = Modifier._voided_select()
     modifiers = srp_request.modifiers.join(voided,
                 voided.c.modifier_id==Modifier.id)\
             .filter(~voided.c.voided)\
             .order_by(False)
-    absolute = modifiers.with_entities(db.func.sum(AbsoluteModifier.value))\
-            .scalar()
+    absolute = modifiers.join(AbsoluteModifier).\
+            with_entities(db.func.sum(AbsoluteModifier.value)).\
+            scalar()
     if not isinstance(absolute, Decimal):
         absolute = Decimal(0)
-    relative = modifiers.with_entities(db.func.sum(RelativeModifier.value))\
-            .scalar()
+    relative = modifiers.join(RelativeModifier).\
+            with_entities(db.func.sum(RelativeModifier.value)).\
+            scalar()
     if not isinstance(relative, Decimal):
         relative = Decimal(0)
     # The modifier that's changed isn't reflected yet in the dtabase, so we
