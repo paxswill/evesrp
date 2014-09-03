@@ -258,7 +258,7 @@ class Pilot(db.Model, AutoID, AutoName):
     name = db.Column(db.String(150, convert_unicode=True), nullable=False)
 
     #: The id of the User this character belongs to.
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
     #: The User this character belongs to.
     user = db.relationship(User, back_populates='pilots')
