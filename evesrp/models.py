@@ -8,7 +8,7 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.event import listens_for
 from sqlalchemy.schema import DDL, DropIndex
-from flask import Markup
+from flask import Markup, current_app
 
 from . import db
 from .util import DeclEnum, classproperty, AutoID, Timestamped, AutoName,\
@@ -235,6 +235,8 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
 
     @db.validates('request')
     def _check_request_status(self, attr, request):
+        if current_app.config['SRP_SKIP_VALIDATION']:
+            return request
         if request.status != ActionType.evaluating:
             raise ModifierError(u"Modifiers can only be added when the request"
                                 u" is in an evaluating state.")
@@ -450,6 +452,8 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     @db.validates('base_payout')
     def _validate_payout(self, attr, value):
         """Ensures that base_payout is positive. The value is clamped to 0."""
+        if current_app.config['SRP_SKIP_VALIDATION']:
+            return Decimal(value)
         # Allow self.status == None, as the base payout may be set in the
         # initializing state before the status has been set.
         if self.status == ActionType.evaluating or self.status is None:
@@ -509,6 +513,8 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         When an invalid change is attempted, :py:class:`ActionError` is
         raised.
         """
+        if current_app.config['SRP_SKIP_VALIDATION']:
+            return new_status
         if new_status == ActionType.comment:
             raise ValueError(u"ActionType.comment is not a valid status")
         # Initial status
@@ -524,6 +530,8 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     @db.validates('actions')
     def _verify_action_permissions(self, attr, action):
         """Verifies that permissions for Actions being added to a Request."""
+        if current_app.config['SRP_SKIP_VALIDATION']:
+            return action
         if action.type_ is None:
             # Action.type_ are not nullable, so rely on the fact that it will
             # be set later to let it slide now.
