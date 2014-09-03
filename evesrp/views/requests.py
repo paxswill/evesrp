@@ -269,7 +269,8 @@ class RequestListing(View):
         # otherwise go with the standard 15. THe standard 15 includes
         # XmlHttpRequest-based requests as those are going to be used to
         # rebuild the contents of an HTML view.
-        if request.is_json or request.is_xml or request.is_rss:
+        if (request.is_json or request.is_xml or request.is_rss) and \
+                not request.is_xhr:
             per_page = 200
         else:
             per_page = 15

@@ -124,7 +124,7 @@ class TestOAuthUser(OAuthUser):
 
     id = db.Column(db.Integer, db.ForeignKey(OAuthUser.id), primary_key=True)
 
-    auth_id = db.Column(db.Integer, nullable=False, index=True)
+    auth_id = db.Column(db.Integer, nullable=False, unique=True, index=True)
 
     def __init__(self, username, auth_id, authmethod, groups=None, **kwargs):
         self.auth_id = auth_id
@@ -135,7 +135,7 @@ class TestOAuthGroup(Group):
 
     id = db.Column(db.Integer, db.ForeignKey(Group.id), primary_key=True)
 
-    auth_id = db.Column(db.Integer, nullable=False, index=True)
+    auth_id = db.Column(db.Integer, nullable=False, unique=True, index=True)
 
     def __init__(self, name, auth_id, authmethod, **kwargs):
         self.auth_id = auth_id

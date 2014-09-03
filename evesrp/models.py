@@ -8,7 +8,7 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.event import listens_for
 from sqlalchemy.schema import DDL, DropIndex
-from flask import Markup
+from flask import Markup, current_app
 
 from . import db
 from .util import DeclEnum, classproperty, AutoID, Timestamped, AutoName,\
@@ -235,6 +235,8 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
 
     @db.validates('request')
     def _check_request_status(self, attr, request):
+        if current_app.config['SRP_SKIP_VALIDATION']:
+            return request
         if request.status != ActionType.evaluating:
             raise ModifierError(u"Modifiers can only be added when the request"
                                 u" is in an evaluating state.")
@@ -450,6 +452,8 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     @db.validates('base_payout')
     def _validate_payout(self, attr, value):
         """Ensures that base_payout is positive. The value is clamped to 0."""
+        if current_app.config['SRP_SKIP_VALIDATION']:
+            return Decimal(value)
         # Allow self.status == None, as the base payout may be set in the
         # initializing state before the status has been set.
         if self.status == ActionType.evaluating or self.status is None:
@@ -509,6 +513,8 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         When an invalid change is attempted, :py:class:`ActionError` is
         raised.
         """
+        if current_app.config['SRP_SKIP_VALIDATION']:
+            return new_status
         if new_status == ActionType.comment:
             raise ValueError(u"ActionType.comment is not a valid status")
         # Initial status
@@ -524,6 +530,8 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     @db.validates('actions')
     def _verify_action_permissions(self, attr, action):
         """Verifies that permissions for Actions being added to a Request."""
+        if current_app.config['SRP_SKIP_VALIDATION']:
+            return action
         if action.type_ is None:
             # Action.type_ are not nullable, so rely on the fact that it will
             # be set later to let it slide now.
@@ -634,29 +642,40 @@ def _recalculate_payout_from_modifier(modifier, value, *args):
     """Recalculate a Request's payout when it gains a Modifier or when one of
     its Modifiers is voided.
     """
+    db.session.flush()
+    # Get the request for this modifier
     if isinstance(value, Request):
+        # Triggered by setting Modifier.request
         srp_request = value
     else:
+        # Triggered by setting Modifier.voided_user
         srp_request = modifier.request
     voided = Modifier._voided_select()
     modifiers = srp_request.modifiers.join(voided,
                 voided.c.modifier_id==Modifier.id)\
             .filter(~voided.c.voided)\
             .order_by(False)
-    absolute = modifiers.with_entities(db.func.sum(AbsoluteModifier.value))\
-            .scalar()
+    absolute = modifiers.join(AbsoluteModifier).\
+            with_entities(db.func.sum(AbsoluteModifier.value)).\
+            scalar()
     if not isinstance(absolute, Decimal):
         absolute = Decimal(0)
-    relative = modifiers.with_entities(db.func.sum(RelativeModifier.value))\
-            .scalar()
+    relative = modifiers.join(RelativeModifier).\
+            with_entities(db.func.sum(RelativeModifier.value)).\
+            scalar()
     if not isinstance(relative, Decimal):
         relative = Decimal(0)
-    # The modifier that's changed isn't reflected yet in the dtabase, so we
+    # The modifier that's changed isn't reflected yet in the database, so we
     # apply it here.
-    if not isinstance(value, Request):
-        direction = Decimal(-1)
-    else:
+    if isinstance(value, Request):
+        # A modifier being added to the Request
+        if modifier.voided:
+            # The modifier being added is already void
+            return
         direction = Decimal(1)
+    else:
+        # A modifier already on a request is being voided
+        direction = Decimal(-1)
     if isinstance(modifier, AbsoluteModifier):
         absolute += direction * modifier.value
     elif isinstance(modifier, RelativeModifier):
