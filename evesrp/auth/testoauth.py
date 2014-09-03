@@ -15,6 +15,9 @@ class TestOAuth(OAuthMethod):
         """:py:class:`~.AuthMethod` using TEST Auth's OAuth-based API for
         authentication and authorization.
 
+        :param list admins: Two types of values are accepted as values in this
+            list, either a string specifying a user's primary character's name,
+            or their Auth ID as an integer.
         :param bool devtest: Testing parameter that changes the default domain
             for URLs from 'https://auth.pleaseignore.com' to
             'https://auth.devtest.pleaseignore.com`. Default: ``False``.
@@ -63,26 +66,39 @@ class TestOAuth(OAuthMethod):
 
     def get_user(self, token):
         data = self._get_user_data(token)
-        username = data[u'username']
+        char_data = self.oauth.get('evecharacter', token=token).data
+        primary_character = char_data[u'objects'][0][u'name']
         user_id = data[u'id']
         try:
             user = TestOAuthUser.query.filter_by(auth_id=data[u'id'],
                     authmethod=self.name).one()
+            # The primary character can change
+            user.name = primary_character
         except NoResultFound:
-            user = TestOAuthUser(username, user_id, self.name,
+            user = TestOAuthUser(primary_character, user_id, self.name,
                     token=token['access_token'])
             db.session.add(user)
             db.session.commit()
         return user
 
+    def is_admin(self, user):
+        data = self._get_user_data(user.token)
+        return super(TestOAuth, self).is_admin(user) or \
+                user.auth_id in self.admins or \
+                data[u'is_staff'] or \
+                data[u'is_superuser']
+
     def get_pilots(self, token):
         data = self._get_user_data(token)
-        pilots = []
+        # The Auth API will duplicate characters when there's more than one API
+        # key for them.
+        pilots = {}
         for character in data[u'characters']:
             pilot = Pilot.query.get(int(character[u'id']))
             if pilot is None:
                 pilot = Pilot(None, character[u'name'], character[u'id'])
-            pilots.append(pilot)
+            pilots[character[u'id']] = pilot
+        pilots = list(pilots.values())
         return pilots
 
     def get_groups(self, token):

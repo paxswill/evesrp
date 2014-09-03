@@ -3,6 +3,7 @@ from decimal import Decimal
 import locale
 import os
 import requests
+import sys
 import warnings
 from flask import Flask, current_app, g
 from flask.ext import sqlalchemy
@@ -40,7 +41,7 @@ _patch_metadata()
 from .util import DB_STATS, AcceptRequest
 
 
-__version__ = u'0.9.7'
+__version__ = u'0.9.8'
 
 
 requests_session = requests.Session()
@@ -63,9 +64,30 @@ from .auth import AuthMethod
 
 
 def create_app(config=None, **kwargs):
+    """Create the WSGI application that is this app.
+
+    In addition to the arguments documented below, this function accepts as a
+    keyword agument all agruments to :py:class:`flask.Flask` except
+    `import_name`, which is set to 'evesrp'. Additionally, the value of
+    `instance_relative_config` has a default value of `True`.
+
+    If the `config` argument isn't specified, the app will attempt to use the
+    file 'config.py' in the instance folder if it exists, and will then fall
+    back to using the value of the EVESRP_SETTINGS environment variable as a
+    path to a config file.
+
+    :param config: The app configuration file. Can be a Python
+        :py:class:`dict`, a path to a configuration file, or an importable
+        module name containing the configuration.
+    :type config: str, dict
+    """
+    # Default instance_relative_config to True to let the config fallback work
+    kwargs.setdefault('instance_relative_config', True)
     app = Flask('evesrp', **kwargs)
     app.request_class = AcceptRequest
     app.config.from_object('evesrp.default_config')
+    # Push the instance folder path onto sys.path to allow importing from there
+    sys.path.insert(0, app.instance_path)
     # Check in config is a dict, python config file, or importable object name,
     # in that order. Finally, check the EVESRP_SETTINGS environment variable
     # as a last resort.
@@ -76,11 +98,11 @@ def create_app(config=None, **kwargs):
             app.config.from_pyfile(config)
         else:
             app.config.from_object(config)
-    elif config is None and 'EVESRP_SETTINGS' in os.environ:
-        app.config.from_envvar('EVESRP_SETTINGS')
-    # Look for the secret key config value as an environment variable
-    if app.config['SECRET_KEY'] is None and 'SECRET_KEY' in os.environ:
-        app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
+    elif config is None:
+        try:
+            app.config.from_pyfile('config.py')
+        except OSError:
+            app.config.from_envvar('EVESRP_SETTINGS')
 
     # Register SQLAlchemy monitoring before the DB is connected
     app.before_request(sqlalchemy_before)

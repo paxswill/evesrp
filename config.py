@@ -1,3 +1,21 @@
+from binascii import unhexlify
+from ecdsa import SigningKey, VerifyingKey, NIST256p
+from hashlib import sha256
+
+
+def hex2key(hex_key):
+    """Convert hex representations of keys to the actual key objects."""
+    key_bytes = unhexlify(hex_key)
+    if len(hex_key) == 64:
+        return SigningKey.from_string(key_bytes, curve=NIST256p,
+                hashfunc=sha256)
+    elif len(hex_key) == 128:
+        return VerifyingKey.from_string(key_bytes, curve=NIST256p,
+                hashfunc=sha256)
+    else:
+        raise ValueError("Key in hex form is of the wrong length.")
+
+
 DEBUG = True
 
 SQLALCHEMY_ECHO = False
@@ -10,8 +28,17 @@ SQLALCHEMY_DATABASE_URI = 'postgres://localhost:5432/evesrp'
 # keys are passed as keyword arguments to the initializer for that type.
 SRP_AUTH_METHODS = [
     {
-        'type': 'evesrp.auth.testauth.TestAuth',
+        'type': 'evesrp.auth.testoauth.TestOAuth',
         'admins': [u'paxswill'],
+        'name': 'Test Auth',
+        'key': 'consumer_key_here',
+        'secret': 'consumer_secret_here',
+    },
+    {
+        'type': 'evesrp.auth.bravecore.BraveCore',
+        'client_key': hex2key('client_key_here'),
+        'server_key': hex2key('server_key_here'),
+        'identifier': 'core_app_id_here',
     },
 ]
 

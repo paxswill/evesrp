@@ -123,6 +123,7 @@ intersphinx_mapping = {
     'flaskwtf': ('https://flask-wtf.readthedocs.org/en/v0.9.4/', None),
     'flaskoauthlib': ('https://flask-oauthlib.readthedocs.org/en/latest/',
         None),
+    'flask': ('http://flask.pocoo.org/docs/0.10/', None),
 }
 
 # -- Autodoc configuration --------------
