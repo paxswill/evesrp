@@ -122,10 +122,12 @@ def create_app(config=None, **kwargs):
     oauth.init_app(app)
 
     # Connect views
-    from .views import index, error_page, divisions, login, requests, api
+    from .views import index, error_page, update_navbar, divisions, login,\
+            requests, api
     app.add_url_rule(rule=u'/', view_func=index)
     for error_code in (400, 403, 404, 500):
         app.register_error_handler(error_code, error_page)
+    app.after_request(update_navbar)
     app.register_blueprint(divisions.blueprint, url_prefix='/division')
     app.register_blueprint(login.blueprint)
     app.register_blueprint(requests.blueprint, url_prefix='/request')
