@@ -96,10 +96,7 @@ class OAuthMethod(AuthMethod):
         """Handle creating and/or logging in the user and updating their
         :py:class:`~.Pilot`\s and :py:class:`~.Group`\s.
         """
-        if hasattr(self.oauth, 'authorized_response'):
-            resp = self.oauth.authorized_response()
-        else:
-            resp = self.oauth.handle_response()
+        resp = self.oauth.authorized_response()
         # Check that the response was successful
         # Yeah, an exception as a return value. I don't know either.
         if isinstance(resp, OAuthException):

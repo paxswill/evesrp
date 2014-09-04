@@ -59,7 +59,6 @@ setup(
         'Flask>=0.10.1',
         'Flask-Login==0.2.10',
         'Flask-Migrate>=1.2.0',
-        'Flask-OAuthlib>=0.6.0',
         'Flask-Script==2.0.5',
         'Flask-SQLAlchemy==1.0',
         'Flask-WTF==0.9.4',
@@ -68,13 +67,20 @@ setup(
         'WTForms==1.0.5',
         'alembic>=0.6.5',
         'requests==2.2.1',
-        'ecdsa==0.11',
         'six==1.7.3',
-        'brave.api',
     ],
     entry_points={
         'console_scripts': [
             'evesrp = evesrp.util.manage:main',
+        ],
+    },
+    extras_require={
+        'BraveCore': [
+            'brave.api',
+            'ecdsa==0.11',
+        ],
+        'OAuth': [
+            'Flask-OAuthlib>=0.7.0',
         ],
     },
     zip_safe=False,
