@@ -35,7 +35,7 @@
         <!-- The actual navigation things -->
         <div class="collapse navbar-collapse" id="eve-srp-navbar-collapse">
           {% block collapsed_navitems %}
-          <ul class="nav navbar-nav">
+          <ul class="nav navbar-nav", id="left-nav">
             {% block navitems %}
             {% if current_user.is_authenticated() %}
             {% if current_user.has_permission((PermissionType.review, PermissionType.audit)) %}
@@ -50,7 +50,7 @@
             {% endif %}
             {% endblock navitems %}
           </ul>
-          <ul class="nav navbar-nav navbar-right">
+          <ul class="nav navbar-nav navbar-right" id="right-nav">
             {% block navitems_right %}
             {% if current_user.is_anonymous() %}
             {{ macros.navbar_button('Log In', 'login.login')|indent(12)|safe }}

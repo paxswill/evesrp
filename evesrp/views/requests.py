@@ -257,11 +257,13 @@ class RequestListing(View):
             return redirect(url_for(request.endpoint,
                     filters=canonical_filter), code=301)
         requests = self.requests(filter_map)
-        sub_requests = requests.with_entities(Request.payout)\
-                .subquery(with_labels=True)
+        payout_requests = requests.\
+                filter(Request.status != ActionType.rejected).\
+                with_entities(Request.payout).\
+                subquery(with_labels=True)
         total_payouts = db.session.query(db.func.sum(
-                        sub_requests.c.request_payout))\
-                .select_from(sub_requests)\
+                        payout_requests.c.request_payout))\
+                .select_from(payout_requests)\
                 .scalar()
         if total_payouts is None:
             total_payouts = PrettyDecimal(0)

@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from flask import redirect, url_for, render_template, make_response, request
+from flask import redirect, url_for, render_template, make_response, request,\
+        json
 from flask.ext.login import login_required, current_user
 from .. import db
 from ..models import Request, ActionType
@@ -67,3 +68,38 @@ def request_count(permission, statuses=None):
     if permission == PermissionType.submit:
         requests = requests.filter(Request.submitter==current_user)
     return requests.one()[0]
+
+
+def update_navbar(response):
+    if 'application/json' not in response.mimetype:
+        return response
+    response_json = json.loads(response.get_data())
+    nav_bar = {
+        'pending': False,
+        'payouts': False,
+        'completed': False,
+        'submit': False,
+    }
+    counts = {
+        'pending': 0,
+        'payouts': 0,
+    }
+    nav_bar['counts'] = counts
+    response_json['nav_bar'] = nav_bar
+    # Unauthenticated users get nothing
+    if not current_user.is_authenticated():
+        response.set_data(json.dumps(response_json))
+        return response
+    if current_user.has_permission(
+            (PermissionType.review, PermissionType.audit)):
+        nav_bar['pending'] = True
+        counts['pending'] = request_count(PermissionType.review)
+    if current_user.has_permission(PermissionType.pay):
+        nav_bar['payouts'] = True
+        counts['payouts'] = request_count(PermissionType.pay)
+    if current_user.has_permission(PermissionType.elevated):
+        nav_bar['completed'] = True
+    if current_user.has_permission(PermissionType.submit):
+        nav_bar['submit'] = True
+    response.set_data(json.dumps(response_json))
+    return response

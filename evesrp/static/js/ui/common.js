@@ -24,11 +24,28 @@ EveSRP.ui.renderFlashes = function renderFlashes(data) {
   }
 };
 
+EveSRP.ui.renderNavbar = function renderNavbar(data) {
+  var $leftBar = $('#left-nav'),
+      $rightBar = $('#right-nav'),
+      navData = data.nav_bar,
+      newLeft, newRight;
+  newLeft = Handlebars.templates.left_navbar(navData);
+  newRight = Handlebars.templates.right_navbar(navData);
+  $leftBar.empty();
+  $leftBar.prepend(newLeft);
+  // More careful here, we keep the dropdown intact
+  $rightBar.children('li:not(.dropdown)').remove();
+  $rightBar.prepend(newRight);
+};
+
 EveSRP.ui.setupEvents = function setupUIEvents() {
   $(document).ajaxComplete(function(ev, jqxhr) {
     var data = jqxhr.responseJSON;
     if (data && 'flashed_messages' in data) {
       EveSRP.ui.renderFlashes(jqxhr.responseJSON);
+    }
+    if (data && 'nav_bar' in data) {
+      EveSRP.ui.renderNavbar(jqxhr.responseJSON);
     }
   });
 };

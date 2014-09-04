@@ -386,13 +386,3 @@ class CRESTMail(Killmail, RequestsSessionMixin, LocationMixin):
 
     description = Markup(u'A CREST external killmail link. <a href="#">'
                          u'How to get one.</a>')
-
-class OnlyZKill(ZKillmail):
-    def __init__(self, *args, **kwargs):
-        super(OnlyZKill, self).__init__(*args, **kwargs)
-        if self.domain != 'zkillboard.com':
-            raise ValueError(u"This killmail is from the wrong killboard")
-
-    @property
-    def value(self):
-        return 0
