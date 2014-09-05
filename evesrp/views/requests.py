@@ -49,8 +49,7 @@ class RequestListing(View):
 
     @staticmethod
     def parse_filter(filter_string):
-        # Set defaults that are skipped by unparse_filter
-        filters = {'page': 1, 'sort': '-submit_timestamp'}
+        filters = {}
         # Fail early for empty filters
         if filter_string is None or filter_string == '':
             return filters
@@ -68,11 +67,9 @@ class RequestListing(View):
             attr = split_filters[i].lower()
             values = split_filters[i + 1]
             # Use sets for deduplicating
-            # Prime the mapping with an empty set. Details are special filter
-            # types, and may contain commas. They are allowed to be specified
-            # multiple times.
-            if attr not in filters:
-                filters[attr] = set()
+            filters.setdefault(attr, set())
+            # Details are special filter types, and may contain commas. They
+            # are allowed to be specified multiple times.
             if attr == 'details':
                 filters[attr].add(values)
             elif attr == 'page':
@@ -110,11 +107,9 @@ class RequestListing(View):
                 for details in sorted(filters[attr]):
                     filter_strings.append('details/' + details)
             elif attr == 'page':
-                if filters['page'] != 1:
-                    filter_strings.append('page/{}'.format(filters['page']))
+                filter_strings.append('page/{}'.format(filters['page']))
             elif attr == 'sort':
-                if filters['sort'] != '-submit_timestamp':
-                    filter_strings.append('sort/{}'.format(filters['sort']))
+                filter_strings.append('sort/{}'.format(filters['sort']))
             elif attr == 'status':
                 values = [a.name for a in filters[attr]]
                 values = sorted(values)
@@ -135,6 +130,9 @@ class RequestListing(View):
         # Start with a basic query for requests
         requests = Request.query.options(*self._load_options)
         requests = requests.order_by(Request.timestamp.desc())
+        # Set default filters values
+        filters.setdefault('page', 1)
+        filters.setdefault('sort', '-submit_timestamp')
         # Apply the filters
         known_attrs = ('page', 'division', 'alliance', 'corporation',
                 'pilot', 'system', 'constellation', 'region', 'ship_type',
@@ -317,6 +315,7 @@ class RequestListing(View):
 
 
 def url_for_page(pager, page_num):
+    """Utility method used in Jinja templates."""
     filters = request.view_args.get('filters', '')
     filters = RequestListing.parse_filter(filters)
     filters['page'] = page_num
@@ -405,6 +404,11 @@ class PayoutListing(PermissionRequestListing):
         # Just a special case of PermissionRequestListing
         super(PayoutListing, self).__init__((PermissionType.pay,),
                 (ActionType.approved,), u'Pay Outs')
+
+    def requests(self, filters):
+        if 'sort' not in filters:
+            filters['sort'] = 'submit_timestamp'
+        return super(PayoutListing, self).requests(filters)
 
     def dispatch_request(self, filters='', **kwargs):
         if not current_user.has_permission(self.permissions):
