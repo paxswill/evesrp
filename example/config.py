@@ -6,10 +6,10 @@ SECRET_KEY = 'random_string'
 # creating external links.
 SERVER_NAME = 'srp.example.com'
 
-# Here's an example using a unix socket
+# Here's an example using a unix socket...
 SQLALCHEMY_DATABASE_URI = ('mysql://username:password@hostname/'
                            'database_name?unix_socket=/path/to/mysql.sock')
-# And here's one using TCP
+# ...and here's one using TCP. You should only use one though.
 SQLALCHEMY_DATABASE_URI = ('mysql://root:password@hostname:port/'
                            'database_name')
 
