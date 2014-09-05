@@ -46,6 +46,16 @@ it from PyPI (in a virtualenv!) like this:
 
     pip install EVE-SRP
 
+If you're planning on using either the Brave Core or one of the OAuth-based
+authentication mechanisms, you'll need to install either of those options like
+so:
+
+    pip install EVE-SRP[BraveCore]
+
+or
+
+    pip install EVE-SRP[OAuth,BraveCore]
+
 You will also need the appropriate adapter for your database of choice. For
 example, I use PostgreSQL, and use the psycopg2 adapter:
 
@@ -58,76 +68,34 @@ example with Postgres, creating the database might look something like this:
 
 Now you need to create the configuration file. This will tell EVE-SRP how to
 connect to the database, how users should log in, and other things like that.
-Here's an example that will authenticate using [Brave's Core][core] and Test's
-OAuth provider that you can build off of.
+There's an example of an instance folder using [Brave's Core][core] and
+Test's OAuth provider for authentication with customized killmail processing
+in the 'examples' folder in the repository ([browsable][examples] through
+GitHub).
 
-    # The database connection URI. Consult the SQLAlchemy documentation for
-    # more details.
-    SQLALCHEMY_DATABASE_URI = 'engine://connect/args'
-    
-    # The secret key used to sign session cookies. Example of how to generate:
-    # import os
-    # os.urandom(24)
-    SECRET_KEY = b'random string'
-    
-    # The contact email used in the user agent when accessing external APIs
-    SRP_USER_AGENT_EMAIL = u'email@example.com'
-    
-    # Sets authentication mechanisms users can log in with.
-    # Put usernames in an array given to the admins argument to grant
-    # site-admin privileges to special users (like for initial setup).
-    SRP_AUTH_METHODS = [
-        {
-            'type': 'evesrp.auth.testoauth.TestOAuth',
-            'admins': [u'Paxswill'],
-            'name': 'Test Auth',
-            'key': 'consumer_key_here',
-            'secret': 'consumer_secret_here',
-        },
-        {
-            'type': 'evesrp.auth.bravecore.BraveCore',
-            'admins': [u'Paxswill'],
-            'client_key': 'client_private_key_here',
-            'server_key': 'server_public_key_here',
-            'identifier': 'core_id_here',
-        },
-    ]
-    
-    # Customize the site's title/branding
-    SRP_SITE_NAME = u'Some SRP Program'
+With an instance folder set up like the example, you can then create the
+database tables for the app using the management command. This command is
+installed as part of installing the EVE-SRP package.
 
-With this, you can then create the database tables for the app using the
-management command. This command is installed as part of installing the EVE-SRP
-package.
-
-    evesrp -c /path/to/config.py db create
+    evesrp -i /path/to/instance/folder/ db create
 
 The final step is setting up the WSGI part of the app. For a super simple
-solution, you can use the server built into Flask:
+solution, you can use the server built into Flask. The `run.py` file in the
+'examples' folder is setup to work like this. This server is **not** meant for
+production use, and is only good for verifying that things work.
 
-    from evesrp import create_app
-    
-    app = create_app('/path/to/config.py')
-    
-    if __name__ == '__main__':
-        app.run()
-
-Name the file as `wsgi.py` and you can then run it with
-
-    python wsgi.py
-
-Using Heroku, you can use the same `wsgi.py` file with a Procfile
+Using Heroku, you can use the same `run.py` file with a Procfile
 like this:
 
-    web: gunicorn wsgi:app
+    web: gunicorn run:app
 
-For a standalone Nginx+Gunicorn setup with Nginx listening on a Unix domain
-socket, your gunicorn command might looks something like this:
+For a standalone Nginx+uWSGI setup with Nginx listening on a Unix domain
+socket, your uwsgi command might looks something like this:
 
-    gunicorn --bind unix:/path/to/socket wsgi:app
+    uwsgi -s /path/to/uwsgi.sock -H /path/to/virtualenv -w run:app
 
-For more information on how to serve a Python app using Gunicorn, check out the
-[Gunicorn documentation][gunicorn-docs].
+For more information on how to serve a Python app using Gunicorn, check out 
+Flask's documentation on [deployment][flask-deploy].
 
 ### Dependencies
 
@@ -142,6 +110,7 @@ regularly with the following database adapters:
 * [MySQL-Python](https://pypi.python.org/pypi/MySQL-python) (Python 2.7 only)
 
 [core]: https://github.com/bravecollective/core
-[gunicorn-docs]: http://docs.gunicorn.org/en/latest/index.html
+[examples]: https://github.com/paxswill/evesrp/tree/master/example
+[flask-deploy]: http://flask.pocoo.org/docs/0.10/deploying/
 [sqla-db-support]: http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#supported-databases
 [psycopg2]:http://initd.org/psycopg/
