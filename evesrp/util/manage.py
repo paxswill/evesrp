@@ -86,7 +86,9 @@ migrate_manager = MigrateManager(MigrateCommand, migrate_path)
 manager.add_command('db', migrate_manager)
 
 
-manager.add_option('-c', '--config', dest='config', required=True,
+manager.add_option('-c', '--config', dest='config', required=False,
+        action=AbsolutePathAction)
+manager.add_option('-i', '--instance', dest='instance_path', required=False,
         action=AbsolutePathAction)
 
 
