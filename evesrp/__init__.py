@@ -5,7 +5,7 @@ import os
 import requests
 import sys
 import warnings
-from flask import Flask, current_app, g
+from flask import current_app, g
 from flask.ext import sqlalchemy
 from flask.ext.wtf.csrf import CsrfProtect
 from flask.ext.oauthlib.client import OAuth
@@ -15,6 +15,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.schema import MetaData
 from werkzeug.utils import import_string
 from .transformers import Transformer
+from .versioned_static import versioned_static, VersionedStaticFlask
 
 
 db = sqlalchemy.SQLAlchemy()
@@ -83,7 +84,7 @@ def create_app(config=None, **kwargs):
     """
     # Default instance_relative_config to True to let the config fallback work
     kwargs.setdefault('instance_relative_config', True)
-    app = Flask('evesrp', **kwargs)
+    app = VersionedStaticFlask('evesrp', **kwargs)
     app.request_class = AcceptRequest
     app.config.from_object('evesrp.default_config')
     # Push the instance folder path onto sys.path to allow importing from there
@@ -151,6 +152,7 @@ def create_app(config=None, **kwargs):
             'app_version': __version__,
             'site_name': app.config['SRP_SITE_NAME'],
             'url_for_page': requests.url_for_page,
+            'versioned_static': versioned_static,
         }
     # Auto-trim whitespace
     app.jinja_env.trim_blocks = True
