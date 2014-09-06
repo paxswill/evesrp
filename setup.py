@@ -37,7 +37,6 @@ setup(
             'static/css/*.css.map',
             'static/js/evesrp.min.js',
             'static/js/evesrp.min.js.map',
-            'static/fonts/fontawesome-webfont.*',
             'static/ZeroClipboard.swf',
             'templates/*.html',
             'templates/*.xml',
