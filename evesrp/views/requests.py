@@ -575,7 +575,7 @@ def submit_request():
     # Create a list of divisions this user can submit to
     form.division.choices = current_user.submit_divisions()
     if len(form.division.choices) == 1:
-        form.division.data = 1
+        form.division.data = form.division.choices[0][0]
 
     if form.validate_on_submit():
         mail = form.killmail
