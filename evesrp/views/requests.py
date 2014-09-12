@@ -553,6 +553,15 @@ class RequestForm(Form):
             # wasn't raised (meaning the killmail isn't valid).
             raise ValidationError([e for e in failures])
 
+    def validate_division(form, field):
+        division = Division.query.get(field.data)
+        if division is None:
+            raise ValidationError(u"No division with ID '{}'.".format(
+                    field.data))
+        if not current_user.has_permission(PermissionType.submit, division):
+            raise ValidationError(u"You do not have permission to submit to "
+                                  u"division '{}'.".format(division.name))
+
 
 @blueprint.route('/add/', methods=['GET', 'POST'])
 @login_required
