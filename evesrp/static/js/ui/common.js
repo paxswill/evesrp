@@ -25,17 +25,15 @@ EveSRP.ui.renderFlashes = function renderFlashes(data) {
 };
 
 EveSRP.ui.renderNavbar = function renderNavbar(data) {
-  var $leftBar = $('#left-nav'),
-      $rightBar = $('#right-nav'),
-      navData = data.nav_bar,
-      newLeft, newRight;
-  newLeft = Handlebars.templates.left_navbar(navData);
-  newRight = Handlebars.templates.right_navbar(navData);
-  $leftBar.empty();
-  $leftBar.prepend(newLeft);
-  // More careful here, we keep the dropdown intact
-  $rightBar.children('li:not(.dropdown)').remove();
-  $rightBar.prepend(newRight);
+  var navCounts = data.nav_counts;
+  _.each(navCounts, function(count, key) {
+    var $badge = $('#badge-' + key);
+    if (count != 0) {
+      $badge.text(count);
+    } else {
+      $badge.text('');
+    }
+  });
 };
 
 EveSRP.ui.setupEvents = function setupUIEvents() {
@@ -44,7 +42,7 @@ EveSRP.ui.setupEvents = function setupUIEvents() {
     if (data && 'flashed_messages' in data) {
       EveSRP.ui.renderFlashes(jqxhr.responseJSON);
     }
-    if (data && 'nav_bar' in data) {
+    if (data && 'nav_counts' in data) {
       EveSRP.ui.renderNavbar(jqxhr.responseJSON);
     }
   });

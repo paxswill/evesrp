@@ -68,11 +68,16 @@
 </form>
 {% endmacro %}
 
-{% macro navbar_button(text, view=None, count=None) %}
+{% macro navbar_button(text, view=None, count=None, id=None) %}
 {% if view %}
 {% with url = url_for(view) %}
 <li{{ ' class="active"'|safe if url == request.path }}>
-  <a href="{{ url }}">{{ text }}{{ (' <span class="badge hidden-sm">' ~ count ~ '</span>')|safe if count is not none and count != 0 }}</a>
+  <a href="{{ url }}">
+    {{ text }}
+    {% if count != None %}
+    <span class="badge hidden-sm"{{ (' id="' ~ id ~ '"')|safe if id != None }}>{{ count if count != 0 }}</span>
+    {% endif %}
+  </a>
 </li>
 {% endwith %}
 {% else %}
