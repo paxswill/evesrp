@@ -74,7 +74,6 @@ class ChangeEntity(Form):
 #: Mainly used as the choices argument to :py:class:`~.SelectField`
 transformer_choices = [
     ('', u''),
-    ('kill_timestamp', u'Kill Timestamp'),
     ('pilot', u'Pilot'),
     ('corporation', u'Corporation'),
     ('alliance', u'Alliance'),
@@ -82,7 +81,6 @@ transformer_choices = [
     ('constellation', u'Constellation'),
     ('region', u'Region'),
     ('ship_type', u'Ship'),
-    ('payout', u'Payout'),
     ('status', u'Request Status'),
 ]
 

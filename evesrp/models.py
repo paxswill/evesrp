@@ -587,8 +587,11 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
                 raw_value = getattr(self._request, attr)
                 if attr in self._request.division.transformers:
                     transformer = self._request.division.transformers[attr]
-                    return Markup(u'<a href="{link}">{value}</a>').format(
-                            link=transformer(raw_value), value=str(raw_value))
+                    return Markup(u'<a href="{link}" target="_blank">'
+                                  u'{value} <i class="fa fa-external-link">'
+                                  u'</i></a>').format(
+                                        link=transformer(raw_value),
+                                        value=str(raw_value))
                 else:
                     return raw_value
 

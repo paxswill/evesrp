@@ -41,7 +41,7 @@
       <dd>{{ srp_request.kill_timestamp.strftime('%d %b %Y @ %H:%M') }}</dd>
       <dt>Division</dt>
       <dd>
-        <span id="request-division">{{ srp_request.division.name }}</span> &bull;
+        <span id="request-division">{{ srp_request.transformed.division }}</span> &bull;
         <a href="{{ url_for('requests.request_change_division', request_id=srp_request.id) }}">Change Division</a>
       </dd>
       <dt>Details</dt>
@@ -58,15 +58,15 @@
         {{ srp_request.transformed.pilot }}
       </dd>
       <dt>Corporation</dt>
-      <dd>{{ srp_request.corporation }}</dd>
+      <dd>{{ srp_request.transformed.corporation }}</dd>
       <dt>Alliance</dt>
-      <dd>{{ srp_request.alliance|default(' ') }}
+      <dd>{{ srp_request.transformed.alliance|default(' ') }}
       <dt>Location</dt>
-      <dd>{{ srp_request.region }} / {{ srp_request.constellation }} / {{ srp_request.system }}</dd>
+      <dd>{{ srp_request.transformed.region }} / {{ srp_request.transformed.constellation }} / {{ srp_request.transformed.system }}</dd>
       <dt>Ship</dt>
       <dd>{{ srp_request.transformed.ship_type }}</dd>
       <dt>Status</dt>
-      <dd><span id="request-status" class="label label-{{ macros.status_color(srp_request.status) }}">{{ srp_request.status }}</span></dd>
+      <dd><span id="request-status" class="label label-{{ macros.status_color(srp_request.status) }}">{{ srp_request.transformed.status }}</span></dd>
       <dt>Payout</dt>
       <dd>
         <span id="request-payout" data-initial-title="Base Payout: {{ srp_request.base_payout.currency() }}">

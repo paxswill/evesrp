@@ -372,6 +372,7 @@ class TransformerRef(db.Model, AutoID, AutoName):
         return transformer
 
 
+@unistr
 class Division(db.Model, AutoID, AutoName):
     """A reimbursement division.
 
@@ -420,3 +421,6 @@ class Division(db.Model, AutoID, AutoName):
 
     def __repr__(self):
         return "{x.__class__.__name__}('{x.name}')".format(x=self)
+
+    def __unicode__(self):
+        return u"{}".format(self.name)
