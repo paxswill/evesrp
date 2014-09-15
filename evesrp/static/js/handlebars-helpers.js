@@ -48,3 +48,7 @@ Handlebars.registerHelper('compare', function(left, right, options) {
     return options.inverse(this);
   }
 });
+
+Handlebars.registerHelper('count', function(collection) {
+  return collection.length;
+});
