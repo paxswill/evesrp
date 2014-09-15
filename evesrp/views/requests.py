@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import re
 
 from flask import render_template, abort, url_for, flash, Markup, request,\
@@ -411,6 +411,13 @@ class PayoutListing(PermissionRequestListing):
         return super(PayoutListing, self).requests(filters)
 
     def dispatch_request(self, filters='', **kwargs):
+        if hasattr(request, 'json_extended'):
+            if isinstance(request.json_extended, bool):
+                old_value = request.json_extended
+                request.json_extended = defaultdict(lambda: old_value)
+        else:
+            request.json_extended = {}
+        request.json_extended[Request] = True
         if not current_user.has_permission(self.permissions):
             abort(403)
         return super(PayoutListing, self).dispatch_request(
@@ -696,18 +703,7 @@ def get_request_details(request_id=None, srp_request=None):
     else:
         abort(403)
     if request.is_json or request.is_xhr:
-        # dump the load to encode srp_request as json and then get a dictionary
-        # form of it. We need this to add a few bits of information to the
-        # standard request encoding
-        enc_request = json.loads(json.dumps(srp_request))
-        enc_request[u'actions'] = srp_request.actions
-        enc_request[u'modifiers'] = srp_request.modifiers
-        valid_actions = map(
-                lambda a: a.value,
-                srp_request.valid_actions(current_user))
-        enc_request[u'valid_actions'] = valid_actions
-        enc_request[u'current_user'] = current_user._get_current_object()
-        return jsonify(enc_request)
+        return jsonify(srp_request._json(True))
     if request.is_xml:
         return xmlify('request.xml', srp_request=srp_request)
     return render_template(template, srp_request=srp_request,

@@ -8,7 +8,8 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.event import listens_for
 from sqlalchemy.schema import DDL, DropIndex
-from flask import Markup, current_app
+from flask import Markup, current_app, url_for
+from flask.ext.login import current_user
 
 from . import db
 from .util import DeclEnum, classproperty, AutoID, Timestamped, AutoName,\
@@ -111,6 +112,18 @@ class Action(db.Model, AutoID, Timestamped, AutoName):
     def __repr__(self):
         return "{x.__class__.__name__}({x.request}, {x.user}, {x.type_})".\
                 format(x=self)
+
+    def _json(self, extended=False):
+        try:
+            parent = super(Action, self)._json(extended)
+        except AttributeError:
+            parent = {}
+        parent[u'type'] = self.type_
+        if extended:
+            parent[u'note'] = self.note or u''
+            parent[u'timestamp'] = self.timestamp
+            parent[u'user'] = self.user
+        return parent
 
 
 class ModifierError(ValueError):
@@ -244,6 +257,26 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
                 request.division):
             raise ModifierError(u"Only reviewers can add modifiers.")
         return request
+
+    def _json(self, extended=False):
+        try:
+            parent = super(Modifier, self)._json(extended)
+        except AttributeError:
+            parent = {}
+        parent[u'value'] = self.value
+        parent[u'value_str'] = unicode(self)
+        if extended:
+            parent[u'note'] = self.note or u''
+            parent[u'timestamp'] = self.timestamp
+            parent[u'user'] = self.user
+            if self.voided:
+                parent[u'void'] = {
+                    u'user': self.voided_user,
+                    u'timestamp': self.voided_timestamp,
+                }
+            else:
+                parent[u'void'] = False
+        return parent
 
 
 @unistr
@@ -598,6 +631,33 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
             def __init__(self, request):
                 self._request = request
         return RequestTransformer(self)
+
+    def _json(self, extended=False):
+        try:
+            parent = super(Request, self)._json(extended)
+        except AttributeError:
+            parent = {}
+        parent[u'href'] = url_for('requests.get_request_details',
+                request_id=self.id)
+        attrs = (u'killmail_url', u'kill_timestamp', u'pilot',
+                 u'alliance', u'corporation', u'submitter',
+                 u'division', u'status', u'base_payout', u'payout',
+                 u'details', u'id', u'ship_type', u'system',)
+        for attr in attrs:
+            if attr == u'ship_type':
+                parent['ship'] = self.ship_type
+            elif u'payout' in attr:
+                payout = getattr(self, attr)
+                parent[attr] = payout.currency(commas=False)
+                parent[attr + '_str'] = payout.currency()
+            else:
+                parent[attr] = getattr(self, attr)
+        parent[u'submit_timestamp'] = self.timestamp
+        if extended:
+            parent[u'actions'] = map(lambda a: a._json(True), self.actions)
+            parent[u'modifiers'] = map(lambda m: m._json(True), self.modifiers)
+            parent[u'valid_actions'] = self.valid_actions(current_user)
+        return parent
 
 
 # Define event listeners for syncing the various denormalized attributes

@@ -39,6 +39,11 @@ class EnumSymbol(object):
     def __unicode__(self):
         return self.description
 
+    def _json(self, extended=False):
+        # Not going to account for inheritance, as nothing should be inheriting
+        # from EnumSymbol
+        return self.name
+
 
 class EnumMeta(type):
     """Generate new DeclEnum classes."""
