@@ -8,13 +8,13 @@
     <div class="row">
       <dl class="col-sm-6 dl-horizontal">
         <dt>External Lossmail</dt>
-        <dd><a href="{{killmail_url}}" target="_blank">{{id}}</a></dd>
+        <dd><a href="{{killmail_url}}" target="_blank">{{id}} <i class="fa fa-external-link"></i></a></dd>
         <dt>Details</dt>
         <dd>
           <a class="small-popover" data-toggle="popover" data-trigger="focus" data-content="{{details}}" data-container="body" href="#" tabindex="0">Details</a>
         </dd>
         <dt>Ship</dt>
-        <dd>{{ship}}</dd>
+        <dd>{{transformed . 'ship'}}</dd>
         {{#if modifiers}}
         <dt>Modifiers</dt>
         <dd>

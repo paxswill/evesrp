@@ -54,15 +54,19 @@
         {% endif %}
       </dd>
       <dt>Pilot</dt>
-      <dd>
+      <dd id="pilot">
         {{ srp_request.transformed.pilot }}
       </dd>
       <dt>Corporation</dt>
-      <dd>{{ srp_request.transformed.corporation }}</dd>
+      <dd id="corporation">{{ srp_request.transformed.corporation }}</dd>
       <dt>Alliance</dt>
-      <dd>{{ srp_request.transformed.alliance|default(' ') }}
+      <dd id="alliance">{{ srp_request.transformed.alliance|default(' ') }}
       <dt>Location</dt>
-      <dd>{{ srp_request.transformed.region }} / {{ srp_request.transformed.constellation }} / {{ srp_request.transformed.system }}</dd>
+      <dd>
+        <span id="region">{{ srp_request.transformed.region }}</span> /
+        <span id="constellation">{{ srp_request.transformed.constellation }}</span> /
+        <span id="system">{{ srp_request.transformed.system }}</span>
+      </dd>
       <dt>Ship</dt>
       <dd>{{ srp_request.transformed.ship_type }}</dd>
       <dt>Status</dt>

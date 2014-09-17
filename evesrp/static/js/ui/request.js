@@ -61,6 +61,22 @@ EveSRP.ui.request = {
     }
     // Update division
     division.text(request.division.name);
+    // Update all possible transformed attributes
+    _.each(request.transformed, function(link, attr) {
+      var $attrText, value;
+      if (attr === 'status') {
+        $attrText = statusBadge;
+      } else {
+        $attrText = $('#' + attr);
+      }
+      if (attr === 'pilot') {
+        value = request.pilot.name;
+      } else {
+        value = request[attr];
+      }
+      $attrText.html('<a href="' + link + '" target="_blank">' + value +
+                     ' <i class="fa fa-external-link"></i></a>');
+    });
   },
 
   submitAction: function submitAction(ev) {

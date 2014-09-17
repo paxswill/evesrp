@@ -52,3 +52,12 @@ Handlebars.registerHelper('compare', function(left, right, options) {
 Handlebars.registerHelper('count', function(collection) {
   return collection.length;
 });
+
+Handlebars.registerHelper('transformed', function(request, attr) {
+  if (_.has(request.transformed, attr)) {
+    return new Handlebars.SafeString('<a href="' + request.transformed[attr] +
+                                     '" target="_blank">' + request[attr] +
+                                     ' <i class="fa fa-external-link"></i></a>');
+  }
+  return request[attr];
+});

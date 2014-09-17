@@ -616,6 +616,9 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         request.
         """
         class RequestTransformer(object):
+            def __init__(self, request):
+                self._request = request
+
             def __getattr__(self, attr):
                 raw_value = getattr(self._request, attr)
                 if attr in self._request.division.transformers:
@@ -628,8 +631,15 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
                 else:
                     return raw_value
 
-            def __init__(self, request):
-                self._request = request
+            def __iter__(self):
+                for attr, transformer in\
+                        self._request.division.transformers.items():
+                    if attr == 'ship_type':
+                        yield ('ship', transformer(getattr(self._request,
+                                attr)))
+                    else:
+                        yield (attr, transformer(getattr(self._request, attr)))
+
         return RequestTransformer(self)
 
     def _json(self, extended=False):
@@ -642,7 +652,8 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         attrs = (u'killmail_url', u'kill_timestamp', u'pilot',
                  u'alliance', u'corporation', u'submitter',
                  u'division', u'status', u'base_payout', u'payout',
-                 u'details', u'id', u'ship_type', u'system',)
+                 u'details', u'id', u'ship_type', u'system', u'constellation',
+                 u'region')
         for attr in attrs:
             if attr == u'ship_type':
                 parent['ship'] = self.ship_type
@@ -657,6 +668,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
             parent[u'actions'] = map(lambda a: a._json(True), self.actions)
             parent[u'modifiers'] = map(lambda m: m._json(True), self.modifiers)
             parent[u'valid_actions'] = self.valid_actions(current_user)
+            parent[u'transformed'] = dict(self.transformed)
         return parent
 
 
