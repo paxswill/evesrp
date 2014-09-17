@@ -885,6 +885,9 @@ def request_change_division(request_id):
         return redirect(url_for('.get_request_details', request_id=request_id))
     form = DivisionChange()
     form.division.choices = division_choices
+    # Default to the first value of there's only once choice.
+    if len(division_choices) == 1:
+        form.division.data = form.division.choices[0][0]
     if form.validate_on_submit():
         new_division = Division.query.get(form.division.data)
         archive_note = u"Moving from division '{}' to division '{}'.".format(
