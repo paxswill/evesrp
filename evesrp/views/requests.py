@@ -255,8 +255,11 @@ class RequestListing(View):
             return redirect(url_for(request.endpoint,
                     filters=canonical_filter), code=301)
         requests = self.requests(filter_map)
+        # Ignore rejected requests when summing tha payout.
+        # Discard ordering options, they affect the sum somehow.
         payout_requests = requests.\
                 filter(Request.status != ActionType.rejected).\
+                order_by(False).\
                 with_entities(Request.payout).\
                 subquery(with_labels=True)
         total_payouts = db.session.query(db.func.sum(
