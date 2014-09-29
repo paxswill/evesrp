@@ -84,6 +84,12 @@ class AuthMethod(object):
         return lowered
 
 
+class AnonymousUser(flask_login.AnonymousUserMixin):
+
+    def has_permission(self, permissions, division_or_request=None):
+        return False
+
+
 class PermissionType(DeclEnum):
     """Enumerated type for the types of permissions available. """
 
