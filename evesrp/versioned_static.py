@@ -34,7 +34,7 @@ class VersionedStaticFlask(Flask):
         try:
             return super(VersionedStaticFlask, self).send_static_file(filename)
         except NotFound as e:
-            current_app.logger.warning(u"Checking for version-hashed file: {}".
+            current_app.logger.debug(u"Checking for version-hashed file: {}".
                     format(filename))
             # Map file names are derived from the source file's name, so ignore
             # the '.map' at the end.
