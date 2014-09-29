@@ -74,10 +74,10 @@ class TestSubmitRequest(TestLogin):
             self.assertCountEqual(division_names, ('Division 1', 'Division 3'))
 
     def test_killmail_validation(self):
-        # Using a test_client() context so the before_request callbacks are
-        # called.
-        with self.app.test_client() as c:
-            c.get('/request/add/')
+        # Need to be logged in so validation of permissions works.
+        client = self.login()
+        with client:
+            client.get('/request/add/')
             # RequestsForm needs a list of divisions
             user = self.normal_user
             divisions = user.submit_divisions()
