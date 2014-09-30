@@ -42,7 +42,7 @@ _patch_metadata()
 from .util import DB_STATS, AcceptRequest
 
 
-__version__ = u'0.10.3-dev'
+__version__ = u'0.10.3'
 
 
 requests_session = requests.Session()
