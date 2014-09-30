@@ -47,7 +47,7 @@ font-awesome.css:
 	$(LESSC) \
 		--include-path="$(FONTAWESOME)" \
 		$(LESSC_OPTS) \
-		"$(FONTAWESOME)/font-awesome.less" \
+		"fontawesome.less" \
 		$@
 
 font-awesome.min.css:
@@ -55,7 +55,7 @@ font-awesome.min.css:
 		--include-path="$(FONTAWESOME)" \
 		$(LESSC_OPTS) \
 		-x \
-		"$(FONTAWESOME)/font-awesome.less" \
+		"fontawesome.less" \
 		$@
 
 bootstrap-tokenfield.css tokenfield-typeahead.css:

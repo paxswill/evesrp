@@ -74,10 +74,10 @@ class TestSubmitRequest(TestLogin):
             self.assertCountEqual(division_names, ('Division 1', 'Division 3'))
 
     def test_killmail_validation(self):
-        # Using a test_client() context so the before_request callbacks are
-        # called.
-        with self.app.test_client() as c:
-            c.get('/request/add/')
+        # Need to be logged in so validation of permissions works.
+        client = self.login()
+        with client:
+            client.get('/request/add/')
             # RequestsForm needs a list of divisions
             user = self.normal_user
             divisions = user.submit_divisions()
@@ -208,14 +208,14 @@ class TestRequestList(TestLogin):
                         status=ActionType.paid)
             db.session.commit()
 
+    def count_requests(self, data):
+        raise NotImplemented
+
     def accessible_list_checker(self, user_name, path, expected):
         client = self.login(user_name)
         resp = client.get(path, follow_redirects=True)
         self.assertEqual(resp.status_code, 200)
-        soup = BeautifulSoup(resp.get_data())
-        request_id_cols = soup.find_all('td',
-                attrs={'data-attribute': 'status'})
-        self.assertEqual(len(request_id_cols), expected)
+        self.assertEqual(self.count_requests(resp.get_data()), expected)
 
     def elevated_list_checker(self, path, expected):
         norm_client = self.login(self.normal_name)
@@ -223,11 +223,17 @@ class TestRequestList(TestLogin):
         self.assertEqual(norm_resp.status_code, 403)
         self.accessible_list_checker(self.admin_name, path, expected)
 
+
+class TestTableRequestLists(TestRequestList):
+
+    def count_requests(self, data):
+        soup = BeautifulSoup(data)
+        request_id_cols = soup.find_all('td',
+                attrs={'data-attribute': 'status'})
+        return len(request_id_cols)
+
     def test_pending(self):
         self.elevated_list_checker('/request/pending/', 10)
-
-    def test_payout(self):
-        self.elevated_list_checker('/request/pay/', 4)
 
     def test_complete(self):
         self.elevated_list_checker('/request/completed/', 4)
@@ -235,6 +241,17 @@ class TestRequestList(TestLogin):
     def test_personal(self):
         self.accessible_list_checker(self.normal_name, '/request/personal/', 7)
         self.accessible_list_checker(self.admin_name, '/request/personal/', 7)
+
+
+class TestPayoutList(TestRequestList):
+
+    def count_requests(self, data):
+        soup = BeautifulSoup(data)
+        request_id_cols = soup.find_all('div', class_='panel')
+        return len(request_id_cols)
+
+    def test_payout(self):
+        self.elevated_list_checker('/request/pay/', 4)
 
 
 class TestRequest(TestLogin):
@@ -376,7 +393,7 @@ class TestRequestSetPayout(TestRequest):
                 db.session.commit()
             resp = client.post(self.request_path, follow_redirects=True, data={
                     'id_': 'payout',
-                    'value': '42000000'})
+                    'value': '42'})
             self.assertIn('The request must be in the evaluating state '
                     'to change the base payout.', resp.get_data(as_text=True))
             with self.app.test_request_context():

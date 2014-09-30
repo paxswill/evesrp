@@ -10,22 +10,6 @@ if (! ('ui' in EveSRP)) {
 
 EveSRP.ui.requestList = {
 
-  markPaid: function markPaid(ev) {
-    var $form = $(ev.target).closest('form');
-    $.ajax( {
-      type: 'POST',
-      url: $form.attr('action'),
-      data: $form.serialize(),
-      success: function() {
-        var $row = $form.closest('tr');
-        $row.removeClass();
-        $row.addClass('success');
-        $row.find('button').prop('disabled', true);
-      }
-    });
-    return false;
-  },
-
   setupTokenField: function setupTokenfield() {
     var attributes, bloodhound, bhDeferred;
     attributes = [
@@ -143,32 +127,14 @@ EveSRP.ui.requestList = {
         $headers = $rows.first().find('th'),
         $oldRows = $rows.not(':first'),
         columns = this.getColumns($rows),
-        isPayout = false,
         $pager = $('ul.pagination'),
         requests = data.requests,
         $summary = $('#requestsSummary'),
-        $copyButtons, $newRows;
+        $newRows;
     if ($oldRows.length != 0) {
-      // Remove the tooltips and unattach the clipboard client from any buttons
-      $copyButtons = $oldRows.find('.copy-btn');
-      if ($copyButtons.length != 0) {
-        isPayout = true;
-        EveSRP.ui.clipboardClient.unclip($copyButtons);
-        $copyButtons.each(function (i, element) {
-          $(element).tooltip('destroy');
-        });
-      }
       $oldRows.remove();
     }
-    /* Rebuild the table */
-    if (isPayout) {
-      $newRows = $(Handlebars.templates.payout_rows(requests));
-      $copyButtons = $newRows.find('.copy-btn');
-      EveSRP.ui.clipboardClient.clip($copyButtons);
-      $copyButtons.tooltip({trigger: 'manual focus'});
-    } else {
-      $newRows = Handlebars.templates.request_rows(requests);
-    }
+    $newRows = Handlebars.templates.request_rows(requests);
     $rowsParent.append($newRows);
     $rowsParent.find('.filterable a')
       .on('click', EveSRP.ui.requestList.addQuickFilter);
@@ -307,16 +273,6 @@ EveSRP.ui.requestList = {
   },
 
   setupEvents: function setupRequestListEvents() {
-    EveSRP.ui.setupClipboard();
-    /* Initialize tooltips */
-    $('.copy-btn').tooltip({trigger: 'manual'});
-    EveSRP.ui.clipboardClient.on('mouseover', function (ev) {
-      $(this).tooltip('show');
-    }).on('mouseout', function(ev) {
-      $(this).tooltip('hide');
-    });
-    /* Add paid button events */
-    $('#requests').on('submit', EveSRP.ui.requestList.markPaid);
     // Attach column sort listeners
     $('th a.heading').on('click', this.changeSort);
     // Attach page number change listeners
@@ -328,6 +284,8 @@ EveSRP.ui.requestList = {
   }
 };
 if ($('.filter-tokenfield').length !== 0) {
-  EveSRP.ui.requestList.setupEvents();
   EveSRP.ui.requestList.setupTokenField();
+}
+if ($('table#requests').length !== 0) {
+  EveSRP.ui.requestList.setupEvents();
 }

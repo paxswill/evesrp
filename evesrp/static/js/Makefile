@@ -11,6 +11,7 @@ SOURCE_NAMES := \
 	$(BOOTSTRAP)/transition \
 	$(BOOTSTRAP)/collapse \
 	$(BOOTSTRAP)/tooltip \
+	$(BOOTSTRAP)/popover \
 	$(BOOTSTRAP)/alert \
 	$(BOOTSTRAP)/modal \
 	$(THIRDPARTY)/handlebars/handlebars.runtime \
@@ -28,6 +29,7 @@ SOURCE_NAMES := \
 	ui/division \
 	tokenfield \
 	ui/requestList \
+	ui/payouts \
 	ui/apiKeys
 JS_SOURCE = $(patsubst %,%.js,$(SOURCE_NAMES))
 

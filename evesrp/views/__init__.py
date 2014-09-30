@@ -74,32 +74,18 @@ def update_navbar(response):
     if 'application/json' not in response.mimetype:
         return response
     response_json = json.loads(response.get_data())
-    nav_bar = {
-        'pending': False,
-        'payouts': False,
-        'completed': False,
-        'submit': False,
-    }
     counts = {
         'pending': 0,
         'payouts': 0,
+        'personal': 0
     }
-    nav_bar['counts'] = counts
-    response_json['nav_bar'] = nav_bar
+    response_json['nav_counts'] = counts
     # Unauthenticated users get nothing
     if not current_user.is_authenticated():
         response.set_data(json.dumps(response_json))
         return response
-    if current_user.has_permission(
-            (PermissionType.review, PermissionType.audit)):
-        nav_bar['pending'] = True
-        counts['pending'] = request_count(PermissionType.review)
-    if current_user.has_permission(PermissionType.pay):
-        nav_bar['payouts'] = True
-        counts['payouts'] = request_count(PermissionType.pay)
-    if current_user.has_permission(PermissionType.elevated):
-        nav_bar['completed'] = True
-    if current_user.has_permission(PermissionType.submit):
-        nav_bar['submit'] = True
+    counts['pending'] = request_count(PermissionType.review)
+    counts['payouts'] = request_count(PermissionType.pay)
+    counts['personal'] = request_count(PermissionType.submit)
     response.set_data(json.dumps(response_json))
     return response

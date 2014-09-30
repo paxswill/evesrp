@@ -11,6 +11,7 @@ from wtforms.fields import HiddenField
 from wtforms.validators import AnyOf
 from sqlalchemy.orm.exc import NoResultFound
 from .. import csrf, db
+from ..auth import AnonymousUser
 from ..auth.models import User, APIKey
 from ..util import ensure_unicode, jsonify, xmlify
 
@@ -19,6 +20,7 @@ blueprint = Blueprint('login', __name__)
 
 
 login_manager = LoginManager()
+login_manager.anonymous_user = AnonymousUser
 
 
 @login_manager.user_loader

@@ -35,6 +35,7 @@
       <span class="input-group-addon">Filters</span>
       <input type="text" class="form-control filter-tokenfield">
     </div>
+    {% block table %}
     <table class="table table-condensed" id="requests">
       <tr>
         {% block table_headers %}
@@ -63,6 +64,7 @@
       </tr>
       {% endfor %}
     </table>
+    {% endblock table %}
     <div class="text-center">
       {% if pager.pages > 1 %}
       <ul class="pagination">

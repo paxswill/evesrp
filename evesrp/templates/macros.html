@@ -2,15 +2,19 @@
 {# Renders selects. If there's only one choice, it hides the input. #}
 {% if field.iter_choices()|list|length == 1 %}
 {{ field.label }}
-{{ field(class="form-control", disabled='') }}
+{{ field(class='form-control', disabled='') }}
 {% else %}
 {{ field.label }}
 {% if disabled %}
-{{ field(class="form-control", disabled="") }}
+{{ field(class='form-control', disabled='') }}
 {% else %}
-{{ field(class="form-control") }}
+{{ field(class='form-control') }}
 {% endif %}
 {% endif %}
+{% if field.description %}
+  <span class="help-block">{{ field.description }}</span>
+{% endif %}
+{{ render_errors(field) }}
 {%- endmacro %}
 
 {% macro render_errors(field) -%}
@@ -68,11 +72,16 @@
 </form>
 {% endmacro %}
 
-{% macro navbar_button(text, view=None, count=None) %}
+{% macro navbar_button(text, view=None, count=None, id=None) %}
 {% if view %}
 {% with url = url_for(view) %}
 <li{{ ' class="active"'|safe if url == request.path }}>
-  <a href="{{ url }}">{{ text }}{{ (' <span class="badge hidden-sm">' ~ count ~ '</span>')|safe if count is not none and count != 0 }}</a>
+  <a href="{{ url }}">
+    {{ text }}
+    {% if count != None %}
+    <span class="badge hidden-sm"{{ (' id="' ~ id ~ '"')|safe if id != None }}>{{ count if count != 0 }}</span>
+    {% endif %}
+  </a>
 </li>
 {% endwith %}
 {% else %}
@@ -92,6 +101,6 @@ danger
 {%- endif %}
 {% endmacro %}
 
-{% macro clipboard_button(value, position="top", title=None) %}
-<button class="btn btn-default btn-sm copy-btn" data-clipboard-text="{{ value }}" data-toggle="tooltip" data-placement="{{ position }}" title="Copy {{ title if title != None else "'" ~ value ~ "'" }} to clipboard">{{ value }}</button>
+{% macro clipboard_button(value, position="top", title=None, classes='btn btn-default btn-sm') %}
+<button class="{{ classes }} copy-btn" data-clipboard-text="{{ value }}" data-toggle="tooltip" data-placement="{{ position }}" title="Copy {{ title if title != None else "'" ~ value ~ "'" }} to clipboard">{{ value }}</button>
 {% endmacro %}

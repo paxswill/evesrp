@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from base64 import urlsafe_b64encode
 from itertools import groupby
 import os
+from flask import url_for
 import six
 from six.moves import filter
 from sqlalchemy.ext.declarative import declared_attr
@@ -105,6 +106,15 @@ class Entity(db.Model, AutoID, AutoName):
             perms = perms.filter_by(division=division)
         return db.session.query(perms.exists()).all()[0][0]
 
+    def _json(self, extended=False):
+        try:
+            parent = super(Entity, self)._json(extended)
+        except AttributeError:
+            parent = {}
+        parent[u'name'] = self.name
+        parent[u'source'] = self.authmethod
+        return parent
+
 
 class APIKey(db.Model, AutoID, AutoName, Timestamped):
     """Represents an API key for use with the :ref:`external-api`."""
@@ -126,6 +136,15 @@ class APIKey(db.Model, AutoID, AutoName, Timestamped):
     def hex_key(self):
         """The key data in a modified base-64 format safe for use in URLs."""
         return urlsafe_b64encode(self.key).decode('utf-8').replace(u'=', u',')
+
+    def _json(self, extended=False):
+        try:
+            parent = super(APIKey, self)._json(extended)
+        except AttributeError:
+            parent = {}
+        parent[u'key'] = self.hex_key
+        parent[u'timestamp'] = self.timestamp
+        return parent
 
 
 class User(Entity):
@@ -220,6 +239,14 @@ class User(Entity):
             choices.append((six.next(group).id, name))
         return choices
 
+    def _json(self, extended=False):
+        try:
+            parent = super(User, self)._json(extended)
+        except AttributeError:
+            parent = {}
+        parent[u'href'] = url_for('api.user_detail', user_id=self.id)
+        return parent
+
 
 class Note(db.Model, AutoID, Timestamped, AutoName):
     """A note about a particular :py:class:`User`."""
@@ -286,6 +313,18 @@ class Pilot(db.Model, AutoID, AutoName):
     def __unicode__(self):
         return self.name
 
+    def _json(self, extended=False):
+        try:
+            parent = super(Pilot, self)._json(extended)
+        except AttributeError:
+            parent = {}
+        parent[u'name'] = self.name
+        if extended:
+            parent[u'user'] = self.user
+            parent[u'requests'] = self.requests
+        return parent
+
+
 
 class Group(Entity):
     """Base class for a group of users.
@@ -302,6 +341,16 @@ class Group(Entity):
 
     #: Synonym for :py:attr:`entity_permissions`
     permissions = db.synonym('entity_permissions')
+
+    def _json(self, extended=False):
+        try:
+            parent = super(Group, self)._json(extended)
+        except AttributeError:
+            parent = {}
+        parent[u'href'] = url_for('api.group_detail', group_id=self.id)
+        if extended:
+            parent[u'count'] = len(self.users)
+        return parent
 
 
 class Permission(db.Model, AutoID, AutoName):
@@ -372,6 +421,7 @@ class TransformerRef(db.Model, AutoID, AutoName):
         return transformer
 
 
+@unistr
 class Division(db.Model, AutoID, AutoName):
     """A reimbursement division.
 
@@ -420,3 +470,24 @@ class Division(db.Model, AutoID, AutoName):
 
     def __repr__(self):
         return "{x.__class__.__name__}('{x.name}')".format(x=self)
+
+    def __unicode__(self):
+        return u"{}".format(self.name)
+
+    def _json(self, extended=False):
+        try:
+            parent = super(Division, self)._json(extended)
+        except AttributeError:
+            parent = {}
+        parent[u'href'] = url_for('divisions.get_division_details',
+                division_id=self.id)
+        parent[u'name'] = self.name
+        if extended:
+            entities = {}
+            for perm in PermissionType.all:
+                members = []
+                for member in [p.entity for p in self.permissions[perm]]:
+                    members.append(member._json(extended))
+                entities[perm.name] = members
+            parent[u'entities'] = entities
+        return parent

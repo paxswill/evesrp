@@ -1,7 +1,7 @@
 {{#each this}}
 <tr class="{{status_color status}}">
   <td data-attribute="id"><a href="{{href}}">{{id}}</a></td>
-  <td class="filterable" data-attribute="pilot"><a href="#">{{pilot}}</a></td>
+  <td class="filterable" data-attribute="pilot"><a href="#">{{pilot.name}}</a></td>
   <td class="filterable" data-attribute="ship"><a href="#">{{ship}}</a></td>
   <td class="filterable" data-attribute="system"><a href="#">{{system}}</a></td>
   <td class="filterable" data-attribute="status"><a href="#">{{capitalize status}}</a></td>

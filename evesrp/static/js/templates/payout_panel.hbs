@@ -1,0 +1,89 @@
+<div class="panel panel-{{status_color status}}" data-request-id="{{id}}" id="request-{{id}}">
+  <div class="panel-heading">
+    <span class="panel-title">
+      <a href="{{href}}">Request #{{id}}</a>
+    </span>
+  </div>
+  <div class="panel-body">
+    <div class="row">
+      <dl class="col-sm-6 dl-horizontal">
+        <dt>External Lossmail</dt>
+        <dd><a href="{{killmail_url}}" target="_blank">{{id}} <i class="fa fa-external-link"></i></a></dd>
+        <dt>Details</dt>
+        <dd>
+          <a class="small-popover" data-toggle="popover" data-trigger="focus" data-content="{{details}}" data-container="body" href="#" tabindex="0">Details</a>
+        </dd>
+        <dt>Ship</dt>
+        <dd>{{transformed . 'ship'}}</dd>
+        {{#if modifiers}}
+        <dt>Modifiers</dt>
+        <dd>
+          <a class="small-popover" data-toggle="popover" data-trigger="focus" data-content="
+            <ul>
+              {{#each modifiers}}
+              {{#unless void}}
+              <li>{{value_str}}</li>
+              {{/unless}}
+              {{/each}}
+          </ul>" data-html="true" data-container="body" href="#" tabindex="0">Modifiers</a>
+        </dd>
+        {{/if}}
+        <dt>Actions</dt>
+        <dd><a class="null-link" data-toggle="collapse" data-parent="#requests" href="#" data-target="#actions-{{id}}">{{count actions}}</a></dd>
+      </dl>
+      <dl class="col-sm-6 dl-horizontal spaced">
+        <dt>Division</dt>
+        <dd>{{division.name}}</dd>
+        <dt>Pilot</dt>
+        <dd>
+          <button class="btn btn-default btn-xs copy-btn" data-clipboard-text="{{pilot.name}}" data-toggle="tooltip" title="Copy '{{pilot.name}}' to clipboard">{{pilot.name}}</button>
+        </dd>
+        <dt>Payout</dt>
+        <dd>
+          <button class="btn btn-default btn-xs copy-btn" data-clipboard-text="{{payout_str}}" data-toggle="tooltip" title="Copy '{{payout_str}}' to clipboard">{{payout_str}}</button>
+        </dd>
+        <dt>Reason</dt>
+        <dd>
+          <button class="btn btn-default btn-xs copy-btn" data-clipboard-text="Payment for {{id}}" data-toggle="tooltip" title="Copy 'Payment for {{id}}' to clipboard">Payment for {{id}}</button>
+        </dd>
+        <dt></dt>
+        <dd>
+          <form method="post" action="{{href}}">
+            <input id="id_" name="id_" type="hidden" value="action">
+            <input id="type_" name="type_" type="hidden" value="paid">
+            <input id="csrf_token" name="csrf_token" type="hidden" value="{{csrf}}">
+            {{#compare status 'approved'}}
+            <button class="btn btn-success btn-xs paid-btn" type="submit">Mark Paid</button>
+            {{else}}
+            <button class="btn btn-success btn-xs paid-btn" type="submit" disabled>Mark Paid</button>
+            {{/compare}}
+          </form>
+        </dd>
+      </dl>
+    </div>
+  </div>
+  <table class="table collapse" id="actions-{{id}}">
+    <tr>
+      <th>Actions</th>
+      <th>User</th>
+      <th></th>
+      <th>Timestamp</th>
+    </tr>
+    {{#each actions}}
+    {{#compare type 'comment' operator='!=='}}
+    <tr class="{{status_color type}}">
+      <td>{{capitalize type}}</td>
+      <td>{{user.name}}</td>
+      {{#if note}}
+      <td>
+        <a class="small-popover" data-toggle="popover" data-trigger="focus" data-content="{{note}}" href="#" tabindex="0">Comment</a></td>
+      </td>
+      {{else}}
+      <td></td>
+      {{/if}}
+      <td>{{timestamp}}</td>
+    </tr>
+    {{/compare}}
+    {{/each}}
+  </table>
+</div>

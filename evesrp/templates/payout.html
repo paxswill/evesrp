@@ -1,30 +1,82 @@
 {% extends "list_requests.html" %}
-{% from "macros.html" import clipboard_button %}
-
-{% block table_headers %}
-{{ request_header('pilot', 'Pilot', 'paste') }}
-{{ request_header('id', 'Request ID (copy)', 'paste') }}
-{{ request_header('payout', 'Payout', 'paste') }}
-{{ request_header(None, 'Mark Paid', 'paid') }}
-{{ request_header('id', 'Request ID (link)') }}
-{{ request_header('status', 'Status') }}
-{{ request_header('division', 'Division') }}
-{% endblock table_headers %}
+{% from "macros.html" import clipboard_button,status_color with context %}
 
 
-{% block table_row %}
-{{ request_cell('pilot', clipboard_button(request.pilot.name), False) }}
-{{ request_cell('id', clipboard_button("Payment for " ~ request.id)) }}
-{{ request_cell('payout', clipboard_button(request.payout.currency())) }}
-<td>
-  <form method="post" action="{{ url_for('requests.get_request_details', request_id=request.id) }}">
-    {{ form.id_ }}
-    {{ form.type_(value='paid') }}
-    {{ form.csrf_token }}
-    <button class="btn btn-success btn-sm paid-btn" type="submit">Paid</button>
-  </form>
-</td>
-<td class="col-id"><a href="{{ url_for('requests.get_request_details', request_id=request.id) }}">{{ request.id }}</a></td>
-{{ request_cell('status', request.status) }}
-{{ request_cell('division', request.division.name) }}
-{% endblock table_row %}
+{% block table %}
+<div id="requests" class="panel-group">
+  {% for request in pager.items %}
+  <div class="panel panel-{{ status_color(request.status) }}" data-request-id="{{ request.id }}" id="request-{{ request.id }}">
+    <div class="panel-heading">
+      <span class="panel-title">
+        <a class="request-href" href="{{ url_for('requests.get_request_details', request_id=request.id) }}">Request #{{ request.id }}</a>
+      </span>
+    </div>
+    <div class="panel-body">
+      <div class="row">
+        <dl class="col-sm-6 dl-horizontal">
+          <dt>External Lossmail</dt>
+          <dd><a href="{{ request.killmail_url }}" target="_blank">{{ request.id }} <i class="fa fa-external-link"></i></a></dd>
+          <dt>Details</dt>
+          <dd><a class="small-popover" data-toggle="popover" data-trigger="focus" data-content="{{ request.details }}" data-container="body" href="#" tabindex="0">Details</a></dd>
+          <dt>Ship</dt>
+          <dd>{{ request.transformed.ship_type }}</dd>
+          {% if request.modifiers.count() > 0 %}
+          <dt>Modifiers</dt>
+          <dd><a class="small-popover" data-toggle="popover" data-trigger="focus" data-content="
+            <ul>
+              {% for modifier in request.modifiers if not modifier.voided %}
+                <li>{{ modifier }}</li>
+              {% endfor %}
+          </ul>" data-html="true" data-container="body" href="#" tabindex="0">Modifiers</a></dd>
+          {% endif %}
+          <dt>Actions</dt>
+          <dd><a class="null-link" data-toggle="collapse" data-parent="#requests" href="#" data-target="#actions-{{ request.id }}">{{ request.actions|length }}</a></dd>
+        </dl>
+        <dl class="col-sm-6 dl-horizontal spaced">
+          <dt>Division</dt>
+          <dd>{{ request.division.name }}</dd>
+          <dt>Pilot</dt>
+          <dd>{{ clipboard_button(request.pilot, position='top', classes='btn btn-default btn-xs') }}</dd>
+          <dt>Payout</dt>
+          <dd>{{ clipboard_button(request.payout.currency(), position='top', classes='btn btn-default btn-xs') }}</dd>
+          <dt>Reason</dt>
+          <dd>{{ clipboard_button("Payment for " ~ request.id, position='top', classes='btn btn-default btn-xs') }}</dd>
+          <dt></dt>
+          <dd>
+            <form style="display: inline;" method="post" action="{{ url_for('requests.get_request_details', request_id=request.id) }}">
+              {{ form.id_ }}
+              {{ form.type_(value='paid') }}
+              {{ form.csrf_token }}
+              <button class="btn btn-success btn-xs paid-btn" type="submit">Mark Paid</button>
+            </form>
+          </dd>
+        </dl>
+      </div>
+    </div>
+    <table class="table collapse" id="actions-{{ request.id }}">
+      <tr>
+        <th>Actions</th>
+        <th>User</th>
+        <th></th>
+        <th>Timestamp</th>
+      </tr>
+      {% for action in request.actions if action.type_ != ActionType.comment %}
+      <tr class="{{ status_color(action.type_) }}">
+        <td>{{ action.type_ }}</td>
+        <td>{{ action.user }}</td>
+        {% if action.note %}
+        <td><a class="small-popover" data-toggle="popover" data-trigger="focus" data-content="{{ action.note }}" href="#" tabindex="0">Comment</a></td>
+        {% else %}
+        <td></td>
+        {% endif %}
+        <td>{{ action.timestamp }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  {% endfor %}
+</div>
+{% endblock table %}
+
+
+{% block pager %}{% endblock pager %}

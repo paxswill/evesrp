@@ -8,7 +8,8 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.event import listens_for
 from sqlalchemy.schema import DDL, DropIndex
-from flask import Markup, current_app
+from flask import Markup, current_app, url_for
+from flask.ext.login import current_user
 
 from . import db
 from .util import DeclEnum, classproperty, AutoID, Timestamped, AutoName,\
@@ -111,6 +112,18 @@ class Action(db.Model, AutoID, Timestamped, AutoName):
     def __repr__(self):
         return "{x.__class__.__name__}({x.request}, {x.user}, {x.type_})".\
                 format(x=self)
+
+    def _json(self, extended=False):
+        try:
+            parent = super(Action, self)._json(extended)
+        except AttributeError:
+            parent = {}
+        parent[u'type'] = self.type_
+        if extended:
+            parent[u'note'] = self.note or u''
+            parent[u'timestamp'] = self.timestamp
+            parent[u'user'] = self.user
+        return parent
 
 
 class ModifierError(ValueError):
@@ -244,6 +257,26 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
                 request.division):
             raise ModifierError(u"Only reviewers can add modifiers.")
         return request
+
+    def _json(self, extended=False):
+        try:
+            parent = super(Modifier, self)._json(extended)
+        except AttributeError:
+            parent = {}
+        parent[u'value'] = self.value
+        parent[u'value_str'] = unicode(self)
+        if extended:
+            parent[u'note'] = self.note or u''
+            parent[u'timestamp'] = self.timestamp
+            parent[u'user'] = self.user
+            if self.voided:
+                parent[u'void'] = {
+                    u'user': self.voided_user,
+                    u'timestamp': self.voided_timestamp,
+                }
+            else:
+                parent[u'void'] = False
+        return parent
 
 
 @unistr
@@ -436,17 +469,18 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         :param killmail: The killmail this request pertains to
         :type killmail: :py:class:`~.Killmail`
         """
-        self.division = division
-        self.details = details
-        self.submitter = submitter
-        # Pull basically everything else from the killmail object
-        # The base Killmail object has an iterator defined that returns tuples
-        # of Request attributes and values for those attributes
-        for attr, value in killmail:
-            setattr(self, attr, value)
-        # Set default values before a flush
-        if self.base_payout is None and 'base_payout' not in kwargs:
-            self.base_payout = Decimal(0)
+        with db.session.no_autoflush:
+            self.division = division
+            self.details = details
+            self.submitter = submitter
+            # Pull basically everything else from the killmail object
+            # The base Killmail object has an iterator defined that returns tuples
+            # of Request attributes and values for those attributes
+            for attr, value in killmail:
+                setattr(self, attr, value)
+            # Set default values before a flush
+            if self.base_payout is None and 'base_payout' not in kwargs:
+                self.base_payout = Decimal(0)
         super(Request, self).__init__(**kwargs)
 
     @db.validates('base_payout')
@@ -583,18 +617,60 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         request.
         """
         class RequestTransformer(object):
+            def __init__(self, request):
+                self._request = request
+
             def __getattr__(self, attr):
                 raw_value = getattr(self._request, attr)
                 if attr in self._request.division.transformers:
                     transformer = self._request.division.transformers[attr]
-                    return Markup(u'<a href="{link}">{value}</a>').format(
-                            link=transformer(raw_value), value=str(raw_value))
+                    return Markup(u'<a href="{link}" target="_blank">'
+                                  u'{value} <i class="fa fa-external-link">'
+                                  u'</i></a>').format(
+                                        link=transformer(raw_value),
+                                        value=str(raw_value))
                 else:
                     return raw_value
 
-            def __init__(self, request):
-                self._request = request
+            def __iter__(self):
+                for attr, transformer in\
+                        self._request.division.transformers.items():
+                    if attr == 'ship_type':
+                        yield ('ship', transformer(getattr(self._request,
+                                attr)))
+                    else:
+                        yield (attr, transformer(getattr(self._request, attr)))
+
         return RequestTransformer(self)
+
+    def _json(self, extended=False):
+        try:
+            parent = super(Request, self)._json(extended)
+        except AttributeError:
+            parent = {}
+        parent[u'href'] = url_for('requests.get_request_details',
+                request_id=self.id)
+        attrs = (u'killmail_url', u'kill_timestamp', u'pilot',
+                 u'alliance', u'corporation', u'submitter',
+                 u'division', u'status', u'base_payout', u'payout',
+                 u'details', u'id', u'ship_type', u'system', u'constellation',
+                 u'region')
+        for attr in attrs:
+            if attr == u'ship_type':
+                parent['ship'] = self.ship_type
+            elif u'payout' in attr:
+                payout = getattr(self, attr)
+                parent[attr] = payout.currency(commas=False)
+                parent[attr + '_str'] = payout.currency()
+            else:
+                parent[attr] = getattr(self, attr)
+        parent[u'submit_timestamp'] = self.timestamp
+        if extended:
+            parent[u'actions'] = map(lambda a: a._json(True), self.actions)
+            parent[u'modifiers'] = map(lambda m: m._json(True), self.modifiers)
+            parent[u'valid_actions'] = self.valid_actions(current_user)
+            parent[u'transformed'] = dict(self.transformed)
+        return parent
 
 
 # Define event listeners for syncing the various denormalized attributes
@@ -624,12 +700,14 @@ def _recalculate_payout_from_request(srp_request, base_payout, *args):
                 voided.c.modifier_id==Modifier.id)\
             .filter(~voided.c.voided)\
             .order_by(False)
-    absolute = modifiers.with_entities(db.func.sum(AbsoluteModifier.value))\
-            .scalar()
+    absolute = modifiers.join(AbsoluteModifier).\
+            with_entities(db.func.sum(AbsoluteModifier.value)).\
+            scalar()
     if not isinstance(absolute, Decimal):
         absolute = Decimal(0)
-    relative = modifiers.with_entities(db.func.sum(RelativeModifier.value))\
-            .scalar()
+    relative = modifiers.join(RelativeModifier).\
+            with_entities(db.func.sum(RelativeModifier.value)).\
+            scalar()
     if not isinstance(relative, Decimal):
         relative = Decimal(0)
     payout = (base_payout + absolute) * (Decimal(1) + relative)
@@ -642,47 +720,49 @@ def _recalculate_payout_from_modifier(modifier, value, *args):
     """Recalculate a Request's payout when it gains a Modifier or when one of
     its Modifiers is voided.
     """
+    # Force a flush at the beginning, then delay other flushes
     db.session.flush()
-    # Get the request for this modifier
-    if isinstance(value, Request):
-        # Triggered by setting Modifier.request
-        srp_request = value
-    else:
-        # Triggered by setting Modifier.voided_user
-        srp_request = modifier.request
-    voided = Modifier._voided_select()
-    modifiers = srp_request.modifiers.join(voided,
-                voided.c.modifier_id==Modifier.id)\
-            .filter(~voided.c.voided)\
-            .order_by(False)
-    absolute = modifiers.join(AbsoluteModifier).\
-            with_entities(db.func.sum(AbsoluteModifier.value)).\
-            scalar()
-    if not isinstance(absolute, Decimal):
-        absolute = Decimal(0)
-    relative = modifiers.join(RelativeModifier).\
-            with_entities(db.func.sum(RelativeModifier.value)).\
-            scalar()
-    if not isinstance(relative, Decimal):
-        relative = Decimal(0)
-    # The modifier that's changed isn't reflected yet in the database, so we
-    # apply it here.
-    if isinstance(value, Request):
-        # A modifier being added to the Request
-        if modifier.voided:
-            # The modifier being added is already void
-            return
-        direction = Decimal(1)
-    else:
-        # A modifier already on a request is being voided
-        direction = Decimal(-1)
-    if isinstance(modifier, AbsoluteModifier):
-        absolute += direction * modifier.value
-    elif isinstance(modifier, RelativeModifier):
-        relative += direction * modifier.value
-    payout = (srp_request.base_payout + absolute) * \
-            (Decimal(1) + relative)
-    srp_request.payout = PrettyDecimal(payout)
+    with db.session.no_autoflush:
+        # Get the request for this modifier
+        if isinstance(value, Request):
+            # Triggered by setting Modifier.request
+            srp_request = value
+        else:
+            # Triggered by setting Modifier.voided_user
+            srp_request = modifier.request
+        voided = Modifier._voided_select()
+        modifiers = srp_request.modifiers.join(voided,
+                    voided.c.modifier_id==Modifier.id)\
+                .filter(~voided.c.voided)\
+                .order_by(False)
+        absolute = modifiers.join(AbsoluteModifier).\
+                with_entities(db.func.sum(AbsoluteModifier.value)).\
+                scalar()
+        if not isinstance(absolute, Decimal):
+            absolute = Decimal(0)
+        relative = modifiers.join(RelativeModifier).\
+                with_entities(db.func.sum(RelativeModifier.value)).\
+                scalar()
+        if not isinstance(relative, Decimal):
+            relative = Decimal(0)
+        # The modifier that's changed isn't reflected yet in the database, so we
+        # apply it here.
+        if isinstance(value, Request):
+            # A modifier being added to the Request
+            if modifier.voided:
+                # The modifier being added is already void
+                return
+            direction = Decimal(1)
+        else:
+            # A modifier already on a request is being voided
+            direction = Decimal(-1)
+        if isinstance(modifier, AbsoluteModifier):
+            absolute += direction * modifier.value
+        elif isinstance(modifier, RelativeModifier):
+            relative += direction * modifier.value
+        payout = (srp_request.base_payout + absolute) * \
+                (Decimal(1) + relative)
+        srp_request.payout = PrettyDecimal(payout)
 
 
 # The next few lines are responsible for adding a full text search index on the

@@ -74,7 +74,6 @@ class ChangeEntity(Form):
 #: Mainly used as the choices argument to :py:class:`~.SelectField`
 transformer_choices = [
     ('', u''),
-    ('kill_timestamp', u'Kill Timestamp'),
     ('pilot', u'Pilot'),
     ('corporation', u'Corporation'),
     ('alliance', u'Alliance'),
@@ -82,7 +81,6 @@ transformer_choices = [
     ('constellation', u'Constellation'),
     ('region', u'Region'),
     ('ship_type', u'Ship'),
-    ('payout', u'Payout'),
     ('status', u'Request Status'),
 ]
 
@@ -130,22 +128,7 @@ def get_division_details(division_id=None, division=None):
             current_user.has_permission(PermissionType.admin, division):
         abort(403)
     if request.is_json or request.is_xhr:
-        # Non-default way of encoding the division to include all the info in a
-        # normal response
-        entities = {}
-        for perm in PermissionType.all:
-            members = []
-            for member in [p.entity for p in division.permissions[perm]]:
-                member_info = {
-                    'id': member.id,
-                    'name': member.name,
-                    'source': member.authmethod,
-                }
-                if hasattr(member, 'users'):
-                    member_info['length'] = len(member.users)
-                members.append(member_info)
-            entities[perm.name] = members
-        return jsonify(name=division.name, entities=entities, id=division.id)
+        return jsonify(division._json(True))
     return render_template(
             'division_detail.html',
             division=division,

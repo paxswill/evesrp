@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import re
 
 from flask import render_template, abort, url_for, flash, Markup, request,\
@@ -49,8 +49,7 @@ class RequestListing(View):
 
     @staticmethod
     def parse_filter(filter_string):
-        # Set defaults that are skipped by unparse_filter
-        filters = {'page': 1, 'sort': '-submit_timestamp'}
+        filters = {}
         # Fail early for empty filters
         if filter_string is None or filter_string == '':
             return filters
@@ -68,11 +67,9 @@ class RequestListing(View):
             attr = split_filters[i].lower()
             values = split_filters[i + 1]
             # Use sets for deduplicating
-            # Prime the mapping with an empty set. Details are special filter
-            # types, and may contain commas. They are allowed to be specified
-            # multiple times.
-            if attr not in filters:
-                filters[attr] = set()
+            filters.setdefault(attr, set())
+            # Details are special filter types, and may contain commas. They
+            # are allowed to be specified multiple times.
             if attr == 'details':
                 filters[attr].add(values)
             elif attr == 'page':
@@ -110,11 +107,9 @@ class RequestListing(View):
                 for details in sorted(filters[attr]):
                     filter_strings.append('details/' + details)
             elif attr == 'page':
-                if filters['page'] != 1:
-                    filter_strings.append('page/{}'.format(filters['page']))
+                filter_strings.append('page/{}'.format(filters['page']))
             elif attr == 'sort':
-                if filters['sort'] != '-submit_timestamp':
-                    filter_strings.append('sort/{}'.format(filters['sort']))
+                filter_strings.append('sort/{}'.format(filters['sort']))
             elif attr == 'status':
                 values = [a.name for a in filters[attr]]
                 values = sorted(values)
@@ -135,6 +130,9 @@ class RequestListing(View):
         # Start with a basic query for requests
         requests = Request.query.options(*self._load_options)
         requests = requests.order_by(Request.timestamp.desc())
+        # Set default filters values
+        filters.setdefault('page', 1)
+        filters.setdefault('sort', '-submit_timestamp')
         # Apply the filters
         known_attrs = ('page', 'division', 'alliance', 'corporation',
                 'pilot', 'system', 'constellation', 'region', 'ship_type',
@@ -257,8 +255,11 @@ class RequestListing(View):
             return redirect(url_for(request.endpoint,
                     filters=canonical_filter), code=301)
         requests = self.requests(filter_map)
+        # Ignore rejected requests when summing tha payout.
+        # Discard ordering options, they affect the sum somehow.
         payout_requests = requests.\
                 filter(Request.status != ActionType.rejected).\
+                order_by(False).\
                 with_entities(Request.payout).\
                 subquery(with_labels=True)
         total_payouts = db.session.query(db.func.sum(
@@ -317,6 +318,7 @@ class RequestListing(View):
 
 
 def url_for_page(pager, page_num):
+    """Utility method used in Jinja templates."""
     filters = request.view_args.get('filters', '')
     filters = RequestListing.parse_filter(filters)
     filters['page'] = page_num
@@ -406,7 +408,19 @@ class PayoutListing(PermissionRequestListing):
         super(PayoutListing, self).__init__((PermissionType.pay,),
                 (ActionType.approved,), u'Pay Outs')
 
+    def requests(self, filters):
+        if 'sort' not in filters:
+            filters['sort'] = 'submit_timestamp'
+        return super(PayoutListing, self).requests(filters)
+
     def dispatch_request(self, filters='', **kwargs):
+        if hasattr(request, 'json_extended'):
+            if isinstance(request.json_extended, bool):
+                old_value = request.json_extended
+                request.json_extended = defaultdict(lambda: old_value)
+        else:
+            request.json_extended = {}
+        request.json_extended[Request] = True
         if not current_user.has_permission(self.permissions):
             abort(403)
         return super(PayoutListing, self).dispatch_request(
@@ -549,6 +563,15 @@ class RequestForm(Form):
             # wasn't raised (meaning the killmail isn't valid).
             raise ValidationError([e for e in failures])
 
+    def validate_division(form, field):
+        division = Division.query.get(field.data)
+        if division is None:
+            raise ValidationError(u"No division with ID '{}'.".format(
+                    field.data))
+        if not current_user.has_permission(PermissionType.submit, division):
+            raise ValidationError(u"You do not have permission to submit to "
+                                  u"division '{}'.".format(division.name))
+
 
 @blueprint.route('/add/', methods=['GET', 'POST'])
 @login_required
@@ -571,7 +594,7 @@ def submit_request():
     # Create a list of divisions this user can submit to
     form.division.choices = current_user.submit_divisions()
     if len(form.division.choices) == 1:
-        form.division.data = 1
+        form.division.data = form.division.choices[0][0]
 
     if form.validate_on_submit():
         mail = form.killmail
@@ -683,18 +706,7 @@ def get_request_details(request_id=None, srp_request=None):
     else:
         abort(403)
     if request.is_json or request.is_xhr:
-        # dump the load to encode srp_request as json and then get a dictionary
-        # form of it. We need this to add a few bits of information to the
-        # standard request encoding
-        enc_request = json.loads(json.dumps(srp_request))
-        enc_request[u'actions'] = srp_request.actions
-        enc_request[u'modifiers'] = srp_request.modifiers
-        valid_actions = map(
-                lambda a: a.value,
-                srp_request.valid_actions(current_user))
-        enc_request[u'valid_actions'] = valid_actions
-        enc_request[u'current_user'] = current_user._get_current_object()
-        return jsonify(enc_request)
+        return jsonify(srp_request._json(True))
     if request.is_xml:
         return xmlify('request.xml', srp_request=srp_request)
     return render_template(template, srp_request=srp_request,
@@ -876,6 +888,9 @@ def request_change_division(request_id):
         return redirect(url_for('.get_request_details', request_id=request_id))
     form = DivisionChange()
     form.division.choices = division_choices
+    # Default to the first value of there's only once choice.
+    if len(division_choices) == 1:
+        form.division.data = form.division.choices[0][0]
     if form.validate_on_submit():
         new_division = Division.query.get(form.division.data)
         archive_note = u"Moving from division '{}' to division '{}'.".format(

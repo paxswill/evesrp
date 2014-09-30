@@ -23,3 +23,16 @@ td form button.close {
 td.filterable a {
   color: #333;
 }
+
+.panel-body dl {
+  margin-bottom: 0px;
+}
+
+table.collapse.in {
+  display: table;
+}
+
+dl.spaced dd, dl.spaced dt {
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
