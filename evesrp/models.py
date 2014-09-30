@@ -469,17 +469,18 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         :param killmail: The killmail this request pertains to
         :type killmail: :py:class:`~.Killmail`
         """
-        self.division = division
-        self.details = details
-        self.submitter = submitter
-        # Pull basically everything else from the killmail object
-        # The base Killmail object has an iterator defined that returns tuples
-        # of Request attributes and values for those attributes
-        for attr, value in killmail:
-            setattr(self, attr, value)
-        # Set default values before a flush
-        if self.base_payout is None and 'base_payout' not in kwargs:
-            self.base_payout = Decimal(0)
+        with db.session.no_autoflush:
+            self.division = division
+            self.details = details
+            self.submitter = submitter
+            # Pull basically everything else from the killmail object
+            # The base Killmail object has an iterator defined that returns tuples
+            # of Request attributes and values for those attributes
+            for attr, value in killmail:
+                setattr(self, attr, value)
+            # Set default values before a flush
+            if self.base_payout is None and 'base_payout' not in kwargs:
+                self.base_payout = Decimal(0)
         super(Request, self).__init__(**kwargs)
 
     @db.validates('base_payout')
@@ -719,47 +720,49 @@ def _recalculate_payout_from_modifier(modifier, value, *args):
     """Recalculate a Request's payout when it gains a Modifier or when one of
     its Modifiers is voided.
     """
+    # Force a flush at the beginning, then delay other flushes
     db.session.flush()
-    # Get the request for this modifier
-    if isinstance(value, Request):
-        # Triggered by setting Modifier.request
-        srp_request = value
-    else:
-        # Triggered by setting Modifier.voided_user
-        srp_request = modifier.request
-    voided = Modifier._voided_select()
-    modifiers = srp_request.modifiers.join(voided,
-                voided.c.modifier_id==Modifier.id)\
-            .filter(~voided.c.voided)\
-            .order_by(False)
-    absolute = modifiers.join(AbsoluteModifier).\
-            with_entities(db.func.sum(AbsoluteModifier.value)).\
-            scalar()
-    if not isinstance(absolute, Decimal):
-        absolute = Decimal(0)
-    relative = modifiers.join(RelativeModifier).\
-            with_entities(db.func.sum(RelativeModifier.value)).\
-            scalar()
-    if not isinstance(relative, Decimal):
-        relative = Decimal(0)
-    # The modifier that's changed isn't reflected yet in the database, so we
-    # apply it here.
-    if isinstance(value, Request):
-        # A modifier being added to the Request
-        if modifier.voided:
-            # The modifier being added is already void
-            return
-        direction = Decimal(1)
-    else:
-        # A modifier already on a request is being voided
-        direction = Decimal(-1)
-    if isinstance(modifier, AbsoluteModifier):
-        absolute += direction * modifier.value
-    elif isinstance(modifier, RelativeModifier):
-        relative += direction * modifier.value
-    payout = (srp_request.base_payout + absolute) * \
-            (Decimal(1) + relative)
-    srp_request.payout = PrettyDecimal(payout)
+    with db.session.no_autoflush:
+        # Get the request for this modifier
+        if isinstance(value, Request):
+            # Triggered by setting Modifier.request
+            srp_request = value
+        else:
+            # Triggered by setting Modifier.voided_user
+            srp_request = modifier.request
+        voided = Modifier._voided_select()
+        modifiers = srp_request.modifiers.join(voided,
+                    voided.c.modifier_id==Modifier.id)\
+                .filter(~voided.c.voided)\
+                .order_by(False)
+        absolute = modifiers.join(AbsoluteModifier).\
+                with_entities(db.func.sum(AbsoluteModifier.value)).\
+                scalar()
+        if not isinstance(absolute, Decimal):
+            absolute = Decimal(0)
+        relative = modifiers.join(RelativeModifier).\
+                with_entities(db.func.sum(RelativeModifier.value)).\
+                scalar()
+        if not isinstance(relative, Decimal):
+            relative = Decimal(0)
+        # The modifier that's changed isn't reflected yet in the database, so we
+        # apply it here.
+        if isinstance(value, Request):
+            # A modifier being added to the Request
+            if modifier.voided:
+                # The modifier being added is already void
+                return
+            direction = Decimal(1)
+        else:
+            # A modifier already on a request is being voided
+            direction = Decimal(-1)
+        if isinstance(modifier, AbsoluteModifier):
+            absolute += direction * modifier.value
+        elif isinstance(modifier, RelativeModifier):
+            relative += direction * modifier.value
+        payout = (srp_request.base_payout + absolute) * \
+                (Decimal(1) + relative)
+        srp_request.payout = PrettyDecimal(payout)
 
 
 # The next few lines are responsible for adding a full text search index on the
