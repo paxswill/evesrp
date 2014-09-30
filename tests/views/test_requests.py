@@ -393,7 +393,7 @@ class TestRequestSetPayout(TestRequest):
                 db.session.commit()
             resp = client.post(self.request_path, follow_redirects=True, data={
                     'id_': 'payout',
-                    'value': '42000000'})
+                    'value': '42'})
             self.assertIn('The request must be in the evaluating state '
                     'to change the base payout.', resp.get_data(as_text=True))
             with self.app.test_request_context():
