@@ -8,15 +8,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf_token" content="{{ csrf_token() }}">
     <title>{% block title %}{{ site_name }}{{ (': ' ~ title)|safe if title }}{% endblock %}</title>
-    <link href="{{ versioned_static(filename='css/custom.css') }}" rel="stylesheet">
+    <link href="{{ static_file(filename='css/custom.css') }}" rel="stylesheet">
     <!-- Bootstrap -->
-    <link href="{{ versioned_static(filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ static_file(filename='css/bootstrap.min.css') }}" rel="stylesheet">
     <!-- Font Awesome -->
-    <link href="{{ versioned_static(filename='css/font-awesome.min.css') }}" rel="stylesheet">
+    <link href="{{ static_file(filename='css/font-awesome.min.css') }}" rel="stylesheet">
     <!-- Bootstrap-tokenfield -->
-    <link href="{{ versioned_static(filename='css/bootstrap-tokenfield.min.css') }}" rel="stylesheet">
-    <link href="{{ versioned_static(filename='css/tokenfield-typeahead.min.css') }}" rel="stylesheet">
-    <link rel="shortcut icon" href="{{ versioned_static(filename='favicon.ico') }}">
+    <link href="{{ static_file(filename='css/bootstrap-tokenfield.min.css') }}" rel="stylesheet">
+    <link href="{{ static_file(filename='css/tokenfield-typeahead.min.css') }}" rel="stylesheet">
+    <link rel="shortcut icon" href="{{ static_file(filename='favicon.ico') }}">
     {% endblock head %}
   </head>
   <body>
@@ -126,7 +126,7 @@
     <script type="text/javascript">
       $SCRIPT_ROOT = {{ request.script_root|tojson }};
     </script>
-    <script type="text/javascript" src="{{ versioned_static('js/evesrp.min.js') }}"></script>
+    <script type="text/javascript" src="{{ static_file('js/evesrp.min.js') }}"></script>
     {% endblock scripts %}
   </body>
 </html>

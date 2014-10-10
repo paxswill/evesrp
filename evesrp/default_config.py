@@ -18,3 +18,7 @@ SRP_SITE_NAME = 'EVE-SRP'
 SRP_DETAILS_DESCRIPTION = 'Supporting details about your loss.'
 
 SRP_SKIP_VALIDATION = False
+
+# Add a hash of the files contents to the filename (useful for working around
+# caching issues).
+SRP_STATIC_FILE_HASH = False

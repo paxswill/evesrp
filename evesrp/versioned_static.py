@@ -21,16 +21,20 @@ def get_file_hash(filename):
     return filehash
 
 
-def versioned_static(filename, **kwargs):
-    filehash = get_file_hash(filename)
-    beginning, extension = filename.rsplit('.', 1)
-    versioned_path = '{}.{}.{}'.format(beginning, filehash, extension)
-    return url_for('static', filename=versioned_path, **kwargs)
+def static_file(filename, **kwargs):
+    if current_app.config['SRP_STATIC_FILE_HASH']:
+        filehash = get_file_hash(filename)
+        beginning, extension = filename.rsplit('.', 1)
+        filename = '{}.{}.{}'.format(beginning, filehash, extension)
+    return url_for('static', filename=filename, **kwargs)
 
 
 class VersionedStaticFlask(Flask):
 
     def send_static_file(self, filename):
+        # Short-circuit if not adding file hashes
+        if not self.config['SRP_STATIC_FILE_HASH']:
+            return super(VersionedStaticFlask, self).send_static_file(filename)
         try:
             return super(VersionedStaticFlask, self).send_static_file(filename)
         except NotFound as e:

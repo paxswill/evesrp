@@ -15,7 +15,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.schema import MetaData
 from werkzeug.utils import import_string
 from .transformers import Transformer
-from .versioned_static import versioned_static, VersionedStaticFlask
+from .versioned_static import static_file, VersionedStaticFlask
 
 
 db = sqlalchemy.SQLAlchemy()
@@ -152,7 +152,7 @@ def create_app(config=None, **kwargs):
             'app_version': __version__,
             'site_name': app.config['SRP_SITE_NAME'],
             'url_for_page': requests.url_for_page,
-            'versioned_static': versioned_static,
+            'static_file': static_file,
         }
     # Auto-trim whitespace
     app.jinja_env.trim_blocks = True
