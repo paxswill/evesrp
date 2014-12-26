@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from flask import request
+from flask import request, current_app, abort
 from sqlalchemy.orm.exc import NoResultFound
 
 from .oauth import OAuthMethod, OAuthUser
@@ -11,17 +11,22 @@ class EveSSO(OAuthMethod):
 
     def __init__(self, singularity=False, **kwargs):
         if not singularity:
-            domain = 'https://login.eveonline.com'
+            crest_root_url = 'https://crest-tq.eveonline.com/'
         else:
-            domain = 'https://sisilogin.testeveonline.com'
-
+            # SiSi Crest doesn't seem to work over HTTPS yet
+            crest_root_url = 'http://public-crest-sisi.testeveonline.com'
+        # CREST URLs are all specified as absolute URLs, so skip setting a base
+        # URL
+        kwargs.setdefault('base_url', u'')
+        # Discover the OAuth endpoints by looking in the CREST root
+        crest_resp = current_app.requests_session.get(crest_root_url)
+        self.crest_root = crest_resp.json()
+        crest_token_url = self.crest_root[u'authEndpoint'][u'href']
         kwargs.setdefault('authorize_url',
-                domain + '/oauth/authorize')
-        kwargs.setdefault('access_token_url',
-                domain + '/oauth/token')
-        kwargs.setdefault('base_url',
-                domain + '/oauth/')
+                crest_token_url.replace('token', 'authorize'))
+        kwargs.setdefault('access_token_url', crest_token_url)
         kwargs.setdefault('access_token_method', 'POST')
+        kwargs.setdefault('content_type', 'application/json')
         kwargs.setdefault('app_key', 'EVE_SSO')
         kwargs.setdefault('name', u'EVE SSO')
         super(EveSSO, self).__init__(**kwargs)
