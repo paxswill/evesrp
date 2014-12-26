@@ -9,8 +9,8 @@ from .models import Group, Pilot
 
 class EveSSO(OAuthMethod):
 
-    def __init__(sisi=False, **kwargs):
-        if not sisi:
+    def __init__(self, singularity=False, **kwargs):
+        if not singularity:
             domain = 'https://login.eveonline.com'
         else:
             domain = 'https://sisilogin.testeveonline.com'
