@@ -199,12 +199,13 @@ def _config_authmethods(app):
     auth_methods = []
     # Once the deprecated config value support is removed, this can be
     # rewritten as a dict comprehension
-    for method in app.config['SRP_AUTH_METHODS']:
-        if isinstance(method, dict):
-            auth_methods.append(_instance_from_dict(method))
-        elif isinstance(method, AuthMethod):
-            _deprecated_object_instance('SRP_AUTH_METHODS', method)
-            auth_methods.append(method)
+    with app.app_context():
+        for method in app.config['SRP_AUTH_METHODS']:
+            if isinstance(method, dict):
+                auth_methods.append(_instance_from_dict(method))
+            elif isinstance(method, AuthMethod):
+                _deprecated_object_instance('SRP_AUTH_METHODS', method)
+                auth_methods.append(method)
     app.auth_methods = auth_methods
 
 

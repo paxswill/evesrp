@@ -31,43 +31,26 @@ class BraveCore(AuthMethod):
         :param str name: The user-facing name for this authentication method.
             Default: 'Brave Core'
         """
-        self._identifier = identifier
-        self._url = url
         # Allow raw object instances of the keys for the time being
         # Client Key
-        if isinstance(client_key, SigningKey):
-            self._client_key = client_key
-        else:
+        if not isinstance(client_key, SigningKey):
             try:
-                self._client_key = self.hex2key(client_key)
+                client_key = self.hex2key(client_key)
             except ValueError:
                 raise ValueError(u"BraveCore: client_key must be the key in "
                                  u"hex form.")
         # Server Key
-        if isinstance(server_key, VerifyingKey):
-            self._server_key = server_key
-        else:
+        if not isinstance(server_key, VerifyingKey):
             try:
-                self._server_key = self.hex2key(server_key)
+                server_key = self.hex2key(server_key)
             except ValueError:
                 raise ValueError(u"BraveCore: server_key must be the key in "
                                  u"hex form.")
+        self.api = API(url, identifier, client_key, server_key,
+                current_app.requests_session).api        
         if 'name' not in kwargs:
             kwargs['name'] = u'Brave Core'
         super(BraveCore, self).__init__(**kwargs)
-
-    # BraveCore.api is now a property so that accessing current_app is delayed
-    # until the app is totally set up. Accessing current_app fails until the
-    # app is properly initialized, and the current application needs to be
-    # accessed to get the requests_session for it for Brave's API.
-    # Hopefully sometime in the future this can be removed, maybe when I
-    # actually write that OAuth provider for Core.
-    @property
-    def api(self):
-        if not hasattr(self, '_api'):
-            self._api = API(self._url, self._identifier, self._client_key,
-                    self._server_key, current_app.requests_session).api
-        return self._api
 
     @staticmethod
     def hex2key(hex_key):
