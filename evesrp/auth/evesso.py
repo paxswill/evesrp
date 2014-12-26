@@ -33,7 +33,12 @@ class EveSSO(OAuthMethod):
 
     def _get_user_data(self, token):
         if not hasattr(request, '_user_data'):
-            resp = self.oauth.get('verify', token=token)
+            #resp = self.oauth.get('verify', token=token)
+            verify_url = self.crest_root[u'authEndpoint'][u'href'].replace(
+                    'token', 'verify')
+            resp = self.oauth.get(verify_url, token=token)
+            current_app.logger.debug(u"SSO lookup results: {}".format(
+                    resp.data))
             try:
                 char_data = {
                     'name': resp.data[u'CharacterName'],
