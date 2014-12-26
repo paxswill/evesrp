@@ -16,9 +16,9 @@ class EveSSO(OAuthMethod):
             domain = 'https://sisilogin.testeveonline.com'
 
         kwargs.setdefault('authorize_url',
-                domain + '/oauth2/authorize')
+                domain + '/oauth/authorize')
         kwargs.setdefault('access_token_url',
-                domain + '/oauth2/token')
+                domain + '/oauth/token')
         kwargs.setdefault('base_url',
                 domain + '/oauth/')
         kwargs.setdefault('access_token_method', 'POST')
