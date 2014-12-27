@@ -13,21 +13,29 @@ from ..versioned_static import static_file
 class EveSSO(OAuthMethod):
 
     def __init__(self, singularity=False, **kwargs):
-        if not singularity:
-            crest_root_url = 'https://crest-tq.eveonline.com/'
-        else:
-            # SiSi Crest doesn't seem to work over HTTPS yet
-            crest_root_url = 'http://public-crest-sisi.testeveonline.com'
         # CREST URLs are all specified as absolute URLs, so skip setting a base
         # URL
         kwargs.setdefault('base_url', u'')
+        # Set a member for the crest URLs
+        if not singularity:
+            self.root_urls = {
+                'public': 'https://public-crest.eveonline.com/',
+                'authed': 'https://crest-tq.eveonline.com/',
+            }
+        else:
+            self.root_urls = {
+                'public': 'http://public-crest-sisi.testeveonline.com/',
+                'authed': 'https://api-sisi.testeveonline.com/',
+            }
         # Discover the OAuth endpoints by looking in the CREST root
-        crest_resp = current_app.requests_session.get(crest_root_url)
-        self.crest_root = crest_resp.json()
-        crest_token_url = self.crest_root[u'authEndpoint'][u'href']
+        public_resp = current_app.requests_session.get(
+                self.root_urls['public'])
+        public_root = public_resp.json()
+        crest_token_url = public_root[u'authEndpoint'][u'href']
+        kwargs.setdefault('access_token_url', crest_token_url)
         kwargs.setdefault('authorize_url',
                 crest_token_url.replace('token', 'authorize'))
-        kwargs.setdefault('access_token_url', crest_token_url)
+
         kwargs.setdefault('access_token_method', 'POST')
         kwargs.setdefault('content_type', 'application/json')
         kwargs.setdefault('app_key', 'EVE_SSO')
@@ -36,8 +44,12 @@ class EveSSO(OAuthMethod):
 
     def _get_user_data(self, token):
         if not hasattr(request, '_user_data'):
-            #resp = self.oauth.get('verify', token=token)
-            verify_url = self.crest_root[u'authEndpoint'][u'href'].replace(
+            # Get the public CREST root to infer where the verification
+            # endpoint is
+            public_resp = current_app.requests_session.get(
+                    self.root_urls['public'])
+            public_root = public_resp.json()
+            verify_url = public_root[u'authEndpoint'][u'href'].replace(
                     'token', 'verify')
             resp = self.oauth.get(verify_url, token=token)
             current_app.logger.debug(u"SSO lookup results: {}".format(
