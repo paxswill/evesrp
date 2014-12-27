@@ -33,6 +33,7 @@ setup(
     package_data={
         'evesrp': [
             'static/favicon.ico',
+            'static/evesso.png',
             'static/css/*.css',
             'static/css/*.css.map',
             'static/js/evesrp.min.js',

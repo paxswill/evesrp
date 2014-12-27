@@ -1,10 +1,13 @@
 from __future__ import absolute_import
 from flask import request, current_app, abort
 from sqlalchemy.orm.exc import NoResultFound
+from flask.ext.wtf import Form
 
 from .oauth import OAuthMethod, OAuthUser
 from .. import db
 from .models import Group, Pilot
+from ..util.fields import ImageField
+from ..versioned_static import static_file
 
 
 class EveSSO(OAuthMethod):
@@ -49,6 +52,13 @@ class EveSSO(OAuthMethod):
                 abort(500, u"Error in receiving EVE SSO response: {}".format(
                         resp.data))
         return request._user_data
+
+    def form(self):
+        class EveSSOForm(Form):
+            submit = ImageField(src=static_file('evesso.png'),
+                    alt=u"Log in with EVE Online")
+
+        return EveSSOForm
 
     def get_user(self, token):
         character = self._get_user_data(token)

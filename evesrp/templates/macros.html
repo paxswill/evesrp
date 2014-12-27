@@ -42,6 +42,8 @@
   {% else %}
     {% if field.widget.input_type == 'submit' %}
       {{ field(class="btn btn-default") }}
+    {% elif field.widget.input_type == 'image' %}
+      {{ field(class="", label="") }}
     {% else %}
       {% if field.iter_choices is defined %}
       {{ render_select(field, disabled=disabled) }}
