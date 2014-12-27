@@ -9,8 +9,8 @@ different authentication systems and to make it easy to integrate it with an
 existing authentication system.
 
 As an exercise in how to write your own authentication plugin, let's write one
-that doesn't rely on an external service. We'll need to subclass three classes
-for this; :py:class:`AuthMethod`, :py:class:`AuthForm` and :py:class:`~.User`
+that doesn't rely on an external service. We'll need to subclass two classes
+for this; :py:class:`AuthMethod` and :py:class:`~.User`
 
 Let's start with subclassing :py:class:`~.User`. This class is mapped to an SQL
 table using SQLAlchemy's declarative extension (more specifically, the
@@ -50,7 +50,7 @@ checking method to make life easier for us later. ::
 :py:class:`AuthMethod` subclasses have four methods they can implement to
 customize thier behavior.
 
-* :py:meth:`AuthMethod.form` returns a :py:class:`AuthForm` subclass that
+* :py:meth:`AuthMethod.form` returns a :py:class:`~.Form` subclass that
   represents the necessary fields.
 * :py:meth:`AuthMethod.login` performs the actual login process. As part of
   this, it is passed an instance of the class given by
@@ -66,7 +66,7 @@ customize thier behavior.
 
 With these in mind, let's implement our :py:class:`AuthMethod` subclass::
 
-    from evesrp.auth import AuthForm, AuthMethod
+    from evesrp.auth import AuthMethod
     from flask import redirect, url_for, render_template, request
     from flask.ext.wtf import Form
     from sqlalchemy.orm.exc import NoResultFound
@@ -74,7 +74,7 @@ With these in mind, let's implement our :py:class:`AuthMethod` subclass::
     from wtforms.validators import InputRequired, EqualTo
 
 
-    class LocalLoginForm(AuthForm):
+    class LocalLoginForm(Form):
         username = StringField('Username', validators=[InputRequired()])
         password = PasswordField('Password', validators=[InputRequired()])
         submit = SubmitField('Log In')

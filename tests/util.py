@@ -7,11 +7,12 @@ from os import environ as env
 import httmock
 from httmock import urlmatch
 from evesrp import create_app, db, init_app
-from evesrp.auth import AuthMethod, AuthForm
+from evesrp.auth import AuthMethod
 from evesrp.auth.models import User
 from wtforms.fields import StringField
 from sqlalchemy.orm.exc import NoResultFound
 from flask import redirect, url_for, request, render_template
+from flask.ext.wtf import Form
 
 
 class TestApp(TestCase):
@@ -32,7 +33,7 @@ class TestApp(TestCase):
         db.drop_all(app=self.app)
 
 
-class NullAuthForm(AuthForm):
+class NullAuthForm(Form):
     name = StringField()
 
 

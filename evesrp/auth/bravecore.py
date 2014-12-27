@@ -9,7 +9,7 @@ from copy import deepcopy
 
 from .. import db
 from ..util import ensure_unicode
-from . import AuthMethod, AuthForm
+from . import AuthMethod
 from .models import User, Group, Pilot
 
 
