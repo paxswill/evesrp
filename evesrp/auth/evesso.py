@@ -62,6 +62,7 @@ class EveSSO(OAuthMethod):
                 char_data = {
                     'name': resp.data[u'CharacterName'],
                     'id': resp.data[u'CharacterID'],
+                    'owner_hash': resp.data[u'CharacterOwnerHash'],
                 }
                 request._user_data = char_data
             except (TypeError, KeyError):
@@ -79,10 +80,14 @@ class EveSSO(OAuthMethod):
     def get_user(self, token):
         character = self._get_user_data(token)
         try:
-            user = OAuthUser.query.filter_by(name=character['name'],
+            user = EveSSOUser.query.filter_by(
+                    owner_hash=character['owner_hash'],
                     authmethod=self.name).one()
         except NoResultFound:
-            user = OAuthUser(character['name'], self.name,
+            user = EveSSOUser(
+                    character['name'],
+                    character['owner_hash'],
+                    self.name,
                     token=token['access_token'])
             db.session.add(user)
             db.session.commit()
@@ -141,6 +146,18 @@ class EveSSO(OAuthMethod):
                 db.session.add(alliance_group)
         db.session.commit()
         return groups
+
+
+class EveSSOUser(OAuthUser):
+
+    id = db.Column(db.Integer, db.ForeignKey(OAuthUser.id), primary_key=True)
+
+    owner_hash = db.Column(db.String(50), nullable=False, unique=True,
+            index=True)
+
+    def __init__(self, username, owner_hash, authmethod, groups=None, **kwargs):
+        self.owner_hash = owner_hash
+        super(EveSSOUser, self).__init__(username, authmethod, **kwargs)
 
 
 class EveSSOGroup(Group):
