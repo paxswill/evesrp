@@ -36,7 +36,7 @@ upload: $(SUBDIRS) setup.py
 	python setup.py sdist upload
 
 test:
-	python -m unittest discover
+	nosetests --with-html --html-file=test-report.html -w tests/
 
 docs:
 	$(MAKE) -C doc html
