@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 from ecdsa import SigningKey, VerifyingKey, NIST256p
-from brave.api.client import SignedAuth, API
+from braveapi.client import SignedAuth, API
 from sqlalchemy.orm.exc import NoResultFound
 from flask import flash, url_for, redirect, abort, current_app, request
 from hashlib import sha256

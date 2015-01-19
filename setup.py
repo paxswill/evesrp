@@ -53,9 +53,6 @@ setup(
         u'Programming Language :: Python :: 2',
         u'Topic :: Games/Entertainment',
     ],
-    dependency_links=[
-        u'https://github.com/bravecollective/api/tarball/develop#egg=brave.api'
-    ],
     install_requires=[
         'Flask>=0.10.1',
         'Flask-Login==0.2.11',
@@ -69,6 +66,7 @@ setup(
         'alembic>=0.6.5',
         'requests==2.2.1',
         'six==1.7.3',
+        'braveapi==0.1',
     ],
     entry_points={
         'console_scripts': [
