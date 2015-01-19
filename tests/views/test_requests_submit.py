@@ -2,13 +2,13 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 import re
 from httmock import HTTMock
-from ..util import TestLogin, all_mocks
+import six
 from evesrp import db
 from evesrp.models import Request
 from evesrp.auth import PermissionType
 from evesrp.auth.models import Pilot, Division, Permission
 from evesrp import views
-import six
+from ..util import TestLogin, all_mocks
 
 
 if six.PY3:
