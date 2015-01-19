@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from ..util import TestApp, TestLogin
 import evesrp
 from evesrp import db
-from evesrp.auth import AuthMethod, AuthForm
+from evesrp.auth import AuthMethod
 from evesrp.auth.models import User
 
 
