@@ -165,6 +165,14 @@ provided as a reference.
 
 .. autoclass:: OAuthMethod
 
+.. py:module:: evesrp.auth.evesso
+
+EVE SSO
+^^^^^^^
+
+.. autoclass:: EveSSO
+    :show-inheritance:
+
 .. py:module:: evesrp.auth.j4oauth
 
 J4OAuth
