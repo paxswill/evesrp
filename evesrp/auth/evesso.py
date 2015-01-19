@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 import xml.etree.ElementTree as ET
-from flask import request, current_app, abort
+from flask import request, current_app, abort, flash
 from sqlalchemy.orm.exc import NoResultFound
 from flask.ext.wtf import Form
 
@@ -10,6 +10,32 @@ from .. import db
 from .models import Group, Pilot
 from ..util.fields import ImageField
 from ..versioned_static import static_file
+
+
+CREST_CONTENT_TYPE = 'application/vnd.ccp.eve.Api-v3+json; charset=utf-8'
+
+
+def check_crest_response(response):
+    """Check for CREST representation deprecation/removal.
+
+    Specifically, check that the status code isn't 406 (meaning the
+    representation has been removed) and for the presence of the X-Deprecated
+    header.
+
+    :param Response response: A :py:class:`~.Response` to check.
+    :rtype: bool
+    """
+    # TODO Add a test case for this
+    if response.status_code == 406:
+        flash((u"This version of EVE SRP no longer knows how to interface with"
+               u"the CREST API. Please update to the latest version."),
+               u'error')
+        return False
+    if 'X-Deprecated' in response.headers:
+        flash((u"The version of the CREST representation known by EVE SRP "
+               u"has been deprecated. Please update to the latest version "
+               u"to ensure continued operation."), u'warn')
+    return True
 
 
 class EveSSO(OAuthMethod):
@@ -33,7 +59,9 @@ class EveSSO(OAuthMethod):
             self.xml_root = 'https://api.testeveonline.com/'
         # Discover the OAuth endpoints by looking in the CREST root
         public_resp = current_app.requests_session.get(
-                self.root_urls['public'])
+                self.root_urls['public'],
+                headers={'Accept': CREST_CONTENT_TYPE})
+        check_crest_response(public_resp)
         public_root = public_resp.json()
         crest_token_url = public_root[u'authEndpoint'][u'href']
         kwargs.setdefault('access_token_url', crest_token_url)
@@ -51,10 +79,14 @@ class EveSSO(OAuthMethod):
             # Get the public CREST root to infer where the verification
             # endpoint is
             public_resp = current_app.requests_session.get(
-                    self.root_urls['public'])
+                    self.root_urls['public'],
+                    headers={'Accept': CREST_CONTENT_TYPE} )
+            check_crest_response(public_resp)
             public_root = public_resp.json()
             verify_url = public_root[u'authEndpoint'][u'href'].replace(
                     'token', 'verify')
+            # TODO Add CREST headers and response verification for the OAuth
+            # methods.
             resp = self.oauth.get(verify_url, token=token)
             current_app.logger.debug(u"SSO lookup results: {}".format(
                     resp.data))
