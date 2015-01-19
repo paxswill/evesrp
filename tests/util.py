@@ -9,7 +9,7 @@ from httmock import urlmatch
 from evesrp import create_app, db, init_app
 from evesrp.auth import AuthMethod
 from evesrp.auth.models import User
-from wtforms.fields import StringField
+from wtforms.fields import StringField, SubmitField
 from sqlalchemy.orm.exc import NoResultFound
 from flask import redirect, url_for, request, render_template
 from flask.ext.wtf import Form
@@ -35,6 +35,7 @@ class TestApp(TestCase):
 
 class NullAuthForm(Form):
     name = StringField()
+    submit = SubmitField()
 
 
 class NullAuth(AuthMethod):
