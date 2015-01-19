@@ -17,6 +17,7 @@ build-deps:
 	pip install -r requirements.txt
 	npm install -g less uglify-js bower handlebars@2.0.0-alpha.4
 	bower install
+	tests/mariadb.sh
 ifneq (,$(findstring psycopg2,$(DB)))
 	pip install psycopg2
 else ifneq (,$(findstring pg8000,$(DB)))
