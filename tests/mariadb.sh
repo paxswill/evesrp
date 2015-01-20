@@ -1,6 +1,10 @@
 #!/bin/bash
 
-if [[ $DB != "mysql"* || ! -z $TRAVIS ]]; then
+if [[ -z $TRAVIS ]]; then
+    exit 0
+fi
+
+if [[ $DB != "mysql"* ]]; then
     exit 0
 fi
 
