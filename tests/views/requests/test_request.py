@@ -6,7 +6,7 @@ from decimal import Decimal
 from unittest import expectedFailure
 from httmock import HTTMock
 from bs4 import BeautifulSoup
-from ..util import TestLogin, all_mocks
+from ...util import TestLogin, all_mocks
 from evesrp import db
 from evesrp.models import Request, Action, AbsoluteModifier, RelativeModifier,\
         ActionType, PrettyDecimal
