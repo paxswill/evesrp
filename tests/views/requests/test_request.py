@@ -3,10 +3,7 @@ from __future__ import unicode_literals
 import re
 import datetime as dt
 from decimal import Decimal
-from unittest import expectedFailure
-from httmock import HTTMock
-from bs4 import BeautifulSoup
-from ...util import TestLogin, all_mocks
+from ...util import TestLogin
 from evesrp import db
 from evesrp.models import Request, Action, AbsoluteModifier, RelativeModifier,\
         ActionType, PrettyDecimal
@@ -14,12 +11,6 @@ from evesrp.auth import PermissionType
 from evesrp.auth.models import User, Pilot, Division, Permission
 from evesrp.util import utc
 from evesrp import views
-import six
-from wtforms.validators import StopValidation, ValidationError
-
-
-if six.PY3:
-    unicode = str
 
 
 class TestRequest(TestLogin):
