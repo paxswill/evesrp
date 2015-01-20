@@ -14,52 +14,50 @@ class TestRequestList(TestLogin):
     def setUp(self):
         super(TestRequestList, self).setUp()
         with self.app.test_request_context():
-            d1 = Division('Division 1')
-            d2 = Division('Division 2')
-            user1 = self.normal_user
-            user2 = self.admin_user
-            # user1 can submit to division 1, user2 to division 2
-            # user2 can review and pay out both divisions
-            Permission(d1, PermissionType.submit, user1)
-            Permission(d2, PermissionType.submit, user2)
-            for permission in PermissionType.elevated:
-                for division in (d1, d2):
-                    Permission(division, permission, user2)
-            Pilot(user1, 'Generic Pilot', 1)
-            request_data = {
-                'ship_type': 'Revenant',
-                'corporation': 'Center of Applied Studies',
-                'kill_timestamp': dt.datetime.utcnow(),
-                'system': 'Jita',
-                'constellation': 'Kimotoro',
-                'region': 'The Forge',
-                'pilot_id': 1,
-            }
-            for division, user in ((d1, user1), (d2, user2)):
-                # 2 evaluating, 1 incomplete, 2 approved, 1 rejected,
-                # and 1 paid.
-                Request(user, 'First', division, request_data.items(),
-                        killmail_url='http://paxswill.com',
-                        status=ActionType.evaluating)
-                Request(user, 'Second', division, request_data.items(),
-                        killmail_url='http://paxswill.com',
-                        status=ActionType.evaluating)
-                Request(user, 'Third', division, request_data.items(),
-                        killmail_url='http://paxswill.com',
-                        status=ActionType.incomplete)
-                Request(user, 'Fourth', division, request_data.items(),
-                        killmail_url='http://paxswill.com',
-                        status=ActionType.approved)
-                Request(user, 'Fifth', division, request_data.items(),
-                        killmail_url='http://paxswill.com',
-                        status=ActionType.approved)
-                Request(user, 'Sixth', division, request_data.items(),
-                        killmail_url='http://paxswill.com',
-                        status=ActionType.rejected)
-                Request(user, 'Sixth', division, request_data.items(),
-                        killmail_url='http://paxswill.com',
-                        status=ActionType.paid)
+            for request in self.get_requests():
+                db.session.add(request)
             db.session.commit()
+
+    def get_requests(self):
+        """Act as an iterable of requests to add create.
+
+        It is safe to assume this method will be called from within an
+        request context.
+        """
+        d1 = Division('Division 1')
+        d2 = Division('Division 2')
+        user1 = self.normal_user
+        user2 = self.admin_user
+        # user1 can submit to division 1, user2 to division 2
+        # user2 can review and pay out both divisions
+        Permission(d1, PermissionType.submit, user1)
+        Permission(d2, PermissionType.submit, user2)
+        for permission in PermissionType.elevated:
+            for division in (d1, d2):
+                Permission(division, permission, user2)
+        Pilot(user1, 'Generic Pilot', 1)
+        request_data = {
+            'ship_type': 'Revenant',
+            'corporation': 'Center of Applied Studies',
+            'kill_timestamp': dt.datetime.utcnow(),
+            'system': 'Jita',
+            'constellation': 'Kimotoro',
+            'region': 'The Forge',
+            'pilot_id': 1,
+        }
+        for division, user in ((d1, user1), (d2, user2)):
+            # 2 evaluating, 1 incomplete, 2 approved, 1 rejected,
+            # and 1 paid.
+            for status in (ActionType.evaluating, ActionType.evaluating,
+                           ActionType.incomplete, ActionType.approved,
+                           ActionType.approved, ActionType.rejected,
+                           ActionType.paid):
+                request_details = "User: {}\nDivision: {}\nStatus: {}"\
+                        .format(user, division, status)
+                yield Request(user, request_details, division,
+                        request_data.items(),
+                        killmail_url='http://paxswill.com',
+                        status=status)
 
     def count_requests(self, data):
         raise NotImplemented
