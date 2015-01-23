@@ -198,7 +198,7 @@ class TestFilter(TestLogin):
         },
     ]
 
-    choices = []
+    choices = [None]
 
     def setUp(self):
         super(TestFilter, self).setUp()
@@ -257,17 +257,20 @@ class TestFilter(TestLogin):
             matching_ids = set()
             total_payout = Decimal(0)
             for request in self.killmails:
-                if request.get(self.attribute, None) in combo:
+                if combo == {None} or request.get(self.attribute) in combo:
                     matching_ids.add(request['id'])
                     total_payout += Decimal(request['base_payout'])
             # Ask the app what it thinks the matching requests are
             client = self.login(self.admin_name)
-            # TODO special-case the null filter
-            if self.attribute == 'ship_type':
-                filter_attribute = 'ship'
+            if combo != {None}:
+                if self.attribute == 'ship_type':
+                    filter_attribute = 'ship'
+                else:
+                    filter_attribute = self.attribute
+                url = '/request/all/{}/{}'.format(filter_attribute, ','.join(
+                    combo))
             else:
-                filter_attribute = self.attribute
-            url = '/request/all/{}/{}'.format(filter_attribute, ','.join(combo))
+                url = '/request/all/'
             resp = client.get(url, headers={'Accept':'application/json'},
                     follow_redirects=False)
             if resp.status_code == 301:
