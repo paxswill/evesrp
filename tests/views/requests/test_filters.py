@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from __future__ import print_function
 import datetime as dt
 from decimal import Decimal
-from itertools import product
+from itertools import product, cycle
 from flask import json
 from evesrp import db
 from evesrp.models import Request, ActionType
@@ -36,6 +36,7 @@ class TestFilter(TestLogin):
             'pilot': 'Paxswill',
             'division': DIV_2,
             'details': 'lol Stratop',
+            'status': ActionType.paid,
         },
         {
             'id': 39697412,
@@ -52,6 +53,7 @@ class TestFilter(TestLogin):
             'pilot': 'Paxswill',
             'division': DIV_3,
             'details': 'Elite Solo PVP',
+            'status': ActionType.evaluating,
         },
         {
             'id': 39988492,
@@ -68,6 +70,7 @@ class TestFilter(TestLogin):
             'pilot': 'Paxswill',
             'division': DIV_2,
             'details': 'Not so travel interceptor',
+            'status': ActionType.rejected,
         },
         {
             'id': 43292478,
@@ -84,6 +87,7 @@ class TestFilter(TestLogin):
             'pilot': 'Paxswill',
             'division': DIV_2,
             'details': 'lol Stratop',
+            'status': ActionType.incomplete,
         },
         {
             'id': 43500358,
@@ -100,6 +104,7 @@ class TestFilter(TestLogin):
             'pilot': 'DurrHurrDurr',
             'division': DIV_2,
             'details': 'Bar',
+            'status': ActionType.evaluating,
         },
         {
             'id': 43162254,
@@ -116,6 +121,7 @@ class TestFilter(TestLogin):
             'pilot': 'DurrHurrDurr',
             'division': DIV_2,
             'details': 'lol Stratop',
+            'status': ActionType.approved,
         },
         {
             'id': 31952048,
@@ -131,6 +137,7 @@ class TestFilter(TestLogin):
             'pilot': 'Gevlon Goblin',
             'division': DIV_1,
             'details': 'grr goons',
+            'status': ActionType.approved,
         },
         {
             'id': 41094133,
@@ -147,6 +154,7 @@ class TestFilter(TestLogin):
             'pilot': 'Sapporo Jones',
             'division': DIV_2,
             'details': 'Elite Solo PVP',
+            'status': ActionType.rejected,
         },
         {
             'id': 43341679,
@@ -163,6 +171,7 @@ class TestFilter(TestLogin):
             'pilot': 'Sapporo Jones',
             'division': DIV_1,
             'details': 'Scouting',
+            'status': ActionType.evaluating,
         },
         {
             'id': 43372860,
@@ -179,6 +188,7 @@ class TestFilter(TestLogin):
             'pilot': 'Paxswill',
             'division': DIV_1,
             'details': 'Elite Solo PVP',
+            'status': ActionType.incomplete,
         },
         {
             'id': 43975437,
@@ -195,6 +205,7 @@ class TestFilter(TestLogin):
             'pilot': 'Zora Aran',
             'division': DIV_3,
             'details': 'Awox?',
+            'status': ActionType.rejected,
         },
     ]
 
@@ -238,8 +249,11 @@ class TestFilter(TestLogin):
                     user = self.normal_user
                 details = data_copy.pop('details')
                 division = divisions[data_copy.pop('division')]
+                status = data_copy.pop('status')
                 data_copy['pilot_id'] = pilots[data_copy.pop('pilot')]
                 request = Request(user, details, division, data_copy.items())
+                # Set status after the base payout has been set
+                request.status = status
             db.session.commit()
 
     def test_exact_filter_combos(self):
@@ -259,7 +273,8 @@ class TestFilter(TestLogin):
             for request in self.killmails:
                 if combo == {None} or request.get(self.attribute) in combo:
                     matching_ids.add(request['id'])
-                    total_payout += Decimal(request['base_payout'])
+                    if request['status'] != ActionType.rejected:
+                        total_payout += Decimal(request['base_payout'])
             # Ask the app what it thinks the matching requests are
             client = self.login(self.admin_name)
             if combo != {None}:
@@ -267,8 +282,11 @@ class TestFilter(TestLogin):
                     filter_attribute = 'ship'
                 else:
                     filter_attribute = self.attribute
-                url = '/request/all/{}/{}'.format(filter_attribute, ','.join(
-                    combo))
+                if self.attribute == 'status':
+                    values = ','.join(map(lambda x: x.value, combo))
+                else:
+                    values = ','.join(combo)
+                url = '/request/all/{}/{}'.format(filter_attribute, values)
             else:
                 url = '/request/all/'
             resp = client.get(url, headers={'Accept':'application/json'},
@@ -357,3 +375,10 @@ class TestSystemFilter(TestFilter):
     attribute = 'system'
 
     choices = ['GE-8JV', 'Todifrauan', 'RNF-YH', '4-CM8I', 'Karan']
+
+
+class TestStatusFilter(TestFilter):
+
+    attribute = 'status'
+
+    choices = ActionType.statuses
