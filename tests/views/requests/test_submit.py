@@ -131,11 +131,13 @@ class TestSubmitRequest(TestLogin):
             db.session.commit()
             division = Division.query.filter_by(name='Division 1').one()
         client = self.login()
-        resp = client.post('/request/add/', follow_redirects=True, data=dict(
-                    url='https://zkillboard.com/kill/37637533/',
-                    details='Foo',
-                    division=division.id,
-                    submit=True))
+        with HTTMock(*all_mocks):
+            resp = client.post('/request/add/', follow_redirects=True,
+                    data=dict(
+                            url='https://zkillboard.com/kill/37637533/',
+                            details='Foo',
+                            division=division.id,
+                            submit=True))
         self.assertEqual(resp.status_code, 200)
         self.assertIn('You can only submit killmails of characters you',
                 resp.get_data(as_text=True))

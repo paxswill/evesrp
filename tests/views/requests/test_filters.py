@@ -259,7 +259,7 @@ class TestFilter(TestLogin):
     def test_exact_filter_combos(self):
         # Explanation for the below: product(seq, repeat=n) computes a
         # cartesian product of sequence seq against itself n times. By using
-        # this as a constructor to frozenset, se can combinations with repeated
+        # this as a constructor to frozenset, we can combinations with repeated
         # choices (ex: ['Foo', 'Foo'] as opposed to ['Bar', 'Foo']). frozenset
         # is used as set() is mutable, and thus unhashable. This is all wrapped
         # in a set comprehension to deduplicate combinations that differ only
