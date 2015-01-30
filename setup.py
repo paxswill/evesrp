@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from setuptools import setup
 import re
+import sys
 
 
 with open('evesrp/__init__.py', 'r') as f:
@@ -13,6 +14,19 @@ if version:
     version = version.group(1)
 else:
     raise Exception(u"Unable to find __version__ in evesrp/__init__.py")
+
+
+test_requirements = [
+    'beautifulsoup>=4.3.2',
+    'coverage>=3.7.1',
+    'httmock>=1.2.2',
+    'nose>=1.3.4',
+    'nose-htmloutput>=0.5.0',
+]
+# unittest.mock was added in 3.3, but is available as a backport as the 'mock'
+# package on PyPI.
+if sys.version_info.major < 3 or sys.version_info.minor < 3:
+    test_requirements.append('mock>=1.0.1')
 
 
 setup(
@@ -55,11 +69,11 @@ setup(
     ],
     install_requires=[
         'Flask>=0.10.1',
-        'Flask-Login==0.2.11',
+        'Flask-Login>=0.2.11',
         'Flask-Migrate>=1.2.0',
         'Flask-Script==2.0.5',
         'Flask-SQLAlchemy==2.0',
-        'Flask-WTF==0.9.4',
+        'Flask-WTF==0.10.2',
         'SQLAlchemy>=0.9.7',
         'Werkzeug>=0.9.4',
         'WTForms==1.0.5',
@@ -68,6 +82,8 @@ setup(
         'six==1.7.3',
         'braveapi==0.1',
     ],
+    test_suite='nose.collector',
+    test_requires=test_requirements,
     entry_points={
         'console_scripts': [
             'evesrp = evesrp.util.manage:main',
