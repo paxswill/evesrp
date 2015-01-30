@@ -81,7 +81,7 @@ setup(
         'braveapi==0.1',
     ],
     test_suite='tests',
-    test_requires=test_requirements,
+    test_require=test_requirements,
     entry_points={
         'console_scripts': [
             'evesrp = evesrp.util.manage:main',
