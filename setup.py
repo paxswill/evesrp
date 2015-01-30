@@ -20,8 +20,6 @@ test_requirements = [
     'beautifulsoup>=4.3.2',
     'coverage>=3.7.1',
     'httmock>=1.2.2',
-    'nose>=1.3.4',
-    'nose-htmloutput>=0.5.0',
 ]
 # unittest.mock was added in 3.3, but is available as a backport as the 'mock'
 # package on PyPI.
@@ -82,7 +80,7 @@ setup(
         'six==1.7.3',
         'braveapi==0.1',
     ],
-    test_suite='nose.collector',
+    test_suite='tests',
     test_requires=test_requirements,
     entry_points={
         'console_scripts': [
