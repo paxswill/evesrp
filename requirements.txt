@@ -1,5 +1,5 @@
 Flask==0.10.1
-Flask-Login==0.2.10
+Flask-Login==0.2.11
 Flask-Migrate==1.2.0
 Flask-OAuthlib==0.7.0
 Flask-SQLAlchemy==2.0
