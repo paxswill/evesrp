@@ -260,7 +260,7 @@ class RequestListing(View):
         payout_requests = requests.\
                 filter(Request.status != ActionType.rejected).\
                 order_by(False).\
-                with_entities(Request.payout).\
+                with_entities(Request.id, Request.payout).\
                 subquery(with_labels=True)
         total_payouts = db.session.query(db.func.sum(
                         payout_requests.c.request_payout))\
