@@ -61,7 +61,7 @@ class TestFilterBase(TestLogin):
             'corporation': 'Dreddit',
             'alliance': 'Test Alliance Please Ignore',
             'killmail_url': 'https://zkillboard.com/kill/39988492/',
-            'base_payout': 31700000000,
+            'base_payout': 22000000,
             'kill_timestamp': dt.datetime(2014, 7, 9, 18, 22,
                 tzinfo=utc),
             'system': 'Sadana',
@@ -70,7 +70,7 @@ class TestFilterBase(TestLogin):
             'pilot': 'Paxswill',
             'division': DIV_2,
             'details': 'Not so travel interceptor',
-            'status': ActionType.rejected,
+            'status': ActionType.approved,
         },
         {
             'id': 43292478,
