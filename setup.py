@@ -74,7 +74,7 @@ setup(
         'Flask-WTF==0.10.2',
         'SQLAlchemy>=0.9.7',
         'Werkzeug>=0.9.4',
-        'WTForms==1.0.5',
+        'WTForms>=2.0.0',
         'alembic>=0.6.5',
         'requests==2.2.1',
         'six==1.7.3',
