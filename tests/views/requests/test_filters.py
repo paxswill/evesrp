@@ -14,7 +14,7 @@ from evesrp.util.decimal import PrettyDecimal
 from ...util import TestLogin
 
 
-class TestFilter(TestLogin):
+class TestFilterBase(TestLogin):
 
     DIV_1 = 'Division One'
     DIV_2 = 'Division Two'
@@ -209,10 +209,8 @@ class TestFilter(TestLogin):
         },
     ]
 
-    choices = [None]
-
     def setUp(self):
-        super(TestFilter, self).setUp()
+        super(TestFilterBase, self).setUp()
         with self.app.test_request_context():
             # Divisions
             divisions = {
@@ -256,6 +254,28 @@ class TestFilter(TestLogin):
                 request.status = status
             db.session.commit()
 
+    def check_filter_url(self, url, expected_ids, expected_total):
+        client = self.login(self.admin_name)
+        resp = client.get(url, headers={'Accept':'application/json'},
+                follow_redirects=False)
+        if resp.status_code == 301:
+            # Manually follow redirects to keep the Accept header around.
+            resp = client.get(resp.location,
+                    headers={'Accept':'application/json'},
+                    follow_redirects=False)
+        resp_obj = json.loads(resp.data)
+        # Check that the returned requests match
+        self.assertEqual(expected_ids,
+                {request['id'] for request in resp_obj['requests']})
+        # Check that the totals add up properly (in a roundabout way)
+        self.assertEqual(PrettyDecimal(expected_total).currency(),
+                resp_obj['total_payouts'])
+
+
+class TestExactFilter(TestFilterBase):
+
+    choices = [None]
+
     def test_exact_filter_combos(self):
         # Explanation for the below: product(seq, repeat=n) computes a
         # cartesian product of sequence seq against itself n times. By using
@@ -276,7 +296,6 @@ class TestFilter(TestLogin):
                     if request['status'] != ActionType.rejected:
                         total_payout += Decimal(request['base_payout'])
             # Ask the app what it thinks the matching requests are
-            client = self.login(self.admin_name)
             if combo != {None}:
                 if self.attribute == 'ship_type':
                     filter_attribute = 'ship'
@@ -289,30 +308,17 @@ class TestFilter(TestLogin):
                 url = '/request/all/{}/{}'.format(filter_attribute, values)
             else:
                 url = '/request/all/'
-            resp = client.get(url, headers={'Accept':'application/json'},
-                    follow_redirects=False)
-            if resp.status_code == 301:
-                # Manually follow redirects to keep the Accept header around.
-                resp = client.get(resp.location,
-                        headers={'Accept':'application/json'},
-                        follow_redirects=False)
-            resp_obj = json.loads(resp.data)
-            # Check that the returned requests match
-            self.assertEqual(matching_ids,
-                    {request['id'] for request in resp_obj['requests']})
-            # Check that the totals add up properly (in a roundabout way)
-            self.assertEqual(PrettyDecimal(total_payout).currency(),
-                    resp_obj['total_payouts'])
+            self.check_filter_url(url, matching_ids, total_payout)
 
 
-class TestDivisionFilter(TestFilter):
+class TestDivisionFilter(TestExactFilter):
 
     attribute = 'division'
 
-    choices = [TestFilter.DIV_1, TestFilter.DIV_2, TestFilter.DIV_3]
+    choices = [TestFilterBase.DIV_1, TestFilterBase.DIV_2, TestFilterBase.DIV_3]
 
 
-class TestAllianceFilter(TestFilter):
+class TestAllianceFilter(TestExactFilter):
 
     attribute = 'alliance'
 
@@ -323,7 +329,7 @@ class TestAllianceFilter(TestFilter):
     ]
 
 
-class TestCorporationFilter(TestFilter):
+class TestCorporationFilter(TestExactFilter):
 
     attribute = 'corporation'
 
@@ -336,7 +342,7 @@ class TestCorporationFilter(TestFilter):
     ]
 
 
-class TestPilotFilter(TestFilter):
+class TestPilotFilter(TestExactFilter):
 
     attribute = 'pilot'
 
@@ -349,36 +355,67 @@ class TestPilotFilter(TestFilter):
     ]
 
 
-class TestShipFilter(TestFilter):
+class TestShipFilter(TestExactFilter):
 
     attribute = 'ship_type'
 
     choices = ['Tristan', 'Crow', 'Vexor', 'Guardian']
 
 
-class TestRegionFilter(TestFilter):
+class TestRegionFilter(TestExactFilter):
 
     attribute = 'region'
 
     choices = ['Black Rise', 'Catch', 'Aridia', 'Scalding Pass']
 
 
-class TestConstellationFilter(TestFilter):
+class TestConstellationFilter(TestExactFilter):
 
     attribute = 'constellation'
 
     choices = ['UX3-N2', 'Ishaga', 'Mareerieh', '9HXQ-G', 'Selonat']
 
 
-class TestSystemFilter(TestFilter):
+class TestSystemFilter(TestExactFilter):
 
     attribute = 'system'
 
     choices = ['GE-8JV', 'Todifrauan', 'RNF-YH', '4-CM8I', 'Karan']
 
 
-class TestStatusFilter(TestFilter):
+class TestStatusFilter(TestExactFilter):
 
     attribute = 'status'
 
     choices = ActionType.statuses
+
+
+class TestMultipleFilter(TestFilterBase):
+
+    choices = {}
+
+    def test_exact_multiple_filters(self):
+        # Compute expected values
+        matching_ids = set()
+        total_payout = Decimal(0)
+        for request in self.killmails:
+            for attribute, valid_values in self.choices.items():
+                if request.get(attribute) not in valid_values:
+                    break
+            else:
+                matching_ids.add(request['id'])
+                if request['status'] != ActionType.rejected:
+                    total_payout += request['base_payout']
+        # Ask the app what it thinks is the answer
+        url = '/request/all/'
+        for attribute, values in self.choices.items():
+            url += '{}/{}/'.format(attribute, ','.join(values))
+        self.check_filter_url(url, matching_ids, total_payout)
+
+
+class TestDredditCatchFilter(TestMultipleFilter):
+
+    choices = {
+        'corporation': ['Dreddit'],
+        'region': ['Catch'],
+    }
