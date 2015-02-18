@@ -25,6 +25,7 @@ ecdsa==0.11
 futures==2.1.6
 gunicorn==18.0
 httmock==1.2.2
+iso8601==0.1.10
 itsdangerous==0.24
 marrow.util==1.2.3
 mock==1.0.1

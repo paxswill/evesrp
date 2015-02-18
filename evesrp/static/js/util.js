@@ -138,7 +138,8 @@ EveSRP.util = {
     var filterPath = pathname.split('/'),
         known_attrs = ['page', 'division', 'alliance', 'corporation', 'pilot',
                        'system', 'constellation', 'region', 'ship', 'status',
-                       'details', 'sort'],
+                       'details', 'sort', 'payout', 'base_payout',
+					   'submit_timestamp', 'kill_timestamp'],
         basePath = [];
     filterPath = this.trimEmpty(filterPath);
     filterPath.reverse();

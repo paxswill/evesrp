@@ -79,6 +79,7 @@ setup(
         'requests==2.2.1',
         'six==1.7.3',
         'braveapi==0.1',
+        'iso8601>=0.1.5',
     ],
     test_suite='tests',
     test_require=test_requirements,

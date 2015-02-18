@@ -8,6 +8,7 @@ from flask.views import View
 from flask.ext.login import login_required, current_user
 from flask.ext.sqlalchemy import Pagination
 from flask.ext.wtf import Form
+import iso8601
 import six
 from six.moves import map
 from wtforms.fields import SelectField, SubmitField, TextAreaField, HiddenField
@@ -136,11 +137,14 @@ class RequestListing(View):
         # Apply the filters
         known_attrs = ('page', 'division', 'alliance', 'corporation',
                 'pilot', 'system', 'constellation', 'region', 'ship_type',
-                'status', 'details')
+                'status', 'details', 'payout', 'base_payout', 'kill_timestamp',
+                'submit_timestamp')
         for attr, values in six.iteritems(filters):
             # massage pretty attribute names to the not-so-pretty ones
             if attr == 'ship':
                 real_attr = 'ship_type'
+            elif attr == 'submit_timestamp':
+                real_attr = 'timestamp'
             else:
                 real_attr = attr
             # massage negative/range filters
@@ -156,7 +160,19 @@ class RequestListing(View):
                         new_values.add(('=', value))
                 grouped = {'=': set(), '<': set(), '>': set(), '-': set()}
                 for value in new_values:
-                    grouped[value[0]].add(value[1])
+                    if real_attr in ('timestamp', 'kill_timestamp'):
+                        # timestamps need to be parsed to datetime objects
+                        try:
+                            parsed = iso8601.parse_date(value[1])
+                        except iso8601.ParseError as e:
+                            current_app.logger.error(
+                                    u"Invalid date provided ({}). "
+                                    u"Exception: {}".format(value[1], e))
+                            abort(400, u"Invalid date format. Please read the"
+                                       u"documentation for date filtering.")
+                        grouped[value[0]].add(parsed)
+                    else:
+                        grouped[value[0]].add(value[1])
             else:
                 grouped = {'=': values, '-':[], '<':[], '>':[]}
             # Handle a couple attributes specially
