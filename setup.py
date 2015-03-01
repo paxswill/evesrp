@@ -66,7 +66,6 @@ setup(
         'alembic>=0.6.5',
         'requests==2.2.1',
         'six==1.7.3',
-        'braveapi==0.1',
     ],
     entry_points={
         'console_scripts': [
@@ -75,7 +74,7 @@ setup(
     },
     extras_require={
         'BraveCore': [
-            'brave.api',
+            'braveapi==0.1',
             'ecdsa==0.11',
         ],
         'OAuth': [
