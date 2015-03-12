@@ -20,7 +20,7 @@ from .. import db
 from ..models import Request, Modifier, Action, ActionType, ActionError,\
         ModifierError, AbsoluteModifier, RelativeModifier
 from ..util import xmlify, jsonify, classproperty, PrettyDecimal, varies,\
-        ensure_unicode
+        ensure_unicode, parse_datetime
 from ..auth import PermissionType
 from ..auth.models import Division, Pilot, Permission, User, Group, Note,\
     APIKey, users_groups
@@ -148,7 +148,8 @@ class RequestListing(View):
             else:
                 real_attr = attr
             # massage negative/range filters
-            if attr not in ('page', 'sort', 'details', 'status'):
+            if real_attr not in ('page', 'sort', 'details', 'status',
+                                 'timestamp', 'kill_timestamp'):
                 new_values = set()
                 for value in values:
                     if value.startswith(('-', '<', '>')):
@@ -160,19 +161,7 @@ class RequestListing(View):
                         new_values.add(('=', value))
                 grouped = {'=': set(), '<': set(), '>': set(), '-': set()}
                 for value in new_values:
-                    if real_attr in ('timestamp', 'kill_timestamp'):
-                        # timestamps need to be parsed to datetime objects
-                        try:
-                            parsed = iso8601.parse_date(value[1])
-                        except iso8601.ParseError as e:
-                            current_app.logger.error(
-                                    u"Invalid date provided ({}). "
-                                    u"Exception: {}".format(value[1], e))
-                            abort(400, u"Invalid date format. Please read the"
-                                       u"documentation for date filtering.")
-                        grouped[value[0]].add(parsed)
-                    else:
-                        grouped[value[0]].add(value[1])
+                    grouped[value[0]].add(value[1])
             else:
                 grouped = {'=': values, '-':[], '<':[], '>':[]}
             # Handle a couple attributes specially
@@ -216,6 +205,18 @@ class RequestListing(View):
                         column = column.asc()
                     requests = requests.order_by(None)
                     requests = requests.order_by(column)
+            elif real_attr in ('timestamp', 'kill_timestamp'):
+                column = getattr(Request, real_attr)
+                for value in values:
+                    try:
+                        start, end = parse_datetime(value)
+                    except iso8601.ParseError as e:
+                        current_app.logger.error(
+                                u"Invalid date provided ({}). "
+                                u"Exception: {}".format(value, e))
+                        abort(400, u"Invalid date format. Please read the"
+                                   u"documentation for date filtering.")
+                    requests = requests.filter(column.between(start, end))
             elif real_attr in known_attrs:
                 column = getattr(Request, real_attr)
                 # in_ isn't supported on relationships (yet).
