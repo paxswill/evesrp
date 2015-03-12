@@ -95,7 +95,7 @@ def parse_datetime(date_string):
         second = int_iso8601.to_int(groups, 'second',
                 default=dt.datetime.max.second)
         try:
-            return dt.datetime(year=year, month=month, day=day,
+            return dt.datetime(year=year, month=month, day=day, hour=hour,
                     minute=minute, second=second,
                     microsecond=dt.datetime.max.microsecond,
                     tzinfo=utc)
