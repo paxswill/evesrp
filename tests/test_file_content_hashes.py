@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 from bs4 import BeautifulSoup
-from .util import TestApp
+from .util_tests import TestApp
 from evesrp import init_app
 
 

@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import re
 import datetime as dt
 from decimal import Decimal
-from ...util import TestLogin
+from ...util_tests import TestLogin
 from evesrp import db
 from evesrp.models import Request, Action, AbsoluteModifier, RelativeModifier,\
         ActionType, PrettyDecimal

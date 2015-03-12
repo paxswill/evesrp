@@ -11,7 +11,7 @@ from evesrp.auth import PermissionType
 from evesrp.auth.models import Pilot, Division, Permission
 from evesrp.util.datetime import utc
 from evesrp.util.decimal import PrettyDecimal
-from ...util import TestLogin
+from ...util_tests import TestLogin
 
 
 class TestFilterBase(TestLogin):

@@ -7,7 +7,7 @@ from evesrp.models import Request
 from evesrp.auth import PermissionType
 from evesrp.auth.models import Pilot, Division, Permission
 from evesrp import views
-from ...util import TestLogin, all_mocks
+from ...util_tests import TestLogin, all_mocks
 
 
 class TestSubmitRequest(TestLogin):

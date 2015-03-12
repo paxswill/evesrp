@@ -6,7 +6,7 @@ from evesrp import db
 from evesrp.models import Request, ActionType
 from evesrp.auth import PermissionType
 from evesrp.auth.models import Pilot, Division, Permission
-from ...util import TestLogin
+from ...util_tests import TestLogin
 
 
 class TestRequestList(TestLogin):
