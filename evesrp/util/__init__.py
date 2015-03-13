@@ -7,6 +7,6 @@ from .request import AcceptRequest
 from .sqlstats import DB_STATS
 from .unistr import unistr, ensure_unicode
 from .urlparse import urlparse, urlunparse
-from .datetime import utc, DateTime
+from .datetime import utc, DateTime, parse_datetime
 from .varies import varies
 from .xmlify import xmlify

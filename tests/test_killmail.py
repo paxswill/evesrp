@@ -3,7 +3,7 @@ from unittest import TestCase
 from decimal import Decimal
 from httmock import HTTMock, all_requests
 from evesrp import killmail
-from .util import all_mocks, response
+from .util_tests import all_mocks, response
 
 
 class TestKillmail(TestCase):

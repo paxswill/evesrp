@@ -22,7 +22,9 @@ EveSRP.ui.requestList = {
       'ship',
       'status',
       'division',
-      'details'
+      'details',
+	  'submit_timestamp',
+	  'kill_timestamp'
     ];
     // Create the bloodhound
     bloodhound = new Bloodhound({

@@ -6,10 +6,20 @@ from evesrp import db
 from evesrp.models import Request, ActionType
 from evesrp.auth import PermissionType
 from evesrp.auth.models import Pilot, Division, Permission
-from ...util import TestLogin
+from ...util_tests import TestLogin
 
 
 class TestRequestList(TestLogin):
+
+    sample_request_data = {
+        'ship_type': 'Revenant',
+        'corporation': 'Center of Applied Studies',
+        'kill_timestamp': dt.datetime.utcnow(),
+        'system': 'Jita',
+        'constellation': 'Kimotoro',
+        'region': 'The Forge',
+        'pilot_id': 1,
+    }
 
     def setUp(self):
         super(TestRequestList, self).setUp()
@@ -35,16 +45,7 @@ class TestRequestList(TestLogin):
         for permission in PermissionType.elevated:
             for division in (d1, d2):
                 Permission(division, permission, user2)
-        Pilot(user1, 'Generic Pilot', 1)
-        request_data = {
-            'ship_type': 'Revenant',
-            'corporation': 'Center of Applied Studies',
-            'kill_timestamp': dt.datetime.utcnow(),
-            'system': 'Jita',
-            'constellation': 'Kimotoro',
-            'region': 'The Forge',
-            'pilot_id': 1,
-        }
+        Pilot(user1, 'Generic Pilot', self.sample_request_data['pilot_id'])
         for division, user in ((d1, user1), (d2, user2)):
             # 2 evaluating, 1 incomplete, 2 approved, 1 rejected,
             # and 1 paid.
@@ -55,7 +56,7 @@ class TestRequestList(TestLogin):
                 request_details = "User: {}\nDivision: {}\nStatus: {}"\
                         .format(user, division, status)
                 yield Request(user, request_details, division,
-                        request_data.items(),
+                        self.sample_request_data.items(),
                         killmail_url='http://paxswill.com',
                         status=status)
 

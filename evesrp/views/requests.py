@@ -8,6 +8,7 @@ from flask.views import View
 from flask.ext.login import login_required, current_user
 from flask.ext.sqlalchemy import Pagination
 from flask.ext.wtf import Form
+import iso8601
 import six
 from six.moves import map
 from wtforms.fields import SelectField, SubmitField, TextAreaField, HiddenField
@@ -19,7 +20,7 @@ from .. import db
 from ..models import Request, Modifier, Action, ActionType, ActionError,\
         ModifierError, AbsoluteModifier, RelativeModifier
 from ..util import xmlify, jsonify, classproperty, PrettyDecimal, varies,\
-        ensure_unicode
+        ensure_unicode, parse_datetime
 from ..auth import PermissionType
 from ..auth.models import Division, Pilot, Permission, User, Group, Note,\
     APIKey, users_groups
@@ -136,15 +137,19 @@ class RequestListing(View):
         # Apply the filters
         known_attrs = ('page', 'division', 'alliance', 'corporation',
                 'pilot', 'system', 'constellation', 'region', 'ship_type',
-                'status', 'details')
+                'status', 'details', 'payout', 'base_payout', 'kill_timestamp',
+                'submit_timestamp')
         for attr, values in six.iteritems(filters):
             # massage pretty attribute names to the not-so-pretty ones
             if attr == 'ship':
                 real_attr = 'ship_type'
+            elif attr == 'submit_timestamp':
+                real_attr = 'timestamp'
             else:
                 real_attr = attr
             # massage negative/range filters
-            if attr not in ('page', 'sort', 'details', 'status'):
+            if real_attr not in ('page', 'sort', 'details', 'status',
+                                 'timestamp', 'kill_timestamp'):
                 new_values = set()
                 for value in values:
                     if value.startswith(('-', '<', '>')):
@@ -200,6 +205,18 @@ class RequestListing(View):
                         column = column.asc()
                     requests = requests.order_by(None)
                     requests = requests.order_by(column)
+            elif real_attr in ('timestamp', 'kill_timestamp'):
+                column = getattr(Request, real_attr)
+                for value in values:
+                    try:
+                        start, end = parse_datetime(value)
+                    except iso8601.ParseError as e:
+                        current_app.logger.error(
+                                u"Invalid date provided ({}). "
+                                u"Exception: {}".format(value, e))
+                        abort(400, u"Invalid date format. Please read the"
+                                   u"documentation for date filtering.")
+                    requests = requests.filter(column.between(start, end))
             elif real_attr in known_attrs:
                 column = getattr(Request, real_attr)
                 # in_ isn't supported on relationships (yet).
@@ -260,7 +277,7 @@ class RequestListing(View):
         payout_requests = requests.\
                 filter(Request.status != ActionType.rejected).\
                 order_by(False).\
-                with_entities(Request.payout).\
+                with_entities(Request.id, Request.payout).\
                 subquery(with_labels=True)
         total_payouts = db.session.query(db.func.sum(
                         payout_requests.c.request_payout))\

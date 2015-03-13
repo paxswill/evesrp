@@ -122,7 +122,7 @@ def response(*args, **kwargs):
     return resp
 
 
-@urlmatch(netloc=r'.*\.zkillboard\.com', path=r'.*37637533.*')
+@urlmatch(netloc=r'(.*\.)?zkillboard\.com', path=r'.*37637533.*')
 def paxswill_zkillboard(url, request):
     resp = [{
         'killID': '37637533',
@@ -151,7 +151,7 @@ def paxswill_zkillboard(url, request):
     return response(content=json.dumps(resp))
 
 
-@urlmatch(netloc=r'.*\.zkillboard\.com', path=r'.*38862043.*')
+@urlmatch(netloc=r'(.*\.)?zkillboard\.com', path=r'.*38862043.*')
 def no_alliance_zkillboard(url, request):
     resp = [{
         'killID': '38862043',

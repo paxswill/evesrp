@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from ..util import TestLogin
+from ..util_tests import TestLogin
 import evesrp
 from evesrp import db
 from evesrp.auth import PermissionType

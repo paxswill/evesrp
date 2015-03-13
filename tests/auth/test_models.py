@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from ..util import TestApp
+from ..util_tests import TestApp
 from ..test_models import TestModels
 from evesrp import db
 from evesrp.models import Request, Modifier, Action, ActionType
