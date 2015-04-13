@@ -1,0 +1,8 @@
+[run]
+branch = true
+source = evesrp
+omit =
+    evesrp/migrate/*
+
+[html]
+directory = coverage-report

@@ -88,9 +88,11 @@ class OAuthMethod(AuthMethod):
     def login(self, form):
         # CSRF token valid for 5 minutes
         csrf_token = csrf.generate_csrf(time_limit=300)
-        return self.oauth.authorize(callback=url_for('login.auth_method_login',
+        resp = self.oauth.authorize(callback=url_for('login.auth_method_login',
                                     auth_method=self.safe_name,
                                     _external=True), state=csrf_token)
+        current_app.logger.debug(u"Redirecting to : {}".format(resp.location))
+        return resp
 
     def view(self):
         """Handle creating and/or logging in the user and updating their

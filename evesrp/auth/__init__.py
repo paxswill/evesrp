@@ -9,8 +9,6 @@ from wtforms.fields import SubmitField, HiddenField
 from ..util import DeclEnum, classproperty, ensure_unicode
 
 
-class AuthForm(Form):
-    submit = SubmitField(u'Login')
 
 
 class AuthMethod(object):
@@ -31,6 +29,8 @@ class AuthMethod(object):
 
     def form(self):
         """Return a :py:class:`flask.ext.wtf.Form` subclass to login with."""
+        class AuthForm(Form):
+            submit = SubmitField(u'Log In using {}'.format(self.name))
         return AuthForm
 
     def login(self, form):

@@ -2,6 +2,7 @@ from __future__ import absolute_import
 import hashlib
 
 from flask import flash, url_for, redirect, abort, request
+from flask.ext.wtf import Form
 import six
 from sqlalchemy.orm.exc import NoResultFound
 from wtforms.fields import StringField, PasswordField, HiddenField, SubmitField
@@ -9,14 +10,8 @@ from wtforms.validators import InputRequired
 
 from .. import db, requests_session
 from ..util import ensure_unicode
-from . import AuthMethod, AuthForm
+from . import AuthMethod
 from .models import User, Group, Pilot
-
-
-class TestLoginForm(AuthForm):
-    username = StringField(u'Username', validators=[InputRequired()])
-    password = PasswordField(u'Password', validators=[InputRequired()])
-    submit = SubmitField(u'Log In')
 
 
 class TestAuth(AuthMethod):
@@ -35,6 +30,10 @@ class TestAuth(AuthMethod):
         super(TestAuth, self).__init__(**kwargs)
 
     def form(self):
+        class TestLoginForm(Form):
+            username = StringField(u'Username', validators=[InputRequired()])
+            password = PasswordField(u'Password', validators=[InputRequired()])
+            submit = SubmitField(u'Log In using {}'.format(self.name))
         return TestLoginForm
 
     def login(self, form):

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from setuptools import setup
 import re
+import sys
 
 
 with open('evesrp/__init__.py', 'r') as f:
@@ -13,6 +14,17 @@ if version:
     version = version.group(1)
 else:
     raise Exception(u"Unable to find __version__ in evesrp/__init__.py")
+
+
+test_requirements = [
+    'beautifulsoup>=4.3.2',
+    'coverage>=3.7.1',
+    'httmock>=1.2.2',
+]
+# unittest.mock was added in 3.3, but is available as a backport as the 'mock'
+# package on PyPI.
+if sys.version_info.major < 3 or sys.version_info.minor < 3:
+    test_requirements.append('mock>=1.0.1')
 
 
 setup(
@@ -33,6 +45,7 @@ setup(
     package_data={
         'evesrp': [
             'static/favicon.ico',
+            'static/evesso.png',
             'static/css/*.css',
             'static/css/*.css.map',
             'static/js/evesrp.min.js',
@@ -52,23 +65,23 @@ setup(
         u'Programming Language :: Python :: 2',
         u'Topic :: Games/Entertainment',
     ],
-    dependency_links=[
-        u'https://github.com/bravecollective/api/tarball/develop#egg=brave.api'
-    ],
     install_requires=[
         'Flask>=0.10.1',
-        'Flask-Login==0.2.11',
+        'Flask-Login>=0.2.11',
         'Flask-Migrate>=1.2.0',
         'Flask-Script==2.0.5',
         'Flask-SQLAlchemy==2.0',
-        'Flask-WTF==0.9.4',
+        'Flask-WTF==0.10.2',
         'SQLAlchemy>=0.9.7',
         'Werkzeug>=0.9.4',
-        'WTForms==1.0.5',
+        'WTForms>=2.0.0',
         'alembic>=0.6.5',
         'requests==2.2.1',
         'six==1.7.3',
+        'iso8601>=0.1.5',
     ],
+    test_suite='tests',
+    test_require=test_requirements,
     entry_points={
         'console_scripts': [
             'evesrp = evesrp.util.manage:main',
@@ -76,7 +89,7 @@ setup(
     },
     extras_require={
         'BraveCore': [
-            'brave.api',
+            'braveapi==0.1',
             'ecdsa==0.11',
         ],
         'OAuth': [

@@ -7,11 +7,12 @@ from os import environ as env
 import httmock
 from httmock import urlmatch
 from evesrp import create_app, db, init_app
-from evesrp.auth import AuthMethod, AuthForm
+from evesrp.auth import AuthMethod
 from evesrp.auth.models import User
-from wtforms.fields import StringField
+from wtforms.fields import StringField, SubmitField
 from sqlalchemy.orm.exc import NoResultFound
 from flask import redirect, url_for, request, render_template
+from flask.ext.wtf import Form
 
 
 class TestApp(TestCase):
@@ -32,8 +33,9 @@ class TestApp(TestCase):
         db.drop_all(app=self.app)
 
 
-class NullAuthForm(AuthForm):
+class NullAuthForm(Form):
     name = StringField()
+    submit = SubmitField()
 
 
 class NullAuth(AuthMethod):
@@ -120,7 +122,7 @@ def response(*args, **kwargs):
     return resp
 
 
-@urlmatch(netloc=r'.*\.zkillboard\.com', path=r'.*37637533.*')
+@urlmatch(netloc=r'(.*\.)?zkillboard\.com', path=r'.*37637533.*')
 def paxswill_zkillboard(url, request):
     resp = [{
         'killID': '37637533',
@@ -149,7 +151,7 @@ def paxswill_zkillboard(url, request):
     return response(content=json.dumps(resp))
 
 
-@urlmatch(netloc=r'.*\.zkillboard\.com', path=r'.*38862043.*')
+@urlmatch(netloc=r'(.*\.)?zkillboard\.com', path=r'.*38862043.*')
 def no_alliance_zkillboard(url, request):
     resp = [{
         'killID': '38862043',

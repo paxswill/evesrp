@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-import xml.etree.ElementTree as ETree
 from flask import request, abort, current_app
 import six
 from sqlalchemy.orm.exc import NoResultFound
