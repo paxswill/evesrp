@@ -63,7 +63,7 @@ copyright = '2014, Will Ross'
 with open('../evesrp/__init__.py', 'r') as f:
     init_contents = f.read()
 re_results =  re.search(
-        (r'^__version__ *= *u?[\'"](?P<release>(?P<version>\d+\.\d+)(\.\d+)?'
+        (r'^__version__ *= *u?[\'"](?P<release>(?P<version>\d+\.\d+)([\.\d]+)?'
          r'(-\w+)?)[\'"]'),
         init_contents, re.MULTILINE)
 if re_results:
