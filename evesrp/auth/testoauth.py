@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from flask import request, abort, current_app
+from flask import request, abort, current_app, json
 import six
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -40,12 +40,12 @@ class TestOAuth(OAuthMethod):
         else:
             domain = 'https://auth.devtest.pleaseignore.com'
         kwargs.setdefault('authorize_url',
-                domain + '/oauth2/authorize')
+                domain + '/o2/authorize/')
         kwargs.setdefault('access_token_url',
-                domain + '/oauth2/access_token')
+                domain + '/o2/token/')
         kwargs.setdefault('base_url',
-                domain + '/api/v3/')
-        kwargs.setdefault('request_token_params', {'scope': 'private-read'})
+                domain + '/api/3.0/')
+        kwargs.setdefault('request_token_params', {'scope': 'read_profile'})
         kwargs.setdefault('access_token_method', 'POST')
         kwargs.setdefault('app_key', 'TEST_OAUTH')
         kwargs.setdefault('name', u'Test OAuth')
@@ -57,7 +57,7 @@ class TestOAuth(OAuthMethod):
             try:
                 current_app.logger.debug(u"Test OAuth API response: {}".format(
                         resp.data))
-                request._auth_user_data = resp.data[u'objects'][0]
+                request._auth_user_data = json.loads(resp.data)
             except TypeError:
                 abort(500, u"Error in receiving OAuth response: {}".format(
                         resp.data))
@@ -65,8 +65,7 @@ class TestOAuth(OAuthMethod):
 
     def get_user(self, token):
         data = self._get_user_data(token)
-        char_data = self.oauth.get('evecharacter', token=token).data
-        primary_character = char_data[u'objects'][0][u'name']
+        primary_character = data[u'primary_character'][u'name']
         user_id = data[u'id']
         try:
             user = TestOAuthUser.query.filter_by(auth_id=data[u'id'],
