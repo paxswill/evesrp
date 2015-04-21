@@ -45,7 +45,7 @@ def _patch_httplib():
         def inner(*args):
             try:
                 return func(*args)
-            except httplib.IncompleteRead, e:
+            except httplib.IncompleteRead as e:
                 return e.partial
 
         return inner
