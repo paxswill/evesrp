@@ -38,6 +38,20 @@ def _patch_metadata():
     db.Model = base
 _patch_metadata()
 
+# Work around buggy HTTP servers sending out 0 length chunked responses
+def _patch_httplib():
+    import httplib
+    def patch_http_response_read(func):
+        def inner(*args):
+            try:
+                return func(*args)
+            except httplib.IncompleteRead, e:
+                return e.partial
+
+        return inner
+    httplib.HTTPResponse.read = patch_http_response_read(
+            httplib.HTTPResponse.read)
+_patch_httplib()
 
 from .util import DB_STATS, AcceptRequest
 
