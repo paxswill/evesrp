@@ -56,7 +56,7 @@ _patch_httplib()
 from .util import DB_STATS, AcceptRequest
 
 
-__version__ = u'0.10.5.1'
+__version__ = u'0.10.6-dev'
 
 
 requests_session = requests.Session()
