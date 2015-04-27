@@ -53,7 +53,7 @@ def _patch_httplib():
             six.moves.http_client.HTTPResponse.read)
 _patch_httplib()
 
-from .util import DB_STATS, AcceptRequest
+from .util import DB_STATS, AcceptRequest, WeakCiphersAdapter
 
 
 __version__ = u'0.10.6-dev'
@@ -273,6 +273,8 @@ def _config_requests_session(app):
             raise inner_exc
     requests_session = requests.Session()
     requests_session.headers.update({'User-Agent': ua_string})
+    requests_session.mount('https://public-crest.eveonline.com',
+            WeakCiphersAdapter())
     app.requests_session = requests_session
 
 

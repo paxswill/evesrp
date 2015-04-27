@@ -76,7 +76,7 @@ setup(
         'Werkzeug>=0.9.4',
         'WTForms>=2.0.0',
         'alembic>=0.6.5',
-        'requests==2.2.1',
+        'requests>=2.6.0',
         'six==1.7.3',
         'iso8601>=0.1.5',
     ],

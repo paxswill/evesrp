@@ -9,4 +9,5 @@ from .unistr import unistr, ensure_unicode
 from .urlparse import urlparse, urlunparse
 from .datetime import utc, DateTime, parse_datetime
 from .varies import varies
+from .weak_ciphers import WeakCiphersAdapter
 from .xmlify import xmlify
