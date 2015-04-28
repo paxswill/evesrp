@@ -206,13 +206,16 @@ class LocationMixin(object):
     def constellation(self):
         """Provides the constellation name using :py:attr:`Killmail.system_id`.
         """
-        return systems.systems_constellations[self.system]
+        constellation_id = systems.systems_constellations[self.system_id]
+        return systems.constellation_names[constellation_id]
 
     @property
     def region(self):
         """Provides the region name using :py:attr:`Killmail.system_id`.
         """
-        return systems.constellations_regions[self.constellation]
+        constellation_id = systems.systems_constellations[self.system_id]
+        region_id = systems.constellations_regions[constellation_id]
+        return systems.region_names[region_id]
 
 
 class RequestsSessionMixin(object):
