@@ -395,6 +395,8 @@ ships = {
     33879: 'Coercer Blood Raiders Edition',
     33881: 'Cormorant Guristas Edition',
     33883: 'Thrasher Thukker Tribe Edition',
+    34317: 'Confessor',
+    34562: 'Svipul',
 }
 
 
@@ -5829,6 +5831,7 @@ system_names = {   30000001: 'Tanoo',
     30045352: 'Nisuwa',
     30045353: 'Pynekastoh',
     30045354: 'Reitsato',
+    31000005: 'Thera',
     31000007: 'J105443',
     31000008: 'J100744',
     31000009: 'J225046',
@@ -8326,7 +8329,8 @@ system_names = {   30000001: 'Tanoo',
     31002501: 'J104617',
     31002502: 'J125122',
     31002503: 'J114809',
-    31002504: 'J125657'}
+    31002504: 'J125657',
+}
 
 
 constellation_names = {   20000001: 'San Matar',
