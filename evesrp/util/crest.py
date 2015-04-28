@@ -1,4 +1,4 @@
-from flask import flash
+from flask import flash, current_app
 
 
 def check_crest_response(response):
@@ -22,3 +22,28 @@ def check_crest_response(response):
                u"has been deprecated. Please update to the latest version "
                u"to ensure continued operation."), u'warn')
     return True
+
+
+class NameLookup(object):
+
+    def __init__(self, starting_data, url_slug, content_type):
+        self._dict = starting_data
+        self.url_slug = url_slug
+        self.content_type = content_type
+
+
+    def __getitem__(self, key):
+        if not isinstance(key, int):
+            raise TypeError("Invalid ID for name lookup: '{}'".\
+                    format(key))
+        if key not in self._dict:
+            resp = current_app.requests_session.get(
+                    self.url_slug.format(key),
+                    headers={'Accept': self.content_type})
+            if check_crest_response(resp) and resp.status_code == 200:
+                self._dict[key] = resp.json()['name']
+            else:
+                message = "Cannot find the name for the ID requested [{}]: {}"\
+                        .format(resp.status_code, key)
+                raise KeyError(message)
+        return self._dict[key]

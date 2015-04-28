@@ -3,7 +3,8 @@ from unittest import TestCase
 from decimal import Decimal
 from httmock import HTTMock, all_requests
 from evesrp import killmail
-from .util_tests import all_mocks, response
+from .util_tests import TestApp, all_mocks, response
+from .test_systems import jita_lookup, kimotoro_lookup, forge_lookup
 
 
 class TestKillmail(TestCase):
@@ -42,23 +43,30 @@ class TestNameMixin(TestCase):
         self.assertEqual(km.ship, u'Devoter')
 
 
-class TestLocationMixin(TestCase):
+class TestLocationMixin(TestApp):
 
     def setUp(self):
+        super(TestLocationMixin, self).setUp()
         self.LocationMixed = type('LocationMixed', (killmail.Killmail,
                 killmail.LocationMixin), dict())
 
     def test_system(self):
-        km = self.LocationMixed(system_id=30000142)
-        self.assertEqual(km.system, u'Jita')
+        with self.app.test_request_context():
+            with HTTMock(jita_lookup, kimotoro_lookup, forge_lookup):
+                km = self.LocationMixed(system_id=30000142)
+                self.assertEqual(km.system, u'Jita')
 
     def test_constellation(self):
-        km = self.LocationMixed(system_id=30000142)
-        self.assertEqual(km.constellation, u'Kimotoro')
+        with self.app.test_request_context():
+            with HTTMock(jita_lookup, kimotoro_lookup, forge_lookup):
+                km = self.LocationMixed(system_id=30000142)
+                self.assertEqual(km.constellation, u'Kimotoro')
 
     def test_region(self):
-        km = self.LocationMixed(system_id=30000142)
-        self.assertEqual(km.region, u'The Forge')
+        with self.app.test_request_context():
+            with HTTMock(jita_lookup, kimotoro_lookup, forge_lookup):
+                km = self.LocationMixed(system_id=30000142)
+                self.assertEqual(km.region, u'The Forge')
 
 
 class TestRequestsMixin(TestCase):
