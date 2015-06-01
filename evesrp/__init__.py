@@ -7,6 +7,7 @@ import sys
 import warnings
 from flask import current_app, g
 from flask.ext import sqlalchemy
+from flask.ext.babel import Babel
 from flask.ext.wtf.csrf import CsrfProtect
 from flask.ext.oauthlib.client import OAuth
 import six
@@ -70,6 +71,8 @@ csrf = CsrfProtect()
 
 
 oauth = OAuth()
+
+babel = Babel()
 
 
 # Ensure models are declared
@@ -171,6 +174,9 @@ def create_app(config=None, **kwargs):
     # Auto-trim whitespace
     app.jinja_env.trim_blocks = True
     app.jinja_env.lstrip_blocks = True
+
+    # Hook up Babel
+    babel.init_app(app)
 
     init_app(app)
 
