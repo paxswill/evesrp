@@ -5,15 +5,15 @@
   <h1>
     {{ code }}
     {% if code == 400 %}
-    <small>Bad Request</small>
+    <small>{{ gettext('Bad Request') }}</small>
     {% elif code == 403 %}
-    <small>Forbidden</small>
+    <small>{{ gettext('Forbidden') }}</small>
     {% elif code == 404 %}
-    <small>Not Found</small>
+    <small>{{ gettext('Not Found') }}</small>
     {% elif code == 500 %}
-    <small>Internal Server Error</small
+    <small>{{ gettext('Internal Server Error') }}</small
     {% elif code == 503 %}
-    <small>Service Unavailable</small>
+    <small>{{ gettext('Service Unavailable') }}</small>
     {% endif %}
   </h1>
   <p>{{ description }}</p>

@@ -3,15 +3,15 @@
 {{ super() }}
 <div class="row">
   <div class="col-md-10 col-md-offset-1">
-    <h3>Administer Divisions</h3>
+    <h3>{{ gettext('Administer Divisions') }}</h3>
     <table class="table table-condensed">
       <tr>
-        <th>Division Name</th>
-        <th>Submitters</th>
-        <th>Reviewers</th>
-        <th>Payers</th>
-        <th>Auditors</th>
-        <th>Admins</th>
+        <th>{{ gettext('Division Name') }}</th>
+        <th>{{ gettext('Submitters') }}</th>
+        <th>{{ gettext('Reviewers') }}</th>
+        <th>{{ gettext('Payers') }}</th>
+        <th>{{ gettext('Auditors') }}</th>
+        <th>{{ gettext('Admins') }}</th>
       </tr>
       {% if divisions %}
       {% for division in divisions %}
@@ -25,7 +25,7 @@
       {% endif %}
     </table>
     {% if current_user.admin %}
-    <a class="btn btn-primary" href="{{ url_for('divisions.add_division') }}">Add Division</a>
+    <a class="btn btn-primary" href="{{ url_for('divisions.add_division') }}">{{ gettext('Add Division') }}</a>
     {% endif %}
   </div>
 </div>

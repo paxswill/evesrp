@@ -1,15 +1,15 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ site_name }}: Permissions{% endblock title %}
+{% block title %}{{ site_name }}: {{ gettext('Permissions') }}{% endblock title %}
 
 {% block content %}
 <div class="row">
   <div class="col-md-10 col-md-offset-1">
-    <h3>Your Permissions</h3>
+    <h3>{{ gettext('Your Permissions') }}</h3>
     <table class="table">
       <tr>
-        <th>Division</th>
-        <th>Permissions</th>
+        <th>{{ gettext('Division') }}</th>
+        <th>{{ gettext('Permissions') }}</th>
       </tr>
       {% for grouper, grouped in current_user.permissions|groupby('division.name') %}
       <tr>

@@ -9,7 +9,7 @@
     <h2>{{ division.name }}</h2>
   </div>
   <div class="col-md-3 col-md-push-9">
-    <h3>Attribute Transformers</h3>
+    <h3>{{ gettext('Attribute Transformers') }}</h3>
     <form method="post">
       {{ transformer_form.form_id(value='transformer') }}
       {{ macros.render_input(transformer_form.attribute) }}
@@ -26,18 +26,18 @@
     <div class="col-lg-8">
       <table class="table table-condensed">
         <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Authentication Source</th>
-          <th>Remove</th>
+          <th>{{ gettext('Name') }}</th>
+          <th>{{ gettext('Type') }}</th>
+          <th>{{ gettext('Authentication Source') }}</th>
+          <th>{{ gettext('Remove') }}</th>
         </tr>
         {% for entity in division.permissions[permission]|map(attribute='entity') %}
         <tr>
           <td>{{ entity.name }}</td>
           {% if entity.users is defined %}
-          <td>Group ({{ entity.users|length }})</td>
+          <td>{{ gettext('Group') }} ({{ entity.users|length }})</td>
           {% else %}
-          <td>User</td>
+          <td>{{ gettext('User') }}</td>
           {% endif %}
           <td>{{ entity.authmethod }}</td>
           <td>
@@ -59,7 +59,7 @@
         <div class="input-group">
           <input type="text" class="form-control entity-typeahead typeahead" id="add-{{ permission.value }}-name" name="name" autocomplete="off" placeholder="Name">
           <span class="input-group-btn">
-            <button class="btn btn-default" type="submit">Add</button>
+            <button class="btn btn-default" type="submit">{{ gettext('Add') }}</button>
           </span>
         </div>
         {{ entity_form.csrf_token() }}

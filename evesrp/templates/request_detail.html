@@ -12,7 +12,7 @@
     <form class="modal-content" method="post">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden"true">&times;</button>
-        <h3 class="modal-title" id="detailsModalLabel">Update Details</h3>
+        <h3 class="modal-title" id="detailsModalLabel">{{ gettext('Update Details') }}</h3>
       </div>
       <div class="modal-body">
         {{ details_form.csrf_token() }}
@@ -20,8 +20,8 @@
         {{ macros.render_input(details_form.details) }}
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">{{ gettext('Cancel') }}</button>
+        <button type="submit" class="btn btn-primary">{{ gettext('Save') }}</button>
       </div>
     </form>
   </div>
@@ -35,45 +35,45 @@
     {% block left_col %}
     <dl class="dl-horizontal">
       {% block info %}
-      <dt>Lossmail</dt>
+      <dt>{{ gettext('Lossmail') }}</dt>
       <dd><a href="{{ srp_request.killmail_url }}" target="_blank">{{ srp_request.id }}</a></dd>
-      <dt>Time of Loss</dt>
+      <dt>{{ gettext('Time of Loss') }}</dt>
       <dd>{{ srp_request.kill_timestamp.strftime('%d %b %Y @ %H:%M') }}</dd>
-      <dt>Division</dt>
+      <dt>{{ gettext('Division') }}</dt>
       <dd>
         <span id="request-division">{{ srp_request.transformed.division }}</span> &bull;
-        <a href="{{ url_for('requests.request_change_division', request_id=srp_request.id) }}">Change Division</a>
+        <a href="{{ url_for('requests.request_change_division', request_id=srp_request.id) }}">{{ gettext('Change Division') }}</a>
       </dd>
-      <dt>Details</dt>
+      <dt>{{ gettext('Details') }}</dt>
       <dd>
         <div class="panel panel-default">
           <p class="panel-body" id="request-details">{{ srp_request.details }}</p>
         </div>
         {% if not srp_request.finalized and srp_request.submitter == current_user %}
-        <button class="btn btn-default btn-sm" type="button" data-toggle="modal" data-target="#detailsModal">Update Details</button>
+        <button class="btn btn-default btn-sm" type="button" data-toggle="modal" data-target="#detailsModal">{{ gettext('Update Details') }}</button>
         {% endif %}
       </dd>
-      <dt>Pilot</dt>
+      <dt>{{ gettext('Pilot') }}</dt>
       <dd id="pilot">
         {{ srp_request.transformed.pilot }}
       </dd>
-      <dt>Corporation</dt>
+      <dt>{{ gettext('Corporation') }}</dt>
       <dd id="corporation">{{ srp_request.transformed.corporation }}</dd>
-      <dt>Alliance</dt>
+      <dt>{{ gettext('Alliance') }}</dt>
       <dd id="alliance">{{ srp_request.transformed.alliance|default(' ') }}
-      <dt>Location</dt>
+      <dt>{{ gettext('Location') }}</dt>
       <dd>
         <span id="region">{{ srp_request.transformed.region }}</span> /
         <span id="constellation">{{ srp_request.transformed.constellation }}</span> /
         <span id="system">{{ srp_request.transformed.system }}</span>
       </dd>
-      <dt>Ship</dt>
+      <dt>{{ gettext('Ship') }}</dt>
       <dd>{{ srp_request.transformed.ship_type }}</dd>
-      <dt>Status</dt>
+      <dt>{{ gettext('Status') }}</dt>
       <dd><span id="request-status" class="label label-{{ macros.status_color(srp_request.status) }}">{{ srp_request.transformed.status }}</span></dd>
-      <dt>Payout</dt>
+      <dt>{{ gettext('Payout') }}</dt>
       <dd>
-        <span id="request-payout" data-initial-title="Base Payout: {{ srp_request.base_payout.currency() }}">
+      <span id="request-payout" data-initial-title="{{ gettext('Base Payout: %(base_payout)s', base_payout=srp_request.base_payout.currency()) }}">
           {{ srp_request.payout.currency() }}
         </span>
       </dd>
@@ -88,12 +88,12 @@
         <div class="input-group">
           {{ action_form.note(class="form-control") }}
           <div class="input-group-btn" id="actionMenu">
-            <button type="submit" id="comment" class="btn btn-default">Comment</button>
+            <button type="submit" id="comment" class="btn btn-default">{{ gettext('Comment') }}</button>
             {% for action in srp_request.valid_actions(current_user) %}
               {% if loop.first %}
             <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
               <span class="caret"></span>
-              <span class="sr-only">Toggle Dropdown</span>
+              <span class="sr-only">{{ gettext('Toggle Dropdown') }}</span>
             </button>
             <ul class="dropdown-menu" role="menu" id="actionMenu">
               {% endif %}
@@ -117,7 +117,7 @@
           <h4 class="list-group-item-heading{{ ' ' ~ item_class if item_class is defined }}">{{ action.type_ if action.type_ != ActionType.comment }}</h4>
           <blockquote class="list-group-item-text">
             <p>{{ action.note }}</p>
-            <footer>{{ action.user.name }} ({{ action.timestamp.strftime('%d %b %Y @ %H:%M') }})</footer>
+            <footer>{{ action.user.name }} ({{ action.timestamp|datetimeformat }})</footer>
           </blockquote>
         </div>
       {% endwith %}
@@ -129,7 +129,7 @@
   <div class="col-sm-offset-1 col-sm-10 col-md-offset-0 col-md-6 col-lg-5">
     <dl class="dl-horizontal">
       {% block right_col %}
-      <dt>Modifiers</dt>
+      <dt>{{ gettext('Modifiers') }}</dt>
       <dd>
         {% block list_modifiers %}
         <div class="panel-group" id="modifierList">
@@ -153,7 +153,7 @@
             <div id="modifier{{ modifier.id }}" class="collapse{{ ' in' if not modifier.voided }}">
               {% if modifier.voided %}
               <div class="panel-body">
-                <del>{{ modifier.note ~ ' ' if modifier.note }} (voided by {{ modifier.voided_user.name }} at {{ modifier.voided_timestamp.strftime('%H:%M %d %b %Y') }})</del>
+                <del>{{ modifier.note ~ '' if modifier.note }} ({{ gettext('voided by %(voided_name)s at %(voided_timestamp)s', voided_name=modifier.voided_user.name, voided_timestamp=(modifier.voided_timestamp|datetimeformat(format='short'))) }})</del>
               </div>
               {% else %}
               {% if modifier.note %}
@@ -163,7 +163,7 @@
               {% endif %}
               {% endif %}
               <div class="panel-footer">
-                {{ modifier.user }} at {{ modifier.timestamp.strftime('%H:%M %d %b %Y') }}
+                {{ gettext('%(user)s at %(timestamp)s', user=modifier.user, timestamp=(modifier.timestamp|datetimeformat('short'))) }}
               </div>
             </div>
           </div>
