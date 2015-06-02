@@ -1,12 +1,14 @@
 {% extends "base.html" %}
 {% from "macros.html" import clipboard_button %}
 
-{% block title %}{{ site_name }}: {{ gettext('API Keys') }}{% endblock title %}
+{% block title %}{{ site_name }}: {% trans %}API Keys{% endtrans %}{% endblock title %}
 
 {% block content %}
 <div class="row">
   <div class="col-md-10 col-md-offset-1">
-    <h3>API Keys</h3>
+    {# TRANS: This is a header for the page listing all of the external API
+    keys for the app. Again, these are not CCP API keys. #}
+    <h3>{% trans %}API Keys{% endtrans %}</h3>
     <p>
     {% with %}
       {% if '-dev' in app_version %}
@@ -14,14 +16,20 @@
       {% else %}
       {% set doc_url = ("https://eve-srp.readthedocs.org/en/v" ~ app_version ~ "/api.html") %}
       {% endif %}
-      {{ gettext('You can create API keys for this app\'s <a href="%(doc_url)s">external API</a> using the button below. This is unrelated to the official EVE API from CCP.', doc_url=doc_url) }}
+      {# TRANS: This is a chunk of text explaining what the purpose of the API keys are for. Please include the link in the text, with the special URL ("{{ doc_url }}") as well. #}
+      {% trans doc_url=doc_url%}
+      You can create API keys for this app\'s <a href="{{ doc_url }}">external API</a> using the button below. This is unrelated to the official EVE API from CCP.
+      {% endtrans %}
     {% endwith %}
     </p>
     <table id="apikeys" class="table table-condensed">
         <tr>
-          <th>{{ gettext('API Key') }}</th>
-          <th>{{ gettext('Created') }}</th>
-          <th>{{ gettext('Remove') }}</th>
+          {# TRANS: This is a heading in a table, for the column with the actual API keys (a long string of random letters and numbers). #}
+          <th>{% trans %}API Key{% endtrans %}</th>
+          {# TRANS: This is a heading in a table of external API keys, for the date and time an API key was created. #}
+          <th>{% trans %}Created{% endtrans %}</th>
+          {# TRANS: This is a heading in a table of API keys, where there is a button to delete a specific API key for each row in this column. #}
+          <th>{% trans %}Remove{% endtrans %}</th>
         </tr>
         {% for key in current_user.api_keys %}
         <tr>
@@ -41,7 +49,7 @@
         {% else %}
         <tr>
           <td class="text-center" colspan="3">
-            {{ gettext('No API keys have been created.') }}
+            {% trans %}No API keys have been created.{% endtrans %}
           </td>
         </tr>
         {% endfor %}
@@ -52,7 +60,8 @@
           <form class="pull-right" method="post">
             {{ form.csrf_token }}
             {{ form.action(value='add') }}
-            <button type="submit" class="btn btn-sm btn-info" id="createKey">{{ gettext('Create API Key') }}</button>
+            {# TRANS: This is a button, that when clicked, will create an API key. #}
+            <button type="submit" class="btn btn-sm btn-info" id="createKey">{% trans %}Create API Key{% endtrans %}</button>
           </form>
         </td>
       </tr>

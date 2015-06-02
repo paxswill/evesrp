@@ -110,6 +110,7 @@ danger
 {% else %}
 {% set copy_label = ("'" ~ value ~ "'") %}
 {% endif %}
+{# TRANS: This is a tooltip that appears when you move the mouse over a button that will copy some text to the clipboard when clicked. #}
 <button class="{{ classes }} copy-btn" data-clipboard-text="{{ value }}" data-toggle="tooltip" data-placement="{{ position }}" title="{{ gettext('Copy %(copy_label)s to clipboard', copy_label=copy_label) }}">{{ value }}</button>
 {% endwith %}
 {% endmacro %}

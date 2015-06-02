@@ -9,7 +9,8 @@
     <h2>{{ division.name }}</h2>
   </div>
   <div class="col-md-3 col-md-push-9">
-    <h3>{{ gettext('Attribute Transformers') }}</h3>
+    {# TRANS: A header on the division administration page for selecting how attribute values should be transformed. Frankly, it isn't a good name in English and I mean to change it later on. #}
+    <h3>{% trans %}Attribute Transformers{% endtrans %}</h3>
     <form method="post">
       {{ transformer_form.form_id(value='transformer') }}
       {{ macros.render_input(transformer_form.attribute) }}
@@ -26,18 +27,26 @@
     <div class="col-lg-8">
       <table class="table table-condensed">
         <tr>
-          <th>{{ gettext('Name') }}</th>
-          <th>{{ gettext('Type') }}</th>
-          <th>{{ gettext('Authentication Source') }}</th>
-          <th>{{ gettext('Remove') }}</th>
+          {# TRANS: A column heading in a table showing which people/groups are granted which permissions. This can either be a name of a person/pilot, or the name of a group. #}
+          <th>{% trans %}Name{% endtrans %}</th>
+          {# TRANS: A column heading in a table that lists the people/groups with a certain permission in a division (like submitting, reviewing, etc). This will only be two values (in English), 'User' or 'Group'. #}
+          <th>{% trans %}Type{% endtrans %}</th>
+          {# TRANS: A column heading in a table that lists the people/groups that have been granted a permission in a division. This column shows how the app know about this person/group, like through TEST Auth, or Brave Core, or through Eve's Single Sign On service. #}
+          <th>{% trans %}Authentication Source{% endtrans %}</th>
+          {# TRANS: This is heading in a list of users/groups with a certain permission in a division. In this column is a button for each row, that will remove the permission for that person/group. #}
+          <th>{% trans %}Remove{% endtrans %}</th>
         </tr>
         {% for entity in division.permissions[permission]|map(attribute='entity') %}
         <tr>
           <td>{{ entity.name }}</td>
           {% if entity.users is defined %}
-          <td>{{ gettext('Group') }} ({{ entity.users|length }})</td>
+          <td>
+            {# TRANS: In a list of users and groups granted a permission, if it's a group, this will be displayed. The number of users in the group is shown in parentheses. #}
+            {% trans num_users = entity.users|length %}Group ({{ num_users }}){% endtrans %}
+          </td>
           {% else %}
-          <td>{{ gettext('User') }}</td>
+            {# TRANS: In a list of users and groups granted a permission, if it's a group, this will be displayed. The number of users in the group is shown in parentheses. #}
+            <td>{% trans %}User{% endtrans %}</td>
           {% endif %}
           <td>{{ entity.authmethod }}</td>
           <td>
@@ -59,7 +68,8 @@
         <div class="input-group">
           <input type="text" class="form-control entity-typeahead typeahead" id="add-{{ permission.value }}-name" name="name" autocomplete="off" placeholder="Name">
           <span class="input-group-btn">
-            <button class="btn btn-default" type="submit">{{ gettext('Add') }}</button>
+            {# TRANS: This is a button for adding a specified user or group to the list of users and groups granted a permission in a division. #}
+            <button class="btn btn-default" type="submit">{% trans %}Add{% endtrans %}</button>
           </span>
         </div>
         {{ entity_form.csrf_token() }}

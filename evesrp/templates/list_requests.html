@@ -32,20 +32,27 @@
 <div class="row">
   <div id="request-list" class="col-md-10 col-md-offset-1">
     <div class="input-group form-group">
-      <span class="input-group-addon">{{ gettext('Filters') }}</span>
+      {# TRANS: This is a label for a text box that allow people to search for requests meeting certain criteria, like what system the loss occured in, what ship type it was, who the pilot was, or what corporation they're in. #}
+      <span class="input-group-addon">{% trans %}Filters{% endtrans %}</span>
       <input type="text" class="form-control filter-tokenfield">
     </div>
     {% block table %}
     <table class="table table-condensed" id="requests">
       <tr>
         {% block table_headers %}
+        {# TRANS: A table column header for the ID number of a request. #}
         {{ request_header("id", gettext("Request ID")) }}
+        {# TRANS: A table column header for the pilot of a request. #}
         {{ request_header("pilot", gettext("Pilot")) }}
-        {{ request_header("ship", gettext("Ship")) }}
+        {# TRANS: A table column header for the pilot of a request. #}
         {{ request_header("system", gettext("System")) }}
+        {# TRANS: A table column header for the status of a request (like evaluating, incomplete, approved, rejected). #}
         {{ request_header("status", gettext("Status")) }}
+        {# TRANS: A table column header for the current payout of a request. #}
         {{ request_header("payout", gettext("Payout")) }}
+        {# TRANS: A table column header for the date and time a request was submitted. #}
         {{ request_header("submit_timestamp", gettext("Submit Time")) }}
+        {# TRANS: A table column header for the of the division a request was submitted to. #}
         {{ request_header("division", gettext("Division")) }}
         {% endblock table_headers %}
       </tr>
@@ -94,6 +101,7 @@
         {% endif %}
       </ul>
       <p class="text-muted" id="requestsSummary">
+      {# TRANS: A small line showing how many total requests there are. #}
       {{ ngettext('%(num)d request', '%(num)d requests', pager.total) }} &bull; {{ total_payouts.currency() }} ISK
       </p>
     </div>

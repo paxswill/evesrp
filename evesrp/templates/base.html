@@ -26,7 +26,8 @@
         <!-- Navbar "Brand and the collapse/expand toggle -->
         <div class="navbar-header">
           <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#eve-srp-navbar-collapse">
-            <span class="sr-only">{{ gettext('Toggle Navigation') }}</span>
+            {# TRANS: This is only for screen-readers (for blind users) #}
+            <span class="sr-only">{% trans %}Toggle Navigation{% endtrans %}</span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
@@ -40,12 +41,15 @@
             {% block navitems %}
             {% if current_user.is_authenticated() %}
             {% if current_user.has_permission((PermissionType.review, PermissionType.audit)) %}
+            {# TRANS: This is in the navigation bar at the top, and is a link to a list of request that are waiting to be evaluated. #}
             {{ macros.navbar_button(gettext('Pending'), 'requests.list_pending_requests', request_count(PermissionType.review), id='badge-pending')|indent(12)|safe }}
             {% endif %}
             {% if current_user.has_permission(PermissionType.pay) %}
+            {# TRANS: This is in the navigation bar at the top, and is a link to a list of requests ready to pay out. #}
             {{ macros.navbar_button(gettext('Pay Outs'), 'requests.list_approved_requests', request_count(PermissionType.pay), id='badge-payouts')|indent(12)|safe }}
             {% endif %}
             {% if current_user.has_permission(PermissionType.elevated) %}
+            {# TRANS: This is in the navigation bar at the top, and is a link to a list of request that have been either rejected or been paid. #}
             {{ macros.navbar_button(gettext('Completed'), 'requests.list_completed_requests')|indent(12)|safe }}
             {% endif %}
             {% endif %}
@@ -54,9 +58,11 @@
           <ul class="nav navbar-nav navbar-right" id="right-nav">
             {% block navitems_right %}
             {% if current_user.is_anonymous() %}
+            {# TRANS: This is a link in the navigation bar. It goes to the login page. #}
             {{ macros.navbar_button(gettext('Log In'), 'login.login')|indent(12)|safe }}
             {% else %}
             {% if current_user.has_permission(PermissionType.submit) %}
+            {# TRANS: This is a link in the navigation bar to the page for submitting a request. #}
             {{ macros.navbar_button(gettext('Submit'), 'requests.submit_request')|indent(12)|safe }}
             {% endif %}
             <li class="dropdown">
@@ -64,10 +70,14 @@
                 <span class="caret"></span> {{ current_user.name }} <span class="badge hidden-sm" id="badge-personal">{{ request_count(PermissionType.submit)|string|replace('0', '') }}</span>
               </a>
               <ul class="dropdown-menu">
+                {# TRANS: This is a link in the navigation bar, linking to all of the requests the current user has ever made. #}
                 {{ macros.navbar_button(gettext('Requests'), 'requests.personal_requests', request_count(PermissionType.submit))|indent(16)|safe }}
+                {# TRANS: This is a link in the navigation bar to the page for managing the app's external API keys (not API keys from CCP, but those from within the app). #}
                 {{ macros.navbar_button(gettext('API Keys'), 'login.api_keys')|indent(16)|safe }}
+                {# TRANS: This is a link in the navigation bar to a page listing the permissions a user has in different reimbursement divisions. #}
                 {{ macros.navbar_button(gettext('Permissions'), 'divisions.permissions')|indent(16)|safe }}
                 <li class="divider"></li>
+                {# TRANS: The link in the navigation bar at the top for logging out of the app. #}
                 {{ macros.navbar_button(gettext('Log Out'), 'login.logout')|indent(16)|safe }}
               </ul>
             </li>
@@ -104,18 +114,33 @@
     <footer id="stats">
       <p class="text-muted text-center"><small>
         EVE-SRP v{{ app_version }} &bull;
+        {# TRANS: This is a link to the Github project for the app. It's where people can contribute code to the project. #}
         <a href="https://github.com/paxswill/evesrp">{{ gettext('Github Project') }}</a> &bull;
         {% if '-dev' in app_version %}
         <a href="https://eve-srp.readthedocs.org/en/latest/users.html">
         {% else %}
         <a href="{{ "https://eve-srp.readthedocs.org/en/v" ~ app_version ~ "/users.html" }}">
         {% endif %}
+        {# TRANS: This is a link to the manual for the app. #}
         {{ gettext('Help') }}
         </a>
       </small></p>
+      {% if locales()|length > 1 %}
+      <p class="text-muted text-center"><small>
+        {% for locale in locales() %}
+        <a href="{{ request.url }}">{{ locale.display_name }}</a>
+        {% if not loop.last %}
+        &bull;
+        {% endif %}
+        {% endfor %}
+      </small></p>
+      {% else %}
+      <!-- No locales -->
+      {% endif %}
       {% if current_user.admin %}
       <p class="text-muted text-center">
         <small>
+          {# TRANS: This is a specialized line of text that is only visible to administrators. It shows the how many of database queries were executed to make this page, and how long they took (in milliseconds). #}
           {{ gettext('%(queries)d queries in %(time).3f ms', queries=g.DB_STATS.total_queries, time=(g.DB_STATS.total_time * 1000)) }}
         </small>
       </p>

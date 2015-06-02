@@ -5,11 +5,14 @@
 {% block content %}
 <div class="row">
   <div class="col-md-10 col-md-offset-1">
-    <h3>{{ gettext('Your Permissions') }}</h3>
+    {# TRANS: The header for a table listing the permissions you have in divisions. #}
+    <h3>{% trans %}Your Permissions{% endtrans %}</h3>
     <table class="table">
       <tr>
-        <th>{{ gettext('Division') }}</th>
-        <th>{{ gettext('Permissions') }}</th>
+        {# TRANS: A column header in a table with the name of a division. #}
+        <th>{% trans %}Division{% endtrans %}</th>
+        {# TRANS: A column header in a table that lists the permissions you have in a division (there can be multiple permissions in a row, separated by commas). #}
+        <th>{% trans %}Permissions{% endtrans %}</th>
       </tr>
       {% for grouper, grouped in current_user.permissions|groupby('division.name') %}
       <tr>
