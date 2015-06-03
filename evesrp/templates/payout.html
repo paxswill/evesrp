@@ -9,7 +9,7 @@
     <div class="panel-heading">
       <span class="panel-title">
         {# TRANS: A header for a small part of the page with the details for one request. This header show the ID number of the request. #}
-        <a class="request-href" href="{{ url_for('requests.get_request_details', request_id=request.id) }}">{% trans request_id=srp_request.id %}Request #{{ request_id }}{% endtrans %}</a>
+        <a class="request-href" href="{{ url_for('requests.get_request_details', request_id=request.id) }}">{% trans request_id=request.id %}Request #{{ request_id }}{% endtrans %}</a>
       </span>
     </div>
     <div class="panel-body">
