@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from flask import url_for, render_template, redirect, abort, flash, request,\
         Blueprint, current_app
+from flask.ext.babel import gettext, lazy_gettext
 from flask.ext.login import login_required, current_user
 from flask.ext.wtf import Form
 import six
@@ -39,8 +40,14 @@ def permissions():
 
 
 class AddDivisionForm(Form):
-    name = StringField(u'Division Name', validators=[InputRequired()])
-    submit = SubmitField(u'Create Division')
+    # TRANS: On a form for creating a new division, this is a label for the
+    # TRANS: name of the division.
+    name = StringField(lazy_gettext(u'Division Name'),
+            validators=[InputRequired()])
+
+    # TRANS: On a form for creating a new division, this is a button for
+    # TRANS: creating a new division (by submitting the form).
+    submit = SubmitField(lazy_gettext(u'Create Division'))
 
 
 @blueprint.route('/add/', methods=['GET', 'POST'])
@@ -59,7 +66,9 @@ def add_division():
         db.session.commit()
         return redirect(url_for('.get_division_details',
             division_id=division.id))
-    return render_template('form.html', form=form, title=u'Create Division')
+    return render_template('form.html', form=form,
+            # TRANS: The title for a page for creating new divisions.
+            title=gettext(u'Create Division'))
 
 
 class ChangeEntity(Form):
@@ -74,21 +83,36 @@ class ChangeEntity(Form):
 #: Mainly used as the choices argument to :py:class:`~.SelectField`
 transformer_choices = [
     ('', u''),
-    ('pilot', u'Pilot'),
-    ('corporation', u'Corporation'),
-    ('alliance', u'Alliance'),
-    ('system', u'Solar System'),
-    ('constellation', u'Constellation'),
-    ('region', u'Region'),
-    ('ship_type', u'Ship'),
-    ('status', u'Request Status'),
+    # TRANS: Label for fields showing the name of a pilot.
+    ('pilot', lazy_gettext(u'Pilot')),
+    # TRANS: Label for the corporation a pilot is in.
+    ('corporation', lazy_gettext(u'Corporation')),
+    # TRANS: Label for the alliance a pilot is in.
+    ('alliance', lazy_gettext(u'Alliance')),
+    # TRANS: Label for the solar system a loss occured in.
+    ('system', lazy_gettext(u'Solar System')),
+    # TRANS: Label for the constellation a loss occured in.
+    ('constellation', lazy_gettext(u'Constellation')),
+    # TRANS: Label for the region a loss occured in.
+    ('region', lazy_gettext(u'Region')),
+    # TRANS: Label for the type of ship that was lost.
+    ('ship_type', lazy_gettext(u'Ship')),
+    # TRANS: Label for the status a request is in (ex: Unevaluated, Approved)
+    ('status', lazy_gettext(u'Request Status')),
 ]
 
 
 class ChangeTransformer(Form):
     form_id = HiddenField(default='transformer')
-    attribute = SelectField(u'Attribute', choices=transformer_choices)
-    transformer = SelectField(u'Transformer', choices=[])
+
+    # TRANS: The a label for a selection field for selecting which attribute
+    # TRANS: to transform. See the translation for 'Attribute Transformer'.
+    attribute = SelectField(lazy_gettext(u'Attribute'),
+            choices=transformer_choices)
+
+    # TRANS: The label for a selection field for selecting the transformer for
+    # TRANS: an attribute. See the translation for 'Attribute Transformer'.
+    transformer = SelectField(lazy_gettext(u'Transformer'), choices=[])
 
 
 def transformer_choices(attr):
@@ -147,8 +171,14 @@ def _modify_division_entity(division):
                 form.id_.data))
             entity = Entity.query.get(form.id_.data)
             if entity is None:
-                flash(u"No entity with ID #{}.".format(form.id_.data),
-                        u'error')
+                # TRANS: This is an error message when there's a problem 
+                # TRANS: granting a permission to a user or group
+                # TRANS: (collectively called 'entities'). The '#' is not
+                # TRANS: special, but the '%s(in_num)d' will be replaced with
+                # TRANS: the ID number that was attempted to be added.
+                flash(gettext(u"No entity with ID #%s(id_num)d.",
+                        id_num=form.id_.data),
+                    category=u'error')
         else:
             current_app.logger.debug(u"Looking up entity by name: '{}'"\
                     .format(form.name.data))
@@ -156,11 +186,18 @@ def _modify_division_entity(division):
                 entity = Entity.query.filter_by(
                         name=form.name.data).one()
             except NoResultFound:
-                flash(u"No entities with the name '{}' found.".
-                        format(form.name.data), category=u'error')
+                # TRANS: Erorr message when a user or group with a given name
+                # TRANS: cannot be found.
+                flash(gettext(u"No entities with the name '%(name)s' found.",
+                        name=form.name.data),
+                    category=u'error')
             except MultipleResultsFound:
-                flash(u"Multiple entities with the name '{}' found.".
-                        format(form.name.data), category=u'error')
+                # TRANS: Error message when multiple users and/or groups are
+                # TRANS: found with a given name.
+                flash(gettext(
+                        u"Multiple entities with the name '%(name)s' found.",
+                        name=form.name.data),
+                    category=u'error')
             else:
                 current_app.logger.debug("entity lookup success")
         if entity is None:
@@ -173,7 +210,7 @@ def _modify_division_entity(division):
                 division=division,
                 entity=entity,
                 permission=permission_type)
-        # The response for both add and delete actions depends on wether the
+        # The response for both add and delete actions depends on whether the
         # Permission is found, so look it up first.
         try:
             permission = permission_query.one()
@@ -181,24 +218,42 @@ def _modify_division_entity(division):
             if form.action.data == 'add':
                 db.session.add(
                     Permission(division, permission_type, entity))
-                flash(u"'{}' is now a {}.".format(entity,
-                        permission_type.description.lower()), u"info")
+                # TRANS: Message show when granting a permission to a user or
+                # TRANS: group.
+                flash(gettext(u"%(name)s is now a %(role)s.",
+                        name=entity,
+                        role=permission_type.description.lower()),
+                    category=u"info")
             elif form.action.data == 'delete':
-                flash(u"{} is not a {}.".format(entity,
-                    permission_type.description.lower()), u"warning")
+                # TRANS: Message shown when trying to remove a permission from
+                # TRANS: a user, but that user didn't have that permission
+                # TRANS: already.
+                flash(gettext(u"%(name)s is not a %(role)s.",
+                        name=entity,
+                        role=permission_type.description.lower()),
+                    category=u"warning")
         else:
             if form.action.data == 'delete':
                 permission_query.delete()
-                flash(u"'{}' is no longer a {}.".format(entity,
-                        permission_type.description.lower()), u"info")
+                # TRANS: Confirmation message shown when revoking a permission
+                # TRANS: from a user or group.
+                flash(gettext(u"%(name)s is no longer a %(role)s.",
+                        name=entity,
+                        role=permission_type.description.lower()),
+                    category=u"info")
             elif form.action.data == 'add':
-                flash(u"'{}' is now a {}.".format(entity,
-                        permission_type.description.lower()), u"info")
+                flash(gettext(u"%(name)s is now a %(role)s.",
+                        name=entity,
+                        role=permission_type.description.lower()),
+                    category=u"info")
         db.session.commit()
     else:
         for field_name, errors in six.iteritems(form.errors):
             errors = u", ".join(errors)
-            flash(u"Errors for {}: {}".format(field_name, errors), u'error')
+            # TRANS: Error message that is shown when one or more fields of a
+            # TRANS: form are shown.
+            flash(gettext(u"Errors for %(field_name)s: %(error)s.",
+                field_name=field_name, errors=errors), u'error')
         current_app.logger.info("Malformed entity permission POST: {}".format(
                 form.errors))
     return get_division_details(division=division)
@@ -223,12 +278,15 @@ def _modify_division_transformer(division):
             # Explicitly add the TransformerRef to the session
             db.session.add(division.division_transformers[attr])
         db.session.commit()
-        flash(u"'{}' transformer set to '{}'.".format(attr, name),
-                u'message')
+        # TRANS: Confirmation message shown when a transformer for an
+        # TRANS: attribute has been set.
+        flash(gettext(u"'%(attribute)s' set to '%(transformer)s'.",
+                attr, name), u'message')
     else:
         for field_name, errors in six.iteritems(form.errors):
             errors = u", ".join(errors)
-            flash(u"Errors for {}: {}".format(field_name, errors), u'error')
+            flash(gettext(u"Errors for %(field_name)s: %(error)s.",
+                field_name=field_name, errors=errors), u'error')
         current_app.logger.info("Malformed division transformer POST: {}".
                 format(form.errors))
     return get_division_details(division=division)

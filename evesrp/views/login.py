@@ -3,6 +3,7 @@ from base64 import urlsafe_b64decode
 import binascii
 from flask import render_template, url_for, abort, session, redirect, request,\
         current_app, g, Blueprint
+from flask.ext.babel import lazy_gettext
 from flask.ext.login import login_required, logout_user, LoginManager,\
     current_user
 from flask.ext.wtf import Form
@@ -102,7 +103,8 @@ def login():
             abort(400)
         if form.validate():
             return auth_method.login(form)
-    return render_template('login.html', forms=forms, title=u'Log In')
+    return render_template('login.html', forms=forms,
+            title=lazy_gettext(u'Log In'))
 
 
 login_manager.login_view = 'login.login'

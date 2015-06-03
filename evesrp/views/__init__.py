@@ -1,9 +1,10 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 from flask import redirect, url_for, render_template, make_response, request,\
-        json
+        json, session
 from flask.ext.login import login_required, current_user
-from .. import db
+from babel import get_locale_identifier, negotiate_locale
+from .. import db, babel
 from ..models import Request, ActionType
 from ..auth import PermissionType
 from ..auth.models import Permission, Division
@@ -89,3 +90,16 @@ def update_navbar(response):
     counts['personal'] = request_count(PermissionType.submit)
     response.set_data(json.dumps(response_json))
     return response
+
+
+def detect_language():
+    if 'locale' in request.args:
+        requested_locale = request.args['locale']
+        locale = negotiate_locale([requested_locale,],
+                [get_locale_identifier((l.language, l.territory, None, None))
+                    for l in babel.list_translations()])
+        session['locale'] = locale
+
+
+def locale_selector():
+    return session.get('locale')
