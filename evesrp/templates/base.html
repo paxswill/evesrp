@@ -1,6 +1,6 @@
 {% import "macros.html" as macros with context %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ get_locale().language }}">
   <head>
     {% block head %}
     <meta charset="utf-8">
@@ -125,15 +125,28 @@
         {{ gettext('Help') }}
         </a>
       </small></p>
-      {% if locales()|length > 1 %}
-      <p class="text-muted text-center"><small>
-        {% for locale in locales() %}
-        <a href="{{ request.url }}">{{ locale.display_name }}</a>
-        {% if not loop.last %}
-        &bull;
-        {% endif %}
-        {% endfor %}
-      </small></p>
+      {% if locales()|length >= 1 %}
+      <form method="GET" class="text-muted text-center">
+        <small>
+          <input id="lang" type="hidden" name="lang" value="">
+          {% if get_locale().language == 'en' %}
+          <strong>English</strong>
+          {% else %}
+          <a class="langSelect" data-lang="en" href="#">English</a>
+          {% endif %}
+          &bull;
+          {% for locale in locales() %}
+          {% if get_locale().language == locale.language %}
+          <strong>{{ locale.display_name|capitalize }}</strong>
+          {% else %}
+          <a class="langSelect" data-lang="{{ locale.language }}" href="#">{{ locale.display_name|capitalize }}</a>
+          {% endif %}
+          {% if not loop.last %}
+          &bull;
+          {% endif %}
+          {% endfor %}
+        </small>
+      </form>
       {% else %}
       <!-- No locales -->
       {% endif %}

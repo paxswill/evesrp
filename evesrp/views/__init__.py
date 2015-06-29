@@ -93,8 +93,8 @@ def update_navbar(response):
 
 
 def detect_language():
-    if 'locale' in request.args:
-        requested_locale = request.args['locale']
+    if 'lang' in request.args:
+        requested_locale = request.args['lang']
         locale = negotiate_locale([requested_locale,],
                 [get_locale_identifier((l.language, l.territory, None, None))
                     for l in babel.list_translations()])

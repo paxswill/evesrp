@@ -8,6 +8,16 @@ if (! ('ui' in EveSRP)) {
   EveSRP.ui = {}
 }
 
+EveSRP.ui.setLanguage = function setLanguage(ev) {
+  var $target = $(ev.target),
+      locale = $target.data('lang'),
+      $form = $target.closest('form'),
+      $localeInput = $form.find('#lang');
+  $localeInput.val(locale);
+  $form.submit();
+  ev.preventDefault();
+};
+
 EveSRP.ui.renderFlashes = function renderFlashes(data) {
   var $content = $('#content'),
       flashes = data.flashed_messages;
@@ -46,6 +56,7 @@ EveSRP.ui.setupEvents = function setupUIEvents() {
       EveSRP.ui.renderNavbar(jqxhr.responseJSON);
     }
   });
+  $(".langSelect").on('click', EveSRP.ui.setLanguage);
 };
 EveSRP.ui.setupEvents();
 
