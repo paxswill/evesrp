@@ -179,7 +179,7 @@
               {% endif %}
               <div class="panel-footer">
                 {# TRANS: When a modifier is added, the name of the user that added it and the date and time it was added are displayed. #}
-                {{ gettext('%(name)s at %(timestamp)s', user=modifier.user, timestamp=(modifier.timestamp|datetimeformat('short'))) }}
+                {{ gettext('%(name)s at %(timestamp)s', name=modifier.user, timestamp=(modifier.timestamp|datetimeformat('short'))) }}
               </div>
             </div>
           </div>

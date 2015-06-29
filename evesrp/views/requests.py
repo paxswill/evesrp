@@ -585,9 +585,10 @@ def get_killmail_descriptions():
     km_list = u"".join(
             [Markup(u"<li>{}</li>").format(km.description) for km in \
                     current_app.killmail_sources])
-    # TRANS: header for a list of the kinds of links that are acceptable to
+    # TRANS: Header for a list of the kinds of links that are acceptable to
     # TRANS: submit as killmails for SRP.
-    description = gettext(u"Acceptable Killmail Links:<ul>%s</ul>", km_list)
+    description = gettext(u"Acceptable Killmail Links:<ul>%(sources)s</ul>",
+            sources=km_list)
     description = Markup(description)
     return description
 
@@ -627,14 +628,14 @@ class RequestForm(Form):
         if division is None:
             # TRANS: Error message shown when trying to submit a request to a
             # TRANS: non-existant division.
-            raise ValidationError(gettext(u"No division with ID '%s'.",
-                    field.data))
+            raise ValidationError(gettext(u"No division with ID '%(div_id)s'.",
+                    div_id=field.data))
         if not current_user.has_permission(PermissionType.submit, division):
             # TRANS: Error message shown when trying to a submit a request to a
             # TRANS: division you do not have the submission permission in.
             raise ValidationError(gettext(u"You do not have permission to "
-                                          u"submit to division '%s'.",
-                    division.name))
+                                          u"submit to division '%(name)s'.",
+                    name=division.name))
 
 
 @blueprint.route('/add/', methods=['GET', 'POST'])
@@ -814,7 +815,8 @@ def get_request_details(request_id=None, srp_request=None):
             note_form=AddNote(formdata=None),
             # TRANS: Title for the page showing the details about a single
             # TRANS: SRP request.
-            title=gettext(u"Request #%s", srp_request.id))
+            title=gettext(u"Request #%(request_id)s",
+                    request_id=srp_request.id))
 
 
 def _add_modifier(srp_request):
@@ -844,7 +846,7 @@ def _change_payout(srp_request):
     if not current_user.has_permission(PermissionType.review, srp_request):
         # TRANS: Error message when someone who does not have the reviewer
         # TRANS: permission tries to change the base payout of a request.
-        flash(gettext(u"Only reviewers can change the base payout.", u'error'))
+        flash(gettext(u"Only reviewers can change the base payout."), u'error')
     elif form.validate():
         try:
             srp_request.base_payout = form.value.data * 1000000
@@ -874,7 +876,9 @@ def _void_modifier(srp_request):
         if modifier is None:
             # TRANS: Error message when a user tries to void (cancel) a
             # TRANS: modifier that does not exist.
-            flash(gettext(u"Invalid modifier ID %d.", modifier_id), u'error')
+            flash(gettext(u"Invalid modifier ID %(modifier_id)d.",
+                    modifier_id=modifier_id),
+                u'error')
         else:
             try:
                 modifier.void(current_user)
@@ -901,7 +905,8 @@ def _change_details(srp_request):
         # TRANS: The old request details have are saved in a comment on the
         # TRANS: request. This is the text that is put at the beginning of the
         # TRANS: comment
-        archive_note = gettext(u"Old Details: %s", srp_request.details)
+        archive_note = gettext(u"Old Details: %(details)s",
+                details=srp_request.details)
         if srp_request.status == ActionType.evaluating:
             action_type = ActionType.comment
         else:
@@ -1046,4 +1051,5 @@ def request_change_division(request_id):
     return render_template('form.html', form=form,
             # TRANS: Title for the page showing the form for changing a
             # TRANS: request's division.
-            title=lazy_gettext(u"Change #%d's Division", srp_request.id))
+            title=lazy_gettext(u"Change #%(request_id)d's Division",
+                request_id=srp_request.id))

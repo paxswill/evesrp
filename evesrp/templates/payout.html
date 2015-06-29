@@ -51,7 +51,7 @@
           {# TRANS: A label for the text that ill be put in the reason field of the in-game ISK transfer window. #}
           <dt>{% trans %}Reason{% endtrans %}</dt>
           {# TRANS: The text that will be put copied to the clipboard to be copied into the in-game ISK transfer window. #}
-          <dd>{{ clipboard_button(gettext('Payment for %(request_id)d', request.id), position='top', classes='btn btn-default btn-xs') }}</dd>
+          <dd>{{ clipboard_button(gettext('Payment for %(request_id)d', request_id=request.id), position='top', classes='btn btn-default btn-xs') }}</dd>
           <dt></dt>
           <dd>
             <form style="display: inline;" method="post" action="{{ url_for('requests.get_request_details', request_id=request.id) }}">

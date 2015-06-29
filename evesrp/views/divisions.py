@@ -186,7 +186,7 @@ def _modify_division_entity(division):
                 entity = Entity.query.filter_by(
                         name=form.name.data).one()
             except NoResultFound:
-                # TRANS: Erorr message when a user or group with a given name
+                # TRANS: Error message when a user or group with a given name
                 # TRANS: cannot be found.
                 flash(gettext(u"No entities with the name '%(name)s' found.",
                         name=form.name.data),
@@ -281,10 +281,11 @@ def _modify_division_transformer(division):
         # TRANS: Confirmation message shown when a transformer for an
         # TRANS: attribute has been set.
         flash(gettext(u"'%(attribute)s' set to '%(transformer)s'.",
-                attr, name), u'message')
+                attribute=attr, transformer=name), u'message')
     else:
         for field_name, errors in six.iteritems(form.errors):
             errors = u", ".join(errors)
+            # TRANS: Generic error message shown for the fields in a form.
             flash(gettext(u"Errors for %(field_name)s: %(error)s.",
                 field_name=field_name, errors=errors), u'error')
         current_app.logger.info("Malformed division transformer POST: {}".
