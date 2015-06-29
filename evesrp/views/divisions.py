@@ -176,7 +176,7 @@ def _modify_division_entity(division):
                 # TRANS: (collectively called 'entities'). The '#' is not
                 # TRANS: special, but the '%s(in_num)d' will be replaced with
                 # TRANS: the ID number that was attempted to be added.
-                flash(gettext(u"No entity with ID #%s(id_num)d.",
+                flash(gettext(u"No entity with ID #%(id_num)d.",
                         id_num=form.id_.data),
                     category=u'error')
         else:

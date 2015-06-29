@@ -88,7 +88,7 @@ class RequestListing(View):
                                 num=values),
                             u'warning')
                     current_app.logget.warn(
-                            "Invalid value of rpage number: {}".format(values))
+                            "Invalid value of page number: {}".format(values))
             elif attr == 'sort':
                 filters['sort'] = values.lower()
             elif attr == 'status':
@@ -898,7 +898,7 @@ def _change_details(srp_request):
     elif srp_request.finalized:
         # TRANS: Error message shown when the submitter ties to change the
         # TRANS: details when the request is no long pending (not finished).
-        flash(gettext(u"Details con only be changed when the request is still "
+        flash(gettext(u"Details can only be changed when the request is still "
                       u"pending.")
                 , u'error')
     elif form.validate():

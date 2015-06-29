@@ -593,7 +593,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
             return new_status
         if new_status == ActionType.comment:
             raise ValueError(gettext(
-                u"ActionType.comment is not a valid status"))
+                u"Comment is not a valid status"))
         # Initial status
         if self.status is None:
             return new_status

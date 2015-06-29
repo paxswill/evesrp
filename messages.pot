@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: EVE-SRP 0.10.6-dev\n"
-"Report-Msgid-Bugs-To: paxswill@gmail.com\n"
-"POT-Creation-Date: 2015-06-29 16:06-0400\n"
+"Report-Msgid-Bugs-To: paxswill@paxswill.com\n"
+"POT-Creation-Date: 2015-06-29 21:25-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -42,9 +42,11 @@ msgstr ""
 
 #. Error message shown when there's a problem accessing the
 #. zKillboard API.
-#: evesrp/killmail.py:297
+#. The %(code)d in this message will be replaced with the
+#. HTTP status code recieved from CCP.
+#: evesrp/killmail.py:297 evesrp/killmail.py:400
 #, python-format
-msgid "Error retrieving killmail data: %(code)s"
+msgid "Error retrieving killmail data: %(code)d"
 msgstr ""
 
 #. This is an error message when the killmail is somehow
@@ -81,13 +83,6 @@ msgstr ""
 #: evesrp/killmail.py:394
 #, python-format
 msgid "Error retrieving CREST killmail: %(error)s"
-msgstr ""
-
-#. The %(code)d in this message will be replaced with the
-#. HTTP status code recieved from CCP.
-#: evesrp/killmail.py:400
-#, python-format
-msgid "Error retrieving killmail data: %(code)d"
 msgstr ""
 
 #. Description of the allowable links for the CREST killmail
@@ -184,7 +179,7 @@ msgid "The request must be in the evaluating state to change the base payout."
 msgstr ""
 
 #: evesrp/models.py:595
-msgid "ActionType.comment is not a valid status"
+msgid "Comment is not a valid status"
 msgstr ""
 
 #: evesrp/models.py:602
@@ -816,7 +811,7 @@ msgstr ""
 #. the ID number that was attempted to be added.
 #: evesrp/views/divisions.py:179
 #, python-format
-msgid "No entity with ID #%s(id_num)d."
+msgid "No entity with ID #%(id_num)d."
 msgstr ""
 
 #. Error message when a user or group with a given name
@@ -1002,7 +997,7 @@ msgstr ""
 #. Error message shown when the submitter ties to change the
 #. details when the request is no long pending (not finished).
 #: evesrp/views/requests.py:901
-msgid "Details con only be changed when the request is still pending."
+msgid "Details can only be changed when the request is still pending."
 msgstr ""
 
 #. The old request details have are saved in a comment on the

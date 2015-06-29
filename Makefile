@@ -54,6 +54,6 @@ messages.pot: $(vpath %.py evesrp) babel.cfg
 		--version=0.10.6-dev \
 		-k lazy_gettext \
 		-s \
-		--msgid-bugs-address=paxswill@gmail.com \
+		--msgid-bugs-address=paxswill@paxswill.com \
 		--copyright-holder="Will Ross" \
 		.

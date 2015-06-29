@@ -295,7 +295,7 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
         # TRANS: Error message shown when there's a problem accessing the
         # zKillboard API.
         retrieval_error = LookupError(gettext(u"Error retrieving killmail "
-                                              u"data: %(code)s",
+                                              u"data: %(code)d",
                                               code=resp.status_code))
         if resp.status_code != 200:
             raise retrieval_error
