@@ -5,3 +5,4 @@ bower_components
 .env
 coverage-report
 test-report.html
+*.mo

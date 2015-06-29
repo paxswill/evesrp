@@ -1,13 +1,16 @@
 SUBDIRS := evesrp/static
 
-.PHONY: all clean build-deps test docs $(SUBDIRS)
+.PHONY: all clean distclean build-deps test docs $(SUBDIRS)
 
-all: $(SUBDIRS) docs
+all: $(SUBDIRS) docs messages.pot
 
 clean:
 	for DIR in $(SUBDIRS); do\
 		$(MAKE) -C "$$DIR" clean; \
 	done
+
+distclean:
+	rm -f messages.pot
 	$(MAKE) -C doc clean
 
 $(SUBDIRS):
@@ -41,3 +44,16 @@ test:
 
 docs:
 	$(MAKE) -C doc html
+
+messages.pot: $(vpath %.py evesrp) babel.cfg
+	pybabel extract \
+		-F babel.cfg \
+		-o messages.pot \
+		-c "TRANS:" \
+		--project=EVE-SRP \
+		--version=0.10.6-dev \
+		-k lazy_gettext \
+		-s \
+		--msgid-bugs-address=paxswill@gmail.com \
+		--copyright-holder="Will Ross" \
+		.
