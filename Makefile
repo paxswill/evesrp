@@ -45,7 +45,8 @@ test:
 docs:
 	$(MAKE) -C doc html
 
-messages.pot: $(vpath %.py evesrp) babel.cfg
+messages.pot: babel.cfg evesrp/*.py evesrp/*/*.py evesrp/templates/*.html
+	echo $?
 	pybabel extract \
 		-F babel.cfg \
 		-o messages.pot \
