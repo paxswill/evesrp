@@ -1,4 +1,10 @@
+# Work around a bug in Apple's version of Make where setting PATH doesn't stick
+# unless SHELL is set first.
+SHELL := $(shell which bash)
+export PATH := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))node_modules/.bin:$(PATH)
+
 SUBDIRS := evesrp/static
+NODE_UTILS := less uglify-js bower handlebars@3
 
 .PHONY: all clean distclean build-deps test docs $(SUBDIRS)
 
@@ -18,7 +24,7 @@ $(SUBDIRS):
 
 build-deps:
 	pip install -r requirements.txt
-	npm install -g less uglify-js bower handlebars@2.0.0-alpha.4
+	npm install $(NODE_UTILS)
 	bower install
 	tests/mariadb.sh
 ifneq (,$(findstring psycopg2,$(DB)))

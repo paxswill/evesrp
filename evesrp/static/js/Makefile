@@ -1,4 +1,3 @@
-UGLIFY ?= uglifyjs
 ifndef DEBUG
 UGLIFY_OPTS ?= -m -c
 endif
@@ -39,7 +38,7 @@ handlebars-templates.js: $(wildcard templates/*.hbs)
 	handlebars -e hbs templates -f $@ -k each -k if -k csrf
 
 evesrp.min.js: $(JS_SOURCE)
-	$(UGLIFY) $^ \
+	uglifyjs $^ \
 		$(UGLIFY_OPTS) \
 		--output $@ \
 		--source-map evesrp.min.js.map
