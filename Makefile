@@ -9,7 +9,8 @@ NODE_UTILS := \
 	less \
 	uglify-js
 
-.PHONY: all clean distclean build-deps test docs $(SUBDIRS)
+.PHONY: all clean distclean build-deps test test-python test-javascript docs \
+	node-pkgs $(SUBDIRS)
 
 all: $(SUBDIRS) docs messages.pot node-pkgs bower_components
 
@@ -49,8 +50,12 @@ sdist: $(SUBDIRS) setup.py
 upload: $(SUBDIRS) setup.py
 	python setup.py sdist upload
 
-test:
-	nosetests --with-html --html-file=test-report.html -w tests/
+test: test-python test-javascript
+
+test-python:
+	nosetests --with-html --html-file=test-report.html -w tests_python
+
+test-javascript:
 
 docs:
 	$(MAKE) -C doc html
