@@ -17,7 +17,7 @@
           <dt>External Lossmail</dt>
           <dd><a href="{{ request.killmail_url }}" target="_blank">{{ request.id }} <i class="fa fa-external-link"></i></a></dd>
           <dt>Details</dt>
-          <dd><a class="small-popover" data-toggle="popover" data-trigger="focus" data-content="{{ request.details }}" data-container="body" href="#" tabindex="0">Details</a></dd>
+          <dd><a class="small-popover" data-toggle="popover" data-trigger="focus" data-content="{{ request.details|urlize(15) }}" data-container="body" href="#" tabindex="0">Details</a></dd>
           <dt>Ship</dt>
           <dd>{{ request.transformed.ship_type }}</dd>
           {% if request.modifiers.count() > 0 %}
@@ -65,7 +65,7 @@
         <td>{{ action.type_ }}</td>
         <td>{{ action.user }}</td>
         {% if action.note %}
-        <td><a class="small-popover" data-toggle="popover" data-trigger="focus" data-content="{{ action.note }}" href="#" tabindex="0">Comment</a></td>
+        <td><a class="small-popover" data-toggle="popover" data-trigger="focus" data-content="{{ action.note|urlize(15) }}" href="#" tabindex="0">Comment</a></td>
         {% else %}
         <td></td>
         {% endif %}

@@ -47,7 +47,7 @@
       <dt>Details</dt>
       <dd>
         <div class="panel panel-default">
-          <p class="panel-body" id="request-details">{{ srp_request.details }}</p>
+          <p class="panel-body" id="request-details">{{ srp_request.details|urlize(30) }}</p>
         </div>
         {% if not srp_request.finalized and srp_request.submitter == current_user %}
         <button class="btn btn-default btn-sm" type="button" data-toggle="modal" data-target="#detailsModal">Update Details</button>
@@ -116,7 +116,7 @@
         <div class="list-group-item">
           <h4 class="list-group-item-heading{{ ' ' ~ item_class if item_class is defined }}">{{ action.type_ if action.type_ != ActionType.comment }}</h4>
           <blockquote class="list-group-item-text">
-            <p class="action-text">{{ action.note }}</p>
+            <p class="action-text">{{ action.note|urlize(30) }}</p>
             <footer>{{ action.user.name }} ({{ action.timestamp.strftime('%d %b %Y @ %H:%M') }})</footer>
           </blockquote>
         </div>

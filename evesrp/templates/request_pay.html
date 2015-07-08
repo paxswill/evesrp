@@ -13,7 +13,7 @@
         {{ '<ul class="list-group">'|safe if loop.first }}
           <li class="list-group-item">
             <h5 class="list-group-item-heading">{{ note.noter.name }} at {{ note.timestamp.strftime('%H:%M %d %b %Y') }}:</h4>
-            <p class="list-group-item-text">{{ note.content|safe }}</p>
+            <p class="list-group-item-text">{{ note.content|safe|urlize(30) }}</p>
           </li>
         {{ '</ul>'|safe if loop.last }}
         {% else %}
