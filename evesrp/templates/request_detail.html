@@ -116,7 +116,7 @@
         <div class="list-group-item">
           <h4 class="list-group-item-heading{{ ' ' ~ item_class if item_class is defined }}">{{ action.type_ if action.type_ != ActionType.comment }}</h4>
           <blockquote class="list-group-item-text">
-            <p>{{ action.note }}</p>
+            <p class="action-text">{{ action.note }}</p>
             <footer>{{ action.user.name }} ({{ action.timestamp.strftime('%d %b %Y @ %H:%M') }})</footer>
           </blockquote>
         </div>

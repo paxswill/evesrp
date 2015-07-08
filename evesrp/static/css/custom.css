@@ -36,3 +36,8 @@ dl.spaced dd, dl.spaced dt {
   margin-top: 2px;
   margin-bottom: 2px;
 }
+
+p#request-details, p.action-text{
+  overflow: auto;
+  white-space: pre;
+}
