@@ -38,6 +38,5 @@ dl.spaced dd, dl.spaced dt {
 }
 
 p#request-details, p.action-text{
-  overflow: auto;
-  white-space: pre;
+  white-space: pre-wrap;
 }
