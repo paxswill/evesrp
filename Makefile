@@ -8,10 +8,14 @@ NODE_UTILS := \
 	bower \
 	coffee-script \
 	coffeeify \
+	handlebars \
+	hbsfy \
 	jquery \
 	less \
 	mocha \
-	uglify-js
+	uglify-js \
+	underscore \
+	underscore.string
 
 .PHONY: all clean distclean build-deps test test-python test-javascript docs \
 	node-pkgs $(SUBDIRS)
