@@ -7,6 +7,7 @@ NODE_UTILS := \
 	bower \
 	coffee-script \
 	less \
+	mocha \
 	uglify-js
 
 .PHONY: all clean distclean build-deps test test-python test-javascript docs \
@@ -53,9 +54,17 @@ upload: $(SUBDIRS) setup.py
 test: test-python test-javascript
 
 test-python:
-	nosetests --with-html --html-file=test-report.html -w tests_python
+	nosetests \
+		--with-html \
+		--html-file=test-report.html \
+		-w tests_python
 
-test-javascript:
+test-javascript: 
+	mocha \
+		--compilers coffee:coffee-script/register \
+		--globals EveSRP \
+		--ui tdd \
+		tests_javascript/*.coffee
 
 docs:
 	$(MAKE) -C doc html
