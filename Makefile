@@ -4,8 +4,9 @@ SHELL := /bin/sh
 export PATH := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))node_modules/.bin:$(PATH)
 SUBDIRS := evesrp/static
 NODE_UTILS := \
-	browserify \
+	bootstrap \
 	bower \
+	browserify \
 	coffee-script \
 	coffeeify \
 	handlebars \
@@ -15,7 +16,8 @@ NODE_UTILS := \
 	mocha \
 	uglify-js \
 	underscore \
-	underscore.string
+	underscore.string \
+	zeroclipboard
 
 .PHONY: all clean distclean build-deps test test-python test-javascript docs \
 	node-pkgs $(SUBDIRS)
@@ -97,3 +99,6 @@ node_modules/%:
 
 node_modules/handlebars:
 	npm install handlebars@3
+
+node_modules/bootstrap:
+	npm install bootstrap@3
