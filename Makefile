@@ -69,7 +69,7 @@ test-python:
 test-javascript: 
 	mocha \
 		--compilers coffee:coffee-script/register \
-		--globals EveSRP \
+		--reporter dot \
 		--ui tdd \
 		tests_javascript/*.coffee
 
