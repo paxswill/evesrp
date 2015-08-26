@@ -1,7 +1,10 @@
 ifndef DEBUG
 UGLIFY_OPTS ?= -m -c
+else
+BROWSERIFY_OPTS ?= --debug
 endif
 UGLIFY_OPTS += --source-map-include-sources
+BROWSERIFY_OPTS += -t coffeeify --extension=".coffee" -t hbsfy --extension=".hbs"
 BOOTSTRAP = $(THIRDPARTY)/bootstrap/js
 
 SOURCE_NAMES := \
@@ -37,11 +40,13 @@ all: evesrp.min.js
 handlebars-templates.js: $(wildcard templates/*.hbs)
 	handlebars -e hbs templates -f $@ -k each -k if -k csrf
 
-evesrp.min.js: $(JS_SOURCE)
+evesrp.js: *.coffee ui/*.coffee
+	browserify main.coffee $(BROWSERIFY_OPTS) -o $@
+
 	uglifyjs $^ \
 		$(UGLIFY_OPTS) \
 		--output $@ \
 		--source-map evesrp.min.js.map
 
 clean:
-	rm -f evesrp.min.js evesrp.min.js.map handlebars-templates.js
+	rm -f evesrp.min.js evesrp.min.js.map handlebars-templates.js evesrp.js

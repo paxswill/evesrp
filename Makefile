@@ -1,7 +1,8 @@
 # Work around a bug in Apple's version of Make where setting PATH doesn't stick
 # unless SHELL is set first.
 SHELL := /bin/sh
-export PATH := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))node_modules/.bin:$(PATH)
+export NODE_MODULES := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))node_modules
+export PATH := $(NODE_MODULES)/.bin:$(PATH)
 SUBDIRS := evesrp/static
 NODE_UTILS := \
 	bootstrap \
