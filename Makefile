@@ -4,8 +4,11 @@ SHELL := /bin/sh
 export PATH := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))node_modules/.bin:$(PATH)
 SUBDIRS := evesrp/static
 NODE_UTILS := \
+	browserify \
 	bower \
 	coffee-script \
+	coffeeify \
+	jquery \
 	less \
 	mocha \
 	uglify-js
