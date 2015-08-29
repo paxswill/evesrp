@@ -12,7 +12,10 @@ registerHelpers Handlebars
 
 ui = require './ui/common'
 division = require './ui/division'
+request = require './ui/request'
 
 ui.setupEvents()
 if (jQuery '.entity-typeahead').length != 0
     division.setupEvents()
+if (jQuery '#actionMenu').length != 0
+    request.setupEvents()
