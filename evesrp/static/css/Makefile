@@ -1,6 +1,6 @@
 LESSC ?= lessc
-BOOTSTRAP ?= $(THIRDPARTY)/bootstrap/less
-FONTAWESOME ?= $(THIRDPARTY)/font-awesome/less
+BOOTSTRAP ?= $(NODE_MODULES)/bootstrap/less
+FONTAWESOME ?= $(NODE_MODULES)/font-awesome/less
 TOKENFIELD ?= $(THIRDPARTY)/bootstrap-tokenfield/less
 LESSC_OPTS ?= --source-map \
 			  --source-map-less-inline
@@ -8,10 +8,18 @@ LESSC_OPTS ?= --source-map \
 all: bootstrap.css bootstrap.min.css bootstrap-theme.css \
 	bootstrap-theme.min.css font-awesome.css font-awesome.min.css \
 	bootstrap-tokenfield.css bootstrap-tokenfield.min.css \
-	tokenfield-typeahead.css tokenfield-typeahead.min.css
+	tokenfield-typeahead.css tokenfield-typeahead.min.css \
+	custom.css
 
 clean:
-	rm -f bootstrap*.css font-awesome*.css *.map tokenfield*.css
+	rm -f bootstrap*.css font-awesome*.css *.map tokenfield*.css custom.css
+
+custom.css: custom.less
+	$(LESSC) \
+		--include-path="$(NODE_MODULES)" \
+		$(LESSC_OPTS) \
+		$^ \
+		$@
 
 bootstrap.css:
 	$(LESSC) \

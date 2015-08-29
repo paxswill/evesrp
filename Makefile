@@ -15,6 +15,7 @@ NODE_UTILS := \
 	jquery \
 	less \
 	mocha \
+	selectize \
 	uglify-js \
 	underscore \
 	underscore.string \

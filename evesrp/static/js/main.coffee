@@ -11,5 +11,8 @@ registerHelpers = (require './handlebars-helpers').registerHelpers
 registerHelpers Handlebars
 
 ui = require './ui/common'
+division = require './ui/division'
 
 ui.setupEvents()
+if (jQuery '.entity-typeahead').length != 0
+    division.setupEvents()
