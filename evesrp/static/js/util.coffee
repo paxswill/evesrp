@@ -56,7 +56,7 @@ exports.getAttributeChoices = (attribute) ->
             status: ['evaluating', 'approved', 'rejected', 'incomplete', 'paid']
         }
         return promise
-    else if attribute == 'details'
+    else if attribute in ['details', 'submit_timestamp', 'kill_timestamp']
         promise = jQuery.Deferred()
         promise.resolve {
             key: 'details'
