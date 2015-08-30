@@ -72,10 +72,10 @@ createEntitySelect = (selector) ->
             # TODO Use the custom rendering functions to display auth source
             valueField: 'id'
             labelField: 'name'
-            optGroups: ['User', 'Group']
-            optGroupValueField: 'type'
-            optGroupLabelField: 'type'
-            optGroupField: 'type'
+            optgroups: {value: type} for type in ['User', 'Group']
+            optgroupValueField: 'value'
+            optgroupLabelField: 'value'
+            optgroupField: 'type'
             onChange: (entityID) ->
                 selectize = this
                 $form = selectize.$input.closest 'form'
@@ -96,6 +96,9 @@ createEntitySelect = (selector) ->
             render: {
                 option: (item, escape) ->
                     entityOptionTemplate item
+                optgroup_header: (data, escape) ->
+                    # TODO: i18n
+                    "<div class=\"optgroup-header\"> #{ escape(data.value) }s</div>"
             }
         }
 
