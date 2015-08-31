@@ -50,6 +50,5 @@ setupClipboard = () ->
     exports.client = client
 
 
-
 exports.setupEvents = setupEvents
 exports.setupClipboard = setupClipboard
