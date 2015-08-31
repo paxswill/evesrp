@@ -15,6 +15,7 @@ division = require './ui/division'
 request = require './ui/request'
 filter = require './ui/filter'
 requestList = require './ui/requestList'
+payouts = require './ui/payouts'
 
 ui.setupEvents()
 if (jQuery '.entity-typeahead').length != 0
@@ -25,3 +26,5 @@ if (jQuery '.filter-tokenfield').length != 0
     filter.createFilterBar '.filter-tokenfield'
 if (jQuery 'table#requests').length != 0
     requestList.setupEvents()
+if (jQuery 'div#requests').length != 0
+    payouts.setupEvents()
