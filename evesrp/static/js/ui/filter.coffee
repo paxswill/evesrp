@@ -3,6 +3,7 @@ _ = require 'underscore'
 require 'selectize'
 optionTemplate = require '../templates/filter_option'
 itemTemplate = require '../templates/filter_item'
+detailsTemplate = require '../templates/filter_create'
 
 
 getAttributeChoices = (attribute) ->
@@ -217,9 +218,17 @@ createFilterBar = (selector) ->
         options: options
         items: items
         delimiter: ';'
-        create: true
+        create: (input, callback) ->
+            data = {
+                realValue: input
+                attribute: 'details'
+                sign: '='
+                display: "details:=#{ input }"
+            }
+            callback data
         # Note: if an option is added with addOption, it counts as a
-        # user-defined option and will be removed is deselected.
+        # user-defined option and will be removed is deselected, so we need to
+        # have `persist` be true and remove old details searches elsewhere.
         persist: true
         maxOptions: 20
         maxItems: null
@@ -240,6 +249,8 @@ createFilterBar = (selector) ->
                 optionTemplate data
             item: (data, cb) ->
                 itemTemplate data
+            option_create: (data, cb) ->
+                detailsTemplate data
         }
         # Callbacks
         onChange: (value) ->
@@ -270,14 +281,19 @@ createFilterBar = (selector) ->
                 filterString = item.sign + item.realValue
             filters[item.attribute] = _.without filters[item.attribute],
                 filterString
+            # Remove details values from the list of options
+            if item.attribute == 'details'
+                @removeOption value
             updateURL filters
-            @close()
         onDelete: (values) ->
             # This is a bit of a hack, but to prevent selectize from showing
             # the input when deleting, we're removing the items, but returning
             # false (cancelling the normal deletion process)
             while values.length
-                @removeItem values.pop()
+                value = values.pop()
+                @removeItem value
+                if value in @options and @options[value].attribute == 'details'
+                    @removeOption value
             false
     }
     selectize = $select[0].selectize
@@ -324,6 +340,10 @@ createFilterBar = (selector) ->
         inPopState = true
         for item in toRemove
             selectize.removeItem item, true
+            if item of selectize.options
+                data = selectize.options[item]
+                if data.attribute == 'details'
+                    selectize.removeOption item
         for item in toAdd
             selectize.addItem item, true
         inPopState = false
