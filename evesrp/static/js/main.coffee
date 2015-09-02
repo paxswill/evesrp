@@ -10,12 +10,12 @@ Handlebars = require 'hbsfy/runtime'
 registerHelpers = (require './handlebars-helpers').registerHelpers
 registerHelpers Handlebars
 
-ui = require './ui/common'
-division = require './ui/division'
-request = require './ui/request'
-filter = require './ui/filter'
-requestList = require './ui/requestList'
-payouts = require './ui/payouts'
+ui = require './common-ui'
+division = require './division'
+request = require './request'
+filter = require './filter'
+requestList = require './requestList'
+payouts = require './payouts'
 
 ui.setupEvents()
 if (jQuery '.entity-typeahead').length != 0
