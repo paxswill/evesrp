@@ -1,8 +1,8 @@
 jQuery = require 'jquery'
 _ = require 'underscore'
-util = require '../util'
+util = require './util'
 filter = require './filter'
-rowsTemplate = require '../templates/request_rows'
+rowsTemplate = require './templates/request_rows'
 
 
 pageSize = 15

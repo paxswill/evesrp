@@ -1,9 +1,9 @@
 jQuery = require 'jquery'
 _ = require 'underscore'
 require 'selectize'
-optionTemplate = require '../templates/filter_option'
-itemTemplate = require '../templates/filter_item'
-detailsTemplate = require '../templates/filter_create'
+optionTemplate = require './templates/filter_option'
+itemTemplate = require './templates/filter_item'
+detailsTemplate = require './templates/filter_create'
 
 
 getAttributeChoices = (attribute) ->

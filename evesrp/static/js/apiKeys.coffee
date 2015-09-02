@@ -1,8 +1,8 @@
 unless global.jQuery?
     global.jQuery = require 'jquery'
 require 'bootstrap/js/tooltip'
-ui = require './common'
-apiKeyTemplate = require '../templates/api_keys'
+ui = require './common-ui'
+apiKeyTemplate = require './templates/api_keys'
 
 
 render = (data) ->
@@ -12,7 +12,7 @@ render = (data) ->
     $copyButtons = $oldRows.find '.copy-btn'
 
     # Remove tooltips and detach clipboard events
-    ui.clipboardClient.unclip $copyButtons
+    ui.client.unclip $copyButtons
     # TODO: WTH am I redoing a search I just did (for .copy-btn)?
     for btn in $copyButtons.find '.copy-btn'
         (jQuery btn).tooltip 'destroy'

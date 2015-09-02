@@ -1,7 +1,7 @@
 jQuery = require 'jquery'
 require 'selectize'
-entityTableTemplate = require '../templates/entity_table'
-entityOptionTemplate = require '../templates/entity_option'
+entityTableTemplate = require './templates/entity_table'
+entityOptionTemplate = require './templates/entity_option'
 
 
 render = (entities) ->

@@ -3,7 +3,7 @@ unless global.jQuery?
 require 'bootstrap/js/alert'
 _ = require 'underscore'
 ZeroClipboard = require 'zeroclipboard'
-flashTemplate = require '../templates/flash'
+flashTemplate = require './templates/flash'
 
 
 setLanguage = (ev) ->

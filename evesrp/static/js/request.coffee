@@ -3,13 +3,13 @@ unless global.jQuery?
 require 'bootstrap/js/tooltip'
 require 'bootstrap/js/dropdown'
 require 'bootstrap/js/modal'
-util = require '../util'
+util = require './util'
 capitalize = require 'underscore.string/capitalize'
-actionMenuTemplate = require '../templates/action_menu'
-actionsTemplate = require '../templates/actions'
-voidedModifierTemplate = require '../templates/voided_modifier'
-voidableModifierTemplate = require '../templates/voidable_modifier'
-modifierTemplate = require '../templates/modifier'
+actionMenuTemplate = require './templates/action_menu'
+actionsTemplate = require './templates/actions'
+voidedModifierTemplate = require './templates/voided_modifier'
+voidableModifierTemplate = require './templates/voidable_modifier'
+modifierTemplate = require './templates/modifier'
 
 
 render = (request) ->

@@ -2,10 +2,9 @@ unless global.jQuery?
     global.jQuery = require 'jquery'
 require 'bootstrap/js/tooltip'
 require 'bootstrap/js/popover'
-util = require '../util'
-ui = require './common'
+ui = require './common-ui'
 filter = require './filter'
-payoutTemplate = require '../templates/payout_panel'
+payoutTemplate = require './templates/payout_panel'
 
 
 # Initialize to parse time, trying to prevent refreshes immediately upon
