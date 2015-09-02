@@ -14,8 +14,8 @@ clean:
 $(SUBDIRS):
 	$(MAKE) -C $@
 
-ZeroClipboard.swf: $(THIRDPARTY)/zeroclipboard/ZeroClipboard.swf
+ZeroClipboard.swf: $(NODE_MODULES)/zeroclipboard/dist/ZeroClipboard.swf
 	cp "$^" "$@"
 
-$(THIRDPARTY)/zeroclipboard/ZeroClipboard.swf:
-	git submodule update -i "$@"
+$(NODE_MODULES)/zeroclipboard/dist/ZeroClipboard.swf:
+	npm install zeroclipboard

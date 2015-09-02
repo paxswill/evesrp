@@ -8,14 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf_token" content="{{ csrf_token() }}">
     <title>{% block title %}{{ site_name }}{{ (': ' ~ title)|safe if title }}{% endblock %}</title>
-    <link href="{{ static_file(filename='css/custom.css') }}" rel="stylesheet">
-    <!-- Bootstrap -->
-    <link href="{{ static_file(filename='css/bootstrap.min.css') }}" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link href="{{ static_file(filename='css/font-awesome.min.css') }}" rel="stylesheet">
-    <!-- Bootstrap-tokenfield -->
-    <link href="{{ static_file(filename='css/bootstrap-tokenfield.min.css') }}" rel="stylesheet">
-    <link href="{{ static_file(filename='css/tokenfield-typeahead.min.css') }}" rel="stylesheet">
+    <link href="{{ static_file(filename='css/evesrp.css') }}" rel="stylesheet">
     <link rel="shortcut icon" href="{{ static_file(filename='favicon.ico') }}">
     {% endblock head %}
   </head>
@@ -162,8 +155,6 @@
     {% endblock stats %}
     {% endblock body %}
     {% block scripts %}
-    <!-- Jquery from CDNJS. Need to use 1.x to support the IGB -->
-    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.js"></script>
     <!-- $SCRIPT_ROOT is the root of this application, wherever it it -->
     <script type="text/javascript">
       $SCRIPT_ROOT = {{ request.script_root|tojson }};

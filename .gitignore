@@ -6,3 +6,4 @@ bower_components
 coverage-report
 test-report.html
 *.mo
+node_modules

@@ -1,0 +1,48 @@
+//@import "bootstrap/less/variables";
+//@import "bootstrap/less/mixins/nav-divider";
+//@import "bootstrap/less/mixins/border-radius";
+@import "bootstrap/less/bootstrap";
+@import "selectize/src/less/selectize.bootstrap3";
+@import "bootstrap/less/theme";
+@import "font-awesome/less/font-awesome";
+
+.popover-content {
+  font-weight: normal;
+}
+
+td form button.close {
+  float: none;
+}
+
+.entity-typeahead .selectize-input {
+  .border-right-radius(0)
+}
+
+.filter-tokenfield .selectize-input {
+  .border-left-radius(0)
+}
+
+.input-group .selectize-input {
+  vertical-align: top;
+}
+
+.hidden {
+  display: none;
+}
+
+td.filterable a {
+  color: @gray-dark;
+}
+
+.panel-body dl {
+  margin-bottom: 0px;
+}
+
+table.collapse.in {
+  display: table;
+}
+
+dl.spaced dd, dl.spaced dt {
+  margin-top: 2px;
+  margin-bottom: 2px;
+}

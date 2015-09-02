@@ -1,48 +1,30 @@
-UGLIFY ?= uglifyjs
 ifndef DEBUG
 UGLIFY_OPTS ?= -m -c
 endif
 UGLIFY_OPTS += --source-map-include-sources
+BROWSERIFY_OPTS := -t coffeeify -t hbsfy \
+                   --extension=".coffee" \
+                   --extension=".hbs" \
+                   --debug
 BOOTSTRAP = $(THIRDPARTY)/bootstrap/js
-
-SOURCE_NAMES := \
-	$(BOOTSTRAP)/dropdown \
-	$(BOOTSTRAP)/tab \
-	$(BOOTSTRAP)/transition \
-	$(BOOTSTRAP)/collapse \
-	$(BOOTSTRAP)/tooltip \
-	$(BOOTSTRAP)/popover \
-	$(BOOTSTRAP)/alert \
-	$(BOOTSTRAP)/modal \
-	$(THIRDPARTY)/handlebars/handlebars.runtime \
-	$(THIRDPARTY)/underscore/underscore \
-	$(THIRDPARTY)/history.js/scripts/bundled/html4+html5/jquery.history \
-	$(THIRDPARTY)/bootstrap-tokenfield/js/bootstrap-tokenfield \
-	$(THIRDPARTY)/zeroclipboard/ZeroClipboard \
-	$(THIRDPARTY)/typeahead.js/dist/typeahead.bundle \
-	polyfill \
-	util \
-	handlebars-helpers \
-	handlebars-templates \
-	ui/common \
-	ui/request \
-	ui/division \
-	tokenfield \
-	ui/requestList \
-	ui/payouts \
-	ui/apiKeys
-JS_SOURCE = $(patsubst %,%.js,$(SOURCE_NAMES))
 
 all: evesrp.min.js
 
-handlebars-templates.js: $(wildcard templates/*.hbs)
-	handlebars -e hbs templates -f $@ -k each -k if -k csrf
+browserify.mk: Makefile main.coffee
+	echo "evesrp.js: $(shell browserify main.coffee $(BROWSERIFY_OPTS) --list)" > $@
 
-evesrp.min.js: $(JS_SOURCE)
-	$(UGLIFY) $^ \
+-include browserify.mk
+
+evesrp.js: main.coffee
+	browserify main.coffee $(BROWSERIFY_OPTS) -o evesrp.js
+
+evesrp.min.js: evesrp.js
+	uglifyjs evesrp.js \
 		$(UGLIFY_OPTS) \
 		--output $@ \
+		--prefix relative \
+		--input-source-map \
 		--source-map evesrp.min.js.map
 
 clean:
-	rm -f evesrp.min.js evesrp.min.js.map handlebars-templates.js
+	rm -f evesrp.min.js evesrp.min.js.map evesrp.js

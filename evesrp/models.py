@@ -329,7 +329,7 @@ class AbsoluteModifier(Modifier):
             # TRANS: How a flat ISK penalty is written as text. The %d is
             # TRANS: special, it will be replaced with the penalty amount (in
             # TRANS: millions of ISK).
-            return gettext("u%(amount)dM ISK penalty", amount=num)
+            return gettext(u"%(amount)dM ISK penalty", amount=num)
 
 
 @unistr
@@ -355,12 +355,12 @@ class RelativeModifier(Modifier):
             # TRANS: How a percentage bonus is written as text. The %(amount)d
             # is special, it will be replaced with the bonus amount. %% is used
             # to insert a single percent symbol.
-            return gettext(u"%(amount)d%% ISK bonus", amount=num)
+            return gettext(u"%(amount)s%% ISK bonus", amount=pretty_value)
         else:
             # TRANS: How a percentage bonus is written as text. The %(amount)d
             # is special, it will be replaced with the bonus amount. %% is used
             # to insert a single percent symbol.
-            return gettext("u%(amount)d%% ISK penalty", amount=num)
+            return gettext(u"%(amount)s%% ISK penalty", amount=pretty_value)
 
 
 class Request(db.Model, AutoID, Timestamped, AutoName):

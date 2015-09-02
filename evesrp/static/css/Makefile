@@ -1,74 +1,28 @@
 LESSC ?= lessc
-BOOTSTRAP ?= $(THIRDPARTY)/bootstrap/less
-FONTAWESOME ?= $(THIRDPARTY)/font-awesome/less
+BOOTSTRAP ?= $(NODE_MODULES)/bootstrap/less
+FONTAWESOME ?= $(NODE_MODULES)/font-awesome/less
 TOKENFIELD ?= $(THIRDPARTY)/bootstrap-tokenfield/less
 LESSC_OPTS ?= --source-map \
-			  --source-map-less-inline
+			  --source-map-less-inline \
+			  --source-map-basepath="$(PROJECT_ROOT)"
 
-all: bootstrap.css bootstrap.min.css bootstrap-theme.css \
-	bootstrap-theme.min.css font-awesome.css font-awesome.min.css \
-	bootstrap-tokenfield.css bootstrap-tokenfield.min.css \
-	tokenfield-typeahead.css tokenfield-typeahead.min.css
+all: evesrp.css
 
 clean:
-	rm -f bootstrap*.css font-awesome*.css *.map tokenfield*.css
+	rm -f custom.css custom.css.map
 
-bootstrap.css:
+less.mk: Makefile custom.less
 	$(LESSC) \
-		--include-path="$(BOOTSTRAP)" \
-		$(LESSC_OPTS) \
-		"$(BOOTSTRAP)/bootstrap.less" \
-		$@
+		--include-path="$(NODE_MODULES)" \
+		--depends \
+		custom.less \
+		custom.css > less.mk
 
-bootstrap.min.css:
-	$(LESSC) \
-		--include-path="$(BOOTSTRAP)" \
-		$(LESSC_OPTS) \
-		-x \
-		"$(BOOTSTRAP)/bootstrap.less" \
-		$@
+-include less.mk
 
-bootstrap-theme.css:
+evesrp.css: custom.less
 	$(LESSC) \
-		--include-path="$(BOOTSTRAP)" \
+		--include-path="$(NODE_MODULES)" \
 		$(LESSC_OPTS) \
-		"$(BOOTSTRAP)/theme.less" \
-		$@
-
-bootstrap-theme.min.css:
-	$(LESSC) \
-		--include-path="$(BOOTSTRAP)" \
-		$(LESSC_OPTS) \
-		-x \
-		"$(BOOTSTRAP)/theme.less" \
-		$@
-
-font-awesome.css:
-	$(LESSC) \
-		--include-path="$(FONTAWESOME)" \
-		$(LESSC_OPTS) \
-		"fontawesome.less" \
-		$@
-
-font-awesome.min.css:
-	$(LESSC) \
-		--include-path="$(FONTAWESOME)" \
-		$(LESSC_OPTS) \
-		-x \
-		"fontawesome.less" \
-		$@
-
-bootstrap-tokenfield.css tokenfield-typeahead.css:
-	$(LESSC) \
-		--include-path="$(THIRDPARTY)" \
-		$(LESSC_OPTS) \
-		"$(TOKENFIELD)/$(@:css=less)" \
-		$@
-
-bootstrap-tokenfield.min.css tokenfield-typeahead.min.css:
-	$(LESSC) \
-		--include-path="$(THIRDPARTY)" \
-		$(LESSC_OPTS) \
-		-x \
-		"$(TOKENFIELD)/$(@:min.css=less)" \
+		$^ \
 		$@
