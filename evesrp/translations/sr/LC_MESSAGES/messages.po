@@ -1,0 +1,1073 @@
+# Translations template for EVE-SRP.
+# Copyright (C) 2015 Will Ross
+# This file is distributed under the same license as the EVE-SRP project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2015.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: EVE-SRP 0.10.6-dev\n"
+"Report-Msgid-Bugs-To: paxswill@paxswill.com\n"
+"POT-Creation-Date: 2015-09-01 22:07-0400\n"
+"PO-Revision-Date: 2015-09-04 20:42+0200\n"
+"Last-Translator: Miloš Rašić <milos.rasic@gmail.com>\n"
+"Language-Team: sr <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 1.3\n"
+
+#. This is a very brief desription of the unique, pertinent
+#. information about a killmail.
+#: evesrp/killmail.py:153
+#, python-format
+msgid "%(kill_id)d: %(pilot)s lost a ship. Verified: %(verified)s"
+msgstr "%(kill_id)d: %(pilot)s je izgubio brod. Provereno: %(verified)s"
+
+#. This is a description of the killmail processor. This specific
+#. text should not be shown to the user, but should still be localized just
+#. in case.
+#: evesrp/killmail.py:184
+msgid ""
+"A generic Killmail. If you see this text, you need to configure your "
+"application."
+msgstr ""
+"Generički killmail. Ako vidiš ovaj tekst, treba da konfigurišeš "
+"aplikaciju."
+
+#. Error message shown when an invalid zKillboard URL is
+#. entered.
+#: evesrp/killmail.py:281
+#, python-format
+msgid "'%(url)s' is not a valid zKillboard killmail"
+msgstr "'%(url)s' nije validan zKillboard killmail"
+
+#. Error message shown when there's a problem accessing the
+#. zKillboard API.
+#. The %(code)d in this message will be replaced with the
+#. HTTP status code recieved from CCP.
+#: evesrp/killmail.py:297 evesrp/killmail.py:400
+#, python-format
+msgid "Error retrieving killmail data: %(code)d"
+msgstr "Greška pri dohvatanju podataka o killmail-u: %(code)d"
+
+#. This is an error message when the killmail is somehow
+#. failing to be recognized. The %(url)s is replaced with the URL of
+#. the offending killmail.
+#: evesrp/killmail.py:312
+#, python-format
+msgid "Invalid killmail: %(url)s"
+msgstr "Neispravan killmail: %(url)s"
+
+#. A quick summary of a killmail's pertinent information.
+#: evesrp/killmail.py:343
+#, python-format
+msgid ""
+"%(kill_id)d: %(pilot)s lost a ship. Verified: %(verified)s. ZKillboard "
+"URL: %(url)."
+msgstr ""
+"%(kill_id)d: %(pilot)s je izgubio brod. Provereno: %(verified)s. ZKillboard "
+"URL: %(url)."
+
+#. Decscribing the acceptable killmails for the ZKillboard killmail
+#. processor.
+#: evesrp/killmail.py:354
+msgid ""
+"A link to a lossmail from <a "
+"href=\"https://zkillboard.com/\">ZKillboard</a>."
+msgstr ""
+"Link ka lossmail-u sa <a "
+"href=\"https://zkillboard.com/\">ZKillboard-a</a>."
+
+#. The %(url)s in this case will be replaced with the
+#. offending URL.
+#: evesrp/killmail.py:380
+#, python-format
+msgid "'%(url)s' is not a valid CREST killmail"
+msgstr "'%(url)s' nije validan CREST killmail"
+
+#: evesrp/killmail.py:394
+#, python-format
+msgid "Error retrieving CREST killmail: %(error)s"
+msgstr "Greška pri dohvatanju CREST killmail-a: %(error)s"
+
+#. Description of the allowable links for the CREST killmail
+#. processor.
+#: evesrp/killmail.py:427
+msgid "A CREST external killmail link."
+msgstr "CREST killmail link."
+
+#. Name of the status a request is in when it has been submitted and
+#. is ready to be evaluated.
+#: evesrp/models.py:31
+msgid "Evaluating"
+msgstr "Razmatra se"
+
+#. Name of the status where a request has had a payout amount set,
+#. and is ready to be paid out. In other words, approved for payout.
+#: evesrp/models.py:36
+msgid "Approved"
+msgstr "Odobren"
+
+#. Name of the status a request is in if the ISK has been sent to the
+#. requesting person, and no further action is needed.
+#: evesrp/models.py:41
+msgid "Paid"
+msgstr "Isplaćen"
+
+#. Name of the status a request has where a reviewer has rejected the
+#. request for SRP.
+#: evesrp/models.py:46
+msgid "Rejected"
+msgstr "Odbijen"
+
+#. When a request needs more information to be approved or rejected,
+#. it is in this status.
+#: evesrp/models.py:53
+msgid "Incomplete"
+msgstr "Nekompletan"
+
+#. A comment made on a request.
+#. This is a button that will add a comment to a request when clicked.
+#: evesrp/models.py:59 evesrp/templates/request_detail.html:104
+msgid "Comment"
+msgstr "Komentar"
+
+#. Error message shown when trying to void (cancel) a
+#. modifier but the request is not in the evaluating state, so the
+#. attempt fails.
+#: evesrp/models.py:259
+msgid "Modifiers can only be voided when the request is in the evaluating state."
+msgstr "Modifikatori mogu da se obrišu samo dok se zahtev još razmatra."
+
+#: evesrp/models.py:277
+msgid "Modifiers can only be added when the request is in an evaluating state."
+msgstr "Modifikatori mogu da se dodaju samo dok se zahtev još razmatra."
+
+#: evesrp/models.py:282
+msgid "Only reviewers can add modifiers."
+msgstr "Samo kontrolori mogu da dodaju modifikatore"
+
+#. How a flat ISK bonus is written as text. The %d is
+#. special, it will be replaced with the bonus amount (in
+#. millions of ISK)
+#: evesrp/models.py:327
+#, python-format
+msgid "%(amount)dM ISKa bonus"
+msgstr "%(amount)dM ISKa bonus"
+
+#. How a flat ISK penalty is written as text. The %d is
+#. special, it will be replaced with the penalty amount (in
+#. millions of ISK).
+#: evesrp/models.py:332
+#, python-format
+msgid "%(amount)dM ISKa penalty"
+msgstr "%(amount)dM ISKa penal"
+
+#. How a percentage bonus is written as text. The %(amount)d
+#. is special, it will be replaced with the bonus amount. %% is used
+#. to insert a single percent symbol.
+#: evesrp/models.py:358
+#, python-format
+msgid "%(amount)s%% ISK bonus"
+msgstr "%(amount)s%% ISKa bonus"
+
+#. How a percentage bonus is written as text. The %(amount)d
+#. is special, it will be replaced with the bonus amount. %% is used
+#. to insert a single percent symbol.
+#: evesrp/models.py:363
+#, python-format
+msgid "%(amount)s%% ISK penalty"
+msgstr "%(amount)s%% ISK penal"
+
+#: evesrp/models.py:540
+msgid "The request must be in the evaluating state to change the base payout."
+msgstr "Zahtev mora biti u razmatranju da bi izmena osnovice isplate bila moguća."
+
+#: evesrp/models.py:595
+msgid "Comment is not a valid status"
+msgstr "Komentar nije validan status"
+
+#: evesrp/models.py:602
+#, python-format
+msgid "%(new_status)s is not a valid status to change to from %(old_status)s."
+msgstr "%(new_status)s nije status u koji zahtev može da pređe iz statusa %(old_status)s."
+
+#: evesrp/models.py:639
+msgid "Insufficient permissions to perform that action."
+msgstr "Nemate prava pristupa za ovu akciju."
+
+#: evesrp/models.py:647
+msgid "You must either own or have special privileges to comment on this request."
+msgstr "Morate ili biti vlasnik zahteva ili da imate specijalna prava pristupa da biste dodali komentar na ovaj zahtev."
+
+#. This is a header for the page listing all of the external API     keys for
+#. the app. Again, these are not CCP API keys.
+#. This is a link in the navigation bar to the page for managing the app's
+#. external API keys (not API keys from CCP, but those from within the app).
+#: evesrp/templates/apikeys.html:4 evesrp/templates/apikeys.html:11
+#: evesrp/templates/base.html:69
+msgid "API Keys"
+msgstr "API ključevi"
+
+#. This is a chunk of text explaining what the purpose of the API keys are for.
+#. Please include the link in the text, with the special URL ("{{ doc_url }}")
+#. as well.
+#: evesrp/templates/apikeys.html:20
+#, python-format
+msgid ""
+"\n"
+"      You can create API keys for this app\\'s <a "
+"href=\"%(doc_url)s\">external API</a> using the button below. This is "
+"unrelated to the official EVE API from CCP.\n"
+"      "
+msgstr ""
+"\n"
+"      Možete da napravite API ključeve za <a "
+"href=\"%(doc_url)s\">eksterni API</a> ove aplikacije dugmetom ispod. Ovo nema veze "
+"sa zvaničnim CPP-ovim EVE API-em .\n"
+"      "
+
+#. This is a heading in a table, for the column with the actual API keys (a
+#. long string of random letters and numbers).
+#: evesrp/templates/apikeys.html:28
+msgid "API Key"
+msgstr "API ključ"
+
+#. This is a heading in a table of external API keys, for the date and time an
+#. API key was created.
+#: evesrp/templates/apikeys.html:30
+msgid "Created"
+msgstr "Napravljen"
+
+#. This is a heading in a table of API keys, where there is a button to delete
+#. a specific API key for each row in this column.
+#. This is heading in a list of users/groups with a certain permission in a
+#. division. In this column is a button for each row, that will remove the
+#. permission for that person/group.
+#: evesrp/templates/apikeys.html:32 evesrp/templates/division_detail.html:37
+msgid "Remove"
+msgstr "Obriši"
+
+#: evesrp/templates/apikeys.html:52
+msgid "No API keys have been created."
+msgstr "Nije napravljen ni jedan API ključ."
+
+#. This is a button, that when clicked, will create an API key.
+#: evesrp/templates/apikeys.html:64
+msgid "Create API Key"
+msgstr "Napravi API ključ"
+
+#. This is only for screen-readers (for blind users)
+#: evesrp/templates/base.html:23
+msgid "Toggle Navigation"
+msgstr "Uključi/isključi navigaciju"
+
+#. This is in the navigation bar at the top, and is a link to a list of request
+#. that are waiting to be evaluated.
+#: evesrp/templates/base.html:38
+msgid "Pending"
+msgstr "U razmatranju"
+
+#. This is in the navigation bar at the top, and is a link to a list of
+#. requests ready to pay out.
+#. Title for the special pay out mode request listing.
+#: evesrp/templates/base.html:42 evesrp/views/requests.py:456
+msgid "Pay Outs"
+msgstr "Isplate"
+
+#. This is in the navigation bar at the top, and is a link to a list of request
+#. that have been either rejected or been paid.
+#: evesrp/templates/base.html:46
+msgid "Completed"
+msgstr "Procesirani"
+
+#. This is a link in the navigation bar. It goes to the login page.
+#: evesrp/templates/base.html:55 evesrp/views/login.py:107
+msgid "Log In"
+msgstr "Prijavi se"
+
+#. This is a link in the navigation bar to the page for submitting a request.
+#. Label for the button that submits the form.
+#: evesrp/templates/base.html:59 evesrp/views/requests.py:616
+#: evesrp/views/requests.py:984
+msgid "Submit"
+msgstr "Napravi novi"
+
+#. This is a link in the navigation bar, linking to all of the requests the
+#. current user has ever made.
+#. The default title for a page with atable listing SRP requests.
+#: evesrp/templates/base.html:67 evesrp/views/requests.py:52
+msgid "Requests"
+msgstr "Zahtevi"
+
+#. This is a link in the navigation bar to a page listing the permissions a
+#. user has in different reimbursement divisions.
+#. A column header in a table that lists the permissions you have in a division
+#. (there can be multiple permissions in a row, separated by commas).
+#: evesrp/templates/base.html:71 evesrp/templates/permissions.html:3
+#: evesrp/templates/permissions.html:15
+msgid "Permissions"
+msgstr "Prava pristupa"
+
+#. The link in the navigation bar at the top for logging out of the app.
+#: evesrp/templates/base.html:74
+msgid "Log Out"
+msgstr "Odjavi se"
+
+#. This is a link to the Github project for the app. It's where people can
+#. contribute code to the project.
+#: evesrp/templates/base.html:116
+msgid "Github Project"
+msgstr "Projekat na Github-u"
+
+#. This is a link to the manual for the app.
+#: evesrp/templates/base.html:123
+msgid "Help"
+msgstr "Pomoć"
+
+#. This is a specialized line of text that is only visible to administrators.
+#. It shows the how many of database queries were executed to make this page,
+#. and how long they took (in milliseconds).
+#: evesrp/templates/base.html:155
+#, python-format
+msgid "%(queries)d queries in %(time).3f ms"
+msgstr "%(queries)d upita za %(time).3f ms"
+
+#. A header on the division administration page for selecting how attribute
+#. values should be transformed. Frankly, it isn't a good name in English and I
+#. mean to change it later on.
+#: evesrp/templates/division_detail.html:13
+msgid "Attribute Transformers"
+msgstr "Transformersi atributa :D"
+
+#. A column heading in a table showing which people/groups are granted which
+#. permissions. This can either be a name of a person/pilot, or the name of a
+#. group.
+#: evesrp/templates/division_detail.html:31
+msgid "Name"
+msgstr "Ime"
+
+#. A column heading in a table that lists the people/groups with a certain
+#. permission in a division (like submitting, reviewing, etc). This will only
+#. be two values (in English), 'User' or 'Group'.
+#. The type of modifier to apply. This button opens a dropdown with the
+#. possible kinds of modifier to apply.
+#: evesrp/templates/division_detail.html:33
+#: evesrp/templates/request_review.html:49
+msgid "Type"
+msgstr "Tip"
+
+#. A column heading in a table that lists the people/groups that have been
+#. granted a permission in a division. This column shows how the app know about
+#. this person/group, like through TEST Auth, or Brave Core, or through Eve's
+#. Single Sign On service.
+#: evesrp/templates/division_detail.html:35
+msgid "Authentication Source"
+msgstr "Način autentikacije"
+
+#. In a list of users and groups granted a permission, if it's a group, this
+#. will be displayed. The number of users in the group is shown in parentheses.
+#: evesrp/templates/division_detail.html:45
+#, python-format
+msgid "Group (%(num_users)s)"
+msgstr "Grupa (%(num_users)s)"
+
+#. In a list of users and groups granted a permission, if it's a group, this
+#. will be displayed. The number of users in the group is shown in parentheses.
+#. The name of the user who performed an action.
+#: evesrp/templates/division_detail.html:49 evesrp/templates/payout.html:72
+msgid "User"
+msgstr "Korisnik"
+
+#. This is a button for adding a specified user or group to the list of users
+#. and groups granted a permission in a division.
+#. Button that if clicked, will add a note to a user.
+#: evesrp/templates/division_detail.html:72
+#: evesrp/templates/request_pay.html:36
+msgid "Add"
+msgstr "Dodaj"
+
+#. This is a heading for a section of a page that deals with administering
+#. divisions. People who can see this have access to either modify the
+#. permissions in a division, or to create divisions.
+#: evesrp/templates/divisions.html:7
+msgid "Administer Divisions"
+msgstr "Administriraj divizije"
+
+#. In an overview table of divisions, this is the heading for the column with
+#. the names of divisions.
+#. On a form for creating a new division, this is a label for the
+#. name of the division.
+#: evesrp/templates/divisions.html:11 evesrp/views/divisions.py:45
+msgid "Division Name"
+msgstr "Naziv divizije"
+
+#. In an overview table of divisions, this is the heading for the column
+#. showing the number of people or groups granted the 'submit' permission,
+#. meaning the can submit requests.
+#: evesrp/templates/divisions.html:13
+msgid "Submitters"
+msgstr "Zahtevači"
+
+#. In an overview table of divisions, this is the heading for the column
+#. showing the number of people or groups granted the 'review' permission,
+#. meaning they can evaluate submitted requests.
+#: evesrp/templates/divisions.html:15
+msgid "Reviewers"
+msgstr "Kontrolori"
+
+#. In an overview table of divisions, this is the heading for the column
+#. showing the number of people or groups granted the 'pay' permission, meaning
+#. they can mark requests as paid.
+#: evesrp/templates/divisions.html:17
+msgid "Payers"
+msgstr "Ispljačivači"
+
+#. In an overview table of divisions, this is the heading for the column
+#. showing the number of people or groups granted the 'audit' permission,
+#. meaning they are able to view all requests in a division, but not modify
+#. them in any way.
+#: evesrp/templates/divisions.html:19
+msgid "Auditors"
+msgstr "Pregledači"
+
+#. In an overview table of divisions, this is the heading for the column
+#. showing the number of people or groups granted the 'admin' permission,
+#. meaning they can manage who has been granted the other permissions.
+#: evesrp/templates/divisions.html:21
+msgid "Admins"
+msgstr "Administratori"
+
+#. This is a button for creating a new division.
+#: evesrp/templates/divisions.html:36
+msgid "Add Division"
+msgstr "Dodaj diviziju"
+
+#. This is an error message for HTTP responses with a 400 status code.
+#: evesrp/templates/error.html:9
+msgid "Bad Request"
+msgstr "Bad Request"
+
+#. This is an error message for HTTP responses with a 403 status code.
+#: evesrp/templates/error.html:12
+msgid "Forbidden"
+msgstr "Forbidden"
+
+#. This is an error message for HTTP responses with a 404 status code.
+#: evesrp/templates/error.html:15
+msgid "Not Found"
+msgstr "Not Found"
+
+#. This is an error message for HTTP responses with a 500 status code.
+#: evesrp/templates/error.html:18
+msgid "Internal Server Error"
+msgstr "Internal Server Error"
+
+#. This is an error message for HTTP responses with a 503 status code.
+#: evesrp/templates/error.html:21
+msgid "Service Unavailable"
+msgstr "Service Unavailable"
+
+#. This is a label for a text box that allow people to search for requests
+#. meeting certain criteria, like what system the loss occured in, what ship
+#. type it was, who the pilot was, or what corporation they're in.
+#: evesrp/templates/list_requests.html:36
+msgid "Filters"
+msgstr ""
+
+#. A table column header for the ID number of a request.
+#: evesrp/templates/list_requests.html:44
+msgid "Request ID"
+msgstr "ID zahteva"
+
+#. A table column header for the pilot of a request.
+#. A label for the name of the pilot who lost a ship.
+#. Label for fields showing the name of a pilot.
+#: evesrp/templates/list_requests.html:46 evesrp/templates/payout.html:46
+#: evesrp/templates/request_detail.html:62 evesrp/views/divisions.py:87
+msgid "Pilot"
+msgstr "Pilot"
+
+#. A table column header for the pilot of a request.
+#: evesrp/templates/list_requests.html:48
+msgid "System"
+msgstr "Sistem"
+
+#. A table column header for the status of a request (like evaluating,
+#. incomplete, approved, rejected).
+#. The status a request is in. Possiblities include Unevaluated, Approved,
+#. Rejected, Paid and Incomplete.
+#: evesrp/templates/list_requests.html:50
+#: evesrp/templates/request_detail.html:82
+msgid "Status"
+msgstr "Status"
+
+#. A table column header for the current payout of a request.
+#. A label for the payout that has been set for a request.
+#. The payout an evaluated request has been. This number includes all modifiers
+#. (bonuses and penalties).
+#: evesrp/templates/list_requests.html:52 evesrp/templates/payout.html:49
+#: evesrp/templates/request_detail.html:85
+msgid "Payout"
+msgstr "Isplata"
+
+#. A table column header for the date and time a request was submitted.
+#: evesrp/templates/list_requests.html:54
+msgid "Submit Time"
+msgstr "Vreme slanja"
+
+#. A table column header for the of the division a request was submitted to.
+#. A label for the division a request has been filed under.
+#. A column header in a table with the name of a division.
+#. Label for an dropdown menu to select which division to submit for
+#. SRP to.
+#: evesrp/templates/list_requests.html:56 evesrp/templates/payout.html:43
+#: evesrp/templates/permissions.html:13 evesrp/templates/request_detail.html:46
+#: evesrp/views/requests.py:613 evesrp/views/requests.py:982
+msgid "Division"
+msgstr "Divizija"
+
+#. A small line showing how many total requests there are.
+#: evesrp/templates/list_requests.html:105
+#, python-format
+msgid "%(num)d request"
+msgid_plural "%(num)d requests"
+msgstr[0] "%(num)d zahtev"
+msgstr[1] "%(num)d zahteva"
+
+#. This is a tooltip that appears when you move the mouse over a button that
+#. will copy some text to the clipboard when clicked.
+#: evesrp/templates/macros.html:114
+#, python-format
+msgid "Copy %(copy_label)s to clipboard"
+msgstr "Kopiraj %(copy_label)s u clipboard"
+
+#: evesrp/templates/notes.html:7
+msgid "Add User Note"
+msgstr "Dodaj napomenu za korisnika"
+
+#: evesrp/templates/notes.html:13
+#, python-format
+msgid "%(noter)s on %(timestamp)s"
+msgstr "%(noter)s %(timestamp)s"
+
+#: evesrp/templates/notes.html:17 evesrp/templates/request_pay.html:24
+msgid "This user doesn't have any notes."
+msgstr "Korisnik nema napomena."
+
+#. A header for a small part of the page with the details for one request. This
+#. header show the ID number of the request.
+#. Title for the page showing the details about a single
+#. SRP request.
+#: evesrp/templates/payout.html:12 evesrp/views/requests.py:824
+#, python-format
+msgid "Request #%(request_id)s"
+msgstr "Zahtev #%(request_id)s"
+
+#. A link to the killmail on an external killboard like zKillboard.
+#: evesrp/templates/payout.html:19 evesrp/templates/request_detail.html:41
+msgid "External Lossmail"
+msgstr "Spoljni lossmail"
+
+#. Supporting details about the loss, like the fleet ping, a link an AAR, or
+#. what the fleet was doing.
+#. Label for a text entry field for inputting supporting details
+#. about a loss.
+#: evesrp/templates/payout.html:22 evesrp/templates/payout.html:23
+#: evesrp/templates/request_detail.html:52 evesrp/views/requests.py:608
+#: evesrp/views/requests.py:758
+msgid "Details"
+msgstr "Detalji"
+
+#. The name of the type of ship a requests is about. Ex: Tristan, Ishtar,
+#. Scimitar.
+#. Label for the type of ship that was lost.
+#: evesrp/templates/payout.html:25 evesrp/templates/request_detail.html:79
+#: evesrp/views/divisions.py:99
+msgid "Ship"
+msgstr "Brod"
+
+#. A header for a list of payout modifications. These can be things like
+#. bonuses for fitting special kinds of modules or flying a special kind of
+#. ship, or penalties for fitting a ship incorrectly.
+#: evesrp/templates/payout.html:29 evesrp/templates/payout.html:35
+#: evesrp/templates/request_detail.html:146
+msgid "Modifiers"
+msgstr "Modifikatori"
+
+#. A header for a list of actions performed on the request. Examples include:
+#. Marking it as Approved, Rejected, or Paid.
+#: evesrp/templates/payout.html:38 evesrp/templates/payout.html:70
+msgid "Actions"
+msgstr "Akcije"
+
+#. A label for the text that ill be put in the reason field of the in-game ISK
+#. transfer window.
+#. Label for a text field for inputting the reason a modifier is
+#. being applied.
+#: evesrp/templates/payout.html:52 evesrp/views/requests.py:718
+msgid "Reason"
+msgstr "Razlog"
+
+#. The text that will be put copied to the clipboard to be copied into the
+#. in-game ISK transfer window.
+#: evesrp/templates/payout.html:54
+#, python-format
+msgid "Payment for %(request_id)d"
+msgstr "Isplata za %(request_id)d"
+
+#. A button that when clicked will mark a request as having been paid out.
+#: evesrp/templates/payout.html:62
+msgid "Mark Paid"
+msgstr "Obeleži kao plaćeno"
+
+#. The date and time an action was performed.
+#: evesrp/templates/payout.html:75
+msgid "Timestamp"
+msgstr "Vreme"
+
+#. The note (if there is one) associated with an action.
+#: evesrp/templates/payout.html:83
+msgid "Note"
+msgstr "Napomena"
+
+#. The header for a table listing the permissions you have in divisions.
+#: evesrp/templates/permissions.html:9
+msgid "Your Permissions"
+msgstr "Vaša prava pristupa"
+
+#. The header for a modal window that is used to change the supporting details
+#. of a request (the details are things like what the fleet was doing, a link
+#. to an AAR, or something like that).
+#. A button that when clicked begins the process of updating the supporting
+#. details of a request.
+#: evesrp/templates/request_detail.html:16
+#: evesrp/templates/request_detail.html:59
+msgid "Update Details"
+msgstr "Ažuriranje detalja"
+
+#. A button that when pushed will stop the process of updating the supporting
+#. details for a request.
+#: evesrp/templates/request_detail.html:25
+msgid "Cancel"
+msgstr "Odustani"
+
+#. A button that when pushed, will save the changes made to the supporting
+#. details for a request.
+#: evesrp/templates/request_detail.html:27
+msgid "Save"
+msgstr "Snimi"
+
+#. The date and time that the loss this request concerns occured.
+#: evesrp/templates/request_detail.html:44
+msgid "Time of Loss"
+msgstr "Vreme gubitka"
+
+#. A button that when clicked begins the process of transferring a request from
+#. one division to another.
+#: evesrp/templates/request_detail.html:50
+msgid "Change Division"
+msgstr "Promeni diviziju"
+
+#. The corporation a pilot was in when the loss occured.
+#. Label for the corporation a pilot is in.
+#: evesrp/templates/request_detail.html:67 evesrp/views/divisions.py:89
+msgid "Corporation"
+msgstr "Korporacija"
+
+#. The alliance a pilot was in when the loss occured.
+#. Label for the alliance a pilot is in.
+#: evesrp/templates/request_detail.html:70 evesrp/views/divisions.py:91
+msgid "Alliance"
+msgstr "Alijansa"
+
+#. The solar system, constellation and region a loss occured in.
+#: evesrp/templates/request_detail.html:73
+msgid "Location"
+msgstr "Mesto"
+
+#. The base payout assigned to a request as part of the evaluation process.
+#. This is without any modifiers (bonuses or penalties). This text is shown as
+#. a tooltip when the mouse is moved over the total payout number.
+#: evesrp/templates/request_detail.html:88
+#, python-format
+msgid "Base Payout: %(base_payout)s"
+msgstr "Osnova isplate: %(base_payout)s"
+
+#. This text is not show and is only used for accesibility purposes. It is used
+#. to open a dropdown menu that is normally hidden.
+#: evesrp/templates/request_detail.html:110
+msgid "Toggle Dropdown"
+msgstr "Isključi/uključi meni"
+
+#. Modifiers cannot be completely removed, but they can be ignored, or voided
+#. out. When voided, they get an extra piece of text saying who voided them and
+#. when the modifier was voided.
+#: evesrp/templates/request_detail.html:171
+#, python-format
+msgid "voided by %(voided_name)s at %(voided_timestamp)s"
+msgstr "obrisao %(voided_name)s %(voided_timestamp)s"
+
+#. When a modifier is added, the name of the user that added it and the date
+#. and time it was added are displayed.
+#. A small line of text showing who made a note, and the date and time that
+#. note was made.
+#: evesrp/templates/request_detail.html:182
+#: evesrp/templates/request_pay.html:18
+#, python-format
+msgid "%(name)s at %(timestamp)s"
+msgstr "%(name)s %(timestamp)s"
+
+#. A header for a modal window used to add and/or view notes about a specific
+#. user. The user's name and the authentication method they used to login (for
+#. example, Test Auth, Brave Core, or EVE SSO) are displayed.
+#: evesrp/templates/request_pay.html:10
+#, python-format
+msgid "Notes for '%(name)s' from %(authmethod)s\""
+msgstr "Napomene za '%(name)s' od %(authmethod)s\""
+
+#. Button that if clicked, will close the modal window for adding/viewing notes
+#. for a user.
+#: evesrp/templates/request_pay.html:34
+msgid "Close"
+msgstr "Zatvori"
+
+#. Label next to a button that shows the interface for adding/viewing notes
+#. about a user.
+#: evesrp/templates/request_pay.html:47
+msgid "User Notes"
+msgstr "Napomene o korisniku"
+
+#. A button that when clicked, will show the interface for adding a note to a
+#. user.
+#. Label for text input field for a note to be added about a user.
+#: evesrp/templates/request_pay.html:52 evesrp/views/requests.py:767
+msgid "Add Note"
+msgstr "Dodaj napomenu"
+
+#. A button that when clicked, will show the notes a user already has.
+#: evesrp/templates/request_pay.html:55
+msgid "View Notes"
+msgstr "Pregledaj napomene"
+
+#. The label for a text box for setting the base payout amount.
+#: evesrp/templates/request_review.html:5
+msgid "Set Base Payout"
+msgstr "Postavi osnovu isplate"
+
+#. A button that sets that when clicked will set the base payout of a request.
+#: evesrp/templates/request_review.html:20
+#: evesrp/templates/request_review.html:22
+msgid "Set"
+msgstr "Postavi"
+
+#. A modifier that applies a percentage of the base payout as a bonus. For
+#. example, a 10% bonus on 10000000 ISK means the total payout would be
+#. 11000000 ISK.
+#: evesrp/templates/request_review.html:53
+msgid "% Bonus"
+msgstr "% bonus"
+
+#. A modifier that applies a percentage of the base payout as a penalty.
+#: evesrp/templates/request_review.html:55
+msgid "% Deduction"
+msgstr "% umanjenje"
+
+#. A modifier that applies some flat amount (in millions of ISK) as a bonus.
+#: evesrp/templates/request_review.html:57
+msgid "M ISK Bonus"
+msgstr "M ISKa bonus"
+
+#. A modifier that applies some flat amount in millions of ISK as a penalty (a
+#. deduction from the calculated payout).
+#: evesrp/templates/request_review.html:59
+msgid "M ISK Deduction"
+msgstr "M ISK umanjenje"
+
+#. On a form for creating a new division, this is a button for
+#. creating a new division (by submitting the form).
+#. The title for a page for creating new divisions.
+#: evesrp/views/divisions.py:50 evesrp/views/divisions.py:71
+msgid "Create Division"
+msgstr "Napravi diviziju"
+
+#. Label for the solar system a loss occured in.
+#: evesrp/views/divisions.py:93
+msgid "Solar System"
+msgstr "Sistem"
+
+#. Label for the constellation a loss occured in.
+#: evesrp/views/divisions.py:95
+msgid "Constellation"
+msgstr "Sazvežđe"
+
+#. Label for the region a loss occured in.
+#: evesrp/views/divisions.py:97
+msgid "Region"
+msgstr "Regija"
+
+#. Label for the status a request is in (ex: Unevaluated, Approved)
+#: evesrp/views/divisions.py:101
+msgid "Request Status"
+msgstr "Traži status"
+
+#. The a label for a selection field for selecting which attribute
+#. to transform. See the translation for 'Attribute Transformer'.
+#: evesrp/views/divisions.py:110
+msgid "Attribute"
+msgstr "Atribut"
+
+#. The label for a selection field for selecting the transformer for
+#. an attribute. See the translation for 'Attribute Transformer'.
+#: evesrp/views/divisions.py:115
+msgid "Transformer"
+msgstr "Trasformers :D"
+
+#. This is an error message when there's a problem
+#. granting a permission to a user or group
+#. (collectively called 'entities'). The '#' is not
+#. special, but the '%s(in_num)d' will be replaced with
+#. the ID number that was attempted to be added.
+#: evesrp/views/divisions.py:179
+#, python-format
+msgid "No entity with ID #%(id_num)d."
+msgstr "Ne postoji ništa sa ID-em #%(id_num)d."
+
+#. Error message when a user or group with a given name
+#. cannot be found.
+#: evesrp/views/divisions.py:191
+#, python-format
+msgid "No entities with the name '%(name)s' found."
+msgstr "Ne postoji ništa sa imenom '%(name)s'."
+
+#. Error message when multiple users and/or groups are
+#. found with a given name.
+#: evesrp/views/divisions.py:197
+#, python-format
+msgid "Multiple entities with the name '%(name)s' found."
+msgstr "Ima više rezultata sa imenom '%(name)s'."
+
+#. Message show when granting a permission to a user or
+#. group.
+#: evesrp/views/divisions.py:225 evesrp/views/divisions.py:247
+#, python-format
+msgid "%(name)s is now a %(role)s."
+msgstr "%(name)s je sada %(role)s."
+
+#. Message shown when trying to remove a permission from
+#. a user, but that user didn't have that permission
+#. already.
+#: evesrp/views/divisions.py:233
+#, python-format
+msgid "%(name)s is not a %(role)s."
+msgstr "%(name)s nije %(role)s."
+
+#. Confirmation message shown when revoking a permission
+#. from a user or group.
+#: evesrp/views/divisions.py:242
+#, python-format
+msgid "%(name)s is no longer a %(role)s."
+msgstr "%(name)s više nije %(role)s."
+
+#. Error message that is shown when one or more fields of a
+#. form are shown.
+#. Generic error message shown for the fields in a form.
+#: evesrp/views/divisions.py:255 evesrp/views/divisions.py:289
+#, python-format
+msgid "Errors for %(field_name)s: %(error)s."
+msgstr "Greške za polje %(field_name)s: %(error)s."
+
+#. Confirmation message shown when a transformer for an
+#. attribute has been set.
+#: evesrp/views/divisions.py:283
+#, python-format
+msgid "'%(attribute)s' set to '%(transformer)s'."
+msgstr "'%(attribute)s' postavljeno na '%(transformer)s'."
+
+#. Warning message shown if something other than a
+#. single number was given as a page number (like a
+#. letter, word, or multiple numbers).
+#: evesrp/views/requests.py:86
+#, python-format
+msgid "Invalid value for page number: %(num)d."
+msgstr "Nedozvoljena vrednost za stranu: %(num)d."
+
+#. Error message shown when a date is written
+#. incorrectly.
+#: evesrp/views/requests.py:233
+msgid "Invalid date format. Please read the documentation for date filtering."
+msgstr "Nedozvoljeni format datuma. Molimo vas da pročitate dokumentaciju o filtriranju datuma."
+
+#. Warning message shown when an unknown atribute is
+#. specified in the list of filters.
+#: evesrp/views/requests.py:275
+#, python-format
+msgid "Unknown filter attribute name: %(attribute)s."
+msgstr "Nepoznato ime atributa filtera: %(attribute)s."
+
+#. The title of the page listing all requests an individual
+#. user has made.
+#: evesrp/views/requests.py:394
+#, python-format
+msgid "%(name)s's Requests"
+msgstr "Zahtevi od korisnika %(name)s'"
+
+#. Title for the page listing all SRP requests waiting to be approved
+#. or rejected.
+#: evesrp/views/requests.py:529
+msgid "Pending Requests"
+msgstr "Zahtevi koji se razmatraju"
+
+#. Title for the page listing all SRP requests that have been paid
+#. out rejected.
+#: evesrp/views/requests.py:534
+msgid "Completed Requests"
+msgstr "Procesirani zahtevi"
+
+#. Title for the page listing all SRP requests.
+#: evesrp/views/requests.py:539
+msgid "All Requests"
+msgstr "Svi zahtevi"
+
+#. Error message show when trying to submit a killmail
+#. that cannot be verified.
+#: evesrp/views/requests.py:574
+#, python-format
+msgid "%(url)s cannot be verified."
+msgstr "%(url)s nije moguće verifikovati."
+
+#. Header for a list of the kinds of links that are acceptable to
+#. submit as killmails for SRP.
+#: evesrp/views/requests.py:596
+#, python-format
+msgid "Acceptable Killmail Links:<ul>%(sources)s</ul>"
+msgstr "Prihvatljivi linkovi za killmail:<ul>%(sources)s</ul>"
+
+#. Label for an input field for the killmail URL
+#: evesrp/views/requests.py:604
+msgid "Killmail URL"
+msgstr "URL za killmail"
+
+#. Error message shown when trying to submit a request to a
+#. non-existant division.
+#: evesrp/views/requests.py:637
+#, python-format
+msgid "No division with ID '%(div_id)s'."
+msgstr "Ne postoji divizija sa ID-em '%(div_id)s'."
+
+#. Error message shown when trying to a submit a request to a
+#. division you do not have the submission permission in.
+#: evesrp/views/requests.py:642
+#, python-format
+msgid "You do not have permission to submit to division '%(name)s'."
+msgstr "Nemate prava da pošaljete zahtev za diviziju '%(name)s'."
+
+#. Error message shown when trying to submit a lossmail from
+#. A character not associated with your user account.
+#: evesrp/views/requests.py:677
+msgid "You can only submit killmails of characters you control"
+msgstr "Možete da pošaljete killmail samo za vaše likove"
+
+#. Error message shown when trying to submit a killmail for
+#. SRP a second time.
+#: evesrp/views/requests.py:697
+msgid "This kill has already been submitted"
+msgstr "Već je predat zahtev za ovaj gubitak"
+
+#. Title for the page showing the form for submitting SRP requests.
+#: evesrp/views/requests.py:702
+msgid "Submit Request"
+msgstr "Predaj zahtev"
+
+#. Label for an input field for the amount a modifier is for. Can be
+#. either a percentage or an ISK value (in millions of ISK).
+#: evesrp/views/requests.py:711
+msgid "Value"
+msgstr "Vrednost"
+
+#. Help text explaining a hidden feature about the notes made
+#. about users.
+#: evesrp/views/requests.py:770
+msgid ""
+"If you have something like '#{Kill ID}', it will be linkified to the "
+"corresponding request (if it exists). For example, #1234567 would be "
+"linked to the request for the kill with ID 1234567."
+msgstr ""
+"Ako imate nešto tipa '#{Kill ID}', beće povezano sa "
+"odgovarajućim zahtevom (ako zahtev postoji). Na primer, #1234567 bi bilo "
+"povezano sa zahtevom za gubitak sa ID-em 1234567."
+
+#. Error message when someone who does not have the reviewer
+#. permission tries to change the base payout of a request.
+#: evesrp/views/requests.py:855
+msgid "Only reviewers can change the base payout."
+msgstr "Samo kontrolori mogu da promene osnovu isplate."
+
+#. Error message when a user tries to void (cancel) a
+#. modifier that does not exist.
+#: evesrp/views/requests.py:885
+#, python-format
+msgid "Invalid modifier ID %(modifier_id)d."
+msgstr "Nedozvoljeni zahtev ID %(modifier_id)d."
+
+#. Error message shown when someone other than the request
+#. submitter tries to change the details of the request.
+#: evesrp/views/requests.py:902
+msgid "Only the submitter can change the request details."
+msgstr "Samo korisnik ko je predao zahtev može da promeni detalje zahteva."
+
+#. Error message shown when the submitter ties to change the
+#. details when the request is no long pending (not finished).
+#: evesrp/views/requests.py:907
+msgid "Details can only be changed when the request is still pending."
+msgstr "Detalji mogu biti promenjeni samo dok se zahtev još razmatra."
+
+#. The old request details have are saved in a comment on the
+#. request. This is the text that is put at the beginning of the
+#. comment
+#: evesrp/views/requests.py:914
+#, python-format
+msgid "Old Details: %(details)s"
+msgstr "Stari detalji: %(details)s"
+
+#. Error message shown when someone without the proper
+#. permissions tries to add a note to a user.
+#: evesrp/views/requests.py:932
+msgid "You do not have permission to add a note to a user."
+msgstr "Nemate prava da dodate kometar korisniku."
+
+#. Error message shown when a user tries to move a request but is
+#. unable to becuase the request has been paid or rejected.
+#: evesrp/views/requests.py:1003
+msgid "Cannot change the division as this request is in a finalized state"
+msgstr "Ne možete promeniti diviziju jer je ovaj zahtev u finalnom stanju"
+
+#. Message shown when a user tries to change a request's division
+#. but they do not have access to any other divisions.
+#: evesrp/views/requests.py:1018
+msgid "No other divisions to move to."
+msgstr "Ne postoji divizija u koju bi zahtev mogao da se prebaci."
+
+#. When a request is moved from one division to another, a
+#. comment is added noting the old division's name and the new
+#. division's name. This is the text of that note.
+#: evesrp/views/requests.py:1030
+#, python-format
+msgid "Moving from division '%(old_division)s' to division '%(new_division)s'."
+msgstr "Prebacujem iz divizije '%(old_division)s' u diviziju '%(new_division)s'."
+
+#. Confirmation message shown when wa request has been
+#. successfully moved to a new division.
+#: evesrp/views/requests.py:1043
+#, python-format
+msgid "Request #%(request_id)d moved to %(division)s division"
+msgstr "Zahtev #%(request_id)d prebačen u %(division)s diviziju"
+
+#. Title for the page showing the form for changing a
+#. request's division.
+#: evesrp/views/requests.py:1060
+#, python-format
+msgid "Change #%(request_id)d's Division"
+msgstr "Promeni diviziju zahteva #%(request_id)d"
+
