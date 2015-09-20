@@ -18,6 +18,7 @@ requestList = require './requestList'
 payouts = require './payouts'
 
 ui.setupEvents()
+ui.setupTranslations()
 if (jQuery '.entity-typeahead').length != 0
     division.setupEvents()
 if (jQuery '#actionMenu').length != 0

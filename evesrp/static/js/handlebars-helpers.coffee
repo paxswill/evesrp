@@ -4,6 +4,7 @@ _ = require 'underscore'
 capitalize = require 'underscore.string/capitalize'
 sprintf = require 'underscore.string/sprintf'
 util = require './util'
+ui = require './common-ui'
 
 
 csrf = () -> 
@@ -63,8 +64,16 @@ count = (collection) ->
     collection.length
 
 
+gettext = (msgid, options) ->
+    translated = ui.i18n.gettext msgid
+    if _.isEmpty options.hash
+        return new Handlebars.SafeString translated
+    else
+        args = _.mapObject options.hash, Handlebars.Utils.escapeExpression
+        return new Handlebars.SafeString (sprintf translated, args)
+
+
 transformed = (request, attr) ->
-    # TODO: I8N-ize
     if attr of request.transformed
         return new Handlebars.SafeString \
         "<a href=\"#{ request.transformed[attr] }\"
@@ -75,14 +84,15 @@ transformed = (request, attr) ->
 
 registerHelpers = (handlebars) ->
     handlebars.registerHelper({
-        csrf: csrf,
-        capitalize: capitalizeHelper,
-        datefmt: datefmt,
-        timefmt: timefmt,
-        status_color: statusColor,
-        compare: compare,
-        count: count,
-        transformed: transformed,
+        csrf: csrf
+        capitalize: capitalizeHelper
+        datefmt: datefmt
+        timefmt: timefmt
+        status_color: statusColor
+        compare: compare
+        count: count
+        transformed: transformed
+        gettext: gettext
     })
     return handlebars
 

@@ -2,17 +2,22 @@
 # to extract from the Handlebars templates was too much of a pain. Edit them in
 # manual_messages.pot
 
-#. Message shown when a search for a user or group is unsuccessful (there are
-#. no users or groups with that name).
-#: evesrp/static/js/templates/typeahead_empty.hbs
-msgid "No users or groups with names containing '%(query)s' found."
+#. Text shown for individual user results when granting permissions. The HTML
+#. tags (<small class="text-muted"> etc) should
+#. be moved to go around the authentication source. An example of the output
+#. for this will be something like "Paxswill from Test OAuth" with the text
+#. "from Test OAuth" being smaller and less visible as it's not as important
+#. as the user's name.
+#: evesrp/static/js/templates/entity_option.hbs:5
+msgid "%(user_name)s <small class="text-muted text-right">from %(auth_source)s</small>"
 msgstr ""
 
-#. Short message shown when searching for a user or group. It tells what kind
-#. of entity something is (a user or a group) and which authentication method
-#. the entity is from.
-#: evesrp/static/js/templates/typeahead_suggestion.hbs
-msgid "%(type)s from $(source)s"
+#. Text shown for group results when granting permissions. As with the user
+#. results, the HTML tags should be moved to accomodate the localized text. An
+#. additional bit of information should be displayed, the number of users in a
+#. group. The English version has the form
+#. "Test Alliance(2134) from Test OAuth" with the group name being
+#. "Test Alliance" and that group having 2134 member users.
+#: evesrp/static/js/templates/entity_option.hbs:3
+msgid "%(group_name)s(%(member_count)d) <small class="text-muted text-right">from %(auth_source)s</small>"
 msgstr ""
-
-#. Short message shown when 

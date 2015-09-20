@@ -4,6 +4,8 @@ require 'bootstrap/js/alert'
 _ = require 'underscore'
 ZeroClipboard = require 'zeroclipboard'
 flashTemplate = require './templates/flash'
+sprintf = require 'underscore.string/sprintf'
+Jed = require 'jed'
 
 
 setLanguage = (ev) ->
@@ -50,5 +52,29 @@ setupClipboard = () ->
     exports.client = client
 
 
+setupTranslations = () ->
+    if translationPromise?
+        return
+    currentLang = document.documentElement.lang
+    if currentLang == 'en'
+        # message keys are in English anyways, so we can use a default Jed
+        exports.i18n = new Jed {}
+    else
+        getTranslation = jQuery.ajax {
+            type: 'GET'
+            url: "#{ $SCRIPT_ROOT }/static/translations/#{ currentLang }.json"
+            success: (data) ->
+                exports.i18n = new Jed {
+                    missing_key_callback: (key, domain) ->
+
+                        errorMessage = sprintf "'%s' not found in domain '%s'", key, domain
+                        console.log errorMessage
+                    locale_data: data.locale_data
+                    domain: data.domain
+                }
+        }
+
+
 exports.setupEvents = setupEvents
 exports.setupClipboard = setupClipboard
+exports.setupTranslations = setupTranslations

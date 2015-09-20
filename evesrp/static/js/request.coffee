@@ -4,6 +4,8 @@ require 'bootstrap/js/tooltip'
 require 'bootstrap/js/dropdown'
 require 'bootstrap/js/modal'
 util = require './util'
+ui = require './common-ui'
+Jed = require 'jed'
 capitalize = require 'underscore.string/capitalize'
 actionMenuTemplate = require './templates/action_menu'
 actionsTemplate = require './templates/actions'
@@ -26,8 +28,7 @@ render = (request) ->
     $statusBadge.removeClass \
         'label-warning label-info label-success label-danger'
     $statusBadge.addClass "label-#{ util.statusColor request.status }"
-    # TODO: i18n
-    $statusBadge.text (capitalize request.status)
+    $statusBadge.text (ui.i18n.gettext (capitalize request.status))
     # Update modifiers log
     if modifiers?
         modifiers = for modifier in request.modifiers
@@ -47,8 +48,9 @@ render = (request) ->
     # Update Payout
     $payout = jQuery '#request-payout'
     $payout.tooltip 'destroy'
+    translated = ui.i18n.gettext "Base Payout: %(base_payout)s"
     $payout.tooltip {
-        title: "Base Payout: #{ request.base_payout_str }"
+        title: Jed.sprintf translated, {base_payout: request.base_payout_str}
         placement: 'right'
     }
     $payout.text request.payout_str
