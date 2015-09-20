@@ -1,0 +1,18 @@
+# These translations strings below are manually updated, as trying to get Babel
+# to extract from the Handlebars templates was too much of a pain. Edit them in
+# manual_messages.pot
+
+#. Message shown when a search for a user or group is unsuccessful (there are
+#. no users or groups with that name).
+#: evesrp/static/js/templates/typeahead_empty.hbs
+msgid "No users or groups with names containing '%(query)s' found."
+msgstr ""
+
+#. Short message shown when searching for a user or group. It tells what kind
+#. of entity something is (a user or a group) and which authentication method
+#. the entity is from.
+#: evesrp/static/js/templates/typeahead_suggestion.hbs
+msgid "%(type)s from $(source)s"
+msgstr ""
+
+#. Short message shown when 

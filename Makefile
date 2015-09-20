@@ -4,7 +4,7 @@ SHELL := /bin/sh
 export PROJECT_ROOT := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 export NODE_MODULES := $(PROJECT_ROOT)node_modules
 export PATH := $(NODE_MODULES)/.bin:$(PATH)
-SUBDIRS := evesrp/static
+SUBDIRS := evesrp/translations evesrp/static
 NODE_UTILS := \
 	bootstrap \
 	bower \
@@ -13,9 +13,11 @@ NODE_UTILS := \
 	coffeeify \
 	handlebars \
 	hbsfy \
+	jed \
 	jquery \
 	less \
 	mocha \
+	po2json \
 	selectize \
 	uglify-js \
 	underscore \
@@ -25,15 +27,15 @@ NODE_UTILS := \
 .PHONY: all clean distclean build-deps test test-python test-javascript docs \
 	node-pkgs $(SUBDIRS)
 
-all: $(SUBDIRS) docs messages.pot node-pkgs bower_components
+all: docs messages.pot node-pkgs bower_components $(SUBDIRS)
 
 clean:
 	for DIR in $(SUBDIRS); do\
 		$(MAKE) -C "$$DIR" clean; \
 	done
+	rm -f generated_messages.pot messages.pot
 
-distclean:
-	rm -f messages.pot
+doc-clean:
 	$(MAKE) -C doc clean
 
 $(SUBDIRS):
@@ -81,11 +83,11 @@ test-javascript:
 docs:
 	$(MAKE) -C doc html
 
-messages.pot: babel.cfg evesrp/*.py evesrp/*/*.py evesrp/templates/*.html
+generated_messages.pot: babel.cfg evesrp/*.py evesrp/*/*.py evesrp/templates/*.html
 	echo $?
 	pybabel extract \
 		-F babel.cfg \
-		-o messages.pot \
+		-o generated_messages.pot \
 		-c "TRANS:" \
 		--project=EVE-SRP \
 		--version=0.10.6-dev \
@@ -94,6 +96,9 @@ messages.pot: babel.cfg evesrp/*.py evesrp/*/*.py evesrp/templates/*.html
 		--msgid-bugs-address=paxswill@paxswill.com \
 		--copyright-holder="Will Ross" \
 		.
+
+messages.pot: generated_messages.pot manual_messages.pot
+	cat $^ > $@
 
 node-pkgs: $(foreach pkg,$(NODE_UTILS),node_modules/$(pkg))
 

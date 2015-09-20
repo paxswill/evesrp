@@ -1,4 +1,4 @@
-SUBDIRS := js css
+SUBDIRS := js css translations
 export THIRDPARTY = $(abspath ../../bower_components)
 
 .PHONY: all clean $(SUBDIRS)
