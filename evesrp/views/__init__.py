@@ -72,6 +72,8 @@ def request_count(permission, statuses=None):
 
 
 def update_navbar(response):
+    if request.endpoint == 'static':
+        return response
     if 'application/json' not in response.mimetype:
         return response
     response_json = json.loads(response.get_data())
