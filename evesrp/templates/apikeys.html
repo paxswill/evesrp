@@ -17,9 +17,7 @@
       {% set doc_url = ("https://eve-srp.readthedocs.org/en/v" ~ app_version ~ "/api.html") %}
       {% endif %}
       {# TRANS: This is a chunk of text explaining what the purpose of the API keys are for. Please include the link in the text, with the special URL ("{{ doc_url }}") as well. #}
-      {% trans doc_url=doc_url%}
-      You can create API keys for this app\'s <a href="{{ doc_url }}">external API</a> using the button below. This is unrelated to the official EVE API from CCP.
-      {% endtrans %}
+      {% trans doc_url=doc_url%}You can create API keys for this app\'s <a href="{{ doc_url }}">external API</a> using the button below. This is unrelated to the official EVE API from CCP.{% endtrans %}
     {% endwith %}
     </p>
     <table id="apikeys" class="table table-condensed">
