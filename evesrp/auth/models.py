@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from base64 import urlsafe_b64encode
 from itertools import groupby
 import os
+import pickle
 from flask import url_for
 import six
 from six.moves import filter
@@ -401,7 +402,9 @@ class TransformerRef(db.Model, AutoID, AutoName):
     attribute_name = db.Column(db.String(50), nullable=False)
 
     #: The transformer instance.
-    transformer = db.Column(db.PickleType, nullable=True)
+    # Force pickle protocol to version 2, to support the same DB across Py3 and
+    # Py2.
+    transformer = db.Column(db.PickleType(protocol=2), nullable=True)
 
     division_id = db.Column(db.Integer, db.ForeignKey('division.id'),
             nullable=False)
