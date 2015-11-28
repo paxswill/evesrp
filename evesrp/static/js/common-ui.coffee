@@ -53,9 +53,8 @@ setupClipboard = () ->
 
 
 setupTranslations = () ->
-    if translationPromise?
-        return
     currentLang = document.documentElement.lang
+    setupFormats currentLang
     if currentLang == 'en'
         # message keys are in English anyways, so we can use a default Jed
         exports.i18n = new Jed {}
@@ -73,6 +72,39 @@ setupTranslations = () ->
                     domain: data.domain
                 }
         }
+
+
+setupFormats = (language) ->
+    # TODO: handle those platforms that don't have Intl (useing the polyfill)
+    if language == 'en'
+        locales = "en"
+    else
+        # Fallback to English formatting if the requested locale is not
+        # supported.
+        locales = [language, "en"]
+    # The only currency we're formatting is Eve ISK, which is a fictional
+    # currency.
+    exports.currencyFormat = new Intl.NumberFormat locales, {
+        style: 'decimal'
+        useGrouping: true
+        minimumFractionDigits: 2
+        maximumFractionDigits: 2
+    }
+    exports.percentFormat = new Intl.NumberFormat locales, {
+        style: 'percent'
+    }
+    exports.numberFormat = new Intl.NumberFormat locales, {}
+    # Always use 24-hour time and UTC for Eve
+    exports.dateFormat = new Intl.DateFormat locales, {
+        timeZone: 'UTC'
+        hour12: false
+        year: 'numeric'
+        month: 'narrow'
+        day: '2-digit'
+        hour: '2-digit'
+        minute: 'numeric'
+    }
+
 
 
 exports.setupEvents = setupEvents

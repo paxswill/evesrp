@@ -18,20 +18,9 @@ capitalizeHelper = (str) ->
 
 
 datefmt = (date) ->
-    # TODO: I8N-ize
     if typeof date == "string"
         date = new Date date
-    day = date.getUTCDate()
-    month = util.monthAbbr date.getUTCMonth()
-    year = date.getUTCFullYear()
-    sprintf "%02d %s %d", day, month, year
-
-
-timefmt = (date) ->
-    # TODO: I8N-ize
-    if typeof date == "string"
-        date = new Date date
-    sprintf "%02d:%02d", date.getUTCHours(), date.getUTCMinutes()
+    ui.dateFormat.format date
 
 
 statusColor = (status) ->
@@ -87,7 +76,6 @@ registerHelpers = (handlebars) ->
         csrf: csrf
         capitalize: capitalizeHelper
         datefmt: datefmt
-        timefmt: timefmt
         status_color: statusColor
         compare: compare
         count: count
