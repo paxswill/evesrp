@@ -23,6 +23,10 @@ datefmt = (date) ->
     ui.dateFormat.format date
 
 
+currencyFormat = (currency) ->
+    ui.currencyFormat.format currency
+
+
 statusColor = (status) ->
     util.statusColor status
 
@@ -76,6 +80,7 @@ registerHelpers = (handlebars) ->
         attr_gettext: ui.attributeGettext
         csrf: csrf
         capitalize: capitalizeHelper
+        currencyfmt: currencyFormat
         datefmt: datefmt
         status_color: statusColor
         compare: compare

@@ -17,7 +17,7 @@ refreshDelay = 7000
 renderRequest = (request) ->
     $panelList = jQuery '#requests'
     $panel = $panelList.find "#request-#{ request.id }"
-    $newPanel = jQuery payoutTemplate request
+    $newPanel = jQuery (payoutTemplate request)
     if $panel.length != 0
         # Remove old listeners and popovers/tooltips
         $copyButtons = $panel.find '.copy-btn'
