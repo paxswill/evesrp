@@ -706,8 +706,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
                 parent['ship'] = self.ship_type
             elif u'payout' in attr:
                 payout = getattr(self, attr)
-                parent[attr] = payout.currency(commas=False)
-                parent[attr + '_str'] = payout.currency()
+                parent[attr] = payout.currency()
             else:
                 parent[attr] = getattr(self, attr)
         parent[u'submit_timestamp'] = self.timestamp

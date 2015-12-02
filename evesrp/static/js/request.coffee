@@ -5,8 +5,8 @@ require 'bootstrap/js/dropdown'
 require 'bootstrap/js/modal'
 util = require './util'
 ui = require './common-ui'
-Jed = require 'jed'
 capitalize = require 'underscore.string/capitalize'
+sprintf = require 'underscore.string/sprintf'
 actionMenuTemplate = require './templates/action_menu'
 actionsTemplate = require './templates/actions'
 voidedModifierTemplate = require './templates/voided_modifier'
@@ -49,11 +49,12 @@ render = (request) ->
     $payout = jQuery '#request-payout'
     $payout.tooltip 'destroy'
     translated = ui.i18n.gettext "Base Payout: %(base_payout)s"
+    basePayout = ui.currencyFormat.format request.base_payout
     $payout.tooltip {
-        title: Jed.sprintf translated, {base_payout: request.base_payout_str}
+        title: sprintf translated, {base_payout: basePayout}
         placement: 'right'
     }
-    $payout.text request.payout_str
+    $payout.text (ui.currencyFormat request.payout)
     # Disable modifier and payout forms if not evaluating
     $evaluatingOnly = jQuery '.evaluating-only'
     $evaluatingOnly.prop 'disabled', (request.status != 'evaluating')

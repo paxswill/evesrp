@@ -11,14 +11,11 @@ if six.PY3:
 class PrettyDecimal(Decimal):
     """:py:class:`~.Decimal` subclass that can pretty-print itself."""
 
-    def currency(self, commas=True):
+    def currency(self):
         """Format the Decimal as a currency number.
 
-        Commas for the thousands separators, full stops for the decimal, two
-        decimal places. Commas are optional and controlled by the ``commas``
-        argument.
-
-        Adapted from https://docs.python.org/3.3/library/decimal.html#recipes
+        An older implementation of this also handled formatting with thousands
+        separators. This is not longer supported.
         """
         sign, digits, exp = self.quantize(Decimal('0.01')).as_tuple()
         digits = list(map(unicode, digits))
@@ -28,13 +25,8 @@ class PrettyDecimal(Decimal):
         result.append(u'.')
         if not digits:
             result.append(u'0')
-        count = 0
         while digits:
             result.append(digits.pop())
-            count += 1
-            if count == 3 and digits and commas:
-                count = 0
-                result.append(u',')
         result.append(u'-' if sign else u'')
         return u''.join(reversed(result))
 
