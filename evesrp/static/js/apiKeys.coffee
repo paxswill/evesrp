@@ -24,12 +24,12 @@ render = (data) ->
         ui.clipboardClient.clip $copyButtons
         $copyButtons.tooltip {
             placement: 'bottom'
-            title: 'Copy to clipboard'
+            title: ui.i18n.gettext 'Copy to clipboard'
             trigger: 'manual focus'
         }
     else
-        $newRows = jQuery '<tr><td class="text-center" colspan="3">No API
-                           keys created.</td></tr>'
+        apiKeyText = ui.i18n.gettext "No API keys have been created."
+        $newRows = jQuery "<tr><td class=\"text-center\" colspan=\"3\">#{ apiKeyText }</td></tr>"
     $heading.after $newRows
 
 

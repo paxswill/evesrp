@@ -65,7 +65,8 @@ setupTranslations = () ->
             success: (data) ->
                 exports.i18n = new Jed {
                     missing_key_callback: (key, domain) ->
-
+                        # Not translating this message as it's only shwon in
+                        # the console log.
                         errorMessage = sprintf "'%s' not found in domain '%s'", key, domain
                         console.log errorMessage
                     locale_data: data.locale_data
@@ -95,7 +96,7 @@ setupFormats = (language) ->
     }
     exports.numberFormat = new Intl.NumberFormat locales, {}
     # Always use 24-hour time and UTC for Eve
-    exports.dateFormat = new Intl.DateFormat locales, {
+    exports.dateFormat = new Intl.DateTimeFormat locales, {
         timeZone: 'UTC'
         hour12: false
         year: 'numeric'
@@ -104,7 +105,6 @@ setupFormats = (language) ->
         hour: '2-digit'
         minute: 'numeric'
     }
-
 
 
 exports.setupEvents = setupEvents

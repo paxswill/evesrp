@@ -21,3 +21,9 @@ msgstr ""
 #: evesrp/static/js/templates/entity_option.hbs:3
 msgid "%(group_name)s(%(member_count)d) <small class="text-muted text-right">from %(auth_source)s</small>"
 msgstr ""
+
+#. Text shown in the tooltip that appears when a user hovers over a button that
+#. when clicked will copy some text to the user's clipboard.
+#: evesrp/static/js/apiKeys.coffee:27
+msgid "Copy to clipboard"
+msgstr ""
