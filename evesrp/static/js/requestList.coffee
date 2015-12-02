@@ -1,6 +1,8 @@
 jQuery = require 'jquery'
 _ = require 'underscore'
+sprintf = require 'underscore.string/sprintf'
 util = require './util'
+ui = require './common-ui'
 filter = require './filter'
 rowsTemplate = require './templates/request_rows'
 
@@ -24,9 +26,12 @@ renderRequests = (data) ->
     ($rows.parent().find '.filterable a').on 'click', addQuickFilter
     # Update summary footer
     $summary = jQuery '#requestsSummary'
-    # TODO: i18n
-    $summary.text "#{ data.request_count } requests •
-                   #{ data.total_payouts } ISK"
+    request_count = ui.numberFormat.format data.request_count
+    total_payouts = ui.currencyFormat.format data.total_payouts
+    requests_slug = ui.i18n.ngettext '%(num)d request', '%(num)d requests',
+        data.request_count
+    requests_text = sprintf requests_slug, { num: request_count }
+    $summary.text "#{ requests } • #{ total_payouts } ISK"
 
 
 renderPager = (data, filters) ->
