@@ -2,11 +2,11 @@
 {{#compare sign '='}}
 {{else}} <small class="text-muted">
 {{#compare sign '-'}}
-not</small>
+{{gettext "not"}}</small>
 {{else}} {{#compare sign '<'}}
-before</small>
+{{gettext "before"}}</small>
 {{else}} {{#compare sign '>'}}
-after</small>
+{{gettext "after"}}</small>
 {{/compare}}
 {{/compare}}
 {{/compare}}

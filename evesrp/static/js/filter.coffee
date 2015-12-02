@@ -1,6 +1,7 @@
 jQuery = require 'jquery'
 _ = require 'underscore'
 require 'selectize'
+ui = require './common-ui'
 optionTemplate = require './templates/filter_option'
 itemTemplate = require './templates/filter_item'
 detailsTemplate = require './templates/filter_create'
@@ -16,10 +17,9 @@ getAttributeChoices = (attribute) ->
         return promise
     else if attribute in ['details', 'submit_timestamp', 'kill_timestamp']
         promise = jQuery.Deferred()
-        promise.resolve {
-            key: 'details'
-            details: null
-        }
+        data = { key: attribute }
+        data[attribute] = null
+        promise.resolve data
         return promise
     else
         return jQuery.ajax {
@@ -179,6 +179,18 @@ updateURL = (filters) ->
 inPopState = false
 
 
+createOption = (value, attribute, sign) ->
+    # Helper function that creates an option for the selectize control (aka the
+    # filter bar).
+    translatedAttribute = ui.attributeGettext attribute
+    {
+        realValue: value
+        attribute: attribute
+        sign: sign
+        display: "#{ translatedAttribute }:#{ sign }#{ value }"
+    }
+
+
 createFilterBar = (selector) ->
     attributes = [
         'pilot'
@@ -208,26 +220,15 @@ createFilterBar = (selector) ->
     items = itemsFromFilter getFilters()
     options = for item in items
         [match, attribute, sign, realValue] = /(\w+):([-=<>])(.*)/.exec item
-        {
-            realValue: realValue
-            attribute: attribute
-            sign: sign
-            display: "#{ attribute }:#{ sign }#{ realValue }"
-        }
+        createOption realValue, attribute, sign
     $select = (jQuery selector).selectize {
         options: options
         items: items
         delimiter: ';'
         create: (input, callback) ->
-            data = {
-                realValue: input
-                attribute: 'details'
-                sign: '='
-                display: "details:=#{ input }"
-            }
-            callback data
+            callback (createOption input, 'details', '=')
         # Note: if an option is added with addOption, it counts as a
-        # user-defined option and will be removed is deselected, so we need to
+        # user-defined option and will be removed if deselected, so we need to
         # have `persist` be true and remove old details searches elsewhere.
         persist: true
         maxOptions: 20
@@ -298,32 +299,25 @@ createFilterBar = (selector) ->
     }
     selectize = $select[0].selectize
     # Add options for each attribute
+    i18nPromise = ui.setupTranslations()
     for attribute in attributes
         selectize.load (loadCB) ->
-            deferred = getAttributeChoices attribute
-            deferred.done (data) ->
-                options = []
-                key = data.key
-                values = data[key]
-                unless values == null
-                    for value in values
-                        # For now, status is the only exclusively exact filter
-                        unless key in ['status']
-                            for sign in ['=', '-', '<', '>']
-                                options.push {
-                                    realValue: value
-                                    attribute: key
-                                    sign: sign
-                                    display: "#{ key }:#{ sign }#{ value }"
-                                }
-                        else
-                            options.push {
-                                realValue: value
-                                attribute: key
-                                sign: '='
-                                display: "#{ key }:=#{ value }"
-                            }
-                loadCB options
+            attributePromise = getAttributeChoices attribute
+            i18nPromise.done () ->
+                attributePromise.done (data) ->
+                    options = []
+                    key = data.key
+                    values = data[key]
+                    unless values == null
+                        for value in values
+                            # For now, status is the only exclusively exact
+                            # filter.
+                            unless key in ['status']
+                                for sign in ['=', '-', '<', '>']
+                                    options.push (createOption value, key, sign)
+                            else
+                                options.push (createOption value, key, '=')
+                    loadCB options
     # Add an event handler for onpopstate so that the filter keeps updated when
     # using the forward/back buttons
     (jQuery window).on 'popstate', (ev) ->
@@ -347,7 +341,6 @@ createFilterBar = (selector) ->
         for item in toAdd
             selectize.addItem item, true
         inPopState = false
-
 
 
 exports.getFilters = getFilters

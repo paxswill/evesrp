@@ -27,3 +27,33 @@ msgstr ""
 #: evesrp/static/js/apiKeys.coffee:27
 msgid "Copy to clipboard"
 msgstr ""
+
+#. Text shown when adding an attribute filter for things not equal to the given
+#. value. For example, if the value is "100", this will filter to things that
+#. are not equal to 100 (like the number 50).
+#: evesrp/static/js/templates/filter_option.hbs:5
+msgid "not"
+msgstr ""
+
+#. Text shown when adding an attribute filter for things before the given
+#. value. For example, if the value is "100", this will filter to things that
+#. are less than 100 (like the number 50).
+#: evesrp/static/js/templates/filter_option.hbs:7
+msgid "before"
+msgstr ""
+
+#. Text shown when adding an attribute filter for things after the given
+#. value. For example, if the value is "100", this will filter to things that
+#. are greater than 100 (like the number 50).
+#: evesrp/static/js/templates/filter_option.hbs:9
+msgid "after"
+msgstr ""
+
+#. Label for the time a kill happened (not when the request was submitted).
+msgid "Kill Timestamp"
+msgstr ""
+
+#. Label for the time a request was submitted to the app (not when a kill
+#. happened).
+msgid "Submit Timestamp"
+msgstr ""

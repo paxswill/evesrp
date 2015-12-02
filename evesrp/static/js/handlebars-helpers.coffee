@@ -73,6 +73,7 @@ transformed = (request, attr) ->
 
 registerHelpers = (handlebars) ->
     handlebars.registerHelper({
+        attr_gettext: ui.attributeGettext
         csrf: csrf
         capitalize: capitalizeHelper
         datefmt: datefmt

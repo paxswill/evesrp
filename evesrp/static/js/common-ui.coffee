@@ -3,6 +3,8 @@ unless global.jQuery?
 require 'bootstrap/js/alert'
 _ = require 'underscore'
 ZeroClipboard = require 'zeroclipboard'
+humanize = require 'underscore.string/humanize'
+titleize = require 'underscore.string/titleize'
 flashTemplate = require './templates/flash'
 sprintf = require 'underscore.string/sprintf'
 Jed = require 'jed'
@@ -52,14 +54,21 @@ setupClipboard = () ->
     exports.client = client
 
 
+i18nPromise = null
+
+
 setupTranslations = () ->
+    if i18nPromise?
+        return i18nPromise
     currentLang = document.documentElement.lang
     setupFormats currentLang
     if currentLang == 'en'
         # message keys are in English anyways, so we can use a default Jed
         exports.i18n = new Jed {}
+        i18nPromise = jQuery.Deferred()
+        i18nPromise.resolve()
     else
-        getTranslation = jQuery.ajax {
+        i18nPromise = jQuery.ajax {
             type: 'GET'
             url: "#{ $SCRIPT_ROOT }/static/translations/#{ currentLang }.json"
             success: (data) ->
@@ -107,6 +116,17 @@ setupFormats = (language) ->
     }
 
 
+attributeGettext = (attribute) ->
+    # Helper for a common-ish pattern of
+    # decapitalize(gettext(capitalize(attr))). Also used in the filter.coffee
+    # file.
+    # TODO: As in capitalizeHelper, is i18n needed here?
+    humanizedAttribute = humanize attribute
+    translatedAttribute = exports.i18n.gettext (titleize attribute)
+    translatedAttribute.toLowerCase()
+
+
 exports.setupEvents = setupEvents
 exports.setupClipboard = setupClipboard
 exports.setupTranslations = setupTranslations
+exports.attributeGettext = attributeGettext

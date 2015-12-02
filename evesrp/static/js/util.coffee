@@ -46,4 +46,3 @@ exports.pageNumbers = (numPages, currentPage, options) ->
         else if pages[pages.length - 1] != null
             pages.push null
     return pages
-
