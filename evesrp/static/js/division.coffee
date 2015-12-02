@@ -1,5 +1,6 @@
 jQuery = require 'jquery'
 require 'selectize'
+ui = require './common-ui'
 entityTableTemplate = require './templates/entity_table'
 entityOptionTemplate = require './templates/entity_option'
 
@@ -9,7 +10,8 @@ render = (entities) ->
         $table = (jQuery "##{ permission }").find 'table'
         newTable = entityTableTemplate {
             entities: entities[permission]
-            # TODO: i18n
+            # This is not localized, as it's a programmatic identifier used in
+            # a form.
             name: permission
         }
         $table.replaceWith newTable
@@ -41,8 +43,6 @@ selectAttribute = () ->
 
 selectTransformer = () ->
     $this = jQuery this
-    attrName = (jQuery 'select#attribute option:selected').text()
-    $transformerName = ($this.find 'option:selected').text()
     $form = $this.parents 'form'
     jQuery.ajax {
         type: 'POST'
@@ -97,8 +97,10 @@ createEntitySelect = (selector) ->
                 option: (item, escape) ->
                     entityOptionTemplate item
                 optgroup_header: (data, escape) ->
-                    # TODO: i18n
-                    "<div class=\"optgroup-header\"> #{ escape(data.value) }s</div>"
+                    # data will be either 'User' or 'Group' as specified in the
+                    # various optgroup related options above.
+                    i18n_value = ui.i18n.gettext data.value
+                    "<div class=\"optgroup-header\"> #{ escape(i18n_value) }s</div>"
             }
         }
 
