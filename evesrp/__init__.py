@@ -167,6 +167,7 @@ def create_app(config=None, **kwargs):
     # Configure the Jinja context
     # Inject variables into the context
     from .auth import PermissionType
+    from .util import locale as jinja_locale
     @app.context_processor
     def inject_enums():
         return {
@@ -179,6 +180,9 @@ def create_app(config=None, **kwargs):
             'locales': babel.list_translations,
             'get_locale': get_locale,
         }
+    app.template_filter('currencyfmt')(jinja_locale.currencyfmt)
+    app.template_filter('percentfmt')(jinja_locale.percentfmt)
+    app.template_filter('numberfmt')(jinja_locale.numberfmt)
     # Auto-trim whitespace
     app.jinja_env.trim_blocks = True
     app.jinja_env.lstrip_blocks = True
