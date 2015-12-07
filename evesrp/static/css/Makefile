@@ -1,7 +1,4 @@
 LESSC ?= lessc
-BOOTSTRAP ?= $(NODE_MODULES)/bootstrap/less
-FONTAWESOME ?= $(NODE_MODULES)/font-awesome/less
-TOKENFIELD ?= $(THIRDPARTY)/bootstrap-tokenfield/less
 LESSC_OPTS ?= --source-map \
 			  --source-map-less-inline \
 			  --source-map-basepath="$(PROJECT_ROOT)"
