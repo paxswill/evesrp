@@ -17,14 +17,35 @@ capitalizeHelper = (str) ->
     capitalize str
 
 
-datefmt = (date) ->
+datefmt = (date, options) ->
+    style = options.hash.style ? 'medium'
     if typeof date == "string"
         date = new Date date
-    ui.dateFormat.format date
+    if style == 'medium'
+        ui.dateFormatMedium date
+    else if style == 'short'
+        ui.dateFormatShort date
+    else
+        console.log "Invalid datetime style: #{ style }"
+        ui.dateFormatterMedium date
 
 
 currencyFormat = (currency) ->
-    ui.currencyFormat.format currency
+    if typeof currency == "string"
+        currency = parseFloat currency
+    ui.currencyFormat currency
+
+
+numberFormat = (number) ->
+    if typeof number == "string"
+        number = parseFloat number
+    ui.numberFormat number
+
+
+percentFormat = (percent) ->
+    if typeof number == "string"
+        percent = parseFloat percent
+    ui.percentFormat percent
 
 
 statusColor = (status) ->
@@ -81,6 +102,8 @@ registerHelpers = (handlebars) ->
         csrf: csrf
         capitalize: capitalizeHelper
         currencyfmt: currencyFormat
+        numberfmt: numberFormat
+        percentfmt: percentFormat
         datefmt: datefmt
         status_color: statusColor
         compare: compare

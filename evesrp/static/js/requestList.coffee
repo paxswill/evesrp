@@ -26,8 +26,8 @@ renderRequests = (data) ->
     ($rows.parent().find '.filterable a').on 'click', addQuickFilter
     # Update summary footer
     $summary = jQuery '#requestsSummary'
-    request_count = ui.numberFormat.format data.request_count
-    total_payouts = ui.currencyFormat.format data.total_payouts
+    request_count = ui.numberFormat data.request_count
+    total_payouts = ui.currencyFormat data.total_payouts
     requests_slug = ui.i18n.ngettext '%(num)d request', '%(num)d requests',
         data.request_count
     requests_text = sprintf requests_slug, { num: request_count }

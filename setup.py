@@ -44,10 +44,12 @@ setup(
     ],
     package_data={
         'evesrp': [
-            'static/favicon.ico',
-            'static/evesso.png',
+            'static/cldr/main/*/*.json',
+            'static/cldr/supplemental/*.json',
             'static/css/*.css',
             'static/css/*.css.map',
+            'static/evesso.png',
+            'static/favicon.ico',
             'static/js/evesrp.min.js',
             'static/js/evesrp.min.js.map',
             'static/ZeroClipboard.swf',

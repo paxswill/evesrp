@@ -8,6 +8,7 @@ titleize = require 'underscore.string/titleize'
 flashTemplate = require './templates/flash'
 sprintf = require 'underscore.string/sprintf'
 Jed = require 'jed'
+Globalize = require 'globalize'
 
 
 setLanguage = (ev) ->
@@ -84,36 +85,49 @@ setupTranslations = () ->
         }
 
 
-setupFormats = (language) ->
-    # TODO: handle those platforms that don't have Intl (useing the polyfill)
-    if language == 'en'
-        locales = "en"
-    else
-        # Fallback to English formatting if the requested locale is not
-        # supported.
-        locales = [language, "en"]
-    # The only currency we're formatting is Eve ISK, which is a fictional
-    # currency.
-    exports.currencyFormat = new Intl.NumberFormat locales, {
-        style: 'decimal'
-        useGrouping: true
-        minimumFractionDigits: 2
-        maximumFractionDigits: 2
-    }
-    exports.percentFormat = new Intl.NumberFormat locales, {
-        style: 'percent'
-    }
-    exports.numberFormat = new Intl.NumberFormat locales, {}
-    # Always use 24-hour time and UTC for Eve
-    exports.dateFormat = new Intl.DateTimeFormat locales, {
-        timeZone: 'UTC'
-        hour12: false
-        year: 'numeric'
-        month: 'narrow'
-        day: '2-digit'
-        hour: '2-digit'
-        minute: 'numeric'
-    }
+globalizePromise = null
+
+
+setupFormats = (locale) ->
+    # This chunk of code is lightly modified from the globalize docs
+    if globalizePromise?
+        return globalizePromise
+    cldrRoot = "#{ $SCRIPT_ROOT }/static/cldr"
+    cldrGet = jQuery.when(
+        jQuery.getJSON("#{ cldrRoot }/main/#{ locale }/ca-gregorian.json"),
+        jQuery.getJSON("#{ cldrRoot }/main/#{ locale }/timeZoneNames.json"),
+        jQuery.getJSON("#{ cldrRoot }/main/#{ locale }/numbers.json"),
+        jQuery.getJSON("#{ cldrRoot }/supplemental/likelySubtags.json"),
+        jQuery.getJSON("#{ cldrRoot }/supplemental/numberingSystems.json"),
+        jQuery.getJSON("#{ cldrRoot }/supplemental/timeData.json"),
+        jQuery.getJSON("#{ cldrRoot }/supplemental/weekData.json")
+    )
+    globalizePromise = cldrGet.done () ->
+        argsArray = [].slice.apply arguments, [0]
+        argsArray.map (data) -> Globalize.load data[0]
+        localeGlobalize = new Globalize locale
+        # The only currency we're formatting is Eve ISK, which is a fictional
+        # currency (so it won't be in the CLDR data, and I don't want to write
+        # my own data file).
+        exports.currencyFormat = localeGlobalize.numberFormatter {
+            style: 'decimal'
+            maximumFractionDigits: 2
+            minimumFractionDigits: 2
+            round: 'truncate'
+            useGrouping: true
+        }
+        exports.percentFormat = localeGlobalize.numberFormatter {
+            style: 'percent'
+        }
+        exports.numberFormat = localeGlobalize.numberFormatter {
+            style: 'decimal'
+        }
+        exports.dateFormatShort = localeGlobalize.dateFormatter {
+            datetime: 'short'
+        }
+        exports.dateFormatMedium = localeGlobalize.dateFormatter {
+            datetime: 'medium'
+        }
 
 
 attributeGettext = (attribute) ->

@@ -49,12 +49,12 @@ render = (request) ->
     $payout = jQuery '#request-payout'
     $payout.tooltip 'destroy'
     translated = ui.i18n.gettext "Base Payout: %(base_payout)s"
-    basePayout = ui.currencyFormat.format request.base_payout
+    basePayout = ui.currencyFormat (parseFloat request.base_payout)
     $payout.tooltip {
         title: sprintf translated, {base_payout: basePayout}
         placement: 'right'
     }
-    $payout.text (ui.currencyFormat request.payout)
+    $payout.text (ui.currencyFormat (parseFloat request.payout))
     # Disable modifier and payout forms if not evaluating
     $evaluatingOnly = jQuery '.evaluating-only'
     $evaluatingOnly.prop 'disabled', (request.status != 'evaluating')

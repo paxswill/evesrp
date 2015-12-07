@@ -9,8 +9,12 @@ NODE_UTILS := \
 	bootstrap \
 	bower \
 	browserify \
+	cldr-core \
+	cldr-dates-full \
+	cldr-numbers-full \
 	coffee-script \
 	coffeeify \
+	globalize \
 	handlebars \
 	hbsfy \
 	jed \
