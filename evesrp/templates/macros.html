@@ -81,7 +81,7 @@
   <a href="{{ url }}">
     {{ text }}
     {% if count != None %}
-    <span class="badge hidden-sm"{{ (' id="' ~ id ~ '"')|safe if id != None }}>{{ count if count != 0 }}</span>
+    <span class="badge hidden-sm"{{ (' id="' ~ id ~ '"')|safe if id != None }}>{{ count|numberfmt if count != 0 }}</span>
     {% endif %}
   </a>
 </li>

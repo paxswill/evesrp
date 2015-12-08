@@ -60,7 +60,14 @@
             {% endif %}
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                <span class="caret"></span> {{ current_user.name }} <span class="badge hidden-sm" id="badge-personal">{{ request_count(PermissionType.submit)|string|replace('0', '') }}</span>
+                {% with personal_count = request_count(PermissionType.submit) %}
+                <span class="caret"></span> {{ current_user.name }} <span class="badge hidden-sm" id="badge-personal">
+                  {%- if personal_count != 0 -%}
+                  {{ personal_count|numberfmt }}
+                  {%- endif -%}
+                </span>
+                {% endwith %}
+
               </a>
               <ul class="dropdown-menu">
                 {# TRANS: This is a link in the navigation bar, linking to all of the requests the current user has ever made. #}
