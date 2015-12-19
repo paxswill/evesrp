@@ -63,26 +63,20 @@ setupTranslations = () ->
         return i18nPromise
     currentLang = document.documentElement.lang
     setupFormats currentLang
-    if currentLang == 'en'
-        # message keys are in English anyways, so we can use a default Jed
-        exports.i18n = new Jed {}
-        i18nPromise = jQuery.Deferred()
-        i18nPromise.resolve()
-    else
-        i18nPromise = jQuery.ajax {
-            type: 'GET'
-            url: "#{ $SCRIPT_ROOT }/static/translations/#{ currentLang }.json"
-            success: (data) ->
-                exports.i18n = new Jed {
-                    missing_key_callback: (key, domain) ->
-                        # Not translating this message as it's only shwon in
-                        # the console log.
-                        errorMessage = sprintf "'%s' not found in domain '%s'", key, domain
-                        console.log errorMessage
-                    locale_data: data.locale_data
-                    domain: data.domain
-                }
-        }
+    i18nPromise = jQuery.ajax {
+        type: 'GET'
+        url: "#{ $SCRIPT_ROOT }/static/translations/#{ currentLang }.json"
+        success: (data) ->
+            exports.i18n = new Jed {
+                missing_key_callback: (key, domain) ->
+                    # Not translating this message as it's only shwon in
+                    # the console log.
+                    errorMessage = sprintf "'%s' not found in domain '%s'", key, domain
+                    console.log errorMessage
+                locale_data: data.locale_data
+                domain: data.domain
+            }
+    }
 
 
 globalizePromise = null

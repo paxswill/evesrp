@@ -129,17 +129,11 @@
       <form method="GET" class="text-muted text-center">
         <small>
           <input id="lang" type="hidden" name="lang" value="">
-          {% if get_locale().language == 'en' %}
-          <strong>English</strong>
-          {% else %}
-          <a class="langSelect" data-lang="en" href="#">English</a>
-          {% endif %}
-          &bull;
           {% for locale in locales() %}
-          {% if get_locale().language == locale.language %}
-          <strong>{{ locale.display_name|capitalize }}</strong>
+          {% if get_locale() == locale %}
+          <strong>{{ locale.display_name }}</strong>
           {% else %}
-          <a class="langSelect" data-lang="{{ locale.language }}" href="#">{{ locale.display_name|capitalize }}</a>
+          <a class="langSelect" data-lang="{{ locale|string }}" href="#">{{ locale.display_name }}</a>
           {% endif %}
           {% if not loop.last %}
           &bull;

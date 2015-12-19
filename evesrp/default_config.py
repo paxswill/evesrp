@@ -22,3 +22,5 @@ SRP_SKIP_VALIDATION = False
 # Add a hash of the files contents to the filename (useful for working around
 # caching issues).
 SRP_STATIC_FILE_HASH = False
+
+DEFAULT_LOCALE = 'en_US'

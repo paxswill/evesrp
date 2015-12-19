@@ -1,5 +1,5 @@
 LOCALES := $(notdir $(filter-out %Makefile,$(wildcard $(PROJECT_ROOT)evesrp/translations/*)))
-LOCALES := $(LOCALES) en
+LOCALES := $(subst _,-,$(LOCALES))
 CLDR_CORE := $(NODE_MODULES)/cldr-core
 CLDR_DATES := $(NODE_MODULES)/cldr-dates-full
 CLDR_NUMBERS := $(NODE_MODULES)/cldr-numbers-full
@@ -38,5 +38,17 @@ main/%/ca-gregorian.json: $(CLDR_DATES)/main/%/ca-gregorian.json
 	cp "$^" "$@"
 
 main/%/timeZoneNames.json: $(CLDR_DATES)/main/%/timeZoneNames.json
+	mkdir -p "$(dir $@)"
+	cp "$^" "$@"
+
+main/en-US/numbers.json: $(CLDR_NUMBERS)/main/en-US-POSIX/numbers.json
+	mkdir -p "$(dir $@)"
+	cp "$^" "$@"
+
+main/en-US/ca-gregorian.json: $(CLDR_DATES)/main/en-US-POSIX/ca-gregorian.json
+	mkdir -p "$(dir $@)"
+	cp "$^" "$@"
+
+main/en-US/timeZoneNames.json: $(CLDR_DATES)/main/en-US-POSIX/timeZoneNames.json
 	mkdir -p "$(dir $@)"
 	cp "$^" "$@"
