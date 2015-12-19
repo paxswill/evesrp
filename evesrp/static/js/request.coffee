@@ -30,7 +30,7 @@ render = (request) ->
     $statusBadge.addClass "label-#{ util.statusColor request.status }"
     $statusBadge.text (ui.i18n.gettext (capitalize request.status))
     # Update modifiers log
-    if modifiers?
+    if request.modifiers.length != 0
         modifiers = for modifier in request.modifiers
             if modifier.void
                 voidedModifierTemplate modifier
