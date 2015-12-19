@@ -1,6 +1,6 @@
 {% import "macros.html" as macros with context %}
 <!DOCTYPE html>
-<html lang="{{ get_locale()|string }}">
+<html lang="{{ get_locale()|string|replace('_', '-') }}">
   <head>
     {% block head %}
     <meta charset="utf-8">

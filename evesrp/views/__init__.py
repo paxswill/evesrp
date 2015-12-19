@@ -109,6 +109,10 @@ def detect_language():
         flask_babel.refresh()
 
 
-
 def locale_selector():
-    return session.get('locale')
+    locale = session.get('locale')
+    supported_locales = [unicode(l) for l in babel.list_translations()]
+    if locale is not None and locale not in supported_locales:
+        locale = None
+        del session['locale']
+    return locale

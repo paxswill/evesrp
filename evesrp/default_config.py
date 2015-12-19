@@ -23,4 +23,4 @@ SRP_SKIP_VALIDATION = False
 # caching issues).
 SRP_STATIC_FILE_HASH = False
 
-DEFAULT_LOCALE = 'en_US'
+BABEL_DEFAULT_LOCALE = 'en_US'
