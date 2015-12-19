@@ -202,6 +202,40 @@ msgid "You must either own or have special privileges to comment on this request
 msgstr ""
 "Usted debe ya sea propia o tienen privilegios especiales para comentar "
 "sobre esta solicitud."
+#: evesrp/auth/__init__.py:34
+#, python-format
+msgid "Log In using %(authmethod_name)s"
+msgstr "Acceder usando %(authmethod_name)s"
+
+#. The title for someone who is able to submit a request to a
+#. division.
+#: evesrp/auth/__init__.py:100
+msgid "Submitter"
+msgstr "Peticionario"
+
+#. The title for someone who is able to review requests to a
+#. division.
+#: evesrp/auth/__init__.py:107
+msgid "Reviewer"
+msgstr "Revisor"
+
+#. The title form someone who is able to mark requests as paid in a
+#. division.
+#: evesrp/auth/__init__.py:112
+msgid "Payer"
+msgstr "Pagador"
+
+#. The title for someone who is able to administer a division.
+#: evesrp/auth/__init__.py:116
+msgid "Administrator"
+msgstr "Administrador"
+
+#. The title for someone who is able to audit the activities of a
+#. division. This means they are able to view all requests in a
+#. division.
+#: evesrp/auth/__init__.py:122
+msgid "Auditor"
+msgstr "Auditor"
 
 #. This is a header for the page listing all of the external API     keys for
 #. the app. Again, these are not CCP API keys.
@@ -610,9 +644,9 @@ msgstr "Razón"
 
 #. The text that will be put copied to the clipboard to be copied into the
 #. in-game ISK transfer window.
-#: evesrp/templates/payout.html:54
-#, python-format
-msgid "Payment for %(request_id)d"
+#: evesrp/templates/payout.html:55
+#, fuzzy, python-format
+msgid "Payment for %(request_id)s"
 msgstr "Pago de %(request_id)d"
 
 #. A button that when clicked will mark a request as having been paid out.
