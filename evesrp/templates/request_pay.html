@@ -7,7 +7,7 @@
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         {# TRANS: A header for a modal window used to add and/or view notes about a specific user. The user's name and the authentication method they used to login (for example, Test Auth, Brave Core, or EVE SSO) are displayed. #}
-        <h3 class="modal-title" id="notesModalLabel">{% trans name=srp_request.submitter.name, authmethod=srp_request.submitter.authmethod %}Notes for '{{ name }}' from {{ authmethod }}"{% endtrans %}</h3>
+        <h3 class="modal-title" id="notesModalLabel">{% trans name=srp_request.submitter.name, authmethod=srp_request.submitter.authmethod %}Notes for '{{ name }}' from {{ authmethod }}{% endtrans %}</h3>
       </div>
       <div class="modal-body">
         {% for note in srp_request.submitter.notes %}
