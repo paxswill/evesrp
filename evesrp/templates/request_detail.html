@@ -85,8 +85,8 @@
       <dt>{% trans %}Payout{% endtrans %}</dt>
       <dd>
       {# TRANS: The base payout assigned to a request as part of the evaluation process. This is without any modifiers (bonuses or penalties). This text is shown as a tooltip when the mouse is moved over the total payout number. #}
-      <span id="request-payout" data-initial-title="{% trans base_payout=srp_request.base_payout.currency() %}Base Payout: {{ base_payout }}{% endtrans %}">
-          {{ srp_request.payout.currency() }}
+      <span id="request-payout" data-initial-title="{% trans base_payout=(srp_request.base_payout|currencyfmt) %}Base Payout: {{ base_payout }}{% endtrans %}">
+          {{ srp_request.payout|currencyfmt }}
         </span>
       </dd>
       {% endblock info %}
@@ -128,7 +128,7 @@
       {% with %}
         {% set item_class = 'text-' ~ macros.status_color(action.type_) if macros.status_color(action.type_) != '' %}
         <div class="list-group-item">
-          <h4 class="list-group-item-heading{{ ' ' ~ item_class if item_class is defined }}">{{ action.type_ if action.type_ != ActionType.comment }}</h4>
+          <h4 class="list-group-item-heading{{ ' ' ~ item_class if item_class is defined }}">{{ gettext(action.type_|string) if action.type_ != ActionType.comment }}</h4>
           <blockquote class="list-group-item-text">
             <p>{{ action.note }}</p>
             <footer>{{ action.user.name }} ({{ action.timestamp|datetimeformat }})</footer>
@@ -179,7 +179,7 @@
               {% endif %}
               <div class="panel-footer">
                 {# TRANS: When a modifier is added, the name of the user that added it and the date and time it was added are displayed. #}
-                {{ gettext('%(name)s at %(timestamp)s', name=modifier.user, timestamp=(modifier.timestamp|datetimeformat('short'))) }}
+                {{ modifier.user }} ({{ modifier.timestamp|datetimeformat('short') }})
               </div>
             </div>
           </div>

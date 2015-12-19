@@ -41,6 +41,7 @@
           <td>{{ entity.name }}</td>
           {% if entity.users is defined %}
           <td>
+            {# TODO: Localize num_users. See entity_table.hbs for corresponding Handlebars template. #}
             {# TRANS: In a list of users and groups granted a permission, if it's a group, this will be displayed. The number of users in the group is shown in parentheses. #}
             {% trans num_users = entity.users|length %}Group ({{ num_users }}){% endtrans %}
           </td>

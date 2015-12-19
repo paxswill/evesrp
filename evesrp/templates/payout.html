@@ -30,13 +30,14 @@
           <dd><a class="small-popover" data-toggle="popover" data-trigger="focus" data-content="
             <ul>
               {% for modifier in request.modifiers if not modifier.voided %}
+              {# TODO: Use percent localization #}
                 <li>{{ modifier }}</li>
               {% endfor %}
             </ul>" data-html="true" data-container="body" href="#" tabindex="0">{% trans %}Modifiers{% endtrans %}</a></dd>
           {% endif %}
           {# TRANS: A header for a list of actions performed on the request. Examples include: Marking it as Approved, Rejected, or Paid. #}
           <dt>{% trans %}Actions{% endtrans %}</dt>
-          <dd><a class="null-link" data-toggle="collapse" data-parent="#requests" href="#" data-target="#actions-{{ request.id }}">{{ request.actions|length }}</a></dd>
+          <dd><a class="null-link" data-toggle="collapse" data-parent="#requests" href="#" data-target="#actions-{{ request.id }}">{{ request.actions|length|numberfmt }}</a></dd>
         </dl>
         <dl class="col-sm-6 dl-horizontal spaced">
           {# TRANS: A label for the division a request has been filed under. #}
@@ -47,14 +48,14 @@
           <dd>{{ clipboard_button(request.pilot, position='top', classes='btn btn-default btn-xs') }}</dd>
           {# TRANS: A label for the payout that has been set for a request. #}
           <dt>{% trans %}Payout{% endtrans %}</dt>
-          <dd>{{ clipboard_button(request.payout.currency(), position='top', classes='btn btn-default btn-xs') }}</dd>
+          <dd>{{ clipboard_button(request.payout|currencyfmt, position='top', classes='btn btn-default btn-xs') }}</dd>
           {# TRANS: A label for the text that ill be put in the reason field of the in-game ISK transfer window. #}
           <dt>{% trans %}Reason{% endtrans %}</dt>
           {# TRANS: The text that will be put copied to the clipboard to be copied into the in-game ISK transfer window. #}
-          <dd>{{ clipboard_button(gettext('Payment for %(request_id)d', request_id=request.id), position='top', classes='btn btn-default btn-xs') }}</dd>
+          <dd>{{ clipboard_button(gettext('Payment for %(request_id)s', request_id=request.id), position='top', classes='btn btn-default btn-xs') }}</dd>
           <dt></dt>
           <dd>
-            <form style="display: inline;" method="post" action="{{ url_for('requests.get_request_details', request_id=request.id) }}">
+            <form method="post" action="{{ url_for('requests.get_request_details', request_id=request.id) }}">
               {{ form.id_ }}
               {{ form.type_(value='paid') }}
               {{ form.csrf_token }}

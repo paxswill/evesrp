@@ -74,7 +74,7 @@
 
 {% block modifier_header %}
   {% if not modifier.voided and srp_request.status == ActionType.evaluating %}
-  <form class="form" method="post" action="{{ url_for('requests.get_request_details', request_id=srp_request.id) }}">
+  <form class="form" method="post">
     {{ void_form.csrf_token }}
     {{ void_form.id_ }}
     <input class="form-control" id="modifier_id_{{ modifier.id }}" name="modifier_id" type="hidden" value="{{ modifier.id }}">

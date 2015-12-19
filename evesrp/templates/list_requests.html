@@ -61,13 +61,13 @@
       {% for request in pager.items %}
       <tr class="{{ macros.status_color(request.status) }}">
         {% block table_row scoped %}
-        <td class="col-id"><a href="{{ url_for('requests.get_request_details', request_id=request.id) }}">{{ request.id }}</a></td>
+        <td data-attribute="id"><a href="{{ url_for('requests.get_request_details', request_id=request.id) }}">{{ request.id }}</a></td>
         {{ request_cell('pilot', request.pilot.name) }}
         {{ request_cell('ship', request.ship_type) }}
         {{ request_cell('system', request.system) }}
         {{ request_cell('status', request.status) }}
-        {{ request_cell('payout', request.payout.currency()) }}
-        {{ request_cell('submit_timestamp', request.timestamp|datetimeformat(format='short')) }}
+        {{ request_cell('payout', request.payout.currency(), False) }}
+        {{ request_cell('submit_timestamp', request.timestamp|datetimeformat(format='short'), False) }}
         {{ request_cell('division', request.division.name) }}
         {% endblock table_row %}
       </tr>

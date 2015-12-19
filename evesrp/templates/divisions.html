@@ -25,7 +25,7 @@
       <tr>
         <td><a href="{{ url_for('divisions.get_division_details', division_id=division.id) }}">{{ division.name }}</a></td>
         {% for perm in (PermissionType.submit, PermissionType.review, PermissionType.pay,  PermissionType.audit, PermissionType.admin) %}
-        <td><a href="{{ url_for('divisions.get_division_details', division_id=division.id) }}#{{ perm.value }}">{{ division.permissions[perm]|length }}</a></td>
+        <td><a href="{{ url_for('divisions.get_division_details', division_id=division.id) }}#{{ perm.value }}">{{ division.permissions[perm]|length|numberfmt }}</a></td>
         {% endfor %}
       </tr>
       {% endfor %}

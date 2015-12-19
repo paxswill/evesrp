@@ -5,11 +5,11 @@
   <div id="modifier{{id}}" class="collapse">
     <div class="panel-body">
       <del>
-        {{ note }} {{gettext "voided by %(voided_name)s at %(voided_timestamp)s" voided_name=void.user.name voided_timestamp=(datefmt void.timestamp)}}
+        {{ note }} {{gettext "voided by %(voided_name)s at %(voided_timestamp)s" voided_name=void.user.name voided_timestamp=(datefmt void.timestamp style='short')}}
       </del>
     </div>
     <div class="panel-footer">
-      {{user.name}} ({{datefmt timestamp}})
+      {{user.name}} ({{datefmt timestamp style='short'}})
     </div>
   </div>
 </div>

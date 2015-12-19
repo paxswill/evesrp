@@ -3,7 +3,7 @@
   <td class="key-button">
     <button class="btn btn-default btn-sm copy-btn" data-clipboard-text="{{key}}">{{key}}</button>
   </td>
-  <td>{{datefmt timestamp}}</td>
+  <td>{{datefmt timestamp style='short'}}</td>
   <td>
     <form method="post">
       <input id="csrf_token" name="csrf_token" type="hidden" value="{{csrf}}">

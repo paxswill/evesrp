@@ -36,7 +36,7 @@
           </td>
           <td>{{ key.timestamp|datetimeformat(format='short') }}</td>
           <td>
-            <form class="" method="post">
+            <form method="post">
               {{ form.csrf_token }}
               {{ form.action(value='delete') }}
               {{ form.key_id(value=key.id) }}
