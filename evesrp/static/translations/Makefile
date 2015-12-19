@@ -7,6 +7,9 @@ PO2JSON_FLAGS += --pretty
 endif
 
 all: $(notdir $(foreach lang,$(LOCALES),$(lang).json))
+ifndef DEBUG
+	rm -fv en-CA.json
+endif
 
 clean:
 	rm -fv ./*.json

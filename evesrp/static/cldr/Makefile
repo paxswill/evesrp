@@ -21,6 +21,9 @@ ALL_LOCALES := \
 .PHONY: all clean
 
 all: $(SHARED_FILES) $(ALL_LOCALES)
+ifndef DEBUG
+	rm -rfv main/en-CA/
+endif
 
 clean:
 	rm -rf main supplemental

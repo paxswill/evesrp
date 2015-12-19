@@ -1,18 +1,18 @@
 LANGUAGES := $(filter-out %Makefile,$(wildcard ./*))
 ifdef DEBUG
-LANGUAGES := $(LANGUAGES) en
+LANGUAGES := $(LANGUAGES) en_CA
 endif
 
 all: $(foreach lang,$(LANGUAGES),$(lang)/LC_MESSAGES/messages.mo)
 ifndef DEBUG
-	rm -rfv ./en/
+	rm -rfv ./en_CA/
 endif
 
 clean:
 	rm -fv ./*/LC_MESSAGES/messages.mo
 	rm -fv ./en/LC_MESSAGES/messages.po
 
-.PHONY: all clean en/LC_MESSAGES/messages.po
+.PHONY: all clean en_CA/LC_MESSAGES/messages.po
 
 %/LC_MESSAGES/messages.mo: %/LC_MESSAGES/messages.po
 	pybabel compile \
@@ -26,7 +26,7 @@ clean:
 		-i "$<" \
 		-o "$@"
 
-en/LC_MESSAGES/messages.po: $(PROJECT_ROOT)messages.pot
+en_CA/LC_MESSAGES/messages.po: $(PROJECT_ROOT)messages.pot
 ifeq ($(findstring unicode,$(DEBUG)),unicode)
 	mkdir -p $(dir $@)
 	podebug \

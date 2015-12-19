@@ -2,13 +2,19 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 from flask import redirect, url_for, render_template, make_response, request,\
         json, session
+from flask.ext import babel as flask_babel
 from flask.ext.login import login_required, current_user
-from babel import get_locale_identifier, negotiate_locale
+from babel import get_locale_identifier, negotiate_locale, parse_locale
+import six
 from .. import db, babel
 from ..models import Request, ActionType
 from ..auth import PermissionType
 from ..auth.models import Permission, Division
 from ..util import jsonify, varies
+
+
+if six.PY3:
+    unicode = str
 
 
 @login_required
@@ -97,10 +103,11 @@ def update_navbar(response):
 def detect_language():
     if 'lang' in request.args:
         requested_locale = request.args['lang']
-        locale = negotiate_locale([requested_locale,],
-                [get_locale_identifier((l.language, l.territory, None, None))
-                    for l in babel.list_translations()])
+        locales = [unicode(l) for l in babel.list_translations()]
+        locale = negotiate_locale([requested_locale,], locales)
         session['locale'] = locale
+        flask_babel.refresh()
+
 
 
 def locale_selector():
