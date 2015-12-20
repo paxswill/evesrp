@@ -288,7 +288,6 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
         except AttributeError:
             parent = {}
         parent[u'value'] = self.value
-        parent[u'value_str'] = unicode(self)
         if extended:
             parent[u'note'] = self.note or u''
             parent[u'timestamp'] = self.timestamp
@@ -300,6 +299,8 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
                 }
             else:
                 parent[u'void'] = False
+        else:
+            parent[u'void'] = self.voided
         return parent
 
 
@@ -318,18 +319,13 @@ class AbsoluteModifier(Modifier):
     value = db.Column(PrettyNumeric(precision=15, scale=2), nullable=False,
             default=Decimal(0))
 
-    def __unicode__(self):
-        num = self.value / 1000000
-        if self.value >= 0:
-            # TRANS: How a flat ISK bonus is written as text. The %d is
-            # TRANS: special, it will be replaced with the bonus amount (in
-            # TRANS: millions of ISK)
-            return gettext(u"%(amount)dM ISK bonus", amount=num)
-        else:
-            # TRANS: How a flat ISK penalty is written as text. The %d is
-            # TRANS: special, it will be replaced with the penalty amount (in
-            # TRANS: millions of ISK).
-            return gettext(u"%(amount)dM ISK penalty", amount=num)
+    def _json(self, extended=False):
+        try:
+            parent = super(AbsoluteModifier, self)._json(extended)
+        except AttributeError:
+            parent = {}
+        parent[u'type'] = 'absolute'
+        return parent
 
 
 @unistr
@@ -346,21 +342,13 @@ class RelativeModifier(Modifier):
     value = db.Column(db.Numeric(precision=8, scale=5), nullable=False,
             default=Decimal(0))
 
-    def __unicode__(self):
-        pretty_value = unicode(self.value * 100)
-        pretty_value = pretty_value.lstrip('-')
-        pretty_value = pretty_value.rstrip('0')
-        pretty_value = pretty_value.rstrip('.')
-        if self.value >= 0:
-            # TRANS: How a percentage bonus is written as text. The %(amount)d
-            # is special, it will be replaced with the bonus amount. %% is used
-            # to insert a single percent symbol.
-            return gettext(u"%(amount)s%% ISK bonus", amount=pretty_value)
-        else:
-            # TRANS: How a percentage bonus is written as text. The %(amount)d
-            # is special, it will be replaced with the bonus amount. %% is used
-            # to insert a single percent symbol.
-            return gettext(u"%(amount)s%% ISK penalty", amount=pretty_value)
+    def _json(self, extended=False):
+        try:
+            parent = super(RelativeModifier, self)._json(extended)
+        except AttributeError:
+            parent = {}
+        parent[u'type'] = 'relative'
+        return parent
 
 
 class Request(db.Model, AutoID, Timestamped, AutoName):

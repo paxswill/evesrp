@@ -96,6 +96,23 @@ transformed = (request, attr) ->
     request[attr]
 
 
+modifierHeader = (modifier) ->
+    if modifier.type == "absolute"
+        amount = (parseFloat modifier.value) / 1000000
+        amount = ui.numberFormat amount
+        if modifier.value >= 0
+            localized = ui.i18n.gettext "%(amount)sM ISK bonus"
+        else
+            localized = ui.i18n.gettext "%(amount)sM ISK penalty"
+    else if modifier.type == "relative"
+        amount = ui.percentFormat (parseFloat modifier.value)
+        if modifier.value >= 0
+            localized = ui.i18n.gettext "%(amount)s bonus"
+        else
+            localized = ui.i18n.gettext "%(amount)s penalty"
+    return new Handlebars.SafeString (sprintf localized, {amount: amount})
+
+
 registerHelpers = (handlebars) ->
     handlebars.registerHelper({
         attr_gettext: ui.attributeGettext
@@ -110,6 +127,7 @@ registerHelpers = (handlebars) ->
         count: count
         transformed: transformed
         gettext: gettext
+        modifier_header: modifierHeader
     })
     return handlebars
 
