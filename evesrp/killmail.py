@@ -351,9 +351,9 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
 
     # TRANS: Decscribing the acceptable killmails for the ZKillboard killmail
     # processor.
-    description = Markup(lazy_gettext(u'A link to a lossmail from <a '
+    description = lazy_gettext(u'A link to a lossmail from <a '
                                       u'href="https://zkillboard.com/">'
-                                      u'ZKillboard</a>.'))
+                                      u'ZKillboard</a>.')
 
 
 class CRESTMail(Killmail, RequestsSessionMixin, LocationMixin):
@@ -424,4 +424,4 @@ class CRESTMail(Killmail, RequestsSessionMixin, LocationMixin):
 
     # TRANS: Description of the allowable links for the CREST killmail
     # processor.
-    description = Markup(gettext(u'A CREST external killmail link.'))
+    description = lazy_gettext(u'A CREST external killmail link.')
