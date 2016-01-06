@@ -148,38 +148,6 @@ msgstr ""
 msgid "Only reviewers can add modifiers."
 msgstr "Solamente los revisores pueden añadir modificadores."
 
-#. How a flat ISK bonus is written as text. The %d is
-#. special, it will be replaced with the bonus amount (in
-#. millions of ISK)
-#: evesrp/models.py:327
-#, python-format
-msgid "%(amount)dM ISK bonus"
-msgstr "Bono de %(amount)dM ISK"
-
-#. How a flat ISK penalty is written as text. The %d is
-#. special, it will be replaced with the penalty amount (in
-#. millions of ISK).
-#: evesrp/models.py:332
-#, python-format
-msgid "%(amount)dM ISK penalty"
-msgstr "Multa de %(amount)dM ISK"
-
-#. How a percentage bonus is written as text. The %(amount)d
-#. is special, it will be replaced with the bonus amount. %% is used
-#. to insert a single percent symbol.
-#: evesrp/models.py:358
-#, python-format
-msgid "%(amount)s%% ISK bonus"
-msgstr "Bonificación del %(amount)s%%"
-
-#. How a percentage bonus is written as text. The %(amount)d
-#. is special, it will be replaced with the bonus amount. %% is used
-#. to insert a single percent symbol.
-#: evesrp/models.py:363
-#, python-format
-msgid "%(amount)s%% ISK penalty"
-msgstr "Multa del %(amount)s%%"
-
 #: evesrp/models.py:540
 msgid "The request must be in the evaluating state to change the base payout."
 msgstr "La solicitud debe estar en el estado evaluando cambiar el pago de base."
@@ -521,6 +489,15 @@ msgstr "Solicitud ID"
 msgid "Pilot"
 msgstr "Piloto"
 
+#. A table column header for the ship from a request.
+#. The name of the type of ship a requests is about. Ex: Tristan, Ishtar,
+#. Scimitar.
+#. Label for the type of ship that was lost.
+#: evesrp/templates/list_requests.html:48 evesrp/templates/payout.html:25
+#: evesrp/templates/request_detail.html:112 evesrp/views/divisions.py:99
+msgid "Ship"
+msgstr "Barco"
+
 #. A table column header for the pilot of a request.
 #: evesrp/templates/list_requests.html:48
 msgid "System"
@@ -612,14 +589,6 @@ msgstr "Pérdida de correo externo"
 msgid "Details"
 msgstr "Detalles"
 
-#. The name of the type of ship a requests is about. Ex: Tristan, Ishtar,
-#. Scimitar.
-#. Label for the type of ship that was lost.
-#: evesrp/templates/payout.html:25 evesrp/templates/request_detail.html:79
-#: evesrp/views/divisions.py:99
-msgid "Ship"
-msgstr "Barco"
-
 #. A header for a list of payout modifications. These can be things like
 #. bonuses for fitting special kinds of modules or flying a special kind of
 #. ship, or penalties for fitting a ship incorrectly.
@@ -668,6 +637,37 @@ msgstr "Nota"
 #: evesrp/templates/permissions.html:9
 msgid "Your Permissions"
 msgstr "Sus permisos"
+
+#. How a flat ISK bonus is written as text. The %(amount)s is special,
+#. it will be replaced with the bonus amount (in millions of ISK)
+#: evesrp/templates/request_detail.html:16
+#, fuzzy, python-format
+msgid "%(amount)sM ISK bonus"
+msgstr "Bonificación del %(amount)s%%"
+
+#. How a flat ISK penalty is written as text. The %(amount)s is
+#. special, it will be replaced with the penalty amount (in
+#. millions of ISK).
+#: evesrp/templates/request_detail.html:22
+#, fuzzy, python-format
+msgid "%(amount)sM ISK penalty"
+msgstr "Multa del %(amount)s%%"
+
+#. How a percentage bonus is written as text. The %(amount)s             is
+#. special, it will be replaced with the amount as a percentage,
+#. formatted according to the current locale.
+#: evesrp/templates/request_detail.html:31
+#, fuzzy, python-format
+msgid "%(amount)s bonus"
+msgstr "Bonificación del %(amount)s%%"
+
+#. How a percentage penalty is written as text. The %(amount)s             is
+#. special, it will be replaced with the amount as a percentage,
+#. formatted according to the current locale.
+#: evesrp/templates/request_detail.html:37
+#, fuzzy, python-format
+msgid "%(amount)s penalty"
+msgstr "Multa del %(amount)s%%"
 
 #. The header for a modal window that is used to change the supporting details
 #. of a request (the details are things like what the fleet was doing, a link

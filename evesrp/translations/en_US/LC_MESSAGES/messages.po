@@ -150,38 +150,6 @@ msgstr "Modifiers can only be added when the request is in an evaluating state."
 msgid "Only reviewers can add modifiers."
 msgstr "Only reviewers can add modifiers."
 
-#. How a flat ISK bonus is written as text. The %d is
-#. special, it will be replaced with the bonus amount (in
-#. millions of ISK)
-#: evesrp/models.py:327
-#, python-format
-msgid "%(amount)dM ISK bonus"
-msgstr "%(amount)dM ISK bonus"
-
-#. How a flat ISK penalty is written as text. The %d is
-#. special, it will be replaced with the penalty amount (in
-#. millions of ISK).
-#: evesrp/models.py:332
-#, python-format
-msgid "%(amount)dM ISK penalty"
-msgstr "%(amount)dM ISK penalty"
-
-#. How a percentage bonus is written as text. The %(amount)d
-#. is special, it will be replaced with the bonus amount. %% is used
-#. to insert a single percent symbol.
-#: evesrp/models.py:358
-#, python-format
-msgid "%(amount)s%% ISK bonus"
-msgstr "%(amount)s%% ISK bonus"
-
-#. How a percentage bonus is written as text. The %(amount)d
-#. is special, it will be replaced with the bonus amount. %% is used
-#. to insert a single percent symbol.
-#: evesrp/models.py:363
-#, python-format
-msgid "%(amount)s%% ISK penalty"
-msgstr "%(amount)s%% ISK penalty"
-
 #: evesrp/models.py:540
 msgid "The request must be in the evaluating state to change the base payout."
 msgstr "The request must be in the evaluating state to change the base payout."
