@@ -117,8 +117,6 @@ class TestRequestSetPayout(TestRequest):
                 base_payout = self.request.base_payout
             if permissable:
                 real_test_payout = test_payout * 1000000
-                self.assertIn(PrettyDecimal(real_test_payout).currency(),
-                        resp.get_data(as_text=True))
                 self.assertEqual(payout, real_test_payout)
             else:
                 self.assertIn('Only reviewers can change the base payout.',
