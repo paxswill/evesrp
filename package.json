@@ -7,6 +7,7 @@
     "bootstrap": "^3.3.5",
     "browserify": "^11.0.1",
     "cldr-core": "^28.0.2",
+    "cldr-data": "^28.0.3",
     "cldr-dates-full": "^28.0.0",
     "cldr-numbers-full": "^28.0.0",
     "coffee-script": "^1.9.3",
