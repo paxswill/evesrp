@@ -19,7 +19,7 @@ Babel==2.2.0
 beautifulsoup4==4.3.2
 blinker==1.3
 braveapi==0.1
-coverage==3.7.1
+coverage==4.0.3
 coveralls==0.5
 docutils==0.11
 ecdsa==0.11
