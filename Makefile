@@ -53,7 +53,12 @@ test-python:
 	nosetests \
 		--with-html \
 		--html-file=test-report.html \
+		--with-coverage \
+		--cover-erase \
+		--cover-branch \
+		--cover-package=evesrp \
 		-w tests_python
+	coverage html -d coverage-report
 
 test-javascript: 
 	mocha \
