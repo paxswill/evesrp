@@ -28,6 +28,8 @@ endif
 clean:
 	rm -rf main supplemental
 
+$(CLDR_CORE)/% $(CLDR_NUMBERS)/% $(CLDR_DATES)/%: $(NODE_MODULES)
+
 supplemental/%: $(CLDR_CORE)/supplemental/%
 	mkdir -p "$(dir $@)"
 	cp "$^" "$@"

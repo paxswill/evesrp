@@ -2,36 +2,14 @@
 # unless SHELL is set first.
 SHELL := /bin/sh
 export PROJECT_ROOT := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
-export NODE_MODULES := $(PROJECT_ROOT)node_modules
+export NODE_MODULES := $(shell npm root)
 export PATH := $(NODE_MODULES)/.bin:$(PATH)
 SUBDIRS := evesrp/translations evesrp/static
-NODE_UTILS := \
-	bootstrap \
-	bower \
-	browserify \
-	cldr-core \
-	cldr-dates-full \
-	cldr-numbers-full \
-	coffee-script \
-	coffeeify \
-	globalize \
-	handlebars \
-	hbsfy \
-	jed \
-	jquery \
-	less \
-	mocha \
-	po2json \
-	selectize \
-	uglify-js \
-	underscore \
-	underscore.string \
-	zeroclipboard
 
-.PHONY: all clean distclean build-deps test test-python test-javascript docs \
-	node-pkgs $(SUBDIRS)
+.PHONY: all clean deep-clean doc-clean build-deps test test-python \
+	test-javascript docs $(SUBDIRS)
 
-all: docs messages.pot node-pkgs bower_components $(SUBDIRS)
+all: docs messages.pot node_modules $(SUBDIRS)
 
 clean:
 	for DIR in $(SUBDIRS); do\
@@ -39,16 +17,16 @@ clean:
 	done
 	rm -f generated_messages.pot messages.pot
 
+deep-clean: doc-clean clean
+	rm -rf node_modules
+
 doc-clean:
 	$(MAKE) -C doc clean
 
 $(SUBDIRS):
 	$(MAKE) -C "$@"
 
-bower_components: bower.json node_modules/bower
-	node_modules/.bin/bower install
-
-build-deps: node-pkgs bower_components
+build-deps: node_modules
 	pip install -r requirements.txt
 	tests/mariadb.sh
 ifneq (,$(findstring psycopg2,$(DB)))
@@ -104,13 +82,5 @@ generated_messages.pot: babel.cfg evesrp/*.py evesrp/*/*.py evesrp/templates/*.h
 messages.pot: generated_messages.pot manual_messages.pot
 	cat $^ > $@
 
-node-pkgs: $(foreach pkg,$(NODE_UTILS),node_modules/$(pkg))
-
-node_modules/%:
-	npm install $*
-
-node_modules/handlebars:
-	npm install handlebars@3
-
-node_modules/bootstrap:
-	npm install bootstrap@3
+node_modules node_modules/%: package.json
+	npm install

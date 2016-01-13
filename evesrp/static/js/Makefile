@@ -13,6 +13,9 @@ all: evesrp.min.js
 browserify.mk: Makefile main.coffee
 	echo "evesrp.js: $(shell browserify main.coffee $(BROWSERIFY_OPTS) --list)" > $@
 
+$(NODE_MODULES)/%:
+	node install
+
 -include browserify.mk
 
 evesrp.js: main.coffee

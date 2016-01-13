@@ -1,5 +1,4 @@
 SUBDIRS := js css translations cldr fonts
-export THIRDPARTY = $(abspath ../../bower_components)
 
 .PHONY: all clean $(SUBDIRS)
 
@@ -17,5 +16,4 @@ $(SUBDIRS):
 ZeroClipboard.swf: $(NODE_MODULES)/zeroclipboard/dist/ZeroClipboard.swf
 	cp "$^" "$@"
 
-$(NODE_MODULES)/zeroclipboard/dist/ZeroClipboard.swf:
-	npm install zeroclipboard
+$(NODE_MODULES)/zeroclipboard/dist/ZeroClipboard.swf: $(NODE_MODULES)
