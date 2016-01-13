@@ -17,7 +17,7 @@ else:
 
 
 test_requirements = [
-    'beautifulsoup>=4.3.2',
+    'beautifulsoup>=4.4.1',
     'coverage>=3.7.1',
     'httmock>=1.2.2',
 ]
