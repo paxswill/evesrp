@@ -37,6 +37,8 @@ matrix:
     fast_finish: true
 
 install:
+    - nvm install 0.10
+    - npm install -g npm@latest
     - make build-deps
 
 before_script:
