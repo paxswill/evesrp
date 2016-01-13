@@ -50,6 +50,6 @@ before_script:
     - mysql -e 'CREATE DATABASE evesrp_test;'
     - make all
 
-script: coverage run setup.py test
+script: make test-python
 
 after_success: coveralls
