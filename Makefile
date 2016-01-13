@@ -28,7 +28,7 @@ $(SUBDIRS):
 
 build-deps: node_modules
 	pip install -r requirements.txt
-	tests/mariadb.sh
+	./mariadb.sh
 ifneq (,$(findstring psycopg2,$(DB)))
 	pip install psycopg2
 else ifneq (,$(findstring pg8000,$(DB)))
