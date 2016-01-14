@@ -17,7 +17,7 @@ else:
 
 
 test_requirements = [
-    'beautifulsoup>=4.3.2',
+    'beautifulsoup>=4.4.1',
     'coverage>=3.7.1',
     'httmock>=1.2.2',
 ]
@@ -86,7 +86,7 @@ setup(
         'Werkzeug>=0.9.4',
         'WTForms>=2.0.0',
         'alembic>=0.6.5',
-        'requests>=2.6.0',
+        'requests>=2.9.1',
         'six==1.7.3',
         'iso8601>=0.1.5',
     ],
