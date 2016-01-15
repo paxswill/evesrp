@@ -79,7 +79,7 @@ class TestRequestList(TestLogin):
 class TestTableRequestLists(TestRequestList):
 
     def count_requests(self, data):
-        soup = BeautifulSoup(data)
+        soup = BeautifulSoup(data, 'html.parser')
         request_id_cols = soup.find_all('td',
                 attrs={'data-attribute': 'status'})
         return len(request_id_cols)
@@ -98,7 +98,7 @@ class TestTableRequestLists(TestRequestList):
 class TestPayoutList(TestRequestList):
 
     def count_requests(self, data):
-        soup = BeautifulSoup(data)
+        soup = BeautifulSoup(data, 'html.parser')
         request_id_cols = soup.find_all('div', class_='panel')
         return len(request_id_cols)
 

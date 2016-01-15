@@ -11,7 +11,7 @@ class TestFileHashes(TestApp):
         self.client = self.app.test_client()
 
     def _test_static_files(self, index_resp):
-        soup = BeautifulSoup(index_resp.get_data(as_text=True))
+        soup = BeautifulSoup(index_resp.get_data(as_text=True), 'html.parser')
         # Check href for link elements
         for link in soup.find_all('link'):
             static_filepath = link['href']
