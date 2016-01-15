@@ -126,6 +126,7 @@ def get_relations():
 
 def write_static_data(path):
     with open(path, 'w') as f:
+        f.write("# coding: utf-8")
         f.write("from __future__ import unicode_literals\n\n")
         printer = pprint.PrettyPrinter(indent=3, stream=f)
         print("Writing ships...", end="", flush=True)
