@@ -15,8 +15,14 @@ def jita_lookup(url, request):
         'name': 'Jita',
         # The "internal" crest links aren't prefixed, as those are used for
         # system->constellation and constellation->region lookups
-        'constellation': {'href':
-            'https://public-crest.eveonline.com/constellations/20000020/'},
+        'constellation': {
+            'href':
+                'https://public-crest.eveonline.com/constellations/20000020/',
+            'id': 20000020,
+            'id_str': '20000020' 
+        },
+        'id_str': '30000142',
+        'id': 30000142 
     }
     return response(content=json.dumps(resp))
 
@@ -39,6 +45,8 @@ def kimotoro_lookup(url, request):
 def forge_lookup(url, request):
     resp = {
         'name': 'The Forge',
+        'id': 10000002,
+        'id_str': '10000002',
     }
     return response(content=json.dumps(resp))
 

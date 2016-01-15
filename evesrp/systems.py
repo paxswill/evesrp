@@ -25,61 +25,32 @@ constellation_names = NameLookup(
 system_names = NameLookup(static_data.system_names, SYSTEM_SLUG, SYSTEM_TYPE)
 
 
-class SystemConstellationLookup(object):
+class ConstellationRegionLookup(NameLookup):
 
     def __init__(self):
-        self._dict = {}
+        super(ConstellationRegionLookup, self).__init__(
+                static_data.constellations_to_regions,
+                CONSTELLATION_SLUG,
+                CONSTELLATION_TYPE,
+                'region.href')
 
     def __getitem__(self, key):
-        if not isinstance(key, int):
-            raise TypeError("Invalid ID for name lookup: '{}'".\
-                    format(key))
-        if key not in self._dict:
-            sys_resp = current_app.requests_session.get(
-                    SYSTEM_SLUG.format(key),
-                    headers={'Accept': SYSTEM_TYPE})
-            if not check_crest_response(sys_resp) or \
-                    sys_resp.status_code != 200:
-                message = "Cannot find the name for the ID requested [{}]: {}"\
-                        .format(sys_resp.status_code, key)
-                raise KeyError(message)
-            match = re.match(CONSTELLATION_SLUG.replace('{}', '(.*)'),
-                    sys_resp.json()['constellation']['href'])
-            if not match:
-                message = "Cannot find the name for the ID requested: {}"\
-                        .format(key)
-                raise KeyError(message)
-            self._dict[key] = int(match.group(1))
+        parent_item = super(ConstellationRegionLookup, self).__getitem__(key)
+        # parent item will either be a CREST URL or an integer type ID
+        if isinstance(parent_item, int):
+            return parent_item
+        match = re.match(REGION_SLUG.replace('{}', '(.*)'), parent_item)
+        if not match:
+            message = "Cannot find the name for the ID requested: {}"\
+                    .format(key)
+            raise KeyError(message)
+        self._dict[key] = int(match.group(1))
         return self._dict[key]
 
 
-class ConstellationRegionLookup(object):
+systems_constellations = NameLookup(static_data.systems_to_constellations,
+                                    SYSTEM_SLUG,
+                                    SYSTEM_TYPE,
+                                    'constellation.id')
 
-    def __init__(self):
-        self._dict = {}
-
-    def __getitem__(self, key):
-        if not isinstance(key, int):
-            raise TypeError("Invalid ID for name lookup: '{}'".\
-                    format(key))
-        if key not in self._dict:
-            const_resp = current_app.requests_session.get(
-                    CONSTELLATION_SLUG.format(key),
-                    headers={'Accept': CONSTELLATION_TYPE})
-            if not check_crest_response(const_resp) or \
-                    const_resp.status_code != 200:
-                message = "Cannot find the name for the ID requested [{}]: {}"\
-                        .format(const_resp.status_code, key)
-                raise KeyError(message)
-            match = re.match(REGION_SLUG.replace('{}', '(.*)'),
-                    const_resp.json()['region']['href'])
-            if not match:
-                message = "Cannot find the name for the ID requested: {}"\
-                        .format(key)
-                raise KeyError(message)
-            self._dict[key] = int(match.group(1))
-        return self._dict[key]
-
-
-systems_constellations = SystemConstellationLookup()
 constellations_regions = ConstellationRegionLookup()
