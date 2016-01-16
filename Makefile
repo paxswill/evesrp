@@ -65,7 +65,8 @@ test-javascript:
 		--compilers coffee:coffee-script/register \
 		--reporter dot \
 		--ui tdd \
-		tests_javascript/*.coffee
+		--no-colors \
+		tests_javascript/test_*.coffee
 
 docs:
 	$(MAKE) -C doc html
