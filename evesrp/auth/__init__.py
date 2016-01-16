@@ -32,7 +32,8 @@ class AuthMethod(object):
         """Return a :py:class:`flask.ext.wtf.Form` subclass to login with."""
         class AuthForm(Form):
             submit = SubmitField(gettext(
-                    u'Log In using %(authmethod_name)s', self.name))
+                    u'Log In using %(authmethod_name)s',
+                    authmethod_name=self.name))
         return AuthForm
 
     def login(self, form):
