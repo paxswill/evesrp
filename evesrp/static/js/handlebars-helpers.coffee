@@ -20,7 +20,14 @@ capitalizeHelper = (str) ->
 datefmt = (date, options) ->
     style = options.hash.style ? 'medium'
     if typeof date == "string"
-        date = new Date date
+        # Javascript's Date handling is stupid
+        local_date = new Date date
+        date = new Date(local_date.getUTCFullYear(),
+            local_date.getUTCMonth(),
+            local_date.getUTCDate(),
+            local_date.getUTCHours(),
+            local_date.getUTCMinutes(),
+            local_date.getUTCSeconds())
     if style == 'medium'
         ui.dateFormatMedium date
     else if style == 'short'
