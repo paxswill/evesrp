@@ -4,8 +4,7 @@ endif
 UGLIFY_OPTS += --source-map-include-sources
 BROWSERIFY_OPTS := -t coffeeify -t hbsfy \
                    --extension=".coffee" \
-                   --extension=".hbs" \
-                   --debug
+                   --extension=".hbs"
 BOOTSTRAP = $(THIRDPARTY)/bootstrap/js
 
 all: evesrp.min.js
