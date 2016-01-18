@@ -33,6 +33,7 @@ matrix:
           env: DB="postgresql+pg8000://postgres@127.0.0.1/evesrp_test"
         - python: "pypy3"
           env: DB="mysql+pymysql://root@127.0.0.1/evesrp_test"
+        - env: TEST_SUITE="javascript"
     allow_failures:
         - python: "pypy"
         - python: "pypy3"
@@ -50,6 +51,7 @@ before_script:
     - mysql -e 'CREATE DATABASE evesrp_test;'
     - make all
 
-script: make test-python
+script:
+    - [ -z "$TEST_SUITE" ] && make test-javascript || make test-python
 
 after_success: coveralls
