@@ -12,7 +12,7 @@ PYTHON_VERSION := $(shell python -c "from __future__ import print_function; impo
 
 all: tests.html
 	# kill any lingering static servers
-	#-kill `ps -A -o pid -o args| egrep -e '[0-9]+ python -m (Simple)?[hH][tT][tT][pP]\.?[sS]erver 5000' | egrep -oe '^[0-9]+'`
+	-kill `ps -A -o pid -o args| egrep -e '[0-9]+ python -m (Simple)?[hH][tT][tT][pP]\.?[sS]erver 5000' | egrep -oe '^ *[0-9]+'`
 ifeq "$(PYTHON_VERSION)" "2"
 	cd ../evesrp && python -m SimpleHTTPServer 5000 > /dev/null &
 else
@@ -21,8 +21,8 @@ endif
 	mocha-phantomjs \
 		-s webSecurityEnabled=false \
 		--no-color \
-		tests.html; \
-	kill `ps -A -o pid -o args| egrep -e '[0-9]+ python -m (Simple)?[hH][tT][tT][pP]\.?[sS]erver 5000' | egrep -oe '^[0-9]+'`
+		tests.html
+	kill `ps -A -o pid -o args| egrep -e '[0-9]+ python -m (Simple)?[hH][tT][tT][pP]\.?[sS]erver 5000' | egrep -oe '^ *[0-9]+'`
 
 clean:
 	rm -f tests_*.js tests.html
