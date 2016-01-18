@@ -42,7 +42,7 @@ matrix:
     fast_finish: true
 
 install:
-    - nvm install 0.10
+    - nvm install 5.3.0
     - npm install -g npm@latest
     - make build-deps
 
