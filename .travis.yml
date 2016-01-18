@@ -54,7 +54,7 @@ before_script:
     - make all
 
 script:
-    - /bin/sh -c "[ -z "$TEST_SUITE" ] && make test-javascript || make test-python"
+    - /bin/sh -c "[ -z "$TEST_SUITE" ] && make test-python || make test-javascript"
 
 after_success:
     - /bin/sh -c "[-z "$TEST_SUITE" ] && coveralls || cat ./tests_javascript/coverage/lcov.info | ./node_modules/.bin/coveralls"
