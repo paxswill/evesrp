@@ -8,11 +8,19 @@ BROWSERIFY_OPTS := -t coffeeify -t hbsfy \
 
 .PHONY: $(STATIC_JS)/evesrp.js all
 
-PYTHON_VERSION := $(shell python -c "from __future__ import print_function; import sys; print(sys.version_info.major)")
+PYTHON_VERSION := $(shell python -c \
+	"from __future__ import print_function; \
+	import sys; \
+	print(sys.version_info.major)")
+
+KILL_STATIC_SERVER := kill \
+	`ps -o pid -o args | \
+	 egrep -e '[0-9]+ python -m (Simple)?[hH][tT][tT][pP]\.?[sS]erver 5000' | \
+	 egrep -oe '^ *[0-9]+'`
 
 all: tests.html
 	# kill any lingering static servers
-	-kill `ps -A -o pid -o args| egrep -e '[0-9]+ python -m (Simple)?[hH][tT][tT][pP]\.?[sS]erver 5000' | egrep -oe '^ *[0-9]+'`
+	-$(KILL_STATIC_SERVER)
 ifeq "$(PYTHON_VERSION)" "2"
 	cd ../evesrp && python -m SimpleHTTPServer 5000 > /dev/null &
 else
@@ -22,7 +30,7 @@ endif
 		-s webSecurityEnabled=false \
 		--no-color \
 		tests.html
-	kill `ps -A -o pid -o args| egrep -e '[0-9]+ python -m (Simple)?[hH][tT][tT][pP]\.?[sS]erver 5000' | egrep -oe '^ *[0-9]+'`
+	$(KILL_STATIC_SERVER)
 
 clean:
 	rm -f tests_*.js tests.html
