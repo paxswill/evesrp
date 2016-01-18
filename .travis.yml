@@ -1,6 +1,7 @@
 notifications:
-    - on_success: change
-    - on_failure: change
+    email:
+        on_success: change
+        on_failure: change
 
 language: python
 
@@ -52,6 +53,6 @@ before_script:
     - make all
 
 script:
-    - [ -z "$TEST_SUITE" ] && make test-javascript || make test-python
+    - /bin/sh -c "[ -z "$TEST_SUITE" ] && make test-javascript || make test-python"
 
 after_success: coveralls
