@@ -5,20 +5,6 @@ util = require '../evesrp/static/js/util'
 
 suite 'Utilities', () ->
 
-    test 'Should return the abbreviated month for the given int', () ->
-        assert.strictEqual (util.monthAbbr 0), 'Jan'
-        assert.strictEqual (util.monthAbbr 1), 'Feb'
-        assert.strictEqual (util.monthAbbr 2), 'Mar'
-        assert.strictEqual (util.monthAbbr 3), 'Apr'
-        assert.strictEqual (util.monthAbbr 4), 'May'
-        assert.strictEqual (util.monthAbbr 5), 'Jun'
-        assert.strictEqual (util.monthAbbr 6), 'Jul'
-        assert.strictEqual (util.monthAbbr 7), 'Aug'
-        assert.strictEqual (util.monthAbbr 8), 'Sep'
-        assert.strictEqual (util.monthAbbr 9), 'Oct'
-        assert.strictEqual (util.monthAbbr 10), 'Nov'
-        assert.strictEqual (util.monthAbbr 11), 'Dec'
-
     test 'Should return the Bootstrap color label for the given status', () ->
         assert.strictEqual (util.statusColor 'evaluating'), 'warning'
         assert.strictEqual (util.statusColor 'approved'), 'info'
