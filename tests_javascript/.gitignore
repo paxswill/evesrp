@@ -1,2 +1,4 @@
 tests.html
 test_*.js
+browserify.mk
+coverage/
