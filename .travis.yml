@@ -35,6 +35,7 @@ matrix:
         - python: "pypy3"
           env: DB="mysql+pymysql://root@127.0.0.1/evesrp_test"
         - env: TEST_SUITE="javascript"
+          python: "3.5"
     allow_failures:
         - python: "pypy"
         - python: "pypy3"
