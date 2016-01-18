@@ -1,13 +1,13 @@
 assert = require 'assert'
 sinon = require 'sinon'
 Handlebars = require 'handlebars'
-registerHelpers = (require '../evesrp/static/js/handlebars-helpers').registerHelpers
-
-
-registerHelpers(Handlebars)
 
 
 suite 'Handlebars Helpers', () ->
+
+    suiteSetup () ->
+        registerHelpers = (require '../evesrp/static/js/handlebars-helpers').registerHelpers
+        registerHelpers(Handlebars)
 
     test 'Should capitalize the first letter in a word', () ->
         template = Handlebars.compile '{{capitalize foo}}'
@@ -17,18 +17,30 @@ suite 'Handlebars Helpers', () ->
         assert.strictEqual template({foo: ' Foo'}), ' Foo'
 
     test 'Should format a date', () ->
-        template = Handlebars.compile '{{datefmt date}}'
-        assert.strictEqual template({date: '2015-08-24T00:00'}), '24 Aug 2015'
-        assert.strictEqual template({date: '2015-12-03T00:00'}), '03 Dec 2015'
-        assert.strictEqual template({date: '2015-01-24T00:00'}), '24 Jan 2015'
-        assert.strictEqual template({date: '2015-05-01T00:00'}), '01 May 2015'
-
-    test 'Should format a time', () ->
-        template = Handlebars.compile '{{timefmt date}}'
-        assert.strictEqual template({date: '2015-08-24T12:24'}), '12:24'
-        assert.strictEqual template({date: '2015-08-24T02:24'}), '02:24'
-        assert.strictEqual template({date: '2015-08-24T12:04'}), '12:04'
-        assert.strictEqual template({date: '2015-08-24T02:04'}), '02:04'
+        @timeout(10000)
+        # Set a language before importing common-ui and setting up the
+        # translations
+        document.documentElement.lang = 'en-US'
+        ui = require '../evesrp/static/js/common-ui'
+        ui.setupTranslations().done () ->
+            mediumTemplate = Handlebars.compile '{{datefmt date}}'
+            assert.strictEqual mediumTemplate({date: '2015-08-24T00:00Z'}),
+                'Aug 24, 2015, 12:00:00 AM'
+            assert.strictEqual mediumTemplate({date: '2015-12-03T00:00Z'}),
+                'Dec 3, 2015, 12:00:00 AM'
+            assert.strictEqual mediumTemplate({date: '2015-01-24T00:00Z'}),
+                'Jan 24, 2015, 12:00:00 AM'
+            assert.strictEqual mediumTemplate({date: '2015-05-01T00:00Z'}),
+                'May 1, 2015, 12:00:00 AM'
+            shortTemplate = Handlebars.compile "{{datefmt date style='short'}}"
+            assert.strictEqual shortTemplate({date: '2015-08-24T00:00Z'}),
+                '8/24/15, 12:00 AM'
+            assert.strictEqual shortTemplate({date: '2015-12-03T00:00Z'}),
+                '12/3/15, 12:00 AM'
+            assert.strictEqual shortTemplate({date: '2015-01-24T00:00Z'}),
+                '1/24/15, 12:00 AM'
+            assert.strictEqual shortTemplate({date: '2015-05-01T00:00Z'}),
+                '5/1/15, 12:00 AM'
 
     test 'Should display a Bootstrap color class for a status', () ->
         template = Handlebars.compile '{{status_color status}}'

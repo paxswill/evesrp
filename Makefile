@@ -4,7 +4,7 @@ SHELL := /bin/sh
 export PROJECT_ROOT := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 export NODE_MODULES := $(shell npm root)
 export PATH := $(NODE_MODULES)/.bin:$(PATH)
-SUBDIRS := evesrp/translations evesrp/static
+SUBDIRS := evesrp/translations evesrp/static tests_javascript
 
 .PHONY: all clean deep-clean doc-clean build-deps test test-python \
 	test-javascript docs $(SUBDIRS)
@@ -60,13 +60,7 @@ test-python:
 		-w tests_python
 	coverage html -d coverage-report
 
-test-javascript: 
-	mocha \
-		--compilers coffee:coffee-script/register \
-		--reporter dot \
-		--ui tdd \
-		--no-colors \
-		tests_javascript/test_*.coffee
+test-javascript: tests_javascript
 
 docs:
 	$(MAKE) -C doc html
