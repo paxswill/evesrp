@@ -4,7 +4,7 @@ SHELL := /bin/sh
 export PROJECT_ROOT := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 export NODE_MODULES := $(shell npm root)
 export PATH := $(NODE_MODULES)/.bin:$(PATH)
-SUBDIRS := evesrp/translations evesrp/static tests_javascript
+SUBDIRS := evesrp/translations evesrp/static
 
 .PHONY: all clean deep-clean doc-clean build-deps test test-python \
 	test-javascript docs $(SUBDIRS)
@@ -12,7 +12,7 @@ SUBDIRS := evesrp/translations evesrp/static tests_javascript
 all: docs messages.pot node_modules $(SUBDIRS)
 
 clean:
-	for DIR in $(SUBDIRS); do\
+	for DIR in $(SUBDIRS) tests_javascript; do\
 		$(MAKE) -C "$$DIR" clean; \
 	done
 	rm -f generated_messages.pot messages.pot
@@ -60,7 +60,8 @@ test-python:
 		-w tests_python
 	coverage html -d coverage-report
 
-test-javascript: tests_javascript
+test-javascript:
+	$(MAKE) -C tests_javascript
 
 docs:
 	$(MAKE) -C doc html
