@@ -5,6 +5,8 @@ TESTS_JS := $(TESTS_COFFEE:.coffee=.js)
 BROWSERIFY_OPTS := -t coffeeify -t hbsfy \
                    --extension=".coffee" \
                    --extension=".hbs"
+BROWSERIFY_COVER_OPTS := $(BROWSERIFY_OPTS) \
+                         -t [ browserify-istanbul --ignore **/*.hbs ]
 
 .PHONY: $(STATIC_JS)/evesrp.js all
 
@@ -29,17 +31,26 @@ endif
 	mocha-phantomjs \
 		-s webSecurityEnabled=false \
 		--no-color \
+		--hooks hooks.js \
 		tests.html
 	$(KILL_STATIC_SERVER)
+	istanbul report --root coverage lcovonly
 
 clean:
 	rm -f tests_*.js tests.html
+	rm -rf coverage
 
-$(STATIC_JS)/evesrp.js:
-	$(MAKE) -C $(STATIC_JS) evesrp.js
+browserify.mk: Makefile $(TESTS_COFFEE)
+	@echo "Creating browserify.mk"
+	@echo "evesrp.js: $(shell browserify $(addprefix -r ./,$(TESTS_COFFEE)) $(BROWSERIFY_OPTS) --list)" > $@
 
-%.js: %.coffee
-	browserify $(BROWSERIFY_OPTS) "$^" -o "$@"
+$(NODE_MODULES)/%:
+	node install
+
+-include browserify.mk
+
+%.js: %.coffee browserify.mk
+	browserify $(BROWSERIFY_COVER_OPTS) "$<" -o "$@"
 
 define newline
 
@@ -76,7 +87,7 @@ mocha.run();
 
 endef
 
-tests.html: $(TESTS_JS) $(STATIC_JS)/evesrp.js Makefile
+tests.html: $(TESTS_JS) Makefile
 	printf '$(subst $(newline),\n,${TEST_HTML_START})' > $@
 	printf "$(foreach test_js,$(TESTS_JS),\
 		<script src="$(test_js)"></script>)\n" >> $@

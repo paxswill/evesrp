@@ -28,6 +28,9 @@
     "zeroclipboard": "^2.2.0"
   },
   "devDependencies": {
+    "browserify-istanbul": "^0.2.1",
+    "coveralls": "^2.11.6",
+    "istanbul": "^0.4.2",
     "mocha": "^2.2.5",
     "mocha-phantomjs": "^4.0.2",
     "sinon": "^1.17.2"
