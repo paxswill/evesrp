@@ -2,22 +2,6 @@ jQuery = require 'jquery'
 _ = require 'underscore'
 
 
-exports.monthAbbr = (monthInt) ->
-    switch monthInt
-        when 0 then 'Jan'
-        when 1 then 'Feb'
-        when 2 then 'Mar'
-        when 3 then 'Apr'
-        when 4 then 'May'
-        when 5 then 'Jun'
-        when 6 then 'Jul'
-        when 7 then 'Aug'
-        when 8 then 'Sep'
-        when 9 then 'Oct'
-        when 10 then 'Nov'
-        when 11 then 'Dec'
-
-
 exports.statusColor = (status) ->
     switch status
         when 'evaluating' then 'warning'
