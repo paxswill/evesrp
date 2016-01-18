@@ -55,15 +55,15 @@ setupClipboard = () ->
     exports.client = client
 
 
-i18nPromise = null
+module.i18nPromise = null
 
 
 setupTranslations = () ->
-    if i18nPromise?
-        return i18nPromise
+    if module.i18nPromise?
+        return module.i18nPromise
     currentLang = document.documentElement.lang
-    setupFormats currentLang
-    i18nPromise = jQuery.ajax {
+    _globalizePromise = setupFormats currentLang
+    translationPromise = jQuery.ajax {
         type: 'GET'
         url: "#{ $SCRIPT_ROOT }/static/translations/#{ currentLang }.json"
         success: (data) ->
@@ -77,6 +77,8 @@ setupTranslations = () ->
                 domain: data.domain
             }
     }
+    module.i18nPromise = jQuery.when translationPromise, _globalizePromise
+    return module.i18nPromise
 
 
 globalizePromise = null
@@ -122,6 +124,7 @@ setupFormats = (locale) ->
         exports.dateFormatMedium = localeGlobalize.dateFormatter {
             datetime: 'medium'
         }
+    return globalizePromise
 
 
 attributeGettext = (attribute) ->
