@@ -18,7 +18,7 @@ render = (data) ->
         # TODO: WTH am I redoing a search I just did (for .copy-btn)?
         for btn in $copyButtons.find '.copy-btn'
             (jQuery btn).tooltip 'destroy'
-        $oldRows.remove ()
+        $oldRows.remove()
         
         if data.api_keys.length != 0
             $newRows = jQuery (apiKeyTemplate data)
