@@ -1,10 +1,10 @@
-BROWSERIFY_OPTS := -t coffeeify -t hbsfy \
-                   --extension=".coffee" \
-                   --extension=".hbs" \
-                   --exclude */evesrp/static/js*
 STATIC_JS := ../evesrp/static/js
 TESTS_COFFEE := $(notdir $(wildcard ./test_*.coffee))
 TESTS_JS := $(TESTS_COFFEE:.coffee=.js)
+
+BROWSERIFY_OPTS := -t coffeeify -t hbsfy \
+                   --extension=".coffee" \
+                   --extension=".hbs"
 
 .PHONY: $(STATIC_JS)/evesrp.js all
 

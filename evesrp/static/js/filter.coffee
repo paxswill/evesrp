@@ -343,6 +343,13 @@ createFilterBar = (selector) ->
         inPopState = false
 
 
+# Private exports
+exports._trimEmpty = trimEmpty
+exports._keyDifference = keyDifference
+exports._splitFilterString = splitFilterString
+exports._parseFilterString = parseFilterString
+exports._unParseFilters = unParseFilters
+# Public exports
 exports.getFilters = getFilters
 exports.updateURL = updateURL
 exports.createFilterBar = createFilterBar
