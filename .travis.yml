@@ -53,8 +53,6 @@ before_script:
     - mysql -e 'CREATE DATABASE evesrp_test;'
     - make all
 
-script:
-    - /bin/sh -c "[ -z "$TEST_SUITE" ] && make test-python || make test-javascript"
+script: make travis
 
-after_success:
-    - /bin/sh -c "[ -z "$TEST_SUITE" ] && coveralls || cat ./tests_javascript/coverage/lcov.info | ./node_modules/.bin/coveralls"
+after_success: make travis-success

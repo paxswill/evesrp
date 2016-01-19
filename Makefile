@@ -7,7 +7,7 @@ export NODE_BIN := $(shell npm bin)
 SUBDIRS := evesrp/translations evesrp/static
 
 .PHONY: all clean deep-clean doc-clean build-deps test test-python \
-	test-javascript docs $(SUBDIRS)
+	test-javascript docs travis travis-success $(SUBDIRS)
 
 all: docs messages.pot node_modules $(SUBDIRS)
 
@@ -65,6 +65,16 @@ test-javascript:
 
 docs:
 	$(MAKE) -C doc html
+
+ifneq (,$(findstring javascript,$(TEST_SUITE)))
+travis: test-javascript
+travis-success:
+	cat tests_javascript/coverage/lcov.info | $(NODE_BIN)/coveralls
+else
+travis: test-python
+travis-success:
+	coveralls
+endif
 
 generated_messages.pot: babel.cfg evesrp/*.py evesrp/*/*.py evesrp/templates/*.html
 	echo $?
