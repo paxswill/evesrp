@@ -45,7 +45,7 @@ browserify.mk: Makefile $(TESTS_COFFEE)
 	@echo "evesrp.js: $(shell $(NODE_BIN)/browserify $(addprefix -r ./,$(TESTS_COFFEE)) $(BROWSERIFY_OPTS) --list)" > $@
 
 $(NODE_MODULES)/%:
-	node install
+	npm install
 
 -include browserify.mk
 
