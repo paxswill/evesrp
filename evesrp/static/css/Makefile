@@ -1,4 +1,4 @@
-LESSC ?= lessc
+LESSC ?= $(NODE_BIN)/lessc
 LESSC_OPTS ?= --source-map \
 			  --source-map-less-inline \
 			  --source-map-basepath="$(PROJECT_ROOT)"

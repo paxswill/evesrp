@@ -20,7 +20,7 @@ clean:
 # a JSON file using "-" as the tag separator.
 define JSON_template
 $(1).json: $$(PROJECT_ROOT)evesrp/translations/$(subst -,_,$(1))/LC_MESSAGES/messages.po
-	po2json "$$<" "$$@" $$(PO2JSON_FLAGS)
+	$$(NODE_BIN)/po2json "$$<" "$$@" $$(PO2JSON_FLAGS)
 endef
 
 $(foreach locale,$(LOCALES),$(eval $(call JSON_template,$(locale))))

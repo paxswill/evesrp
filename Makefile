@@ -3,7 +3,7 @@
 SHELL := /bin/sh
 export PROJECT_ROOT := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 export NODE_MODULES := $(shell npm root)
-export PATH := $(NODE_MODULES)/.bin:$(PATH)
+export NODE_BIN := $(shell npm bin)
 SUBDIRS := evesrp/translations evesrp/static
 
 .PHONY: all clean deep-clean doc-clean build-deps test test-python \

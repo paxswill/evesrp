@@ -28,13 +28,13 @@ ifeq "$(PYTHON_VERSION)" "2"
 else
 	cd ../evesrp && python -m http.server 5000 > /dev/null &
 endif
-	mocha-phantomjs \
+	$(NODE_BIN)/mocha-phantomjs \
 		-s webSecurityEnabled=false \
 		--no-color \
 		--hooks hooks.js \
 		tests.html
 	$(KILL_STATIC_SERVER)
-	istanbul report --root coverage lcovonly
+	$(NODE_BIN)/istanbul report --root coverage lcovonly
 
 clean:
 	rm -f tests_*.js tests.html
@@ -42,7 +42,7 @@ clean:
 
 browserify.mk: Makefile $(TESTS_COFFEE)
 	@echo "Creating browserify.mk"
-	@echo "evesrp.js: $(shell browserify $(addprefix -r ./,$(TESTS_COFFEE)) $(BROWSERIFY_OPTS) --list)" > $@
+	@echo "evesrp.js: $(shell $(NODE_BIN)/browserify $(addprefix -r ./,$(TESTS_COFFEE)) $(BROWSERIFY_OPTS) --list)" > $@
 
 $(NODE_MODULES)/%:
 	node install
@@ -50,7 +50,7 @@ $(NODE_MODULES)/%:
 -include browserify.mk
 
 %.js: %.coffee browserify.mk
-	browserify $(BROWSERIFY_COVER_OPTS) "$<" -o "$@"
+	$(NODE_BIN)/browserify $(BROWSERIFY_COVER_OPTS) "$<" -o "$@"
 
 define newline
 

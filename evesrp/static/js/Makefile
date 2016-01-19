@@ -10,7 +10,7 @@ BOOTSTRAP = $(THIRDPARTY)/bootstrap/js
 all: evesrp.min.js
 
 browserify.mk: Makefile main.coffee
-	echo "evesrp.js: $(shell browserify main.coffee $(BROWSERIFY_OPTS) --list)" > $@
+	echo "evesrp.js: $(shell $(NODE_BIN)/browserify main.coffee $(BROWSERIFY_OPTS) --list)" > $@
 
 $(NODE_MODULES)/%:
 	node install
@@ -18,10 +18,10 @@ $(NODE_MODULES)/%:
 -include browserify.mk
 
 evesrp.js: main.coffee
-	browserify main.coffee $(BROWSERIFY_OPTS) -o evesrp.js
+	$(NODE_BIN)/browserify main.coffee $(BROWSERIFY_OPTS) -o evesrp.js
 
 evesrp.min.js: evesrp.js
-	uglifyjs evesrp.js \
+	$(NODE_BIN)/uglifyjs evesrp.js \
 		$(UGLIFY_OPTS) \
 		--output $@ \
 		--prefix relative \
