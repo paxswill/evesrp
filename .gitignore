@@ -8,3 +8,4 @@ test-report.html
 node_modules
 generated_messages.pot
 .coverage
+less.mk

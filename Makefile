@@ -1,10 +1,7 @@
 # Work around a bug in Apple's version of Make where setting PATH doesn't stick
 # unless SHELL is set first.
 SHELL := /bin/sh
-PROJECT_ROOT := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
-STATIC_DIR := evesrp/static
-NODE_MODULES := $(shell npm root)
-NODE_BIN := $(shell npm bin)
+include variables.mk
 
 PHONIES := all clean deep-clean doc-clean build-deps test test-python \
 	test-javascript docs travis travis-success sdist upload
@@ -76,5 +73,6 @@ node_modules node_modules/%: package.json
 	npm install
 
 include translations.mk
+include misc.mk
 
 .PHONY: $(PHONIES)
