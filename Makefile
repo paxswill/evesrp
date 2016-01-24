@@ -6,7 +6,7 @@ include variables.mk
 
 all:: docs
 
-deep-clean: doc-clean clean
+distclean:: clean doc-clean
 	rm -rf node_modules
 
 doc-clean:
@@ -60,7 +60,10 @@ travis-success:
 	coveralls
 endif
 
-node_modules node_modules/% $(NODE_BIN)/% (NODE_MODULES)/%: package.json
+$(NODE_MODULES): package.json
+	npm install
+
+$(NODE_MODULES)/%:
 	npm install
 
 include translations.mk
