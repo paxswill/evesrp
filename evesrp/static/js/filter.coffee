@@ -1,10 +1,10 @@
 jQuery = require 'jquery'
 _ = require 'underscore'
 require 'selectize'
-ui = require './common-ui'
-optionTemplate = require './templates/filter_option'
-itemTemplate = require './templates/filter_item'
-detailsTemplate = require './templates/filter_create'
+ui = require 'evesrp/common-ui'
+optionTemplate = require 'evesrp/templates/filter_option'
+itemTemplate = require 'evesrp/templates/filter_item'
+detailsTemplate = require 'evesrp/templates/filter_create'
 
 
 getAttributeChoices = (attribute) ->

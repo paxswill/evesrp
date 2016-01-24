@@ -2,9 +2,9 @@ unless global.jQuery?
     global.jQuery = require 'jquery'
 require 'bootstrap/js/tooltip'
 require 'bootstrap/js/popover'
-ui = require './common-ui'
-filter = require './filter'
-payoutTemplate = require './templates/payout_panel'
+ui = require 'evesrp/common-ui'
+filter = require 'evesrp/filter'
+payoutTemplate = require 'evesrp/templates/payout_panel'
 
 
 # Initialize to parse time, trying to prevent refreshes immediately upon

@@ -3,8 +3,8 @@ Handlebars = require 'handlebars/runtime'
 _ = require 'underscore'
 capitalize = require 'underscore.string/capitalize'
 sprintf = require 'underscore.string/sprintf'
-util = require './util'
-ui = require './common-ui'
+util = require 'evesrp/util'
+ui = require 'evesrp/common-ui'
 
 
 csrf = () -> 

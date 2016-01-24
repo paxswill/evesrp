@@ -3,15 +3,15 @@ unless global.jQuery?
 require 'bootstrap/js/tooltip'
 require 'bootstrap/js/dropdown'
 require 'bootstrap/js/modal'
-util = require './util'
-ui = require './common-ui'
+util = require 'evesrp/util'
+ui = require 'evesrp/common-ui'
 capitalize = require 'underscore.string/capitalize'
 sprintf = require 'underscore.string/sprintf'
-actionMenuTemplate = require './templates/action_menu'
-actionsTemplate = require './templates/actions'
-voidedModifierTemplate = require './templates/voided_modifier'
-voidableModifierTemplate = require './templates/voidable_modifier'
-modifierTemplate = require './templates/modifier'
+actionMenuTemplate = require 'evesrp/templates/action_menu'
+actionsTemplate = require 'evesrp/templates/actions'
+voidedModifierTemplate = require 'evesrp/templates/voided_modifier'
+voidableModifierTemplate = require 'evesrp/templates/voidable_modifier'
+modifierTemplate = require 'evesrp/templates/modifier'
 
 
 render = (request) ->

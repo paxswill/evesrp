@@ -7,15 +7,15 @@ require 'bootstrap/js/transition'
 require 'bootstrap/js/collapse'
 
 Handlebars = require 'hbsfy/runtime'
-registerHelpers = (require './handlebars-helpers').registerHelpers
+registerHelpers = (require 'evesrp/handlebars-helpers').registerHelpers
 registerHelpers Handlebars
 
-ui = require './common-ui'
-division = require './division'
-request = require './request'
-filter = require './filter'
-requestList = require './requestList'
-payouts = require './payouts'
+ui = require 'evesrp/common-ui'
+division = require 'evesrp/division'
+request = require 'evesrp/request'
+filter = require 'evesrp/filter'
+requestList = require 'evesrp/requestList'
+payouts = require 'evesrp/payouts'
 
 unless (jQuery '#mocha').length != 0
     ui.setupEvents()

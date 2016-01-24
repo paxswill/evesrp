@@ -1,8 +1,8 @@
 jQuery = require 'jquery'
 require 'selectize'
-ui = require './common-ui'
-entityTableTemplate = require './templates/entity_table'
-entityOptionTemplate = require './templates/entity_option'
+ui = require 'evesrp/common-ui'
+entityTableTemplate = require 'evesrp/templates/entity_table'
+entityOptionTemplate = require 'evesrp/templates/entity_option'
 
 
 render = (entities) ->

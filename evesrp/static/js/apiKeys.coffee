@@ -1,8 +1,8 @@
 unless global.jQuery?
     global.jQuery = require 'jquery'
 require 'bootstrap/js/tooltip'
-ui = require './common-ui'
-apiKeyTemplate = require './templates/api_keys'
+ui = require 'evesrp/common-ui'
+apiKeyTemplate = require 'evesrp/templates/api_keys'
 
 
 render = (data) ->

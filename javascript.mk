@@ -3,6 +3,7 @@ include variables.mk
 
 ##### Client File Pipeline #####
 JS_DIR := $(STATIC_DIR)/js
+REAL_JS_DIR := $(realpath ./$(JS_DIR))
 ifndef DEBUG
 UGLIFY_OPTS ?= -m -c
 endif
@@ -39,8 +40,8 @@ $(JS_DIR)/evesrp.js:
 $(NODE_MODULES)/%:
 	npm install
 
-testing:
-	echo $(PROJECT_ROOT)
+$(NODE_MODULES)/evesrp:
+	ln -s $(REAL_JS_DIR) $@
 
 $(JS_DIR)/evesrp.min.js: $(JS_DIR)/evesrp.js
 	$(NODE_BIN)/uglifyjs $(JS_DIR)/evesrp.js \

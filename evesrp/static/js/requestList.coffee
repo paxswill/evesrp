@@ -1,10 +1,10 @@
 jQuery = require 'jquery'
 _ = require 'underscore'
 sprintf = require 'underscore.string/sprintf'
-util = require './util'
-ui = require './common-ui'
-filter = require './filter'
-rowsTemplate = require './templates/request_rows'
+util = require 'evesrp/util'
+ui = require 'evesrp/common-ui'
+filter = require 'evesrp/filter'
+rowsTemplate = require 'evesrp/templates/request_rows'
 
 
 pageSize = 15
