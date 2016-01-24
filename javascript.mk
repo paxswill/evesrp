@@ -12,8 +12,7 @@ BROWSERIFY_OPTS := -t coffeeify -t hbsfy \
                    --extension=".coffee" \
                    --extension=".hbs"
 BROWSERIFY ?= $(NODE_BIN)/browserify
-COFFEE_FILES := $(wildcard $(JSDIR)/*.coffee)
-HANDLEBARS_FILES := $(wildcard $(JSDIR)/templates/*.hbs)
+COFFEE_FILES := $(wildcard $(JS_DIR)/*.coffee)
 
 all:: $(JS_DIR)/evesrp.min.js
 
