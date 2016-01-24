@@ -51,6 +51,11 @@ $(JS_DIR)/evesrp.min.js: $(JS_DIR)/evesrp.js
 ##### Javascript testing
 TESTS_COFFEE := $(wildcard tests_javascript/test_*.coffee)
 TESTS_JS := $(TESTS_COFFEE:.coffee=.js)
+ifeq "$(TRAVIS)" "true"
+PHANTOMJS := $(HOME)/phantomjs
+else
+PHANTOMJS := $(NODE_MODULES)/phantomjs2/bin/phantomjs
+endif
 
 PYTHON_VERSION := $(shell python -c \
 	"from __future__ import print_function; \
@@ -76,7 +81,7 @@ endif
 		-s webSecurityEnabled=false \
 		--no-color \
 		--hooks tests_javascript/hooks.js \
-		--path $(NODE_MODULES)/phantomjs2/bin/phantomjs \
+		--path $(PHANTOMJS) \
 		$<
 	$(KILL_STATIC_SERVER)
 	$(NODE_BIN)/istanbul report \

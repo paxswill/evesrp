@@ -43,6 +43,11 @@ matrix:
           env: DB="mysql+mysqldb://root@127.0.0.1/evesrp_test"
     fast_finish: true
 
+before_install:
+    - wget https://s3.amazonaws.com/travis-phantomjs/phantomjs-2.0.0-ubuntu-12.04.tar.bz2
+    - tar -xjf phantomjs-2.0.0-ubuntu-12.04.tar.bz2
+    - mv phantomjs $HOME/phantomjs
+
 install:
     - nvm install 5.3.0
     - npm install -g npm@latest
