@@ -60,7 +60,7 @@ travis-success:
 	coveralls
 endif
 
-node_modules node_modules/% $(NODE_BIN)/% %(NODE_MODULES)/%: package.json
+node_modules node_modules/% $(NODE_BIN)/% (NODE_MODULES)/%: package.json
 	npm install
 
 include translations.mk

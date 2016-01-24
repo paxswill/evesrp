@@ -11,7 +11,7 @@ all:: $(CSS_DIR)/evesrp.css
 clean::
 	rm -f $(CSS_DIR)/evesrp.css $(CSS_DIR)/evesrp.css.map
 
-less.mk: $(CSS_DIR)/custom.less $(LESSC)
+less.mk: $(CSS_DIR)/custom.less
 	$(LESSC) \
 		--include-path="$(NODE_MODULES)" \
 		--depends \
