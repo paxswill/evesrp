@@ -18,6 +18,7 @@ endif
 clean::
 	rm -fv $(TRANSLATIONS_DIR)/*/LC_MESSAGES/messages.mo
 	rm -fv $(TRANSLATIONS_DIR)/en_CA/LC_MESSAGES/messages.po
+	rm -fv messages.pot generated_messages.pot
 
 $(MO_FILES): %.mo: %.po
 	pybabel compile \
