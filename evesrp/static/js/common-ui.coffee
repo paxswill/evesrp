@@ -88,42 +88,54 @@ setupFormats = (locale) ->
     # This chunk of code is lightly modified from the globalize docs
     if globalizePromise?
         return globalizePromise
+    # Load likelySubtags in to Globalize first, then create the instance to see
+    # what normalized language tag Globalize/CLDR is expecting. From there we
+    # use that language tag to download the correct language. See link for more
+    # details: https://gist.github.com/rxaviers/bb143a6715d1392ecc96
     cldrRoot = "#{ scriptRoot }/static/cldr"
-    cldrGet = jQuery.when(
-        jQuery.getJSON("#{ cldrRoot }/main/#{ locale }/ca-gregorian.json"),
-        jQuery.getJSON("#{ cldrRoot }/main/#{ locale }/timeZoneNames.json"),
-        jQuery.getJSON("#{ cldrRoot }/main/#{ locale }/numbers.json"),
-        jQuery.getJSON("#{ cldrRoot }/supplemental/likelySubtags.json"),
-        jQuery.getJSON("#{ cldrRoot }/supplemental/numberingSystems.json"),
-        jQuery.getJSON("#{ cldrRoot }/supplemental/timeData.json"),
-        jQuery.getJSON("#{ cldrRoot }/supplemental/weekData.json")
-    )
-    globalizePromise = cldrGet.done () ->
-        argsArray = [].slice.apply arguments, [0]
-        argsArray.map (data) -> Globalize.load data[0]
+    subTagsGet = jQuery.getJSON "#{ cldrRoot }/supplemental/likelySubtags.json"
+    globalizePromise = jQuery.Deferred()
+    subTagsGet.done (data) ->
+        Globalize.load data
         localeGlobalize = new Globalize locale
-        # The only currency we're formatting is Eve ISK, which is a fictional
-        # currency (so it won't be in the CLDR data, and I don't want to write
-        # my own data file).
-        exports.currencyFormat = localeGlobalize.numberFormatter {
-            style: 'decimal'
-            maximumFractionDigits: 2
-            minimumFractionDigits: 2
-            round: 'truncate'
-            useGrouping: true
-        }
-        exports.percentFormat = localeGlobalize.numberFormatter {
-            style: 'percent'
-        }
-        exports.numberFormat = localeGlobalize.numberFormatter {
-            style: 'decimal'
-        }
-        exports.dateFormatShort = localeGlobalize.dateFormatter {
-            datetime: 'short'
-        }
-        exports.dateFormatMedium = localeGlobalize.dateFormatter {
-            datetime: 'medium'
-        }
+        # Note: the Gist above uses languageID, but it seems Globalize has
+        # moved on and now uses minlanguageID (note the lower-case 'L').
+        languageTag = localeGlobalize.cldr.attributes.minlanguageId
+        cldrGet = jQuery.when(
+            jQuery.getJSON("#{ cldrRoot }/main/#{ languageTag }/ca-gregorian.json"),
+            jQuery.getJSON("#{ cldrRoot }/main/#{ languageTag }/timeZoneNames.json"),
+            jQuery.getJSON("#{ cldrRoot }/main/#{ languageTag }/numbers.json"),
+            jQuery.getJSON("#{ cldrRoot }/supplemental/numberingSystems.json"),
+            jQuery.getJSON("#{ cldrRoot }/supplemental/timeData.json"),
+            jQuery.getJSON("#{ cldrRoot }/supplemental/weekData.json")
+        )
+        cldrGet.done () ->
+            argsArray = [].slice.apply arguments, [0]
+            argsArray.map (data) -> Globalize.load data[0]
+            localeGlobalize = new Globalize locale
+            # The only currency we're formatting is Eve ISK, which is a fictional
+            # currency (so it won't be in the CLDR data, and I don't want to write
+            # my own data file).
+            exports.currencyFormat = localeGlobalize.numberFormatter {
+                style: 'decimal'
+                maximumFractionDigits: 2
+                minimumFractionDigits: 2
+                round: 'truncate'
+                useGrouping: true
+            }
+            exports.percentFormat = localeGlobalize.numberFormatter {
+                style: 'percent'
+            }
+            exports.numberFormat = localeGlobalize.numberFormatter {
+                style: 'decimal'
+            }
+            exports.dateFormatShort = localeGlobalize.dateFormatter {
+                datetime: 'short'
+            }
+            exports.dateFormatMedium = localeGlobalize.dateFormatter {
+                datetime: 'medium'
+            }
+            globalizePromise.resolve()
     return globalizePromise
 
 

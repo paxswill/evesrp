@@ -124,20 +124,14 @@ SHARED_FILES := \
 	$(STATIC_CLDR)/supplemental/weekData.json
 
 NUMBERS_TEMPLATE = $(STATIC_CLDR)/main/$(locale)/numbers.json
-NO_US_NUMBERS := $(foreach \
-	locale,$(filter-out en-US,$(DASH_LOCALES)), $(NUMBERS_TEMPLATE))
-US_NUMBERS := $(foreach \
-	locale,$(filter en-US,$(DASH_LOCALES)), $(NUMBERS_TEMPLATE))
-NUMBERS_FILES := $(NO_US_NUMBERS) $(US_NUMBERS)
+NUMBERS_FILES := $(foreach \
+	locale,$(subst en-US,en,$(DASH_LOCALES)), $(NUMBERS_TEMPLATE))
 
 DATES_TEMPLATE = \
 	$(STATIC_CLDR)/main/$(locale)/ca-gregorian.json \
 	$(STATIC_CLDR)/main/$(locale)/timeZoneNames.json
-NO_US_DATES := $(foreach \
-	locale,$(filter-out en-US,$(DASH_LOCALES)), $(DATES_TEMPLATE))
-US_DATES := $(foreach \
-	locale,$(filter en-US,$(DASH_LOCALES)), $(DATES_TEMPLATE))
-DATES_FILES := $(NO_US_DATES) $(US_DATES)
+DATES_FILES := $(foreach \
+	locale,$(subst en-US,en,$(DASH_LOCALES)), $(DATES_TEMPLATE))
 
 all:: $(SHARED_FILES) $(NUMBERS_FILES) $(DATES_FILES)
 ifndef DEBUG
@@ -151,22 +145,10 @@ $(SHARED_FILES): $(STATIC_CLDR)/%: $(CLDR_CORE)/%
 	mkdir -p "$(dir $@)"
 	cp "$^" "$@"
 
-$(NO_US_NUMBERS): $(STATIC_CLDR)/%: $(CLDR_NUMBERS)/%
+$(NUMBERS_FILES): $(STATIC_CLDR)/%: $(CLDR_NUMBERS)/%
 	mkdir -p "$(dir $@)"
 	cp "$^" "$@"
 
-$(NO_US_DATES): $(STATIC_CLDR)/%: $(CLDR_DATES)/%
+$(DATES_FILES): $(STATIC_CLDR)/%: $(CLDR_DATES)/%
 	mkdir -p "$(dir $@)"
 	cp "$^" "$@"
-
-$(STATIC_CLDR)/main/en-US/numbers.json: $(CLDR_NUMBERS)/main/en-US-POSIX/numbers.json
-	mkdir -p "$(dir $@)"
-	sed s/en-US-POSIX/en-US/g "$^" > "$@"
-
-$(STATIC_CLDR)/main/en-US/ca-gregorian.json: $(CLDR_DATES)/main/en-US-POSIX/ca-gregorian.json
-	mkdir -p "$(dir $@)"
-	sed s/en-US-POSIX/en-US/g "$^" > "$@"
-
-$(STATIC_CLDR)/main/en-US/timeZoneNames.json: $(CLDR_DATES)/main/en-US-POSIX/timeZoneNames.json
-	mkdir -p "$(dir $@)"
-	sed s/en-US-POSIX/en-US/g "$^" > "$@"
