@@ -153,7 +153,7 @@ mocha.run();
 
 endef
 
-tests_javascript/tests.html: $(TESTS_JS) Makefile
+tests_javascript/tests.html: $(TESTS_JS) javascript.mk
 	printf '$(subst $(newline),\n,${TEST_HTML_START})' > $@
 	printf "$(foreach test_js,$(TESTS_JS),\
 		<script src="$(subst tests_javascript/,,$(test_js))"></script>)\n" >> $@

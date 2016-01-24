@@ -1,3 +1,6 @@
+include variables.mk
+
+
 TRANSLATIONS_DIR := evesrp/translations
 UNDER_LOCALES := $(notdir $(wildcard $(TRANSLATIONS_DIR)/*))
 ifdef DEBUG
