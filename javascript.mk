@@ -71,7 +71,9 @@ KILL_STATIC_SERVER := kill \
 
 test:: test-javascript
 
-test-javascript: tests_javascript/tests.html
+test-javascript: tests_javascript/tests.html tests_javascript/evesrp.test.js
+test-javascript: $(SHARED_FILES) $(NUMBERS_FILES) $(DATES_FILES) $(JSON_LOCALES)
+test-javascript:
 	# kill any lingering static servers
 	-$(KILL_STATIC_SERVER)
 ifeq "$(PYTHON_VERSION)" "2"
@@ -149,7 +151,7 @@ mocha.run();
 
 endef
 
-tests_javascript/tests.html: $(TESTS_JS) Makefile tests_javascript/evesrp.test.js
+tests_javascript/tests.html: $(TESTS_JS) Makefile
 	printf '$(subst $(newline),\n,${TEST_HTML_START})' > $@
 	printf "$(foreach test_js,$(TESTS_JS),\
 		<script src="$(subst tests_javascript/,,$(test_js))"></script>)\n" >> $@

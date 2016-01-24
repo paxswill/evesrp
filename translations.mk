@@ -84,12 +84,14 @@ generated_messages.pot: babel.cfg evesrp/*.py evesrp/*/*.py evesrp/templates/*.h
 # STATIC_DIR is defined in the parent Makefile
 JSON_TRANSLATIONS_DIR := $(STATIC_DIR)/translations
 DASH_LOCALES := $(subst _,-,$(UNDER_LOCALES))
+JSON_LOCALES := $(foreach \
+	lang,$(DASH_LOCALES),$(JSON_TRANSLATIONS_DIR)/$(lang).json)
 PO2JSON_FLAGS := --fuzzy --format jed1.x --domain messages
 ifdef DEBUG
 PO2JSON_FLAGS += --pretty
 endif
 
-all:: $(foreach lang,$(DASH_LOCALES),$(JSON_TRANSLATIONS_DIR)/$(lang).json)
+all:: $(JSON_LOCALES)
 ifndef DEBUG
 	rm -fv $(JSON_TRANSLATIONS_DIR)/en-CA.json
 endif
