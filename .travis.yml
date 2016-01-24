@@ -18,6 +18,8 @@ env:
 
 matrix:
     include:
+        - env: TEST_SUITE="javascript"
+          python: "3.5"
         - python: "2.7"
           env: DB="mysql+mysqldb://root@127.0.0.1/evesrp_test"
         - python: "3.3"
@@ -34,8 +36,6 @@ matrix:
           env: DB="postgresql+pg8000://postgres@127.0.0.1/evesrp_test"
         - python: "pypy3"
           env: DB="mysql+pymysql://root@127.0.0.1/evesrp_test"
-        - env: TEST_SUITE="javascript"
-          python: "3.5"
     allow_failures:
         - python: "pypy"
         - python: "pypy3"
