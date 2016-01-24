@@ -1,4 +1,5 @@
 tests.html
 test_*.js
+evesrp.test.js
 browserify.mk
 coverage/

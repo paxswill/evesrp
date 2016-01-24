@@ -6,7 +6,7 @@ Handlebars = require 'handlebars'
 suite 'Handlebars Helpers', () ->
 
     suiteSetup () ->
-        registerHelpers = (require '../evesrp/static/js/handlebars-helpers').registerHelpers
+        registerHelpers = (require 'evesrp/handlebars-helpers').registerHelpers
         registerHelpers(Handlebars)
 
     test 'Should capitalize the first letter in a word', () ->
@@ -21,7 +21,7 @@ suite 'Handlebars Helpers', () ->
         # Set a language before importing common-ui and setting up the
         # translations
         document.documentElement.lang = 'en-US'
-        ui = require '../evesrp/static/js/common-ui'
+        ui = require 'evesrp/common-ui'
         ui.setupTranslations().done () ->
             mediumTemplate = Handlebars.compile '{{datefmt date}}'
             assert.strictEqual mediumTemplate({date: '2015-08-24T00:00Z'}),

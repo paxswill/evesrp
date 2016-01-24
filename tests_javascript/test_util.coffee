@@ -1,6 +1,6 @@
 assert = require 'assert'
 sinon = require 'sinon'
-util = require '../evesrp/static/js/util'
+util = require 'evesrp/util'
 
 suite 'Utilities', () ->
 

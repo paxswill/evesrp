@@ -1,6 +1,6 @@
 assert = require 'assert'
 _ = require 'underscore'
-filter = require '../evesrp/static/js/filter'
+filter = require 'evesrp/filter'
 
 suite 'Filtering', () ->
 

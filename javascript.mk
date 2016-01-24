@@ -29,12 +29,12 @@ BROWSERIFY_MAKEFILE_CMD = $(NODE_BIN)/browserify $(JS_DIR)/main.coffee $(BROWSER
 
 browserify.mk:
 	@printf "Creating browserify.mk..."
-	@printf "evesrp.js: $(shell $(BROWSERIFY_MAKEFILE_CMD))" > $@
+	@printf "$(JS_DIR)/evesrp.js tests_javascript/evesrp.test.js: $(shell $(BROWSERIFY_MAKEFILE_CMD))" > $@
 	@printf "done\n"
 
-# The dependencies for evesrp.js are included from the 
+# The dependencies for evesrp.js are included from browserify.mk
 $(JS_DIR)/evesrp.js:
-	$(BROWSERIFY) $(JS_DIR)/main.coffee $(BROWSERIFY_OPTS) -o $@
+	$(BROWSERIFY) -e $(JS_DIR)/main.coffee $(BROWSERIFY_OPTS) -o $@
 
 
 $(NODE_MODULES)/%:
@@ -55,8 +55,6 @@ $(JS_DIR)/evesrp.min.js: $(JS_DIR)/evesrp.js
 ##### Javascript testing
 TESTS_COFFEE := $(wildcard tests_javascript/test_*.coffee)
 TESTS_JS := $(TESTS_COFFEE:.coffee=.js)
-BROWSERIFY_COVER_OPTS := $(BROWSERIFY_OPTS) \
-                         -t [ browserify-istanbul --ignore **/*.hbs ]
 
 PYTHON_VERSION := $(shell python -c \
 	"from __future__ import print_function; \
@@ -90,11 +88,27 @@ endif
 		lcovonly
 
 clean::
-	rm -f tests_javascript/tests_*.js tests_javascript/tests.html
+	rm -f \
+		tests_javascript/tests_*.js \
+		evesrp.test.js \
+		tests_javascript/tests.html
 	rm -rf tests_javascript/coverage
 
-$(TESTS_JS): %.js: %.coffee $(COFFEE_FILES)
-	$(NODE_BIN)/browserify $(BROWSERIFY_COVER_OPTS) "$<" -o "$@"
+# Instrument evesrp.test.js for code coverage
+tests_javascript/evesrp.test.js: BROWSERIFY_OPTS += \
+	-t [ browserify-istanbul --ignore **/*.hbs ] \
+	$(foreach mod,$(COFFEE_FILES), \
+		-r ./$(mod):evesrp/$(basename $(notdir $(mod))))
+
+tests_javascript/evesrp.test.js:
+	$(BROWSERIFY) -e $(JS_DIR)/main.coffee $(BROWSERIFY_OPTS) -o $@
+
+# This excludes the evesrp.js files from the test bundles
+$(TESTS_JS): BROWSERIFY_OPTS += $(foreach \
+	mod,$(basename $(notdir $(COFFEE_FILES))),-x evesrp/$(mod))
+
+$(TESTS_JS): %.js: %.coffee $(COFFEE_FILES) $(NODE_MODULES)/evesrp
+	$(BROWSERIFY) $(BROWSERIFY_OPTS) "$<" -o "$@"
 
 define newline
 
@@ -113,7 +127,7 @@ define TEST_HTML_START
     <div id="mocha"></div>
     <script>$$SCRIPT_ROOT = \"http://localhost:5000\";</script>
     <script src="../node_modules/mocha/mocha.js"></script>
-    <script src="$(realpath ./$(JS_DIR)/evesrp.js)"></script>
+    <script src="./evesrp.test.js"></script>
     <script>mocha.setup("tdd")</script>
 
 endef
@@ -131,7 +145,7 @@ mocha.run();
 
 endef
 
-tests_javascript/tests.html: $(TESTS_JS) Makefile
+tests_javascript/tests.html: $(TESTS_JS) Makefile tests_javascript/evesrp.test.js
 	printf '$(subst $(newline),\n,${TEST_HTML_START})' > $@
 	printf "$(foreach test_js,$(TESTS_JS),\
 		<script src="$(subst tests_javascript/,,$(test_js))"></script>)\n" >> $@
