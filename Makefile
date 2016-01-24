@@ -14,6 +14,7 @@ doc-clean:
 
 build-deps: node_modules
 	pip install -r requirements.txt
+	npm install
 	./scripts/mariadb.sh
 ifneq (,$(findstring psycopg2,$(DB)))
 	pip install psycopg2
@@ -59,7 +60,7 @@ travis-success:
 	coveralls
 endif
 
-node_modules node_modules/%: package.json
+node_modules node_modules/% $(NODE_BIN)/% %(NODE_MODULES)/%: package.json
 	npm install
 
 include translations.mk

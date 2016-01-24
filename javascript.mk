@@ -26,7 +26,7 @@ BROWSERIFY_MAKEFILE_CMD = $(NODE_BIN)/browserify $(JS_DIR)/main.coffee $(BROWSER
 	sed s,$(PROJECT_ROOT)/,, | \
 	tr '\n' ' '
 
-browserify.mk:
+browserify.mk: $(BROWSERIFY)
 	@printf "Creating browserify.mk..."
 	@printf "$(JS_DIR)/evesrp.js tests_javascript/evesrp.test.js: $(shell $(BROWSERIFY_MAKEFILE_CMD))" > $@
 	@printf "done\n"
@@ -35,9 +35,6 @@ browserify.mk:
 $(JS_DIR)/evesrp.js:
 	$(BROWSERIFY) -e $(JS_DIR)/main.coffee $(BROWSERIFY_OPTS) -o $@
 
-
-$(NODE_MODULES)/%:
-	npm install
 
 $(NODE_MODULES)/evesrp:
 	ln -s $(REAL_JS_DIR) $@
