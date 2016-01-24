@@ -9,3 +9,4 @@ node_modules
 generated_messages.pot
 .coverage
 less.mk
+browserify.mk

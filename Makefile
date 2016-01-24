@@ -1,9 +1,7 @@
-# Work around a bug in Apple's version of Make where setting PATH doesn't stick
-# unless SHELL is set first.
 SHELL := /bin/sh
 include variables.mk
 
-PHONIES := all clean deep-clean doc-clean build-deps test test-python \
+.PHONY: all clean deep-clean doc-clean build-deps test test-python \
 	test-javascript docs travis travis-success sdist upload
 
 all:: docs
@@ -40,7 +38,7 @@ sdist: $(SUBDIRS) setup.py
 upload: $(SUBDIRS) setup.py
 	python setup.py sdist upload
 
-test: test-python test-javascript
+test:: test-python test-javascript
 
 test-python:
 	nosetests \
@@ -52,9 +50,6 @@ test-python:
 		--cover-package=evesrp \
 		-w tests_python
 	coverage html -d coverage-report
-
-test-javascript:
-	$(MAKE) -C tests_javascript
 
 docs:
 	$(MAKE) -C doc html
@@ -74,5 +69,4 @@ node_modules node_modules/%: package.json
 
 include translations.mk
 include misc.mk
-
-.PHONY: $(PHONIES)
+include javascript.mk
