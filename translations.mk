@@ -161,12 +161,12 @@ $(NO_US_DATES): $(STATIC_CLDR)/%: $(CLDR_DATES)/%
 
 $(STATIC_CLDR)/main/en-US/numbers.json: $(CLDR_NUMBERS)/main/en-US-POSIX/numbers.json
 	mkdir -p "$(dir $@)"
-	cp "$^" "$@"
+	sed s/en-US-POSIX/en-US/g "$^" > "$@"
 
 $(STATIC_CLDR)/main/en-US/ca-gregorian.json: $(CLDR_DATES)/main/en-US-POSIX/ca-gregorian.json
 	mkdir -p "$(dir $@)"
-	cp "$^" "$@"
+	sed s/en-US-POSIX/en-US/g "$^" > "$@"
 
 $(STATIC_CLDR)/main/en-US/timeZoneNames.json: $(CLDR_DATES)/main/en-US-POSIX/timeZoneNames.json
 	mkdir -p "$(dir $@)"
-	cp "$^" "$@"
+	sed s/en-US-POSIX/en-US/g "$^" > "$@"
