@@ -7,6 +7,7 @@ test-report.html
 *.mo
 node_modules
 generated_messages.pot
+messages.pot
 .coverage
 less.mk
 browserify.mk
