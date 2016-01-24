@@ -80,6 +80,7 @@ endif
 		-s webSecurityEnabled=false \
 		--no-color \
 		--hooks tests_javascript/hooks.js \
+		--path $(NODE_MODULES)/phantomjs2/bin/phantomjs \
 		$<
 	$(KILL_STATIC_SERVER)
 	$(NODE_BIN)/istanbul report \
