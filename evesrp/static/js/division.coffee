@@ -60,7 +60,7 @@ createEntitySelect = (selector) ->
     # Get opions first
     entitiesRequest = jQuery.ajax {
         type: 'GET'
-        url: "#{ $SCRIPT_ROOT }/api/entities/"
+        url: "#{ scriptRoot }/api/entities/"
     }
     entitiesRequest.done (data, textStatus, jqxhr) ->
         (jQuery selector).selectize {

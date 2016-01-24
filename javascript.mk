@@ -127,7 +127,7 @@ define TEST_HTML_START
   </head>
   <body>
     <div id="mocha"></div>
-    <script>$$SCRIPT_ROOT = \"http://localhost:5000\";</script>
+    <script type="text/javascript">scriptRoot = "http://localhost:5000";</script>
     <script src="../node_modules/mocha/mocha.js"></script>
     <script src="./evesrp.test.js"></script>
     <script>mocha.setup("tdd")</script>

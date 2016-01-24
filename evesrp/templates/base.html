@@ -156,10 +156,8 @@
     {% endblock stats %}
     {% endblock body %}
     {% block scripts %}
-    <!-- $SCRIPT_ROOT is the root of this application, wherever it it -->
-    <script type="text/javascript">
-      $SCRIPT_ROOT = {{ request.script_root|tojson }};
-    </script>
+    <!-- scriptRoot is the root of this application, wherever it it -->
+    <script type="text/javascript">scriptRoot = {{ request.script_root|tojson }};</script>
     <script type="text/javascript" src="{{ static_file('js/evesrp.min.js') }}"></script>
     {% endblock scripts %}
   </body>

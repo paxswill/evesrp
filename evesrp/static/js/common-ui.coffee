@@ -50,7 +50,7 @@ setupEvents = () ->
 
 
 setupClipboard = () ->
-    ZeroClipboard.config {swfPath: "#{ $SCRIPT_ROOT }/static/ZeroClipboard.swf"}
+    ZeroClipboard.config {swfPath: "#{ scriptRoot }/static/ZeroClipboard.swf"}
     client = new ZeroClipboard (jQuery '.copy-btn')
     exports.client = client
 
@@ -65,7 +65,7 @@ setupTranslations = () ->
     _globalizePromise = setupFormats currentLang
     translationPromise = jQuery.ajax {
         type: 'GET'
-        url: "#{ $SCRIPT_ROOT }/static/translations/#{ currentLang }.json"
+        url: "#{ scriptRoot }/static/translations/#{ currentLang }.json"
         success: (data) ->
             exports.i18n = new Jed {
                 missing_key_callback: (key, domain) ->
@@ -88,7 +88,7 @@ setupFormats = (locale) ->
     # This chunk of code is lightly modified from the globalize docs
     if globalizePromise?
         return globalizePromise
-    cldrRoot = "#{ $SCRIPT_ROOT }/static/cldr"
+    cldrRoot = "#{ scriptRoot }/static/cldr"
     cldrGet = jQuery.when(
         jQuery.getJSON("#{ cldrRoot }/main/#{ locale }/ca-gregorian.json"),
         jQuery.getJSON("#{ cldrRoot }/main/#{ locale }/timeZoneNames.json"),

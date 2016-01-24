@@ -24,7 +24,7 @@ getAttributeChoices = (attribute) ->
     else
         return jQuery.ajax {
             type: 'GET'
-            url: "#{ $SCRIPT_ROOT }/api/filter/#{ attribute }/"
+            url: "#{ scriptRoot }/api/filter/#{ attribute }/"
         }
 
 
