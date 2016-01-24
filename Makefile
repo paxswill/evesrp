@@ -6,11 +6,6 @@ include variables.mk
 
 all:: docs
 
-clean::
-	for DIR in $(SUBDIRS) tests_javascript; do\
-		$(MAKE) -C "$$DIR" clean; \
-	done
-
 deep-clean: doc-clean clean
 	rm -rf node_modules
 
