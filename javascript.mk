@@ -32,7 +32,7 @@ browserify.mk: $(BROWSERIFY)
 	@printf "done\n"
 
 # The dependencies for evesrp.js are included from browserify.mk
-$(JS_DIR)/evesrp.js:
+$(JS_DIR)/evesrp.js: $(NODE_MODULES)/evesrp
 	$(BROWSERIFY) -e $(JS_DIR)/main.coffee $(BROWSERIFY_OPTS) -o $@
 
 
@@ -102,7 +102,7 @@ tests_javascript/evesrp.test.js: BROWSERIFY_OPTS += \
 	$(foreach mod,$(COFFEE_FILES), \
 		-r ./$(mod):evesrp/$(basename $(notdir $(mod))))
 
-tests_javascript/evesrp.test.js:
+tests_javascript/evesrp.test.js: $(NODE_MODULES)/evesrp
 	$(BROWSERIFY) -e $(JS_DIR)/main.coffee $(BROWSERIFY_OPTS) -o $@
 
 # This excludes the evesrp.js files from the test bundles
