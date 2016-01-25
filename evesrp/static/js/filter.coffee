@@ -344,6 +344,7 @@ createFilterBar = (selector) ->
 
 
 # Private exports
+exports._getAttributeChoices = getAttributeChoices
 exports._trimEmpty = trimEmpty
 exports._keyDifference = keyDifference
 exports._splitFilterString = splitFilterString

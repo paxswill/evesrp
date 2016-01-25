@@ -4,13 +4,29 @@ filter = require 'evesrp/filter'
 
 suite 'Filtering', () ->
 
-    test.skip 'Should get choices for an attribute', () ->
-        null
+    test 'Should get the status choices for an attribute', () ->
+        statusPromise = filter._getAttributeChoices 'status'
+        statusPromise.done (data) ->
+            assert.deepEqual data.status,
+                ['evaluating', 'approved', 'rejected', 'incomplete', 'paid']
+            assert.equal data.key, 'status'
 
-    test 'Should trim empty items in an array at the beginning and end', () ->
+    test 'Should get the null choices for an attribute', () ->
+        for attr in ['details', 'submit_timestamp', 'kill_timestamp']
+            promise = filter._getAttributeChoices attr
+            promise.done (data) ->
+                assert.equal data[attr], null
+                assert.equal data.key, attr
+
+    test 'Should trim empty items in an array at the beginning', () ->
+        assert.deepEqual (filter._trimEmpty ['', 'foo', '']), ['foo']
+        assert.deepEqual (filter._trimEmpty ['', 'foo']), ['foo']
+
+    test 'Should trim empty items in an array at the end', () ->
         assert.deepEqual (filter._trimEmpty ['', 'foo', '']), ['foo']
         assert.deepEqual (filter._trimEmpty ['foo', '']), ['foo']
-        assert.deepEqual (filter._trimEmpty ['', 'foo']), ['foo']
+
+    test 'Should trim empty keys in an object', () ->
         assert.deepEqual (filter._trimEmpty {foo: 'foo', bar: ''}), {foo: 'foo'}
         assert.deepEqual (filter._trimEmpty {foo: 'foo', bar: ['bar']}),
             {foo: 'foo', bar: ['bar']}
@@ -34,6 +50,8 @@ suite 'Filtering', () ->
         assert.deepEqual (filter._splitFilterString \
                 '/requests/all/page/1/pilot/Paxswill'),
             ['requests/all', 'page/1/pilot/Paxswill']
+
+    test 'Should split an empty query path from the navigation path', () ->
         assert.deepEqual (filter._splitFilterString '/requests/all'),
             ['requests/all', '']
         assert.deepEqual (filter._splitFilterString '/requests/all/'),
@@ -78,14 +96,17 @@ suite 'Filtering', () ->
             {details: ['Foo Bar', 'Baz Qux']}),
             'details/Foo Bar/details/Baz Qux'
 
-    test.skip 'Should get the current filters', () ->
-        null
+    suite.skip 'Creating filter live objects', () ->
+        test 'Should check the history for a cached filter object'
 
-    test.skip 'Should update the URL and history for the current filters', () ->
-        null
+        test 'Should create a new filter object from the current URL'
 
-    test.skip 'Should create a translated Selectize option', () ->
-        null
+        test 'Should not update the URL for an unchanged filter'
 
-    test.skip 'Should create a filter bar using Selectize', () ->
-        null
+        test 'Should reset the page to page 1 when changing the filters'
+
+        test 'Should not reset the page when the page number is changing'
+
+    test 'Should create a translated Selectize option'
+
+    test 'Should create a filter bar using Selectize'
