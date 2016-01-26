@@ -52,10 +52,6 @@ selectTransformer = () ->
     true
 
 
-changePermission = (ev) ->
-    raise Exception
-
-
 createEntitySelect = (selector) ->
     # Get opions first
     entitiesRequest = jQuery.ajax {
