@@ -1,5 +1,5 @@
 include variables.mk
-
+.DELETE_ON_ERROR:
 
 ##### Client File Pipeline #####
 JS_DIR := $(STATIC_DIR)/js
