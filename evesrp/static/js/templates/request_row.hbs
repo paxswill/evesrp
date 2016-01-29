@@ -1,0 +1,8 @@
+<td {{#compare attribute filterable operator='in'~}}
+  class="filterable" {{/compare~}}
+  data-attribute="{{attribute}}"><a href="
+{{~#compare attribute 'id'~}}
+{{request.href}}
+{{~else~}}
+#{{/compare}}">
+{{~lookup request attribute~}}</a></td>

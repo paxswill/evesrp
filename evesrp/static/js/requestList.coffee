@@ -4,7 +4,7 @@ sprintf = require 'underscore.string/sprintf'
 util = require 'evesrp/util'
 ui = require 'evesrp/common-ui'
 filter = require 'evesrp/filter'
-rowsTemplate = require 'evesrp/templates/request_rows'
+rowTemplate = require 'evesrp/templates/request_row'
 
 
 pageSize = 15
@@ -12,6 +12,7 @@ pageSize = 15
 
 renderRequests = (data) ->
     $rows = (jQuery 'table#requests tr').not (jQuery '.popover tr')
+    $table = $rows.parent()
     # Separate out the table headers and the data rows
     $headers = $rows.first().find 'th'
     $oldRows = $rows.not ':first'
@@ -20,10 +21,20 @@ renderRequests = (data) ->
     # Figure out the column names
     columns = for header in $headers
         ((jQuery header).attr 'id')[4..]
-    newRows = rowsTemplate data.requests
-    $rows.parent().append newRows
+    filterable = ['pilot', 'ship', 'system', 'status']
+    for request in data.requests
+        statusColor = util.statusColor request.status
+        $row = jQuery "<tr class=\"#{ statusColor }\"></tr>"
+        for column in columns
+            context = {
+                request: request
+                attribute: column
+                filterable: filterable
+            }
+            $row.append rowTemplate context
+        $table.append $row
     # Attach quick filtering listeners
-    ($rows.parent().find '.filterable a').on 'click', addQuickFilter
+    ($table.find '.filterable a').on 'click', addQuickFilter
     # Update summary footer
     $summary = jQuery '#requestsSummary'
     request_count = ui.numberFormat data.request_count
