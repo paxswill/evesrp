@@ -98,8 +98,8 @@ setupFormats = (locale) ->
     subTagsGet.done (data) ->
         Globalize.load data
         localeGlobalize = new Globalize locale
-        # Note: the Gist above uses languageID, but it seems Globalize has
-        # moved on and now uses minlanguageID (note the lower-case 'L').
+        # Note: the Gist above uses languageId, but it seems Globalize has
+        # moved on and now uses minlanguageId (note the lower-case 'L').
         languageTag = localeGlobalize.cldr.attributes.minlanguageId
         cldrGet = jQuery.when(
             jQuery.getJSON("#{ cldrRoot }/main/#{ languageTag }/ca-gregorian.json"),

@@ -53,7 +53,7 @@ selectTransformer = () ->
 
 
 createEntitySelect = (selector) ->
-    # Get opions first
+    # Get options first
     entitiesRequest = jQuery.ajax {
         type: 'GET'
         url: "#{ scriptRoot }/api/entities/"
@@ -65,7 +65,6 @@ createEntitySelect = (selector) ->
             closeAfterSelect: true
             dropdownParent: 'body'
             searchField: ['name']
-            # TODO Use the custom rendering functions to display auth source
             valueField: 'id'
             labelField: 'name'
             optgroups: {value: type} for type in ['User', 'Group']
@@ -82,7 +81,7 @@ createEntitySelect = (selector) ->
                     data: $form.serialize()
                     success: (data) ->
                         # Clear selection control now that this entity has been
-                        # aded
+                        # added
                         selectize.clear(true)
                         $id.val ''
                     complete: (jqxhr) ->
