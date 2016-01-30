@@ -76,20 +76,12 @@ test:: test-javascript
 test-javascript: tests_javascript/tests.html tests_javascript/evesrp.test.js
 test-javascript: $(SHARED_FILES) $(NUMBERS_FILES) $(DATES_FILES) $(JSON_LOCALES)
 test-javascript:
-	# kill any lingering static servers
-	-$(KILL_STATIC_SERVER)
-ifeq "$(PYTHON_VERSION)" "2"
-	cd ./evesrp && python -m SimpleHTTPServer 5000 > /dev/null &
-else
-	cd ./evesrp && python -m http.server 5000 > /dev/null &
-endif
 	$(NODE_BIN)/mocha-phantomjs \
 		-s webSecurityEnabled=false \
 		--no-color \
 		--hooks tests_javascript/hooks.js \
 		--path $(PHANTOMJS) \
 		$<
-	$(KILL_STATIC_SERVER)
 	$(NODE_BIN)/istanbul report \
 		--root tests_javascript/coverage \
 		--dir tests_javascript/coverage \
@@ -111,9 +103,25 @@ tests_javascript/evesrp.test.js: BROWSERIFY_OPTS += \
 tests_javascript/evesrp.test.js: $(NODE_MODULES)/evesrp
 	$(BROWSERIFY) -e $(JS_DIR)/main.coffee $(BROWSERIFY_OPTS) -o $@
 
+CLDR_FILES = \
+		cldr-data/supplemental/likelySubtags.json \
+		cldr-dates-full/main/en/ca-gregorian.json \
+		cldr-dates-full/main/en/timeZoneNames.json \
+		cldr-numbers-full/main/en/numbers.json \
+		cldr-data/supplemental/numberingSystems.json \
+		cldr-data/supplemental/timeData.json \
+		cldr-data/supplemental/weekData.json \
+
+tests_javascript/translations.js:
+	$(BROWSERIFY) $(foreach mod,$(CLDR_FILES),-r $(mod)) \
+		-r ./evesrp/static/translations/en-US.json:evesrp/translations/en-US.json \
+		-o $@
+
 # This excludes the evesrp.js files from the test bundles
 $(TESTS_JS): BROWSERIFY_OPTS += $(foreach \
-	mod,$(basename $(notdir $(COFFEE_FILES))),-x evesrp/$(mod))
+	mod,$(basename $(notdir $(COFFEE_FILES))),-x evesrp/$(mod)) \
+	$(foreach mod,$(CLDR_FILES),-x $(mod)) \
+	-x evesrp/translations/en-US.json
 
 $(TESTS_JS): %.js: %.coffee $(COFFEE_FILES) $(NODE_MODULES)/evesrp
 	$(BROWSERIFY) $(BROWSERIFY_OPTS) "$<" -o "$@"
@@ -133,10 +141,13 @@ define TEST_HTML_START
   </head>
   <body>
     <div id="mocha"></div>
-    <script type="text/javascript">scriptRoot = "http://localhost:5000";</script>
     <script src="../node_modules/mocha/mocha.js"></script>
     <script src="./evesrp.test.js"></script>
-    <script>mocha.setup("tdd")</script>
+    <script src="./translations.js"></script>
+    <script>mocha.setup({
+    "ui": "tdd",
+    "globals": "scriptRoot",
+    });</script>
 
 endef
 
@@ -153,7 +164,7 @@ mocha.run();
 
 endef
 
-tests_javascript/tests.html: $(TESTS_JS) javascript.mk
+tests_javascript/tests.html: $(TESTS_JS) tests_javascript/translations.js javascript.mk
 	printf '$(subst $(newline),\n,${TEST_HTML_START})' > $@
 	printf "$(foreach test_js,$(TESTS_JS),\
 		<script src="$(subst tests_javascript/,,$(test_js))"></script>)\n" >> $@
