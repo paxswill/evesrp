@@ -1,5 +1,6 @@
 jQuery = require 'jquery'
 _ = require 'underscore'
+capitalize = require 'underscore.string/capitalize'
 sprintf = require 'underscore.string/sprintf'
 util = require 'evesrp/util'
 ui = require 'evesrp/common-ui'
@@ -21,16 +22,27 @@ renderRequests = (data) ->
     # Figure out the column names
     columns = for header in $headers
         ((jQuery header).attr 'id')[4..]
-    filterable = ['pilot', 'ship', 'system', 'status']
     for request in data.requests
         statusColor = util.statusColor request.status
         $row = jQuery "<tr class=\"#{ statusColor }\"></tr>"
         for column in columns
+            filterable = column in ['pilot', 'ship', 'system', 'status']
+            value = switch column
+                when 'status' then capitalize request.status
+                when 'pilot', 'division' then request[column].name
+                when 'payout', 'base_payout'
+                    currency = parseFloat request[column]
+                    ui.currencyFormat currency
+                when 'submit_timestamp', 'kill_timestamp'
+                    ui.dateFormatShort (util.localToUTC request[column])
+                else request[column]
             context = {
-                request: request
+                value: value
                 attribute: column
                 filterable: filterable
             }
+            if column == 'id'
+                context.link = request.href
             $row.append rowTemplate context
         $table.append $row
     # Attach quick filtering listeners
