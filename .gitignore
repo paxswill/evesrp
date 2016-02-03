@@ -11,3 +11,4 @@ messages.pot
 .coverage
 less.mk
 browserify.mk
+dist
