@@ -1,0 +1,7 @@
+<div class="option">
+{{#if count}}
+{{gettext '%(group_name)s(%(member_count)d) <small class="text-muted text-right">from %(auth_source)s</small>' group_name=name member_count=count auth_source=source}}
+{{else}}
+{{gettext '%(user_name)s <small class="text-muted text-right">from %(auth_source)s</small>' user_name=name auth_source=source}}
+{{/if}}
+</div>

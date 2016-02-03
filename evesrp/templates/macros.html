@@ -81,7 +81,7 @@
   <a href="{{ url }}">
     {{ text }}
     {% if count != None %}
-    <span class="badge hidden-sm"{{ (' id="' ~ id ~ '"')|safe if id != None }}>{{ count if count != 0 }}</span>
+    <span class="badge hidden-sm"{{ (' id="' ~ id ~ '"')|safe if id != None }}>{{ count|numberfmt if count != 0 }}</span>
     {% endif %}
   </a>
 </li>
@@ -104,5 +104,13 @@ danger
 {% endmacro %}
 
 {% macro clipboard_button(value, position="top", title=None, classes='btn btn-default btn-sm') %}
-<button class="{{ classes }} copy-btn" data-clipboard-text="{{ value }}" data-toggle="tooltip" data-placement="{{ position }}" title="Copy {{ title if title != None else "'" ~ value ~ "'" }} to clipboard">{{ value }}</button>
+{% with %}
+{% if title != None %}
+{% set copy_label = title %}
+{% else %}
+{% set copy_label = ("'" ~ value ~ "'") %}
+{% endif %}
+{# TRANS: This is a tooltip that appears when you move the mouse over a button that will copy some text to the clipboard when clicked. #}
+<button class="{{ classes }} copy-btn" data-clipboard-text="{{ value }}" data-toggle="tooltip" data-placement="{{ position }}" title="{{ gettext('Copy %(copy_label)s to clipboard', copy_label=copy_label) }}">{{ value }}</button>
+{% endwith %}
 {% endmacro %}

@@ -44,7 +44,7 @@ class PrivateJsonEncoder(JSONEncoder):
 class DecimalEncoder(JSONEncoder):
     def default(self, o):
         if isinstance(o, PrettyDecimal):
-            return o.currency(commas=False)
+            return o.currency()
         elif isinstance(o, Decimal):
             return unicode(o)
         return super(DecimalEncoder, self).default(o)

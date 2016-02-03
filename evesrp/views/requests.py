@@ -2,9 +2,11 @@ from __future__ import absolute_import
 from collections import OrderedDict, defaultdict
 import re
 
+import babel
 from flask import render_template, abort, url_for, flash, Markup, request,\
     redirect, current_app, Blueprint, Markup, json, make_response
 from flask.views import View
+from flask.ext.babel import gettext, lazy_gettext, get_locale
 from flask.ext.login import login_required, current_user
 from flask.ext.sqlalchemy import Pagination
 from flask.ext.wtf import Form
@@ -46,7 +48,8 @@ class RequestListing(View):
     #: Decorators to apply to the view functions
     decorators = [login_required, varies('Accept', 'X-Requested-With')]
 
-    title = u'Requests'
+    # TRANS: The default title for a page with atable listing SRP requests.
+    title = lazy_gettext(u'Requests')
 
     @staticmethod
     def parse_filter(filter_string):
@@ -77,10 +80,15 @@ class RequestListing(View):
                 try:
                     filters['page'] = int(values)
                 except TypeError:
-                    error_msg = u"Invalid value for page number: {}".format(
-                            values)
-                    flash(error_msg, u'warning')
-                    current_app.logger.warn(error_msg)
+                    # TRANS: Warning message shown if something other than a
+                    # TRANS: single number was given as a page number (like a
+                    # TRANS: letter, word, or multiple numbers).
+                    flash(gettext(
+                            u"Invalid value for page number: %(num)d.",
+                                num=values),
+                            u'warning')
+                    current_app.logget.warn(
+                            "Invalid value of page number: {}".format(values))
             elif attr == 'sort':
                 filters['sort'] = values.lower()
             elif attr == 'status':
@@ -214,8 +222,11 @@ class RequestListing(View):
                         current_app.logger.error(
                                 u"Invalid date provided ({}). "
                                 u"Exception: {}".format(value, e))
-                        abort(400, u"Invalid date format. Please read the"
-                                   u"documentation for date filtering.")
+                        # TRANS: Error message shown when a date is written
+                        # TRANS: incorrectly.
+                        abort(400, gettext(u"Invalid date format. Please read "
+                                           u"the documentation for date "
+                                           u"filtering."))
                     requests = requests.filter(column.between(start, end))
             elif real_attr in known_attrs:
                 column = getattr(Request, real_attr)
@@ -253,8 +264,12 @@ class RequestListing(View):
                     for gt_val in grouped['>']:
                         requests = requests.filter(column > gt_val)
             else:
-                flash(u"Unknown filter attribute name: {}".format(attr),
-                        u'warning')
+                # TRANS: Warning message shown when an unknown atribute is
+                # TRANS: specified in the list of filters.
+                flash(gettext(
+                        u"Unknown filter attribute name: %(attribute)s.",
+                        attribute=attr),
+                    u'warning')
         return requests
 
     def dispatch_request(self, filters='', **kwargs):
@@ -272,7 +287,7 @@ class RequestListing(View):
             return redirect(url_for(request.endpoint,
                     filters=canonical_filter), code=301)
         requests = self.requests(filter_map)
-        # Ignore rejected requests when summing tha payout.
+        # Ignore rejected requests when summing the payout.
         # Discard ordering options, they affect the sum somehow.
         payout_requests = requests.\
                 filter(Request.status != ActionType.rejected).\
@@ -360,10 +375,17 @@ class PersonalRequests(RequestListing):
 
     @property
     def title(self):
-        if current_user.name[:-1] == u's':
+        current_locale = get_locale()
+        if current_locale is None:
+            current_locale = babel.Locale('en')
+        # Special case possesive form in English
+        if current_locale.language.lower() == 'en' and \
+                current_user.name[:-1] == u's':
             return u"{}' Requests".format(current_user.name)
         else:
-            return u"{}'s Requests".format(current_user.name)
+            # TRANS: The title of the page listing all requests an individual
+            # TRANS: user has made.
+            return gettext(u"%(name)s's Requests", name=current_user.name)
 
 
 class PermissionRequestListing(RequestListing):
@@ -424,7 +446,8 @@ class PayoutListing(PermissionRequestListing):
     def __init__(self):
         # Just a special case of PermissionRequestListing
         super(PayoutListing, self).__init__((PermissionType.pay,),
-                (ActionType.approved,), u'Pay Outs')
+        # TRANS: Title for the special pay out mode request listing.
+                (ActionType.approved,), gettext(u'Pay Outs'))
 
     def requests(self, filters):
         if 'sort' not in filters:
@@ -495,14 +518,19 @@ def register_class_views(state):
     # Other more generalized listings
     register_perm_request_listing(state, 'list_pending_requests',
             '/pending/', (PermissionType.review, PermissionType.audit),
-            ActionType.pending, u'Pending Requests')
+    # TRANS: Title for the page listing all SRP requests waiting to be approved
+    # TRANS: or rejected.
+            ActionType.pending, gettext(u'Pending Requests'))
     register_perm_request_listing(state, 'list_completed_requests',
             '/completed/', PermissionType.elevated, ActionType.finalized,
-            u'Completed Requests')
+    # TRANS: Title for the page listing all SRP requests that have been paid
+    # TRANS: out rejected.
+            gettext(u'Completed Requests'))
     # Special all listing, mainly intended for API users
     register_perm_request_listing(state, 'list_all_requests',
             '/all/', PermissionType.elevated, ActionType.statuses,
-            u'All Requests')
+    # TRANS: Title for the page listing all SRP requests.
+            gettext(u'All Requests'))
 
 
 class ValidKillmail(URL):
@@ -535,7 +563,9 @@ class ValidKillmail(URL):
                 raise StopValidation
             else:
                 raise ValidationError(
-                        u'{} cannot be verified.'.format(field.data))
+                # TRANS: Error message show when trying to submit a killmail
+                # TRANS: that cannot be verified.
+                        gettext(u"%(url)s cannot be verified.", url=field.data))
 
 
 def get_killmail_validators():
@@ -552,20 +582,32 @@ def get_killmail_validators():
 
 
 def get_killmail_descriptions():
-    description = Markup(u"Acceptable Killmail Links:<ul>")
-    desc_entry = Markup(u"<li>{}</li>")
-    killmail_descs = [desc_entry.format(km.description) for km in\
-            current_app.killmail_sources]
-    description += Markup(u"").join(killmail_descs)
-    description += Markup(u"</ul>")
+    km_list = u"".join(
+            [Markup(u"<li>{}</li>").format(km.description) for km in \
+                    current_app.killmail_sources])
+    # TRANS: Header for a list of the kinds of links that are acceptable to
+    # TRANS: submit as killmails for SRP.
+    description = gettext(u"Acceptable Killmail Links:<ul>%(sources)s</ul>",
+            sources=km_list)
+    description = Markup(description)
     return description
 
 
 class RequestForm(Form):
-    url = URLField(u'Killmail URL')
-    details = TextAreaField(u'Details', validators=[InputRequired()])
-    division = SelectField(u'Division', coerce=int)
-    submit = SubmitField(u'Submit')
+    # TRANS: Label for an input field for the killmail URL
+    url = URLField(lazy_gettext(u'Killmail URL'))
+
+    # TRANS: Label for a text entry field for inputting supporting details
+    # TRANS: about a loss.
+    details = TextAreaField(lazy_gettext(u'Details'),
+        validators=[InputRequired()])
+
+    # TRANS: Label for an dropdown menu to select which division to submit for
+    # TRANS: SRP to.
+    division = SelectField(lazy_gettext(u'Division'), coerce=int)
+
+    # TRANS: Label for the button that submits the form.
+    submit = SubmitField(lazy_gettext(u'Submit'))
 
     def validate_url(form, field):
         failures = set()
@@ -584,11 +626,16 @@ class RequestForm(Form):
     def validate_division(form, field):
         division = Division.query.get(field.data)
         if division is None:
-            raise ValidationError(u"No division with ID '{}'.".format(
-                    field.data))
+            # TRANS: Error message shown when trying to submit a request to a
+            # TRANS: non-existant division.
+            raise ValidationError(gettext(u"No division with ID '%(div_id)s'.",
+                    div_id=field.data))
         if not current_user.has_permission(PermissionType.submit, division):
-            raise ValidationError(u"You do not have permission to submit to "
-                                  u"division '{}'.".format(division.name))
+            # TRANS: Error message shown when trying to a submit a request to a
+            # TRANS: division you do not have the submission permission in.
+            raise ValidationError(gettext(u"You do not have permission to "
+                                          u"submit to division '%(name)s'.",
+                    name=division.name))
 
 
 @blueprint.route('/add/', methods=['GET', 'POST'])
@@ -619,7 +666,10 @@ def submit_request():
         # Prevent submitting other people's killmails
         pilot = Pilot.query.get(mail.pilot_id)
         if not pilot or pilot not in current_user.pilots:
-            flash(u"You can only submit killmails of characters you control",
+            # TRANS: Error message shown when trying to submit a lossmail from
+            # TRANS: A character not associated with your user account.
+            flash(gettext(u"You can only submit killmails of characters you "
+                          u"control"),
                     u'warning')
             return render_template('form.html', form=form)
         # Prevent duplicate killmails
@@ -636,24 +686,38 @@ def submit_request():
             return redirect(url_for('.get_request_details',
                 request_id=srp_request.id))
         else:
-            flash(u"This kill has already been submitted", u'warning')
+            # TRANS: Error message shown when trying to submit a killmail for
+            # TRANS: SRP a second time.
+            flash(gettext(u"This kill has already been submitted", u'warning'))
             return redirect(url_for('.get_request_details',
                 request_id=srp_request.id))
-    return render_template('form.html', form=form, title=u'Submit Request')
+    return render_template('form.html', form=form,
+    # TRANS: Title for the page showing the form for submitting SRP requests.
+            title=gettext(u'Submit Request'))
 
 
 class ModifierForm(Form):
+
     id_ = HiddenField(default='modifier')
-    value = DecimalField(u'Value')
-    # TODO: add a validator for the type
+
+    # TRANS: Label for an input field for the amount a modifier is for. Can be
+    # TRANS: either a percentage or an ISK value (in millions of ISK).
+    value = DecimalField(lazy_gettext(u'Value'))
+
     type_ = HiddenField(validators=[AnyOf(('rel-bonus', 'rel-deduct',
             'abs-bonus', 'abs-deduct'))])
-    note = TextAreaField(u'Reason')
+
+    # TRANS: Label for a text field for inputting the reason a modifier is
+    # TRANS: being applied.
+    note = TextAreaField(lazy_gettext(u'Reason'))
 
 
 class VoidModifierForm(Form):
+
     id_ = HiddenField(default='void')
+
     modifier_id = HiddenField()
+
     void = SubmitField(Markup(u'x'))
 
     def __init__(self, modifier=None, *args, **kwargs):
@@ -663,30 +727,45 @@ class VoidModifierForm(Form):
 
 
 class PayoutForm(Form):
+
     id_ = HiddenField(default='payout')
+
     value = DecimalField(u'M ISK', validators=[InputRequired()])
 
 
 class ActionForm(Form):
+
     id_ = HiddenField(default='action')
+
+    # TRANS: Label for a text field for adding a note to an action on a
+    # TRANS: request, or for making a comment on a request.
     note = TextAreaField(u'Note')
+
     type_ = HiddenField(default='comment',
             validators=[AnyOf(list(ActionType.values()))])
 
 
 class ChangeDetailsForm(Form):
+
     id_ = HiddenField(default='details')
-    details = TextAreaField(u'Details', validators=[InputRequired()])
+
+    details = TextAreaField(lazy_gettext(u'Details'),
+            validators=[InputRequired()])
 
 
 class AddNote(Form):
+
     id_ = HiddenField(default='note')
-    note = TextAreaField(u'Add Note',
-            description=( "If you have something like '#{Kill ID}', it will be"
-                         u" linkified to the corresponding request "
-                         u"(if it exists). For example, #1234567 would be "
-                         u"linked to the request for the kill with ID "
-                         u"1234567."),
+
+    # TRANS: Label for text input field for a note to be added about a user.
+    note = TextAreaField(lazy_gettext(u'Add Note'),
+            # TRANS: Help text explaining a hidden feature about the notes made
+            # TRANS: about users.
+            description=lazy_gettext(
+                u"If you have something like '#{Kill ID}', it will be "
+                u"linkified to the corresponding request (if it exists). For "
+                u"example, #1234567 would be linked to the request for the "
+                u"kill with ID 1234567."),
             validators=[InputRequired()])
 
 
@@ -734,7 +813,10 @@ def get_request_details(request_id=None, srp_request=None):
             void_form=VoidModifierForm(formdata=None),
             details_form=ChangeDetailsForm(formdata=None, obj=srp_request),
             note_form=AddNote(formdata=None),
-            title=u'Request #{}'.format(srp_request.id))
+            # TRANS: Title for the page showing the details about a single
+            # TRANS: SRP request.
+            title=gettext(u"Request #%(request_id)s",
+                    request_id=srp_request.id))
 
 
 def _add_modifier(srp_request):
@@ -762,7 +844,9 @@ def _add_modifier(srp_request):
 def _change_payout(srp_request):
     form = PayoutForm()
     if not current_user.has_permission(PermissionType.review, srp_request):
-        flash(u"Only reviewers can change the base payout.", u'error')
+        # TRANS: Error message when someone who does not have the reviewer
+        # TRANS: permission tries to change the base payout of a request.
+        flash(gettext(u"Only reviewers can change the base payout."), u'error')
     elif form.validate():
         try:
             srp_request.base_payout = form.value.data * 1000000
@@ -790,8 +874,11 @@ def _void_modifier(srp_request):
         modifier_id = int(form.modifier_id.data)
         modifier = Modifier.query.get(modifier_id)
         if modifier is None:
-            flash(u"Invalid modifier ID {}.".format(modifier_id),
-                    u'error')
+            # TRANS: Error message when a user tries to void (cancel) a
+            # TRANS: modifier that does not exist.
+            flash(gettext(u"Invalid modifier ID %(modifier_id)d.",
+                    modifier_id=modifier_id),
+                u'error')
         else:
             try:
                 modifier.void(current_user)
@@ -804,12 +891,22 @@ def _void_modifier(srp_request):
 def _change_details(srp_request):
     form = ChangeDetailsForm()
     if current_user != srp_request.submitter:
-        flash(u"Only the submitter can change the request details.", u'error')
+        # TRANS: Error message shown when someone other than the request
+        # TRANS: submitter tries to change the details of the request.
+        flash(gettext(u"Only the submitter can change the request details."),
+                u'error')
     elif srp_request.finalized:
-        flash(u"Details con only be changed when the request is still "
-                u"pending.", u'error')
+        # TRANS: Error message shown when the submitter ties to change the
+        # TRANS: details when the request is no long pending (not finished).
+        flash(gettext(u"Details can only be changed when the request is still "
+                      u"pending.")
+                , u'error')
     elif form.validate():
-        archive_note = u"Old Details: " + srp_request.details
+        # TRANS: The old request details have are saved in a comment on the
+        # TRANS: request. This is the text that is put at the beginning of the
+        # TRANS: comment
+        archive_note = gettext(u"Old Details: %(details)s",
+                details=srp_request.details)
         if srp_request.status == ActionType.evaluating:
             action_type = ActionType.comment
         else:
@@ -824,7 +921,10 @@ def _change_details(srp_request):
 def _add_note(srp_request):
     form = AddNote()
     if not current_user.has_permission(PermissionType.elevated):
-        flash(u"You do not have permission to add a note to a user.", u'error')
+        # TRANS: Error message shown when someone without the proper
+        # TRANS: permissions tries to add a note to a user.
+        flash(gettext(u"You do not have permission to add a note to a user."),
+                u'error')
     elif form.validate():
         # Linkify killmail IDs
         note_content = Markup.escape(form.note.data)
@@ -850,7 +950,7 @@ def modify_request(request_id):
     """Handles POST requests that modify :py:class:`~.models.Request`\s.
 
     Because of the numerous possible forms, this function bounces execution to
-    a more specific function base on the form's "id_" field.
+    a more specific function based on the form's "id_" field.
 
     :param int request_id: the ID of the request.
     """
@@ -872,8 +972,10 @@ def modify_request(request_id):
 
 
 class DivisionChange(Form):
-    division = SelectField(u'Divisions', coerce=int)
-    submit = SubmitField(u'Submit')
+
+    division = SelectField(lazy_gettext(u'Division'), coerce=int)
+
+    submit = SubmitField(lazy_gettext(u'Submit'))
 
 
 @blueprint.route('/<int:request_id>/division/', methods=['GET', 'POST'])
@@ -890,8 +992,11 @@ def request_change_division(request_id):
         msg = (u"Cannot change request #{}'s division as it is in a finalized"
                u" state").format(srp_request.id)
         current_app.logger.info(msg)
-        flash(u"Cannot change the division as this request is in a finalized"
-              u" state", u'warning')
+        # TRANS: Error message shown when a user tries to move a request but is
+        # TRANS: unable to becuase the request has been paid or rejected.
+        flash(gettext(u"Cannot change the division as this request is in a "
+                      u"finalized state"),
+                u'error')
         return redirect(url_for('.get_request_details', request_id=request_id))
     division_choices = srp_request.submitter.submit_divisions()
     try:
@@ -902,18 +1007,24 @@ def request_change_division(request_id):
     if len(division_choices) == 0:
         current_app.logger.debug(u"No other divisions to move request #{} to."\
                 .format(srp_request.id))
-        flash(u"No other divisions to move to.", u'info')
+        # TRANS: Message shown when a user tries to change a request's division
+        # TRANS: but they do not have access to any other divisions.
+        flash(gettext(u"No other divisions to move to."), u'info')
         return redirect(url_for('.get_request_details', request_id=request_id))
     form = DivisionChange()
     form.division.choices = division_choices
-    # Default to the first value of there's only once choice.
+    # Default to the first value if there's only once choice.
     if len(division_choices) == 1:
         form.division.data = form.division.choices[0][0]
     if form.validate_on_submit():
         new_division = Division.query.get(form.division.data)
-        archive_note = u"Moving from division '{}' to division '{}'.".format(
-                srp_request.division.name,
-                new_division.name)
+        # TRANS: When a request is moved from one division to another, a
+        # TRANS: comment is added noting the old division's name and the new
+        # TRANS: division's name. This is the text of that note.
+        archive_note = gettext(u"Moving from division '%(old_division)s' to "
+                               u"division '%(new_division)s'.",
+                old_division=srp_request.division.name,
+                new_division=new_division.name)
         if srp_request.status == ActionType.evaluating:
             type_ = ActionType.comment
         else:
@@ -921,8 +1032,12 @@ def request_change_division(request_id):
         archive_action = Action(srp_request, current_user, archive_note, type_)
         srp_request.division = new_division
         db.session.commit()
-        flash(u'Request #{} moved to {} division'.format(srp_request.id,
-                new_division.name), u'success')
+        # TRANS: Confirmation message shown when wa request has been
+        # TRANS: successfully moved to a new division.
+        flash(gettext(u"Request #%(request_id)d moved to %(division)s "
+                      u"division",
+                    request_id=srp_request.id, division=new_division.name),
+                u'success')
         if current_user.has_permission(PermissionType.elevated, new_division) \
                 or current_user == srp_request.submitter:
             return redirect(url_for('.get_request_details',
@@ -934,4 +1049,7 @@ def request_change_division(request_id):
                                 u" {}.".format(form.errors))
     form.division.data = srp_request.division.id
     return render_template('form.html', form=form,
-            title=u"Change #{}'s Division".format(srp_request.id))
+            # TRANS: Title for the page showing the form for changing a
+            # TRANS: request's division.
+            title=lazy_gettext(u"Change #%(request_id)d's Division",
+                request_id=srp_request.id))

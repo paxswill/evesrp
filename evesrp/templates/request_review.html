@@ -1,7 +1,8 @@
 {% extends "request_pay.html" %}
 
 {% block right_col %}
-  <dt>Set Base Payout</dt>
+  {# TRANS: The label for a text box for setting the base payout amount. #}
+  <dt>{% trans %}Set Base Payout{% endtrans %}</dt>
   <dd>
     <form id="payoutForm" method="post">
       {{ payout_form.csrf_token() }}
@@ -15,9 +16,10 @@
         {% endif %}
         <span class="input-group-btn">
           {% if srp_request.status != ActionType.evaluating %}
-          <button class="btn btn-default evaluating-only" type="submit" disabled>Set</button>
+          {# TRANS: A button that sets that when clicked will set the base payout of a request. #}
+          <button class="btn btn-default evaluating-only" type="submit" disabled>{% trans %}Set{% endtrans %}</button>
           {% else %}
-          <button class="btn btn-default evaluating-only" type="submit">Set</button>
+          <button class="btn btn-default evaluating-only" type="submit">{% trans %}Set{% endtrans %}</button>
           {% endif %}
         </span>
       </div>
@@ -43,13 +45,18 @@
         {% else %}
         <button type="button" class="btn btn-default dropdown-toggle evaluating-only" data-toggle="dropdown">
         {% endif %}
-          Type <span class="caret"></span>
+        {# TRANS: The type of modifier to apply. This button opens a dropdown with the possible kinds of modifier to apply. #}
+        {% trans %}Type{% endtrans %} <span class="caret"></span>
         </button>
         <ul id="request-modifier-type" class="dropdown-menu pull-right">
-          <li><a href="#" id="rel-bonus">% Bonus</a></li>
-          <li><a href="#" id="rel-deduct">% Deduction</a></li>
-          <li><a href="#" id="abs-bonus">M ISK Bonus</a></li>
-          <li><a href="#" id="abs-deduct">M ISK Deduction</a></li>
+          {# TRANS: A modifier that applies a percentage of the base payout as a bonus. For example, a 10% bonus on 10000000 ISK means the total payout would be 11000000 ISK. #}
+          <li><a href="#" id="rel-bonus">{% trans %}% Bonus{% endtrans %}</a></li>
+          {# TRANS: A modifier that applies a percentage of the base payout as a penalty. #}
+          <li><a href="#" id="rel-deduct">{% trans %}% Deduction{% endtrans %}</a></li>
+          {# TRANS: A modifier that applies some flat amount (in millions of ISK) as a bonus. #}
+          <li><a href="#" id="abs-bonus">{% trans %}M ISK Bonus{% endtrans %}</a></li>
+          {# TRANS: A modifier that applies some flat amount in millions of ISK as a penalty (a deduction from the calculated payout). #}
+          <li><a href="#" id="abs-deduct">{% trans %}M ISK Deduction{% endtrans %}</a></li>
         </ul>
       </div>
     </div>
@@ -67,7 +74,7 @@
 
 {% block modifier_header %}
   {% if not modifier.voided and srp_request.status == ActionType.evaluating %}
-  <form class="form" method="post" action="{{ url_for('requests.get_request_details', request_id=srp_request.id) }}">
+  <form class="form" method="post">
     {{ void_form.csrf_token }}
     {{ void_form.id_ }}
     <input class="form-control" id="modifier_id_{{ modifier.id }}" name="modifier_id" type="hidden" value="{{ modifier.id }}">

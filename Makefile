@@ -1,23 +1,21 @@
-SUBDIRS := evesrp/static
+SHELL := /bin/sh
+include variables.mk
 
-.PHONY: all clean build-deps test docs $(SUBDIRS)
+.PHONY: all clean deep-clean doc-clean build-deps test test-python \
+	test-javascript docs travis travis-success sdist upload
 
-all: $(SUBDIRS) docs
+all:: docs
 
-clean:
-	for DIR in $(SUBDIRS); do\
-		$(MAKE) -C "$$DIR" clean; \
-	done
+distclean:: clean doc-clean
+	rm -rf node_modules
+
+doc-clean:
 	$(MAKE) -C doc clean
 
-$(SUBDIRS):
-	$(MAKE) -C "$@"
-
-build-deps:
+build-deps: node_modules
 	pip install -r requirements.txt
-	npm install -g less uglify-js bower handlebars@2.0.0-alpha.4
-	bower install
-	tests/mariadb.sh
+	npm install
+	./scripts/mariadb.sh
 ifneq (,$(findstring psycopg2,$(DB)))
 	pip install psycopg2
 else ifneq (,$(findstring pg8000,$(DB)))
@@ -36,8 +34,38 @@ sdist: $(SUBDIRS) setup.py
 upload: $(SUBDIRS) setup.py
 	python setup.py sdist upload
 
-test:
-	nosetests --with-html --html-file=test-report.html -w tests/
+test:: test-python test-javascript
+
+test-python:
+	nosetests \
+		--with-html \
+		--html-file=test-report.html \
+		--with-coverage \
+		--cover-erase \
+		--cover-branch \
+		--cover-package=evesrp \
+		-w tests_python
+	coverage html -d coverage-report
 
 docs:
 	$(MAKE) -C doc html
+
+ifneq (,$(findstring javascript,$(TEST_SUITE)))
+travis: test-javascript
+travis-success:
+	cat tests_javascript/coverage/lcov.info | $(NODE_BIN)/coveralls
+else
+travis: test-python
+travis-success:
+	coveralls
+endif
+
+$(NODE_MODULES): package.json
+	npm install
+
+$(NODE_MODULES)/%:
+	npm install
+
+include translations.mk
+include misc.mk
+include javascript.mk

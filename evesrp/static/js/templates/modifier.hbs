@@ -4,7 +4,7 @@
 <div class="panel panel-success">
 {{/compare}}
   <div class="panel-heading" data-toggle="collapse" data-target="#modifier{{id}}">
-    <h4 class="panel-title">{{value_str}}</h4>
+    <h4 class="panel-title">{{modifier_header this}}</h4>
   </div>
   <div id="modifier{{id}}" class="collapse in">
     {{#if note}}
@@ -13,7 +13,7 @@
     </div>
     {{/if}}
     <div class="panel-footer">
-      {{user.name}} at {{timefmt timestamp}} {{datefmt timestamp}}
+      {{user.name}} ({{datefmt timestamp style='short'}})
     </div>
   </div>
 </div>

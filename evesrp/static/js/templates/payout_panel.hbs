@@ -1,87 +1,88 @@
 <div class="panel panel-{{status_color status}}" data-request-id="{{id}}" id="request-{{id}}">
   <div class="panel-heading">
     <span class="panel-title">
-      <a href="{{href}}">Request #{{id}}</a>
+      <a class="request-href" href="{{href}}">{{gettext "Request #%(request_id)s" request_id=id}}</a>
     </span>
   </div>
   <div class="panel-body">
     <div class="row">
       <dl class="col-sm-6 dl-horizontal">
-        <dt>External Lossmail</dt>
+        <dt>{{gettext "External Lossmail"}}</dt>
         <dd><a href="{{killmail_url}}" target="_blank">{{id}} <i class="fa fa-external-link"></i></a></dd>
-        <dt>Details</dt>
+        <dt>{{gettext "Details"}}</dt>
         <dd>
-          <a class="small-popover" data-toggle="popover" data-trigger="focus" data-content="{{details}}" data-container="body" href="#" tabindex="0">Details</a>
+          <a class="small-popover" data-toggle="popover" data-trigger="focus" data-content="{{details}}" data-container="body" href="#" tabindex="0">{{gettext "Details"}}</a>
         </dd>
-        <dt>Ship</dt>
+        <dt>{{gettext "Ship"}}</dt>
         <dd>{{transformed . 'ship'}}</dd>
         {{#if modifiers}}
-        <dt>Modifiers</dt>
+        <dt>{{gettext "Modifiers"}}</dt>
         <dd>
           <a class="small-popover" data-toggle="popover" data-trigger="focus" data-content="
             <ul>
               {{#each modifiers}}
               {{#unless void}}
+              {{! TODO: Use percent localization. }}
               <li>{{value_str}}</li>
               {{/unless}}
               {{/each}}
           </ul>" data-html="true" data-container="body" href="#" tabindex="0">Modifiers</a>
         </dd>
         {{/if}}
-        <dt>Actions</dt>
-        <dd><a class="null-link" data-toggle="collapse" data-parent="#requests" href="#" data-target="#actions-{{id}}">{{count actions}}</a></dd>
+        <dt>{{gettext "Actions"}}</dt>
+        <dd><a class="null-link" data-toggle="collapse" data-parent="#requests" href="#" data-target="#actions-{{id}}">{{numberfmt (count actions)}}</a></dd>
       </dl>
       <dl class="col-sm-6 dl-horizontal spaced">
-        <dt>Division</dt>
+        <dt>{{gettext "Division"}}</dt>
         <dd>{{division.name}}</dd>
-        <dt>Pilot</dt>
+        <dt>{{gettext "Pilot"}}</dt>
         <dd>
-          <button class="btn btn-default btn-xs copy-btn" data-clipboard-text="{{pilot.name}}" data-toggle="tooltip" title="Copy '{{pilot.name}}' to clipboard">{{pilot.name}}</button>
+          <button class="btn btn-default btn-xs copy-btn" data-clipboard-text="{{pilot.name}}" data-toggle="tooltip" title="{{gettext "Copy %(copy_label)s to clipboard" copy_label=pilot.name}}">{{pilot.name}}</button>
         </dd>
-        <dt>Payout</dt>
+        <dt>{{gettext "Payout"}}</dt>
         <dd>
-          <button class="btn btn-default btn-xs copy-btn" data-clipboard-text="{{payout_str}}" data-toggle="tooltip" title="Copy '{{payout_str}}' to clipboard">{{payout_str}}</button>
+          <button class="btn btn-default btn-xs copy-btn" data-clipboard-text="{{currencyfmt payout}}" data-toggle="tooltip" title="{{gettext "Copy %(copy_label)s to clipboard" copy_label=(currencyfmt payout)}}">{{currencyfmt payout}}</button>
         </dd>
-        <dt>Reason</dt>
+        <dt>{{gettext "Reason"}}</dt>
         <dd>
-          <button class="btn btn-default btn-xs copy-btn" data-clipboard-text="Payment for {{id}}" data-toggle="tooltip" title="Copy 'Payment for {{id}}' to clipboard">Payment for {{id}}</button>
+          <button class="btn btn-default btn-xs copy-btn" data-clipboard-text="Payment for {{id}}" data-toggle="tooltip" title="{{gettext "Copy %(copy_label)s to clipboard" copy_label=("Payment for {{id}}")}}">{{gettext "Payment for %(request_id)s" request_id=id}}</button>
         </dd>
         <dt></dt>
         <dd>
+          {{#compare status 'approved'}}
           <form method="post" action="{{href}}">
             <input id="id_" name="id_" type="hidden" value="action">
             <input id="type_" name="type_" type="hidden" value="paid">
             <input id="csrf_token" name="csrf_token" type="hidden" value="{{csrf}}">
-            {{#compare status 'approved'}}
-            <button class="btn btn-success btn-xs paid-btn" type="submit">Mark Paid</button>
-            {{else}}
-            <button class="btn btn-success btn-xs paid-btn" type="submit" disabled>Mark Paid</button>
-            {{/compare}}
+            <button class="btn btn-success btn-xs paid-btn" type="submit">{{gettext "Mark Paid"}}</button>
           </form>
+          {{else}}
+          <button class="btn btn-success btn-xs paid-btn" type="submit" disabled>{{gettext "Mark Paid"}}</button>
+          {{/compare}}
         </dd>
       </dl>
     </div>
   </div>
   <table class="table collapse" id="actions-{{id}}">
     <tr>
-      <th>Actions</th>
-      <th>User</th>
+      <th>{{gettext "Actions"}}</th>
+      <th>{{gettext "User"}}</th>
       <th></th>
-      <th>Timestamp</th>
+      <th>{{gettext "Timestamp"}}</th>
     </tr>
     {{#each actions}}
     {{#compare type 'comment' operator='!=='}}
     <tr class="{{status_color type}}">
-      <td>{{capitalize type}}</td>
+      <td>{{gettext (capitalize type)}}</td>
       <td>{{user.name}}</td>
       {{#if note}}
       <td>
-        <a class="small-popover" data-toggle="popover" data-trigger="focus" data-content="{{note}}" href="#" tabindex="0">Comment</a></td>
+        <a class="small-popover" data-toggle="popover" data-trigger="focus" data-content="{{note}}" href="#" tabindex="0">{{gettext "Comment"}}</a></td>
       </td>
       {{else}}
       <td></td>
       {{/if}}
-      <td>{{timestamp}}</td>
+      <td>{{datefmt timestamp}}</td>
     </tr>
     {{/compare}}
     {{/each}}

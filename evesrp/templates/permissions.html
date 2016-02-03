@@ -1,15 +1,18 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ site_name }}: Permissions{% endblock title %}
+{% block title %}{{ site_name }}: {{ gettext('Permissions') }}{% endblock title %}
 
 {% block content %}
 <div class="row">
   <div class="col-md-10 col-md-offset-1">
-    <h3>Your Permissions</h3>
+    {# TRANS: The header for a table listing the permissions you have in divisions. #}
+    <h3>{% trans %}Your Permissions{% endtrans %}</h3>
     <table class="table">
       <tr>
-        <th>Division</th>
-        <th>Permissions</th>
+        {# TRANS: A column header in a table with the name of a division. #}
+        <th>{% trans %}Division{% endtrans %}</th>
+        {# TRANS: A column header in a table that lists the permissions you have in a division (there can be multiple permissions in a row, separated by commas). #}
+        <th>{% trans %}Permissions{% endtrans %}</th>
       </tr>
       {% for grouper, grouped in current_user.permissions|groupby('division.name') %}
       <tr>

@@ -8,11 +8,13 @@ http://techspot.zzzeek.org/files/2011/decl_enum.py
 import six
 from sqlalchemy.types import SchemaType
 import re
+from speaklater import is_lazy_string
 from .unistr import unistr, ensure_unicode
 from .. import db
 
 
-# NOTE: When adding Py2 support, make sure to set the metaclasses appropriately
+if six.PY3:
+    unicode = str
 
 
 @unistr
@@ -37,6 +39,8 @@ class EnumSymbol(object):
         return u"<%s>" % self.name
 
     def __unicode__(self):
+        if is_lazy_string(self.description):
+            return unicode(self.description)
         return self.description
 
     def _json(self, extended=False):

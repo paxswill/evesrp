@@ -1,0 +1,52 @@
+{
+  "name": "evesrp",
+  "version": "0.10.6",
+  "description": "",
+  "main": "evesrp/static.js/main.coffee",
+  "dependencies": {
+    "bootstrap": "^3.3.5",
+    "browserify": "^11.0.1",
+    "cldr-core": "^28.0.2",
+    "cldr-data": "^28.0.3",
+    "cldr-dates-full": "^28.0.0",
+    "cldr-numbers-full": "^28.0.0",
+    "coffee-script": "^1.9.3",
+    "coffeeify": "^1.1.0",
+    "font-awesome": "^4.5.0",
+    "exorcist": "^0.4.0",
+    "globalize": "^1.0.0",
+    "handlebars": "^3.0.3",
+    "hbsfy": "^2.2.1",
+    "jed": "^1.1.0",
+    "jquery": "^2.1.4",
+    "less": "^2.5.1",
+    "po2json": "^0.4.1",
+    "selectize": "^0.12.1",
+    "uglify-js": "^2.4.24",
+    "underscore.string": "^3.2.0",
+    "underscore": "^1.8.3",
+    "zeroclipboard": "^2.2.0"
+  },
+  "devDependencies": {
+    "browserify-istanbul": "^0.2.1",
+    "coveralls": "^2.11.6",
+    "istanbul": "^0.4.2",
+    "mocha": "^2.2.5",
+    "mocha-phantomjs": "^4.0.2",
+    "sinon": "^1.17.2"
+  },
+  "scripts": {
+    "test": "mocha --compilers coffee:coffee=script/register --reporter dot --ui tdd test_javascript/*.coffee"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paxswill/evesrp.git"
+  },
+  "author": "Will Ross <paxswill@paxswill.com> (https://paxswill.com)",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/paxswill/evesrp/issues"
+  },
+  "homepage": "https://github.com/paxswill/evesrp#readme",
+  "private": true
+}

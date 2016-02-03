@@ -1,0 +1,8 @@
+<td data-attribute="{{attribute}}" 
+  {{~#if filterable}}class="filterable"{{/if}}>
+  {{~#if link}}<a href="{{link}}">{{/if}}
+  {{~#if filterable}}<a href="#">{{/if}}
+  {{~value~}}
+  {{~#if link}}</a>{{/if}}
+  {{~#if filterable}}</a>{{/if~}}
+</td>

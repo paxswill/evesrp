@@ -22,15 +22,3 @@
   </div>
 </div>
 {% endblock content %}
-
-{% block scripts %}
-{{ super() }}
-<script type=text/javascript>
-{% for method in forms %}
-$("li a[href=#{{ method[0].safe_name }}]").click(function (e) {
-    e.preventDefault()
-    $(this).tab('show')
-});
-{% endfor %}
-</script>
-{% endblock scripts %}

@@ -26,24 +26,33 @@ def check_crest_response(response):
 
 class NameLookup(object):
 
-    def __init__(self, starting_data, url_slug, content_type):
+    def __init__(self, starting_data, url_slug, content_type, attribute='name'):
         self._dict = starting_data
         self.url_slug = url_slug
         self.content_type = content_type
+        self.attribute_name = attribute
 
+    def _access_attribute(self, obj, attribute=None):
+        if attribute is None:
+            attribute = self.attribute_name
+        if '.' in attribute:
+            first, rest = self.attribute_name.split('.', 1)
+            return self._access_attribute(obj[first], rest)
+        else:
+            return obj[attribute]
 
     def __getitem__(self, key):
         if not isinstance(key, int):
-            raise TypeError("Invalid ID for name lookup: '{}'".\
-                    format(key))
+            raise TypeError("Invalid ID for {} lookup: '{}'".\
+                    format(self.attribute_name, key))
         if key not in self._dict:
             resp = current_app.requests_session.get(
                     self.url_slug.format(key),
                     headers={'Accept': self.content_type})
             if check_crest_response(resp) and resp.status_code == 200:
-                self._dict[key] = resp.json()['name']
+                self._dict[key] = self._access_attribute(resp.json())
             else:
-                message = "Cannot find the name for the ID requested [{}]: {}"\
-                        .format(resp.status_code, key)
+                message = "Cannot find the {} for the ID requested [{}]: {}"\
+                        .format(self.attribute_name, resp.status_code, key)
                 raise KeyError(message)
         return self._dict[key]

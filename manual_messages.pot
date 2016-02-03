@@ -1,0 +1,59 @@
+# These translations strings below are manually updated, as trying to get Babel
+# to extract from the Handlebars templates was too much of a pain. Edit them in
+# manual_messages.pot
+
+#. Text shown for individual user results when granting permissions. The HTML
+#. tags (<small class="text-muted"> etc) should
+#. be moved to go around the authentication source. An example of the output
+#. for this will be something like "Paxswill from Test OAuth" with the text
+#. "from Test OAuth" being smaller and less visible as it's not as important
+#. as the user's name.
+#: evesrp/static/js/templates/entity_option.hbs:5
+msgid "%(user_name)s <small class="text-muted text-right">from %(auth_source)s</small>"
+msgstr ""
+
+#. Text shown for group results when granting permissions. As with the user
+#. results, the HTML tags should be moved to accomodate the localized text. An
+#. additional bit of information should be displayed, the number of users in a
+#. group. The English version has the form
+#. "Test Alliance(2134) from Test OAuth" with the group name being
+#. "Test Alliance" and that group having 2134 member users.
+#: evesrp/static/js/templates/entity_option.hbs:3
+msgid "%(group_name)s(%(member_count)d) <small class="text-muted text-right">from %(auth_source)s</small>"
+msgstr ""
+
+#. Text shown in the tooltip that appears when a user hovers over a button that
+#. when clicked will copy some text to the user's clipboard.
+#: evesrp/static/js/apiKeys.coffee:27
+msgid "Copy to clipboard"
+msgstr ""
+
+#. Text shown when adding an attribute filter for things not equal to the given
+#. value. For example, if the value is "100", this will filter to things that
+#. are not equal to 100 (like the number 50).
+#: evesrp/static/js/templates/filter_option.hbs:5
+msgid "not"
+msgstr ""
+
+#. Text shown when adding an attribute filter for things before the given
+#. value. For example, if the value is "100", this will filter to things that
+#. are less than 100 (like the number 50).
+#: evesrp/static/js/templates/filter_option.hbs:7
+msgid "before"
+msgstr ""
+
+#. Text shown when adding an attribute filter for things after the given
+#. value. For example, if the value is "100", this will filter to things that
+#. are greater than 100 (like the number 50).
+#: evesrp/static/js/templates/filter_option.hbs:9
+msgid "after"
+msgstr ""
+
+#. Label for the time a kill happened (not when the request was submitted).
+msgid "Kill Timestamp"
+msgstr ""
+
+#. Label for the time a request was submitted to the app (not when a kill
+#. happened).
+msgid "Submit Timestamp"
+msgstr ""

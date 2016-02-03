@@ -2,6 +2,7 @@ from __future__ import absolute_import
 import re
 
 from flask import redirect, url_for, current_app
+from flask.ext.babel import gettext, lazy_gettext
 from flask.ext.login import current_user
 import flask.ext.login as flask_login
 from flask.ext.wtf import Form
@@ -30,7 +31,9 @@ class AuthMethod(object):
     def form(self):
         """Return a :py:class:`flask.ext.wtf.Form` subclass to login with."""
         class AuthForm(Form):
-            submit = SubmitField(u'Log In using {}'.format(self.name))
+            submit = SubmitField(gettext(
+                    u'Log In using %(authmethod_name)s',
+                    authmethod_name=self.name))
         return AuthForm
 
     def login(self, form):
@@ -93,21 +96,32 @@ class AnonymousUser(flask_login.AnonymousUserMixin):
 class PermissionType(DeclEnum):
     """Enumerated type for the types of permissions available. """
 
-    #: Permission allowing submission of :py:class:`~.Request`\s to a
-    #: :py:class:`~.Division`.
-    submit = u'submit', u'Submitter'
+    # TRANS: The title for someone who is able to submit a request to a
+    # TRANS: division.
+    submit = u'submit', lazy_gettext(u'Submitter')
+    """Permission allowing submission of :py:class:`~.Request`\s to a
+    :py:class:`~.Division`.
+    """
 
-    #: Permission for reviewers of requests in a :py:class:`~.Division`.
-    review = u'review', u'Reviewer'
+    # TRANS: The title for someone who is able to review requests to a
+    # TRANS: division.
+    review = u'review', lazy_gettext(u'Reviewer')
+    """Permission for reviewers of requests in a :py:class:`~.Division`."""
 
-    #: Permission for payers in a :py:class:`~.Division`.
-    pay = u'pay', u'Payer'
+    # TRANS: The title form someone who is able to mark requests as paid in a
+    # TRANS: division.
+    pay = u'pay', lazy_gettext(u'Payer')
+    """Permission for payers in a :py:class:`~.Division`."""
 
-    #: :py:class:`~.Division`\-level administrator permission
-    admin = u'admin', u'Administrator'
+    # TRANS: The title for someone who is able to administer a division.
+    admin = u'admin', lazy_gettext(u'Administrator')
+    """:py:class:`~.Division`\-level administrator permission"""
 
-    #: A special permission for allowing read-only elevated access
-    audit = u'audit', u'Auditor'
+    # TRANS: The title for someone who is able to audit the activities of a
+    # TRANS: division. This means they are able to view all requests in a
+    # TRANS: division.
+    audit = u'audit', lazy_gettext(u'Auditor')
+    """A special permission for allowing read-only elevated access"""
 
     @classproperty
     def elevated(cls):

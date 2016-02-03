@@ -3,7 +3,7 @@
 
 {% block content %}
 <requests>
-  <total-payouts pretty="{{ total_payouts.currency() }}">{{ total_payouts.currency(commas=False) }}</total-payouts>
+  <total-payouts>{{ total_payouts.currency() }}</total-payouts>
   {% for srp_request in requests %}
     {{ request_xml(srp_request) }}
   {% endfor %}

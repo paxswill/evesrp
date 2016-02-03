@@ -9,6 +9,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.event import listens_for
 from sqlalchemy.schema import DDL, DropIndex
 from flask import Markup, current_app, url_for
+from flask.ext.babel import gettext, lazy_gettext
 from flask.ext.login import current_user
 
 from . import db
@@ -25,25 +26,40 @@ class ActionType(DeclEnum):
     # The actual stored values are single character to make it easier on
     # engines that don't support native enum types.
 
-    #: Status for a request being evaluated.
-    evaluating = u'evaluating', u'Evaluating'
+    # TRANS: Name of the status a request is in when it has been submitted and
+    # TRANS: is ready to be evaluated.
+    evaluating = u'evaluating', lazy_gettext(u'Evaluating')
+    """Status for a request being evaluated."""
 
-    #: Status for a request that has been evaluated and is awaitng payment.
-    approved = u'approved', u'Approved'
+    # TRANS: Name of the status where a request has had a payout amount set,
+    # TRANS: and is ready to be paid out. In other words, approved for payout.
+    approved = u'approved', lazy_gettext(u'Approved')
+    """Status for a request that has been evaluated and is awaitng payment."""
 
-    #: Status for a request that has been paid. This is a terminatint state.
-    paid = u'paid', u'Paid'
+    # TRANS: Name of the status a request is in if the ISK has been sent to the
+    # TRANS: requesting person, and no further action is needed.
+    paid = u'paid', lazy_gettext(u'Paid')
+    """Status for a request that has been paid. This is a terminatint state."""
 
-    #: Status for a requests that has been rejected. This is a terminating
-    #: state.
-    rejected = u'rejected', u'Rejected'
+    # TRANS: Name of the status a request has where a reviewer has rejected the
+    # TRANS: request for SRP.
+    rejected = u'rejected', lazy_gettext(u'Rejected')
+    """Status for a requests that has been rejected. This is a terminating
+    state.
+    """
 
-    #: Status for a request that is missing details and needs further action.
-    incomplete = u'incomplete', u'Incomplete'
+    # TRANS: When a request needs more information to be approved or rejected,
+    # TRANS: it is in this status.
+    incomplete = u'incomplete', lazy_gettext(u'Incomplete')
+    """Status for a request that is missing details and needs further
+    action.
+    """
 
-    #: A special type of :py:class:`Action` representing a comment made on the
-    #: request.
-    comment = u'comment', u'Comment'
+    # TRANS: A comment made on a request.
+    comment = u'comment', lazy_gettext(u'Comment')
+    """A special type of :py:class:`Action` representing a comment made on the
+    request.
+    """
 
     @classproperty
     def finalized(cls):
@@ -237,10 +253,17 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
         :type user: :py:class:`~.User`
         """
         if self.request.status != ActionType.evaluating:
-            raise ModifierError("Modifiers can only be voided when the request"
-                                " is in the evaluating state.")
+            # TRANS: Error message shown when trying to void (cancel) a
+            # modifier but the request is not in the evaluating state, so the
+            # attempt fails.
+            raise ModifierError(gettext(u"Modifiers can only be voided when "
+                                        u"the request is in the evaluating "
+                                        u"state."))
         if not user.has_permission(PermissionType.review,
                 self.request.division):
+            # TRANS: Error message shown when you attempt to void a modifier
+            # but are prevented from doing so because you do not hold the
+            # reviewer permission.
             raise ModifierError("You must be a reviewer to be able to void "
                                 "modifiers.")
         self.voided_user = user
@@ -251,11 +274,12 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
         if current_app.config['SRP_SKIP_VALIDATION']:
             return request
         if request.status != ActionType.evaluating:
-            raise ModifierError(u"Modifiers can only be added when the request"
-                                u" is in an evaluating state.")
+            raise ModifierError(gettext(u"Modifiers can only be added when the"
+                                        u" request is in an evaluating "
+                                        u"state."))
         if not self.user.has_permission(PermissionType.review,
                 request.division):
-            raise ModifierError(u"Only reviewers can add modifiers.")
+            raise ModifierError(gettext(u"Only reviewers can add modifiers."))
         return request
 
     def _json(self, extended=False):
@@ -264,7 +288,6 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
         except AttributeError:
             parent = {}
         parent[u'value'] = self.value
-        parent[u'value_str'] = unicode(self)
         if extended:
             parent[u'note'] = self.note or u''
             parent[u'timestamp'] = self.timestamp
@@ -276,6 +299,8 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
                 }
             else:
                 parent[u'void'] = False
+        else:
+            parent[u'void'] = self.voided
         return parent
 
 
@@ -294,9 +319,13 @@ class AbsoluteModifier(Modifier):
     value = db.Column(PrettyNumeric(precision=15, scale=2), nullable=False,
             default=Decimal(0))
 
-    def __unicode__(self):
-        return u'{}M ISK {}'.format(self.value / 1000000,
-                u'bonus' if self.value >= 0 else u'penalty')
+    def _json(self, extended=False):
+        try:
+            parent = super(AbsoluteModifier, self)._json(extended)
+        except AttributeError:
+            parent = {}
+        parent[u'type'] = 'absolute'
+        return parent
 
 
 @unistr
@@ -313,13 +342,13 @@ class RelativeModifier(Modifier):
     value = db.Column(db.Numeric(precision=8, scale=5), nullable=False,
             default=Decimal(0))
 
-    def __unicode__(self):
-        pretty_value = unicode(self.value * 100)
-        pretty_value = pretty_value.lstrip('-')
-        pretty_value = pretty_value.rstrip('0')
-        pretty_value = pretty_value.rstrip('.')
-        return u'{}% {}'.format(pretty_value,
-                u'bonus' if self.value >= 0 else u'penalty')
+    def _json(self, extended=False):
+        try:
+            parent = super(RelativeModifier, self)._json(extended)
+        except AttributeError:
+            parent = {}
+        parent[u'type'] = 'relative'
+        return parent
 
 
 class Request(db.Model, AutoID, Timestamped, AutoName):
@@ -496,8 +525,9 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
             else:
                 return Decimal(value)
         else:
-            raise ModifierError(u"The request must be in the evaluating state "
-                                u"to change the base payout.")
+            raise ModifierError(gettext(u"The request must be in the "
+                                        u"evaluating state to change the base "
+                                        u"payout."))
 
     state_rules = {
         ActionType.evaluating: {
@@ -550,15 +580,18 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         if current_app.config['SRP_SKIP_VALIDATION']:
             return new_status
         if new_status == ActionType.comment:
-            raise ValueError(u"ActionType.comment is not a valid status")
+            raise ValueError(gettext(
+                u"Comment is not a valid status"))
         # Initial status
         if self.status is None:
             return new_status
         rules = self.state_rules[self.status]
         if new_status not in rules:
-            raise ActionError(u"{} is not a valid status to change to from {} "
-                    u"(valid options: {})".format(new_status,
-                            self.status, list(six.iterkeys(rules))))
+            error_text = gettext(u"%(new_status)s is not a valid status to "
+                                 u"change to from %(old_status)s.",
+                    new_status=new_status,
+                    old_status=self.status)
+            raise ActionError(error_text)
         return new_status
 
     @db.validates('actions')
@@ -591,16 +624,17 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
                 # the status validator).
                 return action
             if not action.user.has_permission(permissions, self.division):
-                raise ActionError(u"Insufficient permissions to perform that "
-                                  u"action.")
+                raise ActionError(gettext(u"Insufficient permissions to "
+                                          u"perform that action."))
         elif action.type_ == ActionType.comment:
             if action.user != self.submitter \
                     and not action.user.has_permission(
                             (PermissionType.review, PermissionType.pay,
                                 PermissionType.admin),
                             self.division):
-                raise ActionError(u"You must either own or have special"
-                                  u"privileges to comment on this request.")
+                raise ActionError(gettext(u"You must either own or have "
+                                          u"special privileges to comment on "
+                                          u"this request."))
         return action
 
     def __repr__(self):
@@ -660,8 +694,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
                 parent['ship'] = self.ship_type
             elif u'payout' in attr:
                 payout = getattr(self, attr)
-                parent[attr] = payout.currency(commas=False)
-                parent[attr + '_str'] = payout.currency()
+                parent[attr] = payout.currency()
             else:
                 parent[attr] = getattr(self, attr)
         parent[u'submit_timestamp'] = self.timestamp

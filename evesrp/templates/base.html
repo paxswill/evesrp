@@ -1,6 +1,6 @@
 {% import "macros.html" as macros with context %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ get_locale()|string|replace('_', '-') }}">
   <head>
     {% block head %}
     <meta charset="utf-8">
@@ -8,14 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf_token" content="{{ csrf_token() }}">
     <title>{% block title %}{{ site_name }}{{ (': ' ~ title)|safe if title }}{% endblock %}</title>
-    <link href="{{ static_file(filename='css/custom.css') }}" rel="stylesheet">
-    <!-- Bootstrap -->
-    <link href="{{ static_file(filename='css/bootstrap.min.css') }}" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link href="{{ static_file(filename='css/font-awesome.min.css') }}" rel="stylesheet">
-    <!-- Bootstrap-tokenfield -->
-    <link href="{{ static_file(filename='css/bootstrap-tokenfield.min.css') }}" rel="stylesheet">
-    <link href="{{ static_file(filename='css/tokenfield-typeahead.min.css') }}" rel="stylesheet">
+    <link href="{{ static_file(filename='css/evesrp.css') }}" rel="stylesheet">
     <link rel="shortcut icon" href="{{ static_file(filename='favicon.ico') }}">
     {% endblock head %}
   </head>
@@ -26,7 +19,8 @@
         <!-- Navbar "Brand and the collapse/expand toggle -->
         <div class="navbar-header">
           <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#eve-srp-navbar-collapse">
-            <span class="sr-only">Toggle Navigation</span>
+            {# TRANS: This is only for screen-readers (for blind users) #}
+            <span class="sr-only">{% trans %}Toggle Navigation{% endtrans %}</span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
@@ -40,13 +34,16 @@
             {% block navitems %}
             {% if current_user.is_authenticated() %}
             {% if current_user.has_permission((PermissionType.review, PermissionType.audit)) %}
-            {{ macros.navbar_button('Pending', 'requests.list_pending_requests', request_count(PermissionType.review), id='badge-pending')|indent(12)|safe }}
+            {# TRANS: This is in the navigation bar at the top, and is a link to a list of request that are waiting to be evaluated. #}
+            {{ macros.navbar_button(gettext('Pending'), 'requests.list_pending_requests', request_count(PermissionType.review), id='badge-pending')|indent(12)|safe }}
             {% endif %}
             {% if current_user.has_permission(PermissionType.pay) %}
-            {{ macros.navbar_button('Pay Outs', 'requests.list_approved_requests', request_count(PermissionType.pay), id='badge-payouts')|indent(12)|safe }}
+            {# TRANS: This is in the navigation bar at the top, and is a link to a list of requests ready to pay out. #}
+            {{ macros.navbar_button(gettext('Pay Outs'), 'requests.list_approved_requests', request_count(PermissionType.pay), id='badge-payouts')|indent(12)|safe }}
             {% endif %}
             {% if current_user.has_permission(PermissionType.elevated) %}
-            {{ macros.navbar_button('Completed', 'requests.list_completed_requests')|indent(12)|safe }}
+            {# TRANS: This is in the navigation bar at the top, and is a link to a list of request that have been either rejected or been paid. #}
+            {{ macros.navbar_button(gettext('Completed'), 'requests.list_completed_requests')|indent(12)|safe }}
             {% endif %}
             {% endif %}
             {% endblock navitems %}
@@ -54,21 +51,34 @@
           <ul class="nav navbar-nav navbar-right" id="right-nav">
             {% block navitems_right %}
             {% if current_user.is_anonymous() %}
-            {{ macros.navbar_button('Log In', 'login.login')|indent(12)|safe }}
+            {# TRANS: This is a link in the navigation bar. It goes to the login page. #}
+            {{ macros.navbar_button(gettext('Log In'), 'login.login')|indent(12)|safe }}
             {% else %}
             {% if current_user.has_permission(PermissionType.submit) %}
-            {{ macros.navbar_button('Submit', 'requests.submit_request')|indent(12)|safe }}
+            {# TRANS: This is a link in the navigation bar to the page for submitting a request. #}
+            {{ macros.navbar_button(gettext('Submit'), 'requests.submit_request')|indent(12)|safe }}
             {% endif %}
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                <span class="caret"></span> {{ current_user.name }} <span class="badge hidden-sm" id="badge-personal">{{ request_count(PermissionType.submit)|string|replace('0', '') }}</span>
+                {% with personal_count = request_count(PermissionType.submit) %}
+                <span class="caret"></span> {{ current_user.name }} <span class="badge hidden-sm" id="badge-personal">
+                  {%- if personal_count != 0 -%}
+                  {{ personal_count|numberfmt }}
+                  {%- endif -%}
+                </span>
+                {% endwith %}
+
               </a>
               <ul class="dropdown-menu">
-                {{ macros.navbar_button('Requests', 'requests.personal_requests', request_count(PermissionType.submit))|indent(16)|safe }}
-                {{ macros.navbar_button('API Keys', 'login.api_keys')|indent(16)|safe }}
-                {{ macros.navbar_button('Permissions', 'divisions.permissions')|indent(16)|safe }}
+                {# TRANS: This is a link in the navigation bar, linking to all of the requests the current user has ever made. #}
+                {{ macros.navbar_button(gettext('Requests'), 'requests.personal_requests', request_count(PermissionType.submit))|indent(16)|safe }}
+                {# TRANS: This is a link in the navigation bar to the page for managing the app's external API keys (not API keys from CCP, but those from within the app). #}
+                {{ macros.navbar_button(gettext('API Keys'), 'login.api_keys')|indent(16)|safe }}
+                {# TRANS: This is a link in the navigation bar to a page listing the permissions a user has in different reimbursement divisions. #}
+                {{ macros.navbar_button(gettext('Permissions'), 'divisions.permissions')|indent(16)|safe }}
                 <li class="divider"></li>
-                {{ macros.navbar_button('Log Out', 'login.logout')|indent(16)|safe }}
+                {# TRANS: The link in the navigation bar at the top for logging out of the app. #}
+                {{ macros.navbar_button(gettext('Log Out'), 'login.logout')|indent(16)|safe }}
               </ul>
             </li>
             {% endif %}
@@ -104,28 +114,50 @@
     <footer id="stats">
       <p class="text-muted text-center"><small>
         EVE-SRP v{{ app_version }} &bull;
-        <a href="https://github.com/paxswill/evesrp">Github Project</a> &bull;
+        {# TRANS: This is a link to the Github project for the app. It's where people can contribute code to the project. #}
+        <a href="https://github.com/paxswill/evesrp">{{ gettext('Github Project') }}</a> &bull;
         {% if '-dev' in app_version %}
         <a href="https://eve-srp.readthedocs.org/en/latest/users.html">
         {% else %}
         <a href="{{ "https://eve-srp.readthedocs.org/en/v" ~ app_version ~ "/users.html" }}">
         {% endif %}
-          Help
+        {# TRANS: This is a link to the manual for the app. #}
+        {{ gettext('Help') }}
         </a>
       </small></p>
+      {% if locales()|list|length > 1 %}
+      <form method="GET" class="text-muted text-center">
+        <small>
+          <input id="lang" type="hidden" name="lang" value="">
+          {% for locale in locales() %}
+          {% if get_locale() == locale %}
+          <strong>{{ locale.display_name }}</strong>
+          {% else %}
+          <a class="langSelect" data-lang="{{ locale|string }}" href="#">{{ locale.display_name }}</a>
+          {% endif %}
+          {% if not loop.last %}
+          &bull;
+          {% endif %}
+          {% endfor %}
+        </small>
+      </form>
+      {% else %}
+      <!-- No locales -->
+      {% endif %}
       {% if current_user.admin %}
-      <p class="text-muted text-center"><small>{{ g.DB_STATS.total_queries }} queries in {{ (g.DB_STATS.total_time * 1000)|round(3)}} ms</small></p>
+      <p class="text-muted text-center">
+        <small>
+          {# TRANS: This is a specialized line of text that is only visible to administrators. It shows the how many of database queries were executed to make this page, and how long they took (in milliseconds). #}
+          {{ gettext('%(queries)d queries in %(time).3f ms', queries=g.DB_STATS.total_queries, time=(g.DB_STATS.total_time * 1000)) }}
+        </small>
+      </p>
       {% endif %}
     </footer>
     {% endblock stats %}
     {% endblock body %}
     {% block scripts %}
-    <!-- Jquery from CDNJS. Need to use 1.x to support the IGB -->
-    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.js"></script>
-    <!-- $SCRIPT_ROOT is the root of this application, wherever it it -->
-    <script type="text/javascript">
-      $SCRIPT_ROOT = {{ request.script_root|tojson }};
-    </script>
+    <!-- scriptRoot is the root of this application, wherever it it -->
+    <script type="text/javascript">scriptRoot = {{ request.script_root|tojson }};</script>
     <script type="text/javascript" src="{{ static_file('js/evesrp.min.js') }}"></script>
     {% endblock scripts %}
   </body>

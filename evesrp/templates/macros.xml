@@ -1,8 +1,8 @@
 {% macro request_xml(srp_request, actions=False, modifiers=False) %}
 <request id="{{ srp_request.id }}" status="{{ srp_request.status.value }}">
   <payout>
-    <base pretty="{{ srp_request.base_payout.currency() }}">{{ srp_request.base_payout.currency(commas=False) }}</base>
-    <computed pretty="{{ srp_request.payout.currency() }}">{{ srp_request.payout.currency(commas=False) }}</computed>
+    <base>{{ srp_request.base_payout.currency() }}</base>
+    <computed>{{ srp_request.payout.currency(commas=False) }}</computed>
   </payout>
   <details>{{ srp_request.details }}</details>
   <pilot>

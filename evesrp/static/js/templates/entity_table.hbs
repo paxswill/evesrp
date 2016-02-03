@@ -1,17 +1,17 @@
 <table class="table table-condensed">
   <tr>
-    <th>Name</th>
-    <th>Type</th>
-    <th>Authentication Source</th>
-    <th>Remove</th>
+    <th>{{gettext "Name"}}</th>
+    <th>{{gettext "Type"}}</th>
+    <th>{{gettext "Authentication Source"}}</th>
+    <th>{{gettext "Remove"}}</th>
   </tr>
   {{#each entities}}
   <tr>
     <td>{{this.name}}</td>
     {{#if this.length}}
-    <td>Group ({{this.length}})</td>
+    <td>{{gettext "Group"}} ({{this.length}})</td>
     {{else}}
-    <td>User</td>
+    <td>{{gettext "User"}}</td>
     {{/if}}
     <td>{{this.source}}</td>
     <td>

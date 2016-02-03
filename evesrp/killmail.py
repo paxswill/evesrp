@@ -10,6 +10,7 @@ import six
 from .util import unistr, urlparse, urlunparse, utc
 
 from flask import Markup, current_app
+from flask.ext.babel import gettext, lazy_gettext
 import requests
 from sqlalchemy import create_engine, Table, MetaData
 from sqlalchemy.sql import select
@@ -147,9 +148,14 @@ class Killmail(object):
             self._data[name] = value
 
     def __unicode__(self):
-        return u"{kill_id}: {pilot} lost a {ship}. Verified: {verified}.".\
-                format(kill_id=self.kill_id, pilot=self.pilot, ship=self.ship,
-                        verified=self.verified)
+        # TRANS: This is a very brief desription of the unique, pertinent
+        # information about a killmail.
+        return gettext(u"%(kill_id)d: %(pilot)s lost a ship. Verified: "
+                       u"%(verified)s",
+                kill_id=self.kill_id,
+                pilot=self.pilot,
+                ship=self.ship,
+                verified=self.verified)
 
     def __iter__(self):
         """Iterate over the attributes of this killmail.
@@ -171,12 +177,17 @@ class Killmail(object):
         yield ('region', self.region)
         yield ('pilot_id', self.pilot_id)
 
-    #: A user-facing description of what kind of killmails this
-    #: :py:class:`Killmail` validates/handles. This text is displayed below
-    #: the text field for a killmail URL to let users know what kinds of links
-    #: are acceptable.
-    description = (u"A generic Killmail. If you see this text, you need to "
-                   u"configure your application.")
+
+    # TRANS: This is a description of the killmail processor. This specific
+    # text should not be shown to the user, but should still be localized just
+    # in case.
+    description = lazy_gettext(u"A generic Killmail. If you see this text, you"
+                               u" need to configure your application.")
+    """A user-facing description of what kind of killmails this
+    :py:class:`Killmail` validates/handles. This text is displayed below
+    the text field for a killmail URL to let users know what kinds of links
+    are acceptable.
+    """
 
 
 class ShipNameMixin(object):
@@ -265,8 +276,10 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
         if match:
             self.kill_id = int(match.group('kill_id'))
         else:
-            raise ValueError(u"'{}' is not a valid zKillboard killmail".
-                    format(self.url))
+            # TRANS: Error message shown when an invalid zKillboard URL is
+            # entered.
+            raise ValueError(gettext(u"'%(url)s' is not a valid zKillboard "
+                                     u"killmail", url=self.url))
         parsed = urlparse(self.url, scheme='https')
         if parsed.netloc == '':
             # Just in case someone is silly and gives an address without a
@@ -279,8 +292,11 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
         api_url[2] = '/api/no-attackers/no-items/killID/{}'.format(
                 self.kill_id)
         resp = self.requests_session.get(urlunparse(api_url))
-        retrieval_error = LookupError(u"Error retrieving killmail data: {}"
-                    .format(resp.status_code))
+        # TRANS: Error message shown when there's a problem accessing the
+        # zKillboard API.
+        retrieval_error = LookupError(gettext(u"Error retrieving killmail "
+                                              u"data: %(code)d",
+                                              code=resp.status_code))
         if resp.status_code != 200:
             raise retrieval_error
         try:
@@ -290,7 +306,10 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
         try:
             json = json[0]
         except IndexError as e:
-            raise LookupError(u"Invalid killmail: {}".format(url))
+            # TRANS: This is an error message when the killmail is somehow
+            # failing to be recognized. The %(url)s is replaced with the URL of
+            # the offending killmail.
+            raise LookupError(gettext(u"Invalid killmail: %(url)s", url=url))
         # JSON is defined to be UTF-8 in the standard
         victim = json[u'victim']
         self.pilot_id = int(victim[u'characterID'])
@@ -320,12 +339,21 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
         return self.kill_id > 0
 
     def __unicode__(self):
-        parent = super(ZKillmail, self).__unicode__()
-        return u"{parent} From ZKillboard at {url}".format(parent=parent,
+        # TRANS: A quick summary of a killmail's pertinent information.
+        return gettext(u"%(kill_id)d: %(pilot)s lost a ship. Verified: "
+                       u"%(verified)s. ZKillboard URL: %(url).",
+                kill_id=self.kill_id,
+                pilot=self.pilot,
+                ship=self.ship,
+                verified=self.verified,
                 url=self.url)
 
-    description = Markup(u'A link to a lossmail from <a href="https://'
-                         u'zkillboard.com/">ZKillboard</a>.')
+
+    # TRANS: Decscribing the acceptable killmails for the ZKillboard killmail
+    # processor.
+    description = lazy_gettext(u'A link to a lossmail from <a '
+                                      u'href="https://zkillboard.com/">'
+                                      u'ZKillboard</a>.')
 
 
 class CRESTMail(Killmail, RequestsSessionMixin, LocationMixin):
@@ -347,8 +375,10 @@ class CRESTMail(Killmail, RequestsSessionMixin, LocationMixin):
         if match:
             self.kill_id = match.group('kill_id')
         else:
-            raise ValueError(u"'{}' is not a valid CREST killmail".
-                    format(self.url))
+            # TRANS: The %(url)s in this case will be replaced with the
+            # offending URL.
+            raise ValueError(gettext(u"'%(url)s' is not a valid CREST killmail",
+                    url=self.url))
         parsed = urlparse(self.url, scheme='https')
         if parsed.netloc == '':
             parsed = urlparse('//' + url, scheme='https')
@@ -357,13 +387,18 @@ class CRESTMail(Killmail, RequestsSessionMixin, LocationMixin):
         resp = self.requests_session.get(self.url)
         # JSON responses are defined to be UTF-8 encoded
         if resp.status_code != 200:
-            raise LookupError(u"Error retrieving CREST killmail: {}".format(
-                resp.json()[u'message']))
+            # TRANS: The %s here will be replaced with the (non-localized
+            # probably) error from CCP.
+            raise LookupError(gettext(u"Error retrieving CREST killmail: "
+                                      u"%(error)s",
+                                      error=resp.json()[u'message']))
         try:
             json = resp.json()
         except ValueError as e:
-            raise LookupError(u"Error retrieving killmail data: {}"
-                    .format(resp.status_code))
+            # TRANS: The %(code)d in this message will be replaced with the
+            # HTTP status code recieved from CCP.
+            raise LookupError(gettext(u"Error retrieving killmail data: "
+                                      u"%(code)d", code=resp.status_code))
         victim = json[u'victim']
         char = victim[u'character']
         corp = victim[u'corporation']
@@ -387,5 +422,6 @@ class CRESTMail(Killmail, RequestsSessionMixin, LocationMixin):
         self.timestamp = dt.datetime(*(time_struct[0:6]),
                 tzinfo=utc)
 
-    description = Markup(u'A CREST external killmail link. <a href="#">'
-                         u'How to get one.</a>')
+    # TRANS: Description of the allowable links for the CREST killmail
+    # processor.
+    description = lazy_gettext(u'A CREST external killmail link.')

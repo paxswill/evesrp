@@ -1,0 +1,14 @@
+<div class="option">
+{{#compare sign '='}}
+{{else}} <small class="text-muted">
+{{#compare sign '-'}}
+{{gettext "not"}}</small>
+{{else}} {{#compare sign '<'}}
+{{gettext "before"}}</small>
+{{else}} {{#compare sign '>'}}
+{{gettext "after"}}</small>
+{{/compare}}
+{{/compare}}
+{{/compare}}
+{{/compare}}
+{{realValue}}</div>

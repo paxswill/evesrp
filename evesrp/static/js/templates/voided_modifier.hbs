@@ -1,15 +1,15 @@
 <div class="panel panel-default">
   <div class="panel-heading" data-toggle="collapse" data-target="#modifier{{id}}">
-    <del><h4 class="panel-title">{{value_str}}</h4></del>
+    <del><h4 class="panel-title">{{modifier_header this}}</h4></del>
   </div>
   <div id="modifier{{id}}" class="collapse">
     <div class="panel-body">
       <del>
-        {{note}} (voided by {{void.user.name}} at {{datefmt void.timestamp}} {{timefmt void.timestamp}})
+        {{ note }} {{gettext "voided by %(voided_name)s at %(voided_timestamp)s" voided_name=void.user.name voided_timestamp=(datefmt void.timestamp style='short')}}
       </del>
     </div>
     <div class="panel-footer">
-      {{user.name}} at {{timefmt timestamp}} {{datefmt timestamp}}
+      {{user.name}} ({{datefmt timestamp style='short'}})
     </div>
   </div>
 </div>

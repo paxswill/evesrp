@@ -1,8 +1,13 @@
+notifications:
+    email:
+        on_success: change
+        on_failure: change
+
 language: python
 
 python:
     - "2.7"
-    - "3.4"
+    - "3.5"
 
 env:
     - DB="sqlite://"
@@ -13,22 +18,18 @@ env:
 
 matrix:
     include:
+        - env: TEST_SUITE="javascript"
+          python: "3.5"
         - python: "2.7"
           env: DB="mysql+mysqldb://root@127.0.0.1/evesrp_test"
         - python: "3.3"
           env: DB="sqlite://"
-        - python: "pypy"
+        - python: "3.4"
           env: DB="sqlite://"
         - python: "pypy"
-          env: DB="postgresql+pg8000://postgres@127.0.0.1/evesrp_test"
-        - python: "pypy"
-          env: DB="mysql+mysqldb://root@127.0.0.1/evesrp_test"
-        - python: "pypy3"
           env: DB="sqlite://"
         - python: "pypy3"
-          env: DB="postgresql+pg8000://postgres@127.0.0.1/evesrp_test"
-        - python: "pypy3"
-          env: DB="mysql+pymysql://root@127.0.0.1/evesrp_test"
+          env: DB="sqlite://"
     allow_failures:
         - python: "pypy"
         - python: "pypy3"
@@ -36,7 +37,18 @@ matrix:
           env: DB="mysql+mysqldb://root@127.0.0.1/evesrp_test"
     fast_finish: true
 
+before_install:
+    - wget https://s3.amazonaws.com/travis-phantomjs/phantomjs-2.0.0-ubuntu-12.04.tar.bz2
+    - tar -xjf phantomjs-2.0.0-ubuntu-12.04.tar.bz2
+    - mv phantomjs $HOME/phantomjs
+
 install:
+    - nvm install 5.3.0
+    - npm install -g npm@latest
+    - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+    - sudo apt-get -qq update
+    - sudo apt-get -qq install g++-4.8
+    - export CXX=g++-4.8
     - make build-deps
 
 before_script:
@@ -44,6 +56,6 @@ before_script:
     - mysql -e 'CREATE DATABASE evesrp_test;'
     - make all
 
-script: coverage run setup.py test
+script: make travis
 
-after_success: coveralls
+after_success: make travis-success

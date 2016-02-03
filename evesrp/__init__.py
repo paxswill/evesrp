@@ -7,6 +7,7 @@ import sys
 import warnings
 from flask import current_app, g
 from flask.ext import sqlalchemy
+from flask.ext.babel import Babel, get_locale
 from flask.ext.wtf.csrf import CsrfProtect
 from flask.ext.oauthlib.client import OAuth
 import six
@@ -70,6 +71,8 @@ csrf = CsrfProtect()
 
 
 oauth = OAuth()
+
+babel = Babel()
 
 
 # Ensure models are declared
@@ -138,7 +141,7 @@ def create_app(config=None, **kwargs):
 
     # Connect views
     from .views import index, error_page, update_navbar, divisions, login,\
-            requests, api
+            requests, api, detect_language, locale_selector
     app.add_url_rule(rule=u'/', view_func=index)
     for error_code in (400, 403, 404, 500):
         app.register_error_handler(error_code, error_page)
@@ -155,9 +158,16 @@ def create_app(config=None, **kwargs):
     from .json import SRPEncoder
     app.json_encoder=SRPEncoder
 
+    # Hook up Babel and associated callbacks
+    babel.init_app(app)
+    app.before_request(detect_language)
+    babel.localeselector(locale_selector)
+
+
     # Configure the Jinja context
     # Inject variables into the context
     from .auth import PermissionType
+    from .util import locale as jinja_locale
     @app.context_processor
     def inject_enums():
         return {
@@ -167,7 +177,12 @@ def create_app(config=None, **kwargs):
             'site_name': app.config['SRP_SITE_NAME'],
             'url_for_page': requests.url_for_page,
             'static_file': static_file,
+            'locales': jinja_locale.enabled_locales,
+            'get_locale': get_locale,
         }
+    app.template_filter('currencyfmt')(jinja_locale.currencyfmt)
+    app.template_filter('percentfmt')(jinja_locale.percentfmt)
+    app.template_filter('numberfmt')(jinja_locale.numberfmt)
     # Auto-trim whitespace
     app.jinja_env.trim_blocks = True
     app.jinja_env.lstrip_blocks = True

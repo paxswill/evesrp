@@ -17,7 +17,7 @@ else:
 
 
 test_requirements = [
-    'beautifulsoup>=4.3.2',
+    'beautifulsoup>=4.4.1',
     'coverage>=3.7.1',
     'httmock>=1.2.2',
 ]
@@ -44,10 +44,18 @@ setup(
     ],
     package_data={
         'evesrp': [
-            'static/favicon.ico',
-            'static/evesso.png',
+            'static/cldr/main/*/*.json',
+            'static/cldr/supplemental/*.json',
             'static/css/*.css',
             'static/css/*.css.map',
+            'static/evesso.png',
+            'static/favicon.ico',
+            'static/fonts/*.eot',
+            'static/fonts/*.ttf',
+            'static/fonts/*.svg',
+            'static/fonts/*.woff',
+            'static/fonts/*.woff2',
+            'static/fonts/*.otf',
             'static/js/evesrp.min.js',
             'static/js/evesrp.min.js.map',
             'static/ZeroClipboard.swf',
@@ -66,7 +74,9 @@ setup(
         u'Topic :: Games/Entertainment',
     ],
     install_requires=[
+        'Babel>=2.2.0',
         'Flask>=0.10.1',
+        'Flask-Babel>=0.9',
         'Flask-Login>=0.2.11',
         'Flask-Migrate>=1.2.0',
         'Flask-Script==2.0.5',
@@ -76,7 +86,7 @@ setup(
         'Werkzeug>=0.9.4',
         'WTForms>=2.0.0',
         'alembic>=0.6.5',
-        'requests>=2.6.0',
+        'requests>=2.9.1',
         'six==1.7.3',
         'iso8601>=0.1.5',
     ],

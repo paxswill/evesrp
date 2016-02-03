@@ -6,13 +6,47 @@
 <meta name="srp_request_id" content="{{ srp_request.id }}">
 {% endblock head %}
 
+{% macro modifier_value(modifier) %}
+{% if modifier._type == 'AbsoluteModifier' %}
+{% with value = modifier.value / 1000000 %}
+  {% if modifier.value >= 0 %}
+  {# TRANS: How a flat ISK bonus is written as text. The %(amount)s is special,
+            it will be replaced with the bonus amount (in millions of ISK)
+  #}
+  {{ gettext("%(amount)sM ISK bonus", amount=(value|numberfmt)) }}
+  {% else %}
+  {# TRANS: How a flat ISK penalty is written as text. The %(amount)s is
+            special, it will be replaced with the penalty amount (in
+            millions of ISK).
+  #}
+  {{ gettext("%(amount)sM ISK penalty", amount=(value|numberfmt)) }}
+  {% endif %}
+{% endwith %}
+{% elif modifier._type == 'RelativeModifier' %}
+  {% if modifier.value >= 0 %}
+  {# TRANS: How a percentage bonus is written as text. The %(amount)s
+            is special, it will be replaced with the amount as a percentage,
+            formatted according to the current locale.
+  #}
+  {{ gettext("%(amount)s bonus", amount=(modifier.value|percentfmt)) }}
+  {% else %}
+  {# TRANS: How a percentage penalty is written as text. The %(amount)s
+            is special, it will be replaced with the amount as a percentage,
+            formatted according to the current locale.
+  #}
+  {{ gettext("%(amount)s penalty", amount=(modifier.value|percentfmt)) }}
+  {% endif %}
+{% endif %}
+{% endmacro %}
+
 {% block body %}
 <div class="modal fade" id="detailsModal" tabindex="-1" role=="dialog" aria-labelledby="detailsModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <form class="modal-content" method="post">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden"true">&times;</button>
-        <h3 class="modal-title" id="detailsModalLabel">Update Details</h3>
+        {# TRANS: The header for a modal window that is used to change the supporting details of a request (the details are things like what the fleet was doing, a link to an AAR, or something like that). #} 
+        <h3 class="modal-title" id="detailsModalLabel">{% trans %}Update Details{% endtrans %}</h3>
       </div>
       <div class="modal-body">
         {{ details_form.csrf_token() }}
@@ -20,8 +54,10 @@
         {{ macros.render_input(details_form.details) }}
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-        <button type="submit" class="btn btn-primary">Save</button>
+        {# TRANS: A button that when pushed will stop the process of updating the supporting details for a request. #}
+        <button type="button" class="btn btn-default" data-dismiss="modal">{% trans %}Cancel{% endtrans %}</button>
+        {# TRANS: A button that when pushed, will save the changes made to the supporting details for a request. #}
+        <button type="submit" class="btn btn-primary">{% trans %}Save{% endtrans %}</button>
       </div>
     </form>
   </div>
@@ -35,46 +71,55 @@
     {% block left_col %}
     <dl class="dl-horizontal">
       {% block info %}
-      <dt>Lossmail</dt>
+      <dt>{% trans %}External Lossmail{% endtrans %}</dt>
       <dd><a href="{{ srp_request.killmail_url }}" target="_blank">{{ srp_request.id }}</a></dd>
-      <dt>Time of Loss</dt>
-      <dd>{{ srp_request.kill_timestamp.strftime('%d %b %Y @ %H:%M') }}</dd>
-      <dt>Division</dt>
+      {# TRANS: The date and time that the loss this request concerns occured. #}
+      <dt>{% trans %}Time of Loss{% endtrans %}</dt>
+      <dd>{{ srp_request.kill_timestamp|datetimeformat }}</dd>
+      <dt>{% trans %}Division{% endtrans %}</dt>
       <dd>
         <span id="request-division">{{ srp_request.transformed.division }}</span> &bull;
-        <a href="{{ url_for('requests.request_change_division', request_id=srp_request.id) }}">Change Division</a>
+        {# TRANS: A button that when clicked begins the process of transferring a request from one division to another. #}
+        <a href="{{ url_for('requests.request_change_division', request_id=srp_request.id) }}">{% trans %}Change Division{% endtrans %}</a>
       </dd>
-      <dt>Details</dt>
+      <dt>{% trans %}Details{% endtrans %}</dt>
       <dd>
         <div class="panel panel-default">
           <p class="panel-body" id="request-details">{{ srp_request.details|urlize(30) }}</p>
         </div>
         {% if not srp_request.finalized and srp_request.submitter == current_user %}
-        <button class="btn btn-default btn-sm" type="button" data-toggle="modal" data-target="#detailsModal">Update Details</button>
+        {# TRANS: A button that when clicked begins the process of updating the supporting details of a request. #}
+        <button class="btn btn-default btn-sm" type="button" data-toggle="modal" data-target="#detailsModal">{% trans %}Update Details{% endtrans %}</button>
         {% endif %}
       </dd>
-      <dt>Pilot</dt>
+      <dt>{% trans %}Pilot{% endtrans %}</dt>
       <dd id="pilot">
         {{ srp_request.transformed.pilot }}
       </dd>
-      <dt>Corporation</dt>
+      {# TRANS: The corporation a pilot was in when the loss occured. #}
+      <dt>{% trans %}Corporation{% endtrans %}</dt>
       <dd id="corporation">{{ srp_request.transformed.corporation }}</dd>
-      <dt>Alliance</dt>
+      {# TRANS: The alliance a pilot was in when the loss occured. #}
+      <dt>{% trans %}Alliance{% endtrans %}</dt>
       <dd id="alliance">{{ srp_request.transformed.alliance|default(' ') }}
-      <dt>Location</dt>
+      {# TRANS: The solar system, constellation and region a loss occured in. #}
+      <dt>{% trans %}Location{% endtrans %}</dt>
       <dd>
         <span id="region">{{ srp_request.transformed.region }}</span> /
         <span id="constellation">{{ srp_request.transformed.constellation }}</span> /
         <span id="system">{{ srp_request.transformed.system }}</span>
       </dd>
-      <dt>Ship</dt>
+      <dt>{% trans %}Ship{% endtrans %}</dt>
       <dd>{{ srp_request.transformed.ship_type }}</dd>
-      <dt>Status</dt>
+      {# TRANS: The status a request is in. Possiblities include Unevaluated, Approved, Rejected, Paid and Incomplete. #}
+      <dt>{% trans %}Status{% endtrans %}</dt>
       <dd><span id="request-status" class="label label-{{ macros.status_color(srp_request.status) }}">{{ srp_request.transformed.status }}</span></dd>
-      <dt>Payout</dt>
+      {# TRANS: The payout an evaluated request has been. This number includes all modifiers (bonuses and penalties). #}
+      <dt>{% trans %}Payout{% endtrans %}</dt>
       <dd>
-        <span id="request-payout" data-initial-title="Base Payout: {{ srp_request.base_payout.currency() }}">
-          {{ srp_request.payout.currency() }}
+      {# TRANS: The base payout assigned to a request as part of the evaluation process. This is without any modifiers (bonuses or penalties). This text is shown as a tooltip when the mouse is moved over the total payout number. #}
+      <span id="request-payout" data-initial-title="{% trans base_payout=(srp_request.base_payout|currencyfmt) %}Base Payout: {{ base_payout }}{% endtrans %}">
+          {{ srp_request.payout|currencyfmt }}
         </span>
       </dd>
       {% endblock info %}
@@ -88,12 +133,14 @@
         <div class="input-group">
           {{ action_form.note(class="form-control") }}
           <div class="input-group-btn" id="actionMenu">
-            <button type="submit" id="comment" class="btn btn-default">Comment</button>
+            {# TRANS: This is a button that will add a comment to a request when clicked. #}
+            <button type="submit" id="comment" class="btn btn-default">{% trans %}Comment{% endtrans %}</button>
             {% for action in srp_request.valid_actions(current_user) %}
               {% if loop.first %}
             <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
               <span class="caret"></span>
-              <span class="sr-only">Toggle Dropdown</span>
+              {# TRANS: This text is not show and is only used for accesibility purposes. It is used to open a dropdown menu that is normally hidden. #}
+              <span class="sr-only">{% trans %}Toggle Dropdown{% endtrans %}</span>
             </button>
             <ul class="dropdown-menu" role="menu" id="actionMenu">
               {% endif %}
@@ -114,10 +161,10 @@
       {% with %}
         {% set item_class = 'text-' ~ macros.status_color(action.type_) if macros.status_color(action.type_) != '' %}
         <div class="list-group-item">
-          <h4 class="list-group-item-heading{{ ' ' ~ item_class if item_class is defined }}">{{ action.type_ if action.type_ != ActionType.comment }}</h4>
+          <h4 class="list-group-item-heading{{ ' ' ~ item_class if item_class is defined }}">{{ gettext(action.type_|string) if action.type_ != ActionType.comment }}</h4>
           <blockquote class="list-group-item-text">
             <p class="action-text">{{ action.note|urlize(30) }}</p>
-            <footer>{{ action.user.name }} ({{ action.timestamp.strftime('%d %b %Y @ %H:%M') }})</footer>
+            <footer>{{ action.user.name }} ({{ action.timestamp|datetimeformat }})</footer>
           </blockquote>
         </div>
       {% endwith %}
@@ -129,7 +176,7 @@
   <div class="col-sm-offset-1 col-sm-10 col-md-offset-0 col-md-6 col-lg-5">
     <dl class="dl-horizontal">
       {% block right_col %}
-      <dt>Modifiers</dt>
+      <dt>{% trans %}Modifiers{% endtrans %}</dt>
       <dd>
         {% block list_modifiers %}
         <div class="panel-group" id="modifierList">
@@ -145,7 +192,7 @@
               {% block modifier_header scoped %}
               {{ '<del>'|safe if modifier.voided }}
               <h4 class="panel-title">
-                {{ modifier }}
+                {{ modifier_value(modifier) }}
               </h4>
               {{ '</del>'|safe if modifier.voided }}
               {% endblock modifier_header %}
@@ -153,7 +200,8 @@
             <div id="modifier{{ modifier.id }}" class="collapse{{ ' in' if not modifier.voided }}">
               {% if modifier.voided %}
               <div class="panel-body">
-                <del>{{ modifier.note ~ ' ' if modifier.note }} (voided by {{ modifier.voided_user.name }} at {{ modifier.voided_timestamp.strftime('%H:%M %d %b %Y') }})</del>
+                {# TRANS: Modifiers cannot be completely removed, but they can be ignored, or voided out. When voided, they get an extra piece of text saying who voided them and when the modifier was voided. #}
+                <del>{{ modifier.note ~ '' if modifier.note }} ({{ gettext('voided by %(voided_name)s at %(voided_timestamp)s', voided_name=modifier.voided_user.name, voided_timestamp=(modifier.voided_timestamp|datetimeformat(format='short'))) }})</del>
               </div>
               {% else %}
               {% if modifier.note %}
@@ -163,7 +211,8 @@
               {% endif %}
               {% endif %}
               <div class="panel-footer">
-                {{ modifier.user }} at {{ modifier.timestamp.strftime('%H:%M %d %b %Y') }}
+                {# TRANS: When a modifier is added, the name of the user that added it and the date and time it was added are displayed. #}
+                {{ modifier.user }} ({{ modifier.timestamp|datetimeformat('short') }})
               </div>
             </div>
           </div>

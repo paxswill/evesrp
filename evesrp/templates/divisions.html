@@ -3,29 +3,37 @@
 {{ super() }}
 <div class="row">
   <div class="col-md-10 col-md-offset-1">
-    <h3>Administer Divisions</h3>
+    {# TRANS: This is a heading for a section of a page that deals with administering divisions. People who can see this have access to either modify the permissions in a division, or to create divisions. #}
+    <h3>{% trans %}Administer Divisions{% endtrans %}</h3>
     <table class="table table-condensed">
       <tr>
-        <th>Division Name</th>
-        <th>Submitters</th>
-        <th>Reviewers</th>
-        <th>Payers</th>
-        <th>Auditors</th>
-        <th>Admins</th>
+        {# TRANS: In an overview table of divisions, this is the heading for the column with the names of divisions. #}
+        <th>{% trans %}Division Name{% endtrans %}</th>
+        {# TRANS: In an overview table of divisions, this is the heading for the column showing the number of people or groups granted the 'submit' permission, meaning the can submit requests. #}
+        <th>{% trans %}Submitters{% endtrans %}</th>
+        {# TRANS: In an overview table of divisions, this is the heading for the column showing the number of people or groups granted the 'review' permission, meaning they can evaluate submitted requests. #}
+        <th>{% trans %}Reviewers{% endtrans %}</th>
+        {# TRANS: In an overview table of divisions, this is the heading for the column showing the number of people or groups granted the 'pay' permission, meaning they can mark requests as paid. #}
+        <th>{% trans %}Payers{% endtrans %}</th>
+        {# TRANS: In an overview table of divisions, this is the heading for the column showing the number of people or groups granted the 'audit' permission, meaning they are able to view all requests in a division, but not modify them in any way. #}
+        <th>{% trans %}Auditors{% endtrans %}</th>
+        {# TRANS: In an overview table of divisions, this is the heading for the column showing the number of people or groups granted the 'admin' permission, meaning they can manage who has been granted the other permissions. #}
+        <th>{% trans %}Admins{% endtrans %}</th>
       </tr>
       {% if divisions %}
       {% for division in divisions %}
       <tr>
         <td><a href="{{ url_for('divisions.get_division_details', division_id=division.id) }}">{{ division.name }}</a></td>
         {% for perm in (PermissionType.submit, PermissionType.review, PermissionType.pay,  PermissionType.audit, PermissionType.admin) %}
-        <td><a href="{{ url_for('divisions.get_division_details', division_id=division.id) }}#{{ perm.value }}">{{ division.permissions[perm]|length }}</a></td>
+        <td><a href="{{ url_for('divisions.get_division_details', division_id=division.id) }}#{{ perm.value }}">{{ division.permissions[perm]|length|numberfmt }}</a></td>
         {% endfor %}
       </tr>
       {% endfor %}
       {% endif %}
     </table>
     {% if current_user.admin %}
-    <a class="btn btn-primary" href="{{ url_for('divisions.add_division') }}">Add Division</a>
+    {# TRANS: This is a button for creating a new division. #}
+    <a class="btn btn-primary" href="{{ url_for('divisions.add_division') }}">{% trans %}Add Division{% endtrans %}</a>
     {% endif %}
   </div>
 </div>

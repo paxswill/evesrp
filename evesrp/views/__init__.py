@@ -1,13 +1,20 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 from flask import redirect, url_for, render_template, make_response, request,\
-        json
+        json, session
+from flask.ext import babel as flask_babel
 from flask.ext.login import login_required, current_user
-from .. import db
+from babel import get_locale_identifier, negotiate_locale, parse_locale
+import six
+from .. import db, babel
 from ..models import Request, ActionType
 from ..auth import PermissionType
 from ..auth.models import Permission, Division
-from ..util import jsonify, varies
+from ..util import jsonify, varies, locale
+
+
+if six.PY3:
+    unicode = str
 
 
 @login_required
@@ -71,6 +78,8 @@ def request_count(permission, statuses=None):
 
 
 def update_navbar(response):
+    if request.endpoint == 'static':
+        return response
     if 'application/json' not in response.mimetype:
         return response
     response_json = json.loads(response.get_data())
@@ -89,3 +98,22 @@ def update_navbar(response):
     counts['personal'] = request_count(PermissionType.submit)
     response.set_data(json.dumps(response_json))
     return response
+
+
+def detect_language():
+    if 'lang' in request.args:
+        requested_locale = request.args['lang']
+        locales = [unicode(l) for l in babel.list_translations()]
+        locale = negotiate_locale([requested_locale,], locales)
+        session['locale'] = locale
+        flask_babel.refresh()
+
+
+def locale_selector():
+    requested_locale = session.get('locale')
+    supported_locales = [unicode(l) for l in locale.enabled_locales()]
+    if requested_locale is not None and \
+            requested_locale not in supported_locales:
+        requested_locale = None
+        del session['locale']
+    return requested_locale

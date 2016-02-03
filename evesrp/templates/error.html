@@ -5,15 +5,20 @@
   <h1>
     {{ code }}
     {% if code == 400 %}
-    <small>Bad Request</small>
+    {# TRANS: This is an error message for HTTP responses with a 400 status code. #}
+    <small>{% trans %}Bad Request{% endtrans %}</small>
     {% elif code == 403 %}
-    <small>Forbidden</small>
+    {# TRANS: This is an error message for HTTP responses with a 403 status code. #}
+    <small>{% trans %}Forbidden{% endtrans %}</small>
     {% elif code == 404 %}
-    <small>Not Found</small>
+    {# TRANS: This is an error message for HTTP responses with a 404 status code. #}
+    <small>{% trans %}Not Found{% endtrans %}</small>
     {% elif code == 500 %}
-    <small>Internal Server Error</small
+    {# TRANS: This is an error message for HTTP responses with a 500 status code. #}
+    <small>{% trans %}Internal Server Error{% endtrans %}</small
     {% elif code == 503 %}
-    <small>Service Unavailable</small>
+    {# TRANS: This is an error message for HTTP responses with a 503 status code. #}
+    <small>{% trans %}Service Unavailable{% endtrans %}</small>
     {% endif %}
   </h1>
   <p>{{ description }}</p>
