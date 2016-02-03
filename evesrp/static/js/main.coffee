@@ -19,13 +19,14 @@ payouts = require 'evesrp/payouts'
 
 unless (jQuery '#mocha').length != 0
     ui.setupEvents()
-    ui.setupTranslations()
+    i18nPromise = ui.setupTranslations()
     if (jQuery '.entity-typeahead').length != 0
         division.setupEvents()
     if (jQuery '#actionMenu').length != 0
         request.setupEvents()
     if (jQuery '.filter-tokenfield').length != 0
-        filter.createFilterBar '.filter-tokenfield'
+        i18nPromise.done () ->
+            filter.createFilterBar '.filter-tokenfield'
     if (jQuery 'table#requests').length != 0
         requestList.setupEvents()
     if (jQuery 'div#requests').length != 0
