@@ -14,8 +14,8 @@ class AcceptRequest(Request):
 
     @property
     def _known_mimetypes(self):
-        return self._json_mimetypes + \
-               self._html_mimetypes + \
+        return self._html_mimetypes + \
+               self._json_mimetypes + \
                self._xml_mimetypes + \
                self._rss_mimetypes
 
