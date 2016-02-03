@@ -30,3 +30,15 @@ exports.pageNumbers = (numPages, currentPage, options) ->
         else if pages[pages.length - 1] != null
             pages.push null
     return pages
+
+
+exports.localToUTC = (date) ->
+    if typeof date == 'string'
+        date = new Date date
+    return new Date \
+        date.getUTCFullYear(),
+        date.getUTCMonth(),
+        date.getUTCDate(),
+        date.getUTCHours(),
+        date.getUTCMinutes(),
+        date.getUTCSeconds()
