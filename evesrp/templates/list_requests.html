@@ -66,7 +66,7 @@
         {{ request_cell('ship', request.ship_type) }}
         {{ request_cell('system', request.system) }}
         {{ request_cell('status', request.status) }}
-        {{ request_cell('payout', request.payout.currency(), False) }}
+        {{ request_cell('payout', request.payout|currencyfmt, False) }}
         {{ request_cell('submit_timestamp', request.timestamp|datetimeformat(format='short'), False) }}
         {{ request_cell('division', request.division.name) }}
         {% endblock table_row %}
@@ -104,7 +104,7 @@
       </ul>
       <p class="text-muted" id="requestsSummary">
       {# TRANS: A small line showing how many total requests there are. #}
-      {{ ngettext('%(num)s request', '%(num)s requests', pager.total) }} &bull; {{ total_payouts.currency() }} ISK
+      {{ ngettext('%(num)s request', '%(num)s requests', pager.total)|format(num=(pager.total|numberfmt)) }} &bull; {{ total_payouts|currencyfmt }} ISK
       </p>
     </div>
   </div>
