@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.org/paxswill/evesrp.svg?branch=i18n)](https://travis-ci.org/paxswill/evesrp)
-[![Documentation Status](https://readthedocs.org/projects/eve-srp/badge/?version=latest)](https://readthedocs.org/projects/eve-srp/?badge=latest)
-[![Coverage Status](https://coveralls.io/repos/paxswill/evesrp/badge.svg?branch=i18n&service=github)](https://coveralls.io/github/paxswill/evesrp?branch=i18n)
+[![Build Status](https://travis-ci.org/paxswill/evesrp.svg?branch=master)](https://travis-ci.org/paxswill/evesrp)
+[![Documentation Status](https://readthedocs.org/projects/eve-srp/badge/?version=master)](https://readthedocs.org/projects/eve-srp/?badge=master)
+[![Coverage Status](https://coveralls.io/repos/paxswill/evesrp/badge.svg?branch=master&service=github)](https://coveralls.io/github/paxswill/evesrp?branch=master)
 
 So, this is still in-progress, and I'm putting off writing a real readme until
 it's closer to a real release. IN the mean time, here're some
