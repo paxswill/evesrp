@@ -61,6 +61,7 @@ class APIKeyForm(Form):
 
 
 @blueprint.route('/apikeys/', methods=['GET', 'POST'])
+@login_required
 def api_keys():
     form = APIKeyForm()
     if form.validate_on_submit():
