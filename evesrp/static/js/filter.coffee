@@ -212,10 +212,11 @@ createFilterBar = (selector) ->
         for attribute in attributes
             if attribute of filter
                 for value in filter[attribute]
+                    translatedAttribute = ui.attributeGettext attribute
                     unless (value.charAt 0) in ['=', '-' , '<', '>']
-                        items.push "#{ attribute }:=#{ value }"
+                        items.push "#{ translatedAttribute }:=#{ value }"
                     else
-                        items.push "#{ attribute }:#{ value }"
+                        items.push "#{ translatedAttribute }:#{ value }"
         return items
     items = itemsFromFilter getFilters()
     options = for item in items

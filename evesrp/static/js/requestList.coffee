@@ -152,7 +152,10 @@ addQuickFilter = (ev) ->
     if attribute == 'status'
         value = value.toLowerCase()
     selectize = (jQuery '.filter-tokenfield')[0].selectize
-    selectize.addItem "#{ attribute }:=#{ value }", false
+    # Selectize keys options on their display value, so we ned to translate our
+    # value for the current locale.
+    translatedAttribute = ui.attributeGettext attribute
+    selectize.addItem "#{ translatedAttribute }:=#{ value }", false
     false
 
 
