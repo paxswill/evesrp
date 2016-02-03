@@ -32,6 +32,8 @@ $(CSS_DIR)/evesrp.css: $(CSS_DIR)/custom.less
 
 
 ##### ZeroClipboard SWF #####
+all:: $(STATIC_DIR)/ZeroClipboard.swf
+
 $(STATIC_DIR)/ZeroClipboard.swf: $(NODE_MODULES)/zeroclipboard/dist/ZeroClipboard.swf
 	cp "$^" "$@"
 
