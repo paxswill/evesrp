@@ -1,5 +1,6 @@
 tests.html
 test_*.js
 evesrp.test.js
+translations.js
 browserify.mk
 coverage/

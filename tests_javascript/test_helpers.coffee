@@ -1,13 +1,46 @@
 assert = require 'assert'
 sinon = require 'sinon'
 Handlebars = require 'handlebars'
+# Pile of JSON files normally fetched from the server.
+enTranslation = require 'evesrp/translations/en-US.json'
+likelySubtags = require 'cldr-data/supplemental/likelySubtags.json'
+enGregorian = require 'cldr-dates-full/main/en/ca-gregorian.json'
+tzNames = require 'cldr-dates-full/main/en/timeZoneNames.json'
+numbers = require 'cldr-numbers-full/main/en/numbers.json'
+numberingSystems = require 'cldr-data/supplemental/numberingSystems.json'
+timeData = require 'cldr-data/supplemental/timeData.json'
+weekData = require 'cldr-data/supplemental/weekData.json'
 
 
 suite 'Handlebars Helpers', () ->
 
     suiteSetup () ->
+        @server = sinon.fakeServer.create()
+        @server.respondImmediately = true
+        global.scriptRoot = ''
+        cldrRoot = '/static/cldr'
+        urls = {
+            '/static/translations/en-US.json': enTranslation
+            "#{ cldrRoot }/supplemental/likelySubtags.json": likelySubtags
+            "#{ cldrRoot }/main/en/ca-gregorian.json": enGregorian
+            "#{ cldrRoot }/main/en/timeZoneNames.json": tzNames
+            "#{ cldrRoot }/main/en/numbers.json": numbers
+            "#{ cldrRoot }/supplemental/numberingSystems.json": numberingSystems
+            "#{ cldrRoot }/supplemental/timeData.json": timeData
+            "#{ cldrRoot }/supplemental/weekData.json": weekData
+        }
+        for url, obj of urls
+            @server.respondWith 'GET', url,
+                [
+                    200,
+                    {'Content-Type': 'application/json'},
+                    JSON.stringify obj,
+                ]
         registerHelpers = (require 'evesrp/handlebars-helpers').registerHelpers
         registerHelpers(Handlebars)
+
+    suiteTeardown () ->
+        @server.restore()
 
     test 'Should capitalize the first letter in a word', () ->
         template = Handlebars.compile '{{capitalize foo}}'
