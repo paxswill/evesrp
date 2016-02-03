@@ -125,7 +125,7 @@
         {{ gettext('Help') }}
         </a>
       </small></p>
-      {% if locales()|length >= 1 %}
+      {% if locales()|list|length > 1 %}
       <form method="GET" class="text-muted text-center">
         <small>
           <input id="lang" type="hidden" name="lang" value="">

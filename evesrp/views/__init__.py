@@ -10,7 +10,7 @@ from .. import db, babel
 from ..models import Request, ActionType
 from ..auth import PermissionType
 from ..auth.models import Permission, Division
-from ..util import jsonify, varies
+from ..util import jsonify, varies, locale
 
 
 if six.PY3:
@@ -110,9 +110,10 @@ def detect_language():
 
 
 def locale_selector():
-    locale = session.get('locale')
-    supported_locales = [unicode(l) for l in babel.list_translations()]
-    if locale is not None and locale not in supported_locales:
-        locale = None
+    requested_locale = session.get('locale')
+    supported_locales = [unicode(l) for l in locale.enabled_locales()]
+    if requested_locale is not None and \
+            requested_locale not in supported_locales:
+        requested_locale = None
         del session['locale']
-    return locale
+    return requested_locale

@@ -23,4 +23,8 @@ SRP_SKIP_VALIDATION = False
 # caching issues).
 SRP_STATIC_FILE_HASH = False
 
+# Currently, just show the two English locales until other translations are
+# actually finished/looked at by people who can use them.
+SRP_LOCALES = ['en_US', 'en_GB']
+
 BABEL_DEFAULT_LOCALE = 'en_US'

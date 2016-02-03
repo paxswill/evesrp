@@ -177,7 +177,7 @@ def create_app(config=None, **kwargs):
             'site_name': app.config['SRP_SITE_NAME'],
             'url_for_page': requests.url_for_page,
             'static_file': static_file,
-            'locales': babel.list_translations,
+            'locales': jinja_locale.enabled_locales,
             'get_locale': get_locale,
         }
     app.template_filter('currencyfmt')(jinja_locale.currencyfmt)
