@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 from flask import Request
-from itertools import repeat, chain
 
 
 class AcceptRequest(Request):
@@ -13,12 +12,12 @@ class AcceptRequest(Request):
 
     _rss_mimetypes = ['application/rss+xml', 'application/rdf+xml']
 
-    _known_mimetypes = list(chain(
-        zip(_html_mimetypes, repeat(0.9)),
-        zip(_json_mimetypes, repeat(0.8)),
-        zip(_xml_mimetypes, repeat(0.8)),
-        zip(_rss_mimetypes, repeat(0.7)),
-    ))
+    @property
+    def _known_mimetypes(self):
+        return self._json_mimetypes + \
+               self._html_mimetypes + \
+               self._xml_mimetypes + \
+               self._rss_mimetypes
 
     @property
     def is_json(self):
