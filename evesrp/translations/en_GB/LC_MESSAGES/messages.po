@@ -1,14 +1,14 @@
 # English (United Kingdom) translations for EVE-SRP.
-# Copyright (C) 2015 Will Ross
+# Copyright (C) 2016 Will Ross
 # This file is distributed under the same license as the EVE-SRP project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2015.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2016.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: EVE-SRP 0.10.6-dev\n"
 "Report-Msgid-Bugs-To: paxswill@paxswill.com\n"
-"POT-Creation-Date: 2015-12-19 21:55-0500\n"
-"PO-Revision-Date: 2015-12-19 21:57-0500\n"
+"POT-Creation-Date: 2016-02-02 19:59-0500\n"
+"PO-Revision-Date: 2016-02-02 20:00-0500\n"
 "Language-Team: en_GB <LL@li.org>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
@@ -542,10 +542,10 @@ msgstr "Division"
 #. A small line showing how many total requests there are.
 #: evesrp/templates/list_requests.html:107
 #, python-format
-msgid "%(num)d request"
-msgid_plural "%(num)d requests"
-msgstr[0] "%(num)d request"
-msgstr[1] "%(num)d requests"
+msgid "%(num)s request"
+msgid_plural "%(num)s requests"
+msgstr[0] "%(num)s request"
+msgstr[1] "%(num)s requests"
 
 #. This is a tooltip that appears when you move the mouse over a button that
 #. will copy some text to the clipboard when clicked.
@@ -1172,4 +1172,3 @@ msgstr "Kill Timestamp"
 #. happened).
 msgid "Submit Timestamp"
 msgstr "Submit Timestamp"
-

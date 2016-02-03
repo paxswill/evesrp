@@ -1,11 +1,16 @@
-
+# Spanish translations for EVE-SRP.
+# Copyright (C) 2016 Will Ross
+# This file is distributed under the same license as the EVE-SRP project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2016.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: EVE-SRP 0.10.6-dev\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2015-11-21 19:58-0500\n"
-"PO-Revision-Date: 2015-11-21 19:47-0500\n"
+"POT-Creation-Date: 2016-02-02 19:59-0500\n"
+"PO-Revision-Date: 2016-02-02 20:06-0500\n"
 "Last-Translator: \n"
+"Language: es\n"
 "Language-Team: es <LL@li.org>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "MIME-Version: 1.0\n"
@@ -540,10 +545,10 @@ msgstr "División"
 #. A small line showing how many total requests there are.
 #: evesrp/templates/list_requests.html:105
 #, python-format
-msgid "%(num)d request"
-msgid_plural "%(num)d requests"
-msgstr[0] "%(num)d solicitud"
-msgstr[1] "%(num)d solicitudes"
+msgid "%(num)s request"
+msgid_plural "%(num)s requests"
+msgstr[0] "%(num)s solicitud"
+msgstr[1] "%(num)s solicitudes"
 
 #. This is a tooltip that appears when you move the mouse over a button that
 #. will copy some text to the clipboard when clicked.
@@ -614,9 +619,9 @@ msgstr "Razón"
 #. The text that will be put copied to the clipboard to be copied into the
 #. in-game ISK transfer window.
 #: evesrp/templates/payout.html:55
-#, fuzzy, python-format
+#, python-format
 msgid "Payment for %(request_id)s"
-msgstr "Pago de %(request_id)d"
+msgstr "Pago de %(request_id)s"
 
 #. A button that when clicked will mark a request as having been paid out.
 #: evesrp/templates/payout.html:62
@@ -641,33 +646,33 @@ msgstr "Sus permisos"
 #. How a flat ISK bonus is written as text. The %(amount)s is special,
 #. it will be replaced with the bonus amount (in millions of ISK)
 #: evesrp/templates/request_detail.html:16
-#, fuzzy, python-format
+#, python-format
 msgid "%(amount)sM ISK bonus"
-msgstr "Bonificación del %(amount)s%%"
+msgstr "Bonificación del %(amount)sM"
 
 #. How a flat ISK penalty is written as text. The %(amount)s is
 #. special, it will be replaced with the penalty amount (in
 #. millions of ISK).
 #: evesrp/templates/request_detail.html:22
-#, fuzzy, python-format
+#, python-format
 msgid "%(amount)sM ISK penalty"
-msgstr "Multa del %(amount)s%%"
+msgstr "Multa del %(amount)sM"
 
 #. How a percentage bonus is written as text. The %(amount)s             is
 #. special, it will be replaced with the amount as a percentage,
 #. formatted according to the current locale.
 #: evesrp/templates/request_detail.html:31
-#, fuzzy, python-format
+#, python-format
 msgid "%(amount)s bonus"
-msgstr "Bonificación del %(amount)s%%"
+msgstr "Bonificación del %(amount)s"
 
 #. How a percentage penalty is written as text. The %(amount)s             is
 #. special, it will be replaced with the amount as a percentage,
 #. formatted according to the current locale.
 #: evesrp/templates/request_detail.html:37
-#, fuzzy, python-format
+#, python-format
 msgid "%(amount)s penalty"
-msgstr "Multa del %(amount)s%%"
+msgstr "Multa del %(amount)s"
 
 #. The header for a modal window that is used to change the supporting details
 #. of a request (the details are things like what the fleet was doing, a link
@@ -1141,6 +1146,41 @@ msgid ""
 msgstr ""
 "%(group_name)s(%(member_count)d) <small class=“text-muted text-"
 "right”>from %(auth_source)s</small>"
+#. Text shown in the tooltip that appears when a user hovers over a button that
+#. when clicked will copy some text to the user's clipboard.
+#: evesrp/static/js/apiKeys.coffee:27
+msgid "Copy to clipboard"
+msgstr "Copiar al portapapeles"
+
+#. Text shown when adding an attribute filter for things not equal to the given
+#. value. For example, if the value is "100", this will filter to things that
+#. are not equal to 100 (like the number 50).
+#: evesrp/static/js/templates/filter_option.hbs:5
+msgid "not"
+msgstr "no"
+
+#. Text shown when adding an attribute filter for things before the given
+#. value. For example, if the value is "100", this will filter to things that
+#. are less than 100 (like the number 50).
+#: evesrp/static/js/templates/filter_option.hbs:7
+msgid "before"
+msgstr "ante"
+
+#. Text shown when adding an attribute filter for things after the given
+#. value. For example, if the value is "100", this will filter to things that
+#. are greater than 100 (like the number 50).
+#: evesrp/static/js/templates/filter_option.hbs:9
+msgid "after"
+msgstr "después"
+
+#. Label for the time a kill happened (not when the request was submitted).
+msgid "Kill Timestamp"
+msgstr "Marca de tiempo de muertes"
+
+#. Label for the time a request was submitted to the app (not when a kill
+#. happened).
+msgid "Submit Timestamp"
+msgstr "Marca de tiempo presentación"
 
 # These translations strings below are manually updated, as trying to get
 # Babel
@@ -1152,4 +1192,3 @@ msgstr ""
 
 #~ msgid "%(type)s from %(source)s"
 #~ msgstr "%(type)s de %(source)s"
-

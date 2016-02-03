@@ -38,11 +38,11 @@ renderRequests = (data) ->
     # Update summary footer
     $summary = jQuery '#requestsSummary'
     request_count = ui.numberFormat data.request_count
-    total_payouts = ui.currencyFormat data.total_payouts
-    requests_slug = ui.i18n.ngettext '%(num)d request', '%(num)d requests',
+    total_payouts = ui.currencyFormat (parseFloat data.total_payouts)
+    requests_slug = ui.i18n.ngettext '%(num)s request', '%(num)s requests',
         data.request_count
     requests_text = sprintf requests_slug, { num: request_count }
-    $summary.text "#{ requests } • #{ total_payouts } ISK"
+    $summary.text "#{ requests_text } • #{ total_payouts } ISK"
 
 
 renderPager = (data, filters) ->
