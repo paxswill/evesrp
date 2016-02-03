@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: EVE-SRP 0.10.6-dev\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-02-02 19:59-0500\n"
+"POT-Creation-Date: 2016-02-02 20:32-0500\n"
 "PO-Revision-Date: 2016-02-02 20:06-0500\n"
 "Last-Translator: \n"
 "Language: es\n"
@@ -16,7 +16,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 1.3\n"
+"Generated-By: Babel 2.2.0\n"
 
 #. This is a very brief desription of the unique, pertinent
 #. information about a killmail.
@@ -130,7 +130,7 @@ msgstr "Incompleto"
 
 #. A comment made on a request.
 #. This is a button that will add a comment to a request when clicked.
-#: evesrp/models.py:59 evesrp/templates/request_detail.html:104
+#: evesrp/models.py:59 evesrp/templates/request_detail.html:137
 msgid "Comment"
 msgstr "Comentario"
 
@@ -153,28 +153,29 @@ msgstr ""
 msgid "Only reviewers can add modifiers."
 msgstr "Solamente los revisores pueden añadir modificadores."
 
-#: evesrp/models.py:540
+#: evesrp/models.py:528
 msgid "The request must be in the evaluating state to change the base payout."
 msgstr "La solicitud debe estar en el estado evaluando cambiar el pago de base."
 
-#: evesrp/models.py:595
+#: evesrp/models.py:583
 msgid "Comment is not a valid status"
 msgstr "El comentario no es un estado válido"
 
-#: evesrp/models.py:602
+#: evesrp/models.py:590
 #, python-format
 msgid "%(new_status)s is not a valid status to change to from %(old_status)s."
 msgstr "%(new_status)s no es un estado válido para cambiar de %(old_status)s."
 
-#: evesrp/models.py:639
+#: evesrp/models.py:627
 msgid "Insufficient permissions to perform that action."
 msgstr "Permisos insuficientes para llevar a cabo dicha acción."
 
-#: evesrp/models.py:647
+#: evesrp/models.py:635
 msgid "You must either own or have special privileges to comment on this request."
 msgstr ""
 "Usted debe ya sea propia o tienen privilegios especiales para comentar "
 "sobre esta solicitud."
+
 #: evesrp/auth/__init__.py:34
 #, python-format
 msgid "Log In using %(authmethod_name)s"
@@ -182,31 +183,31 @@ msgstr "Acceder usando %(authmethod_name)s"
 
 #. The title for someone who is able to submit a request to a
 #. division.
-#: evesrp/auth/__init__.py:100
+#: evesrp/auth/__init__.py:101
 msgid "Submitter"
 msgstr "Peticionario"
 
 #. The title for someone who is able to review requests to a
 #. division.
-#: evesrp/auth/__init__.py:107
+#: evesrp/auth/__init__.py:108
 msgid "Reviewer"
 msgstr "Revisor"
 
 #. The title form someone who is able to mark requests as paid in a
 #. division.
-#: evesrp/auth/__init__.py:112
+#: evesrp/auth/__init__.py:113
 msgid "Payer"
 msgstr "Pagador"
 
 #. The title for someone who is able to administer a division.
-#: evesrp/auth/__init__.py:116
+#: evesrp/auth/__init__.py:117
 msgid "Administrator"
 msgstr "Administrador"
 
 #. The title for someone who is able to audit the activities of a
 #. division. This means they are able to view all requests in a
 #. division.
-#: evesrp/auth/__init__.py:122
+#: evesrp/auth/__init__.py:123
 msgid "Auditor"
 msgstr "Auditor"
 
@@ -215,7 +216,7 @@ msgstr "Auditor"
 #. This is a link in the navigation bar to the page for managing the app's
 #. external API keys (not API keys from CCP, but those from within the app).
 #: evesrp/templates/apikeys.html:4 evesrp/templates/apikeys.html:11
-#: evesrp/templates/base.html:69
+#: evesrp/templates/base.html:76
 msgid "API Keys"
 msgstr "Claves API"
 
@@ -254,12 +255,13 @@ msgstr "Creado"
 msgid "Remove"
 msgstr "Quitar"
 
-#: evesrp/templates/apikeys.html:50
+#. Text shown when there have been no API keys created for this user.
+#: evesrp/templates/apikeys.html:51
 msgid "No API keys have been created."
 msgstr "No se han creado claves API."
 
 #. This is a button, that when clicked, will create an API key.
-#: evesrp/templates/apikeys.html:62
+#: evesrp/templates/apikeys.html:63
 msgid "Create API Key"
 msgstr "Crear Clave API"
 
@@ -277,7 +279,7 @@ msgstr "Pendiente"
 #. This is in the navigation bar at the top, and is a link to a list of
 #. requests ready to pay out.
 #. Title for the special pay out mode request listing.
-#: evesrp/templates/base.html:42 evesrp/views/requests.py:463
+#: evesrp/templates/base.html:42 evesrp/views/requests.py:450
 msgid "Pay Outs"
 msgstr "Pagos"
 
@@ -294,15 +296,15 @@ msgstr "Iniciar"
 
 #. This is a link in the navigation bar to the page for submitting a request.
 #. Label for the button that submits the form.
-#: evesrp/templates/base.html:59 evesrp/views/requests.py:623
-#: evesrp/views/requests.py:991
+#: evesrp/templates/base.html:59 evesrp/views/requests.py:610
+#: evesrp/views/requests.py:978
 msgid "Submit"
 msgstr "Enviar"
 
 #. This is a link in the navigation bar, linking to all of the requests the
 #. current user has ever made.
 #. The default title for a page with atable listing SRP requests.
-#: evesrp/templates/base.html:67 evesrp/views/requests.py:52
+#: evesrp/templates/base.html:74 evesrp/views/requests.py:52
 msgid "Requests"
 msgstr "Solicitudes"
 
@@ -310,31 +312,31 @@ msgstr "Solicitudes"
 #. user has in different reimbursement divisions.
 #. A column header in a table that lists the permissions you have in a division
 #. (there can be multiple permissions in a row, separated by commas).
-#: evesrp/templates/base.html:71 evesrp/templates/permissions.html:3
+#: evesrp/templates/base.html:78 evesrp/templates/permissions.html:3
 #: evesrp/templates/permissions.html:15
 msgid "Permissions"
 msgstr "Permisos"
 
 #. The link in the navigation bar at the top for logging out of the app.
-#: evesrp/templates/base.html:74
+#: evesrp/templates/base.html:81
 msgid "Log Out"
 msgstr "Desconectarse"
 
 #. This is a link to the Github project for the app. It's where people can
 #. contribute code to the project.
-#: evesrp/templates/base.html:111
+#: evesrp/templates/base.html:118
 msgid "Github Project"
 msgstr "Github Proyecto"
 
 #. This is a link to the manual for the app.
-#: evesrp/templates/base.html:118
+#: evesrp/templates/base.html:125
 msgid "Help"
 msgstr "Ayuda"
 
 #. This is a specialized line of text that is only visible to administrators.
 #. It shows the how many of database queries were executed to make this page,
 #. and how long they took (in milliseconds).
-#: evesrp/templates/base.html:150
+#: evesrp/templates/base.html:151
 #, python-format
 msgid "%(queries)d queries in %(time).3f ms"
 msgstr "%(queries)d consultas en %(time).3f ms"
@@ -373,7 +375,7 @@ msgstr "Fuente de Autenticación"
 
 #. In a list of users and groups granted a permission, if it's a group, this
 #. will be displayed. The number of users in the group is shown in parentheses.
-#: evesrp/templates/division_detail.html:45
+#: evesrp/templates/division_detail.html:46
 #, python-format
 msgid "Group (%(num_users)s)"
 msgstr "Grupo (%(num_users)s)"
@@ -381,14 +383,14 @@ msgstr "Grupo (%(num_users)s)"
 #. In a list of users and groups granted a permission, if it's a group, this
 #. will be displayed. The number of users in the group is shown in parentheses.
 #. The name of the user who performed an action.
-#: evesrp/templates/division_detail.html:49 evesrp/templates/payout.html:72
+#: evesrp/templates/division_detail.html:50 evesrp/templates/payout.html:73
 msgid "User"
 msgstr "Usuario"
 
 #. This is a button for adding a specified user or group to the list of users
 #. and groups granted a permission in a division.
 #. Button that if clicked, will add a note to a user.
-#: evesrp/templates/division_detail.html:72
+#: evesrp/templates/division_detail.html:73
 #: evesrp/templates/request_pay.html:36
 msgid "Add"
 msgstr "Añadir"
@@ -489,8 +491,8 @@ msgstr "Solicitud ID"
 #. A table column header for the pilot of a request.
 #. A label for the name of the pilot who lost a ship.
 #. Label for fields showing the name of a pilot.
-#: evesrp/templates/list_requests.html:46 evesrp/templates/payout.html:46
-#: evesrp/templates/request_detail.html:62 evesrp/views/divisions.py:87
+#: evesrp/templates/list_requests.html:46 evesrp/templates/payout.html:47
+#: evesrp/templates/request_detail.html:95 evesrp/views/divisions.py:87
 msgid "Pilot"
 msgstr "Piloto"
 
@@ -504,7 +506,7 @@ msgid "Ship"
 msgstr "Barco"
 
 #. A table column header for the pilot of a request.
-#: evesrp/templates/list_requests.html:48
+#: evesrp/templates/list_requests.html:50
 msgid "System"
 msgstr "Sistema"
 
@@ -512,8 +514,8 @@ msgstr "Sistema"
 #. incomplete, approved, rejected).
 #. The status a request is in. Possiblities include Unevaluated, Approved,
 #. Rejected, Paid and Incomplete.
-#: evesrp/templates/list_requests.html:50
-#: evesrp/templates/request_detail.html:82
+#: evesrp/templates/list_requests.html:52
+#: evesrp/templates/request_detail.html:115
 msgid "Status"
 msgstr "Estado"
 
@@ -521,13 +523,13 @@ msgstr "Estado"
 #. A label for the payout that has been set for a request.
 #. The payout an evaluated request has been. This number includes all modifiers
 #. (bonuses and penalties).
-#: evesrp/templates/list_requests.html:52 evesrp/templates/payout.html:49
-#: evesrp/templates/request_detail.html:85
+#: evesrp/templates/list_requests.html:54 evesrp/templates/payout.html:50
+#: evesrp/templates/request_detail.html:118
 msgid "Payout"
 msgstr "Pago"
 
 #. A table column header for the date and time a request was submitted.
-#: evesrp/templates/list_requests.html:54
+#: evesrp/templates/list_requests.html:56
 msgid "Submit Time"
 msgstr "Envío Tiempo"
 
@@ -536,14 +538,14 @@ msgstr "Envío Tiempo"
 #. A column header in a table with the name of a division.
 #. Label for an dropdown menu to select which division to submit for
 #. SRP to.
-#: evesrp/templates/list_requests.html:56 evesrp/templates/payout.html:43
-#: evesrp/templates/permissions.html:13 evesrp/templates/request_detail.html:46
-#: evesrp/views/requests.py:620 evesrp/views/requests.py:989
+#: evesrp/templates/list_requests.html:58 evesrp/templates/payout.html:44
+#: evesrp/templates/permissions.html:13 evesrp/templates/request_detail.html:79
+#: evesrp/views/requests.py:607 evesrp/views/requests.py:976
 msgid "Division"
 msgstr "División"
 
 #. A small line showing how many total requests there are.
-#: evesrp/templates/list_requests.html:105
+#: evesrp/templates/list_requests.html:107
 #, python-format
 msgid "%(num)s request"
 msgid_plural "%(num)s requests"
@@ -574,13 +576,13 @@ msgstr "Este usario no tiene ningún notas."
 #. header show the ID number of the request.
 #. Title for the page showing the details about a single
 #. SRP request.
-#: evesrp/templates/payout.html:12 evesrp/views/requests.py:831
+#: evesrp/templates/payout.html:12 evesrp/views/requests.py:818
 #, python-format
 msgid "Request #%(request_id)s"
 msgstr "Solicitud #%(request_id)s"
 
 #. A link to the killmail on an external killboard like zKillboard.
-#: evesrp/templates/payout.html:19 evesrp/templates/request_detail.html:41
+#: evesrp/templates/payout.html:19 evesrp/templates/request_detail.html:74
 msgid "External Lossmail"
 msgstr "Pérdida de correo externo"
 
@@ -589,22 +591,22 @@ msgstr "Pérdida de correo externo"
 #. Label for a text entry field for inputting supporting details
 #. about a loss.
 #: evesrp/templates/payout.html:22 evesrp/templates/payout.html:23
-#: evesrp/templates/request_detail.html:52 evesrp/views/requests.py:615
-#: evesrp/views/requests.py:765
+#: evesrp/templates/request_detail.html:85 evesrp/views/requests.py:602
+#: evesrp/views/requests.py:752
 msgid "Details"
 msgstr "Detalles"
 
 #. A header for a list of payout modifications. These can be things like
 #. bonuses for fitting special kinds of modules or flying a special kind of
 #. ship, or penalties for fitting a ship incorrectly.
-#: evesrp/templates/payout.html:29 evesrp/templates/payout.html:35
-#: evesrp/templates/request_detail.html:146
+#: evesrp/templates/payout.html:29 evesrp/templates/payout.html:36
+#: evesrp/templates/request_detail.html:179
 msgid "Modifiers"
 msgstr "Modificadores"
 
 #. A header for a list of actions performed on the request. Examples include:
 #. Marking it as Approved, Rejected, or Paid.
-#: evesrp/templates/payout.html:38 evesrp/templates/payout.html:70
+#: evesrp/templates/payout.html:39 evesrp/templates/payout.html:71
 msgid "Actions"
 msgstr "Acciones"
 
@@ -612,7 +614,7 @@ msgstr "Acciones"
 #. transfer window.
 #. Label for a text field for inputting the reason a modifier is
 #. being applied.
-#: evesrp/templates/payout.html:52 evesrp/views/requests.py:725
+#: evesrp/templates/payout.html:53 evesrp/views/requests.py:712
 msgid "Reason"
 msgstr "Razón"
 
@@ -624,17 +626,17 @@ msgid "Payment for %(request_id)s"
 msgstr "Pago de %(request_id)s"
 
 #. A button that when clicked will mark a request as having been paid out.
-#: evesrp/templates/payout.html:62
+#: evesrp/templates/payout.html:63
 msgid "Mark Paid"
 msgstr "Marcos de pago"
 
 #. The date and time an action was performed.
-#: evesrp/templates/payout.html:75
+#: evesrp/templates/payout.html:76
 msgid "Timestamp"
 msgstr "Marca de tiempo"
 
 #. The note (if there is one) associated with an action.
-#: evesrp/templates/payout.html:83
+#: evesrp/templates/payout.html:84
 msgid "Note"
 msgstr "Nota"
 
@@ -679,90 +681,87 @@ msgstr "Multa del %(amount)s"
 #. to an AAR, or something like that).
 #. A button that when clicked begins the process of updating the supporting
 #. details of a request.
-#: evesrp/templates/request_detail.html:16
-#: evesrp/templates/request_detail.html:59
+#: evesrp/templates/request_detail.html:49
+#: evesrp/templates/request_detail.html:92
 msgid "Update Details"
 msgstr "Acutalizar los detalles"
 
 #. A button that when pushed will stop the process of updating the supporting
 #. details for a request.
-#: evesrp/templates/request_detail.html:25
+#: evesrp/templates/request_detail.html:58
 msgid "Cancel"
 msgstr "Cancelar"
 
 #. A button that when pushed, will save the changes made to the supporting
 #. details for a request.
-#: evesrp/templates/request_detail.html:27
+#: evesrp/templates/request_detail.html:60
 msgid "Save"
 msgstr "Guardar"
 
 #. The date and time that the loss this request concerns occured.
-#: evesrp/templates/request_detail.html:44
+#: evesrp/templates/request_detail.html:77
 msgid "Time of Loss"
 msgstr "Tiempo de Pérdida"
 
 #. A button that when clicked begins the process of transferring a request from
 #. one division to another.
-#: evesrp/templates/request_detail.html:50
+#: evesrp/templates/request_detail.html:83
 msgid "Change Division"
 msgstr "División de Cambrio"
 
 #. The corporation a pilot was in when the loss occured.
 #. Label for the corporation a pilot is in.
-#: evesrp/templates/request_detail.html:67 evesrp/views/divisions.py:89
+#: evesrp/templates/request_detail.html:100 evesrp/views/divisions.py:89
 msgid "Corporation"
 msgstr "Corporación"
 
 #. The alliance a pilot was in when the loss occured.
 #. Label for the alliance a pilot is in.
-#: evesrp/templates/request_detail.html:70 evesrp/views/divisions.py:91
+#: evesrp/templates/request_detail.html:103 evesrp/views/divisions.py:91
 msgid "Alliance"
 msgstr "Alianza"
 
 #. The solar system, constellation and region a loss occured in.
-#: evesrp/templates/request_detail.html:73
+#: evesrp/templates/request_detail.html:106
 msgid "Location"
 msgstr "Ubicación"
 
 #. The base payout assigned to a request as part of the evaluation process.
 #. This is without any modifiers (bonuses or penalties). This text is shown as
 #. a tooltip when the mouse is moved over the total payout number.
-#: evesrp/templates/request_detail.html:88
+#: evesrp/templates/request_detail.html:121
 #, python-format
 msgid "Base Payout: %(base_payout)s"
 msgstr "Pago Base: %(base_payout)s"
 
 #. This text is not show and is only used for accesibility purposes. It is used
 #. to open a dropdown menu that is normally hidden.
-#: evesrp/templates/request_detail.html:110
+#: evesrp/templates/request_detail.html:143
 msgid "Toggle Dropdown"
 msgstr "Alternar Desplegable"
 
 #. Modifiers cannot be completely removed, but they can be ignored, or voided
 #. out. When voided, they get an extra piece of text saying who voided them and
 #. when the modifier was voided.
-#: evesrp/templates/request_detail.html:171
+#: evesrp/templates/request_detail.html:204
 #, python-format
 msgid "voided by %(voided_name)s at %(voided_timestamp)s"
 msgstr "anulado por %(voided_name)s at %(voided_timestamp)s"
-
-#. When a modifier is added, the name of the user that added it and the date
-#. and time it was added are displayed.
-#. A small line of text showing who made a note, and the date and time that
-#. note was made.
-#: evesrp/templates/request_detail.html:182
-#: evesrp/templates/request_pay.html:18
-#, python-format
-msgid "%(name)s at %(timestamp)s"
-msgstr "%(name)s a las %(timestamp)s"
 
 #. A header for a modal window used to add and/or view notes about a specific
 #. user. The user's name and the authentication method they used to login (for
 #. example, Test Auth, Brave Core, or EVE SSO) are displayed.
 #: evesrp/templates/request_pay.html:10
 #, python-format
-msgid "Notes for '%(name)s' from %(authmethod)s\""
+msgid "Notes for '%(name)s' from %(authmethod)s"
 msgstr "Notas para '%(name)s' de %(authmethod)s"
+
+#. A small line of text showing who made a note, and the date and time that
+#. note was made.
+#: evesrp/templates/request_pay.html:18
+#, python-format
+msgid "%(name)s at %(timestamp)s"
+msgstr "%(name)s a las %(timestamp)s"
 
 #. Button that if clicked, will close the modal window for adding/viewing notes
 #. for a user.
@@ -779,7 +778,7 @@ msgstr "Notas Para El Usuario"
 #. A button that when clicked, will show the interface for adding a note to a
 #. user.
 #. Label for text input field for a note to be added about a user.
-#: evesrp/templates/request_pay.html:52 evesrp/views/requests.py:774
+#: evesrp/templates/request_pay.html:52 evesrp/views/requests.py:761
 msgid "Add Note"
 msgstr "Añadir La Nota"
 
@@ -932,7 +931,7 @@ msgstr "Valor no válido para el número de página: %(num)d."
 
 #. Error message shown when a date is written
 #. incorrectly.
-#: evesrp/views/requests.py:240
+#: evesrp/views/requests.py:227
 msgid "Invalid date format. Please read the documentation for date filtering."
 msgstr ""
 "Formato de fecha no válida. Por favor, lea la documentación para el "
@@ -940,94 +939,94 @@ msgstr ""
 
 #. Warning message shown when an unknown atribute is
 #. specified in the list of filters.
-#: evesrp/views/requests.py:282
+#: evesrp/views/requests.py:269
 #, python-format
 msgid "Unknown filter attribute name: %(attribute)s."
 msgstr "Filtro Desconocido nombre de atributo: %(attribute)s."
 
 #. The title of the page listing all requests an individual
 #. user has made.
-#: evesrp/views/requests.py:401
+#: evesrp/views/requests.py:388
 #, python-format
 msgid "%(name)s's Requests"
 msgstr "Las solicitudes de %(name)s"
 
 #. Title for the page listing all SRP requests waiting to be approved
 #. or rejected.
-#: evesrp/views/requests.py:536
+#: evesrp/views/requests.py:523
 msgid "Pending Requests"
 msgstr "Solicitudes Pendientes"
 
 #. Title for the page listing all SRP requests that have been paid
 #. out rejected.
-#: evesrp/views/requests.py:541
+#: evesrp/views/requests.py:528
 msgid "Completed Requests"
 msgstr "Solicitudes Terminados"
 
 #. Title for the page listing all SRP requests.
-#: evesrp/views/requests.py:546
+#: evesrp/views/requests.py:533
 msgid "All Requests"
 msgstr "Todas las Solicitudes"
 
 #. Error message show when trying to submit a killmail
 #. that cannot be verified.
-#: evesrp/views/requests.py:581
+#: evesrp/views/requests.py:568
 #, python-format
 msgid "%(url)s cannot be verified."
 msgstr "%(url)s no se puede verificar."
 
 #. Header for a list of the kinds of links that are acceptable to
 #. submit as killmails for SRP.
-#: evesrp/views/requests.py:603
+#: evesrp/views/requests.py:590
 #, python-format
 msgid "Acceptable Killmail Links:<ul>%(sources)s</ul>"
 msgstr "Fuentes killmail aceptables:<ul>%(sources)s</ul>"
 
 #. Label for an input field for the killmail URL
-#: evesrp/views/requests.py:611
+#: evesrp/views/requests.py:598
 msgid "Killmail URL"
 msgstr "Killmail URL"
 
 #. Error message shown when trying to submit a request to a
 #. non-existant division.
-#: evesrp/views/requests.py:644
+#: evesrp/views/requests.py:631
 #, python-format
 msgid "No division with ID '%(div_id)s'."
 msgstr "Ninguna división con ID '%(div_id)s'."
 
 #. Error message shown when trying to a submit a request to a
 #. division you do not have the submission permission in.
-#: evesrp/views/requests.py:649
+#: evesrp/views/requests.py:636
 #, python-format
 msgid "You do not have permission to submit to division '%(name)s'."
 msgstr "Usted no tiene permiso para enviar a la división ‘%(name)s’."
 
 #. Error message shown when trying to submit a lossmail from
 #. A character not associated with your user account.
-#: evesrp/views/requests.py:684
+#: evesrp/views/requests.py:671
 msgid "You can only submit killmails of characters you control"
 msgstr "Sólo se puede presentar killmails de personajes que controlas"
 
 #. Error message shown when trying to submit a killmail for
 #. SRP a second time.
-#: evesrp/views/requests.py:704
+#: evesrp/views/requests.py:691
 msgid "This kill has already been submitted"
 msgstr "Esta pérdida ya se ha presentado"
 
 #. Title for the page showing the form for submitting SRP requests.
-#: evesrp/views/requests.py:709
+#: evesrp/views/requests.py:696
 msgid "Submit Request"
 msgstr "Enviar Solicitud"
 
 #. Label for an input field for the amount a modifier is for. Can be
 #. either a percentage or an ISK value (in millions of ISK).
-#: evesrp/views/requests.py:718
+#: evesrp/views/requests.py:705
 msgid "Value"
 msgstr "Valor"
 
 #. Help text explaining a hidden feature about the notes made
 #. about users.
-#: evesrp/views/requests.py:777
+#: evesrp/views/requests.py:764
 msgid ""
 "If you have something like '#{Kill ID}', it will be linkified to the "
 "corresponding request (if it exists). For example, #1234567 would be "
@@ -1039,46 +1038,46 @@ msgstr ""
 
 #. Error message when someone who does not have the reviewer
 #. permission tries to change the base payout of a request.
-#: evesrp/views/requests.py:862
+#: evesrp/views/requests.py:849
 msgid "Only reviewers can change the base payout."
 msgstr "Sólo los colaboradores pueden cambiar el pago de base."
 
 #. Error message when a user tries to void (cancel) a
 #. modifier that does not exist.
-#: evesrp/views/requests.py:892
+#: evesrp/views/requests.py:879
 #, python-format
 msgid "Invalid modifier ID %(modifier_id)d."
 msgstr "Identificación modificador no válido%(modifier_id)d."
 
 #. Error message shown when someone other than the request
 #. submitter tries to change the details of the request.
-#: evesrp/views/requests.py:909
+#: evesrp/views/requests.py:896
 msgid "Only the submitter can change the request details."
 msgstr "Sólo el remitente puede cambiar los detalles de la solicitud."
 
 #. Error message shown when the submitter ties to change the
 #. details when the request is no long pending (not finished).
-#: evesrp/views/requests.py:914
+#: evesrp/views/requests.py:901
 msgid "Details can only be changed when the request is still pending."
 msgstr "Detalles sólo se pueden cambiar cuando la solicitud está pendiente."
 
 #. The old request details have are saved in a comment on the
 #. request. This is the text that is put at the beginning of the
 #. comment
-#: evesrp/views/requests.py:921
+#: evesrp/views/requests.py:908
 #, python-format
 msgid "Old Details: %(details)s"
 msgstr "Detalles Viejos: %(details)s"
 
 #. Error message shown when someone without the proper
 #. permissions tries to add a note to a user.
-#: evesrp/views/requests.py:939
+#: evesrp/views/requests.py:926
 msgid "You do not have permission to add a note to a user."
 msgstr "Usted no tiene permiso para añadir una nota a un usuario."
 
 #. Error message shown when a user tries to move a request but is
 #. unable to becuase the request has been paid or rejected.
-#: evesrp/views/requests.py:1010
+#: evesrp/views/requests.py:997
 msgid "Cannot change the division as this request is in a finalized state"
 msgstr ""
 "No se puede cambiar la división que esta solicitud está en un estado "
@@ -1086,28 +1085,28 @@ msgstr ""
 
 #. Message shown when a user tries to change a request's division
 #. but they do not have access to any other divisions.
-#: evesrp/views/requests.py:1025
+#: evesrp/views/requests.py:1012
 msgid "No other divisions to move to."
 msgstr "No hay otras divisiones para desplazarse a."
 
 #. When a request is moved from one division to another, a
 #. comment is added noting the old division's name and the new
 #. division's name. This is the text of that note.
-#: evesrp/views/requests.py:1037
+#: evesrp/views/requests.py:1024
 #, python-format
 msgid "Moving from division '%(old_division)s' to division '%(new_division)s'."
 msgstr "Pasar de la división '%(old_division)s' a la división '%(new_division)s'."
 
 #. Confirmation message shown when wa request has been
 #. successfully moved to a new division.
-#: evesrp/views/requests.py:1050
+#: evesrp/views/requests.py:1037
 #, python-format
 msgid "Request #%(request_id)d moved to %(division)s division"
 msgstr "Solicitud #%(request_id)d trasladó a %(division)s división"
 
 #. Title for the page showing the form for changing a
 #. request's division.
-#: evesrp/views/requests.py:1067
+#: evesrp/views/requests.py:1054
 #, python-format
 msgid "Change #%(request_id)d's Division"
 msgstr "Cambiar División de #%(request_id)d"
@@ -1146,6 +1145,7 @@ msgid ""
 msgstr ""
 "%(group_name)s(%(member_count)d) <small class=“text-muted text-"
 "right”>from %(auth_source)s</small>"
+
 #. Text shown in the tooltip that appears when a user hovers over a button that
 #. when clicked will copy some text to the user's clipboard.
 #: evesrp/static/js/apiKeys.coffee:27
@@ -1192,3 +1192,4 @@ msgstr "Marca de tiempo presentación"
 
 #~ msgid "%(type)s from %(source)s"
 #~ msgstr "%(type)s de %(source)s"
+
