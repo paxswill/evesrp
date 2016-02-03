@@ -28,7 +28,8 @@ def enabled_locales():
     all_locales = [(unicode(l), l) for l in babel.list_translations()]
     enabled_locales = current_app.config.get('SRP_LOCALES', [])
     if not enabled_locales:
-        return [l[0] for l in all_locales]
+        for locale in all_locales:
+            yield locale[0]
     else:
         for enabled_locale in enabled_locales:
             for locale_str, locale in all_locales:
