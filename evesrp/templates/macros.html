@@ -114,3 +114,36 @@ danger
 <button class="{{ classes }} copy-btn" data-clipboard-text="{{ value }}" data-toggle="tooltip" data-placement="{{ position }}" title="{{ gettext('Copy %(copy_label)s to clipboard', copy_label=copy_label) }}">{{ value }}</button>
 {% endwith %}
 {% endmacro %}
+
+{% macro modifier_value(modifier) %}
+{% if modifier._type == 'AbsoluteModifier' %}
+{% with value = modifier.value / 1000000 %}
+  {% if modifier.value >= 0 %}
+  {# TRANS: How a flat ISK bonus is written as text. The %(amount)s is special,
+            it will be replaced with the bonus amount (in millions of ISK)
+  #}
+  {{ gettext("%(amount)sM ISK bonus", amount=(value|numberfmt)) }}
+  {% else %}
+  {# TRANS: How a flat ISK penalty is written as text. The %(amount)s is
+            special, it will be replaced with the penalty amount (in
+            millions of ISK).
+  #}
+  {{ gettext("%(amount)sM ISK penalty", amount=(value|numberfmt)) }}
+  {% endif %}
+{% endwith %}
+{% elif modifier._type == 'RelativeModifier' %}
+  {% if modifier.value >= 0 %}
+  {# TRANS: How a percentage bonus is written as text. The %(amount)s
+            is special, it will be replaced with the amount as a percentage,
+            formatted according to the current locale.
+  #}
+  {{ gettext("%(amount)s bonus", amount=(modifier.value|percentfmt)) }}
+  {% else %}
+  {# TRANS: How a percentage penalty is written as text. The %(amount)s
+            is special, it will be replaced with the amount as a percentage,
+            formatted according to the current locale.
+  #}
+  {{ gettext("%(amount)s penalty", amount=(modifier.value|percentfmt)) }}
+  {% endif %}
+{% endif %}
+{% endmacro %}

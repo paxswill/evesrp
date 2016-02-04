@@ -1,5 +1,5 @@
 {% extends "list_requests.html" %}
-{% from "macros.html" import clipboard_button,status_color with context %}
+{% from "macros.html" import clipboard_button,status_color,modifier_value with context %}
 
 
 {% block table %}
@@ -31,7 +31,15 @@
             <ul>
               {% for modifier in request.modifiers if not modifier.voided %}
               {# TODO: Use percent localization #}
-                <li>{{ modifier }}</li>
+              {% if modifier.value > 0 %}
+              <li class='text-success'>
+              {% elif modifier.value < 0 %}
+              <li class='text-danger'>
+              {% else %}
+              <li>
+              {% endif %}
+              {{ modifier_value(modifier) }}
+              </li>
               {% endfor %}
             </ul>" data-html="true" data-container="body" href="#" tabindex="0">{% trans %}Modifiers{% endtrans %}</a></dd>
           {% endif %}
