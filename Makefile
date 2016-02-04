@@ -28,10 +28,10 @@ else ifneq (,$(findstring mysqldb,$(DB)))
 	pip install mysql-python
 endif
 
-sdist: $(SUBDIRS) setup.py
+sdist: all setup.py
 	python setup.py sdist
 
-upload: $(SUBDIRS) setup.py
+upload: all setup.py
 	python setup.py sdist upload
 
 test:: test-python test-javascript
