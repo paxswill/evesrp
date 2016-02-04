@@ -25,6 +25,7 @@ class EveSSO(OAuthMethod):
             self.xml_root = 'https://api.eveonline.com/'
         kwargs.setdefault('access_token_url', self.domain + '/oauth/token')
         kwargs.setdefault('authorize_url', self.domain + '/oauth/authorize')
+        kwargs.setdefault('refresh_token_url', self.domain + '/oauth/token')
         kwargs.setdefault('method', 'POST')
         kwargs.setdefault('app_key', 'EVE_SSO')
         kwargs.setdefault('name', u'EVE SSO')

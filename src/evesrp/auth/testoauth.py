@@ -44,6 +44,8 @@ class TestOAuth(OAuthMethod):
                 domain + '/o2/authorize/')
         kwargs.setdefault('access_token_url',
                 domain + '/o2/token/')
+        kwargs.setdefault('refresh_token_url',
+                domain + '/o2/token/')
         kwargs.setdefault('scope', ['read_profile'])
         kwargs.setdefault('method', 'POST')
         kwargs.setdefault('app_key', 'TEST_OAUTH')

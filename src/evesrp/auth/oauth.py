@@ -130,7 +130,10 @@ class OAuthMethod(AuthMethod):
         self._oauth_session = OAuth2Session(self.client_id, token=token)
         # Get the User object for this user, creating one if needed
         user = self.get_user()
-        user.token = token[u'access_token']
+        user.access_token = token[u'access_token']
+        if 'refresh_token' in token:
+            user.refresh_token = token[u'refresh_token']
+            user.set_expiration(token[u'expires_in'])
         if user is not None:
             # Apply site-wide admin flag
             user.admin = self.is_admin(user)
@@ -225,14 +228,42 @@ class OAuthMethod(AuthMethod):
         if not hasattr(self, '_oauth_session'):
             if not current_user.is_anonymous:
                 token = {'token_type': 'Bearer'}
-                token['access_token'] = current_user.token
+                token['access_token'] = current_user.access_token
+                if current_user.refresh_token is not None:
+                    token['refresh_token'] = current_user.refresh_token
+                    now = dt.datetime.utcnow()
+                    current_duration = current_user.access_expiration - now
+                    token['expires_in'] = int(current_duration.total_seconds())
                 kwargs['token'] = token
+                if self.refresh_url is not None:
+                    kwargs['auto_refresh_url'] = self.refresh_url
+                    kwargs['token_updater'] = token_saver
                 self._oauth_session = OAuth2Session(self.client_id, **kwargs)
         return self._oauth_session
+
+
+def token_saver(token):
+    current_user.access_token = token[u'access_token']
+    if 'refresh_token' in token:
+        current_user.refresh_token = token[u'refresh_token']
+        current_user.set_expiration(token[u'expires_in'])
+    else:
+        current_user.refresh_token = None
+        current_user.access_expiration = None
+    db.session.commit()
 
 
 class OAuthUser(User):
 
     id = db.Column(db.Integer, db.ForeignKey(User.id), primary_key=True)
 
-    token = db.Column(db.String(100, convert_unicode=True))
+    access_token = db.Column(db.String(100, convert_unicode=True))
+
+    access_expiration = db.Column(DateTime)
+
+    refresh_token = db.Column(db.String(100, convert_unicode=True))
+
+    def set_expiration(self, expiration_seconds):
+        now = dt.datetime.utcnow()
+        expiration = now + dt.timedelta(seconds=expiration_seconds)
+        self.access_expiration = expiration
