@@ -13,71 +13,38 @@ from ..util.crest import check_crest_response
 from ..versioned_static import static_file
 
 
-CREST_CONTENT_TYPE = 'application/vnd.ccp.eve.Api-v3+json; charset=utf-8'
-
-
 class EveSSO(OAuthMethod):
 
     def __init__(self, singularity=False, **kwargs):
-        # CREST URLs are all specified as absolute URLs, so skip setting a base
-        # URL
         kwargs.setdefault('base_url', u'')
-        # Set a member for the crest URLs
-        if not singularity:
-            self.root_urls = {
-                'public': 'https://public-crest.eveonline.com/',
-                'authed': 'https://crest-tq.eveonline.com/',
-            }
-            self.xml_root = 'https://api.eveonline.com/'
-        else:
-            self.root_urls = {
-                'public': 'http://public-crest-sisi.testeveonline.com/',
-                'authed': 'https://api-sisi.testeveonline.com/',
-            }
+        if singularity:
+            self.domain = 'https://sisilogin.testeveonline.com'
             self.xml_root = 'https://api.testeveonline.com/'
-        # Discover the OAuth endpoints by looking in the CREST root
-        public_resp = current_app.requests_session.get(
-                self.root_urls['public'],
-                headers={'Accept': CREST_CONTENT_TYPE})
-        check_crest_response(public_resp)
-        public_root = public_resp.json()
-        crest_token_url = public_root[u'authEndpoint'][u'href']
-        kwargs.setdefault('access_token_url', crest_token_url)
-        kwargs.setdefault('authorize_url',
-                crest_token_url.replace('token', 'authorize'))
-
-        kwargs.setdefault('access_token_method', 'POST')
-        kwargs.setdefault('content_type', 'application/json')
+        else:
+            self.domain = 'https://login.eveonline.com'
+            self.xml_root = 'https://api.eveonline.com/'
+        kwargs.setdefault('access_token_url', self.domain + '/oauth/token')
+        kwargs.setdefault('authorize_url', self.domain + '/oauth/authorize')
+        kwargs.setdefault('method', 'POST')
         kwargs.setdefault('app_key', 'EVE_SSO')
         kwargs.setdefault('name', u'EVE SSO')
         super(EveSSO, self).__init__(**kwargs)
 
-    def _get_user_data(self, token):
+    def _get_user_data(self):
         if not hasattr(request, '_user_data'):
-            # Get the public CREST root to infer where the verification
-            # endpoint is
-            public_resp = current_app.requests_session.get(
-                    self.root_urls['public'],
-                    headers={'Accept': CREST_CONTENT_TYPE} )
-            check_crest_response(public_resp)
-            public_root = public_resp.json()
-            verify_url = public_root[u'authEndpoint'][u'href'].replace(
-                    'token', 'verify')
-            # TODO Add CREST headers and response verification for the OAuth
-            # methods.
-            resp = self.oauth.get(verify_url, token=token)
+            resp = self.session.get(self.domain + '/oauth/verify').json()
             current_app.logger.debug(u"SSO lookup results: {}".format(
-                    resp.data))
+                    resp))
             try:
                 char_data = {
-                    'name': resp.data[u'CharacterName'],
-                    'id': resp.data[u'CharacterID'],
-                    'owner_hash': resp.data[u'CharacterOwnerHash'],
+                    'name': resp[u'CharacterName'],
+                    'id': resp[u'CharacterID'],
+                    'owner_hash': resp[u'CharacterOwnerHash'],
                 }
                 request._user_data = char_data
             except (TypeError, KeyError):
                 abort(500, u"Error in receiving EVE SSO response: {}".format(
-                        resp.data))
+                        resp))
         return request._user_data
 
     def form(self):
@@ -87,8 +54,8 @@ class EveSSO(OAuthMethod):
 
         return EveSSOForm
 
-    def get_user(self, token):
-        character = self._get_user_data(token)
+    def get_user(self):
+        character = self._get_user_data()
         try:
             user = EveSSOUser.query.filter_by(
                     owner_hash=character['owner_hash'],
@@ -103,10 +70,10 @@ class EveSSO(OAuthMethod):
             db.session.commit()
         return user
 
-    def get_pilots(self, token):
+    def get_pilots(self):
         # The EVE SSO API only authenticates one character at a time, so we're
         # going to have a 1-to-1 mapping of Users to Pilots
-        character = self._get_user_data(token)
+        character = self._get_user_data()
         pilot = Pilot.query.get(int(character['id']))
         if pilot is None:
             pilot = Pilot(None, character['name'], character['id'])
@@ -114,14 +81,14 @@ class EveSSO(OAuthMethod):
             db.session.commit()
         return [pilot]
 
-    def get_groups(self, token):
+    def get_groups(self):
         """Set the user's groups for their pilot.
 
         At this time, Eve SSO only gives us character access, so they're just
         set to the pilot's corporation, and if they have on their alliance as
         well. In the future, this method may also add groups for mailing lists.
         """
-        character = self._get_user_data(token)
+        character = self._get_user_data()
         info_url = self.xml_root + 'eve/CharacterInfo.xml.aspx'
         info_response = current_app.requests_session.get(info_url,
                 params={'characterID': character['id']})

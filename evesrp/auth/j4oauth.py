@@ -9,7 +9,7 @@ from .models import Group, Pilot
 
 class J4OAuth(OAuthMethod):
 
-    def __init__(self, **kwargs):
+    def __init__(self, base_url='https://j4lp.com/oauth/api/v1/', **kwargs):
         """:py:class:`~.AuthMethod` for using
         `J4OAuth <https://github.com/J4LP/J4OAuth>`_ as an authentication
         source.
@@ -29,7 +29,7 @@ class J4OAuth(OAuthMethod):
         :param str name: The name for this authentication method. Default:
             ``'J4OAuth'``.
         """
-        kwargs.setdefault('base_url', 'https://j4lp.com/oauth/api/v1/')
+        self.base_url = base_url
         kwargs.setdefault('access_token_url', 'https://j4lp.com/oauth/token')
         kwargs.setdefault('authorize_url', 'https://j4lp.com/oauth/authorize')
         kwargs.setdefault('access_token_method', 'GET')
@@ -38,14 +38,14 @@ class J4OAuth(OAuthMethod):
         kwargs.setdefault('name', u'J4OAuth')
         super(J4OAuth, self).__init__(**kwargs)
 
-    def _get_user_data(self, token):
+    def _get_user_data(self):
         if not hasattr(request, '_auth_user_data'):
-            resp = self.oauth.get('auth_user', token=token)
-            request._auth_user_data = resp.data[u'user']
+            resp = self.session.get('auth_user').json()
+            request._auth_user_data = resp[u'user']
         return request._auth_user_data
 
-    def get_user(self, token):
-        auth_user = self._get_user_data(token)
+    def get_user(self):
+        auth_user = self._get_user_data()
         try:
             user = OAuthUser.query.filter_by(name=auth_user['main_character'],
                                             authmethod=self.name).one()
@@ -56,10 +56,10 @@ class J4OAuth(OAuthMethod):
             db.session.commit()
         return user
 
-    def get_pilots(self, token):
+    def get_pilots(self):
         pilots = []
-        auth_characters = self.oauth.get('characters', token=token)\
-                .data[u'characters']
+        resp = self.session.get(self.base_url + 'characters').json()
+        auth_characters = resp[u'characters']
         for character in auth_characters:
             pilot = Pilot.query.get(int(character[u'characterID']))
             if pilot is None:
@@ -68,12 +68,13 @@ class J4OAuth(OAuthMethod):
                         character[u'characterID'])
                 db.session.add(pilot)
             pilots.append(pilot)
+        db.session.commit()
         return pilots
 
-    def get_groups(self, token):
+    def get_groups(self):
         groups = []
-        auth_groups = self.oauth.get('auth_groups',
-                token=token).data[u'groups']
+        resp = self.session.get(self.base_url + 'auth_groups').json()
+        auth_groups = resp[u'groups']
         # Append the user's alliance to the normal list of groups
         auth_user = self._get_user_data(token)
         auth_groups.append(u'{} alliance'.format(auth_user[u'alliance']))

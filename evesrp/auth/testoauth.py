@@ -39,32 +39,31 @@ class TestOAuth(OAuthMethod):
             domain = 'https://auth.pleaseignore.com'
         else:
             domain = 'https://auth.devtest.pleaseignore.com'
+        self.base_url = domain + '/api/3.0/'
         kwargs.setdefault('authorize_url',
                 domain + '/o2/authorize/')
         kwargs.setdefault('access_token_url',
                 domain + '/o2/token/')
-        kwargs.setdefault('base_url',
-                domain + '/api/3.0/')
-        kwargs.setdefault('request_token_params', {'scope': 'read_profile'})
-        kwargs.setdefault('access_token_method', 'POST')
+        kwargs.setdefault('scope', ['read_profile'])
+        kwargs.setdefault('method', 'POST')
         kwargs.setdefault('app_key', 'TEST_OAUTH')
         kwargs.setdefault('name', u'Test OAuth')
         super(TestOAuth, self).__init__(**kwargs)
 
-    def _get_user_data(self, token):
+    def _get_user_data(self):
         if not hasattr(request, '_auth_user_data'):
-            resp = self.oauth.get('profile', token=token)
+            resp = self.session.get(self.base_url + 'profile')
             try:
                 current_app.logger.debug(u"Test OAuth API response: {}".format(
-                        resp.data))
-                request._auth_user_data = json.loads(resp.data)
+                        resp.text))
+                request._auth_user_data = resp.json()
             except TypeError:
                 abort(500, u"Error in receiving OAuth response: {}".format(
-                        resp.data))
+                        resp))
         return request._auth_user_data
 
-    def get_user(self, token):
-        data = self._get_user_data(token)
+    def get_user(self):
+        data = self._get_user_data()
         primary_character = data[u'primary_character'][u'name']
         user_id = data[u'id']
         try:
@@ -73,21 +72,20 @@ class TestOAuth(OAuthMethod):
             # The primary character can change
             user.name = primary_character
         except NoResultFound:
-            user = TestOAuthUser(primary_character, user_id, self.name,
-                    token=token['access_token'])
+            user = TestOAuthUser(primary_character, user_id, self.name)
             db.session.add(user)
             db.session.commit()
         return user
 
     def is_admin(self, user):
-        data = self._get_user_data(user.token)
+        data = self._get_user_data()
         return super(TestOAuth, self).is_admin(user) or \
                 user.auth_id in self.admins or \
                 data[u'is_staff'] or \
                 data[u'is_superuser']
 
-    def get_pilots(self, token):
-        data = self._get_user_data(token)
+    def get_pilots(self):
+        data = self._get_user_data()
         # The Auth API will duplicate characters when there's more than one API
         # key for them.
         pilots = {}
@@ -99,8 +97,8 @@ class TestOAuth(OAuthMethod):
         pilots = list(pilots.values())
         return pilots
 
-    def get_groups(self, token):
-        data = self._get_user_data(token)
+    def get_groups(self):
+        data = self._get_user_data()
         groups = []
         for group_info in data[u'groups']:
             group_name = group_info[u'name']

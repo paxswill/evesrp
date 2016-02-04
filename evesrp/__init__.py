@@ -9,7 +9,6 @@ from flask import current_app, g
 from flask.ext import sqlalchemy
 from flask.ext.babel import Babel, get_locale
 from flask.ext.wtf.csrf import CsrfProtect
-from flask.ext.oauthlib.client import OAuth
 import six
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -69,8 +68,6 @@ locale.setlocale(locale.LC_ALL, '')
 
 csrf = CsrfProtect()
 
-
-oauth = OAuth()
 
 babel = Babel()
 
@@ -135,9 +132,6 @@ def create_app(config=None, **kwargs):
     # Remove the context processor that checks CSRF values. All it is used for
     # is the template function.
     app.before_request_funcs[None] = before_csrf
-
-    # Hook up OAuth
-    oauth.init_app(app)
 
     # Connect views
     from .views import index, error_page, update_navbar, divisions, login,\

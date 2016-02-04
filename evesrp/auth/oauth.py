@@ -1,21 +1,18 @@
 from __future__ import absolute_import
-from flask import flash, redirect, current_app, url_for, request
+import datetime as dt
+from flask import flash, redirect, current_app, url_for, request, session
+from flask.ext.babel import gettext
 from flask.ext.login import current_user
-from flask.ext.oauthlib.client import OAuthException
+from requests_oauthlib import OAuth2Session
+from oauthlib.oauth2 import OAuth2Error, TokenExpiredError
 from flask.ext.wtf import csrf
+import six
 from sqlalchemy.orm.exc import NoResultFound
 
-from .. import db, oauth
-from ..util import ensure_unicode
+from .. import db
+from ..util import ensure_unicode, DateTime
 from . import AuthMethod
 from .models import User, Group, Pilot
-
-
-def token_getter():
-    """Simple function to retrieve an access token from the current logged in
-    user.
-    """
-    return {'access_token': current_user.token}
 
 
 class OAuthMethod(AuthMethod):
@@ -32,18 +29,14 @@ class OAuthMethod(AuthMethod):
         documentation for :py:class:`~flask_oauthlib.client.OAuthRemoteApp` for
         more details):
 
-        * ``base_url``
-        * ``request_token_url``
+        * ``client_id``
+        * ``client_secret``
+        * ``scope``
         * ``access_token_url``
+        * ``refresh_token_url``
         * ``authorize_url``
-        * ``consumer_key``
-        * ``consumer_secret``
-        * ``request_token_params``
         * ``access_token_params``
-        * ``access_token_method``
-        * ``content_type``
-        * ``app_key``
-        * ``encoding``
+        * ``method``
 
         As a convenience, the ``key`` and ``secret`` keyword arguments will be
         treated as ``consumer_key`` and ``consumer_secret`` respectively. The
@@ -61,77 +54,81 @@ class OAuthMethod(AuthMethod):
         ``https://example.com/login/test_oauth/`` (Note the trailing slash, it
         is significant).
         """
-        # Allow using 'secret' and 'key' instead of 'consumer_[secret|key]'
-        if 'key' in kwargs:
-            kwargs['consumer_key'] = kwargs.pop('key')
-        if 'secret' in kwargs:
-            kwargs['consumer_secret'] = kwargs.pop('secret')
-        # Remove OAuth arguments and create an arguments dictionary for them
-        oauth_kwargs = {}
-        for kwarg in ('oauth', 'base_url', 'request_token_url',
-                      'access_token_url', 'authorize_url', 'consumer_key',
-                      'consumer_secret', 'request_token_params',
-                      'access_token_params', 'access_token_method',
-                      'content_type', 'app_key', 'encoding'):
-            if kwarg in kwargs:
-                oauth_kwargs[kwarg] = kwargs.pop(kwarg)
+        keyword_mapping = {
+            'key': 'client_id',
+            'consumer_key': 'client_id',
+            'secret': 'client_secret',
+            'consumer_secret': 'client_secret',
+            'access_token_method': 'method',
+        }
+        for old_kw, new_kw in six.iteritems(keyword_mapping):
+            if old_kw in kwargs:
+                # TODO: Raise a deprecation warning
+                kwargs[new_kw] = kwargs.pop(old_kw)
+        # TODO: add handling for old request_token_params and pulling scope out?
+        # Save arguments used for later operations
+        self.client_id = kwargs.pop('client_id')
+        self.client_secret = kwargs.pop('client_secret')
+        self.authorize_url = kwargs.pop('authorize_url')
+        self.token_url = kwargs.pop('access_token_url')
+        self.refresh_url = kwargs.pop('refresh_token_url', None)
+        self.oauth_method = kwargs.pop('method', 'POST')
+        self.scope = kwargs.pop('scope', None)
         if 'name' not in kwargs:
             self.name = 'OAuth'
         else:
             self.name = kwargs['name']
-        oauth_kwargs['name'] = self.name
-        self.oauth = oauth.remote_app(**oauth_kwargs)
-        self.oauth.tokengetter(token_getter)
-        self.scope = kwargs.pop('scope', None)
+        # self.name must be defines before self.safe_name will work
+        self.redirect_uri = url_for('login.auth_method_login',
+                auth_method=self.safe_name, _external=True)
+        try:
+            self.access_params = kwargs.pop('access_token_params')
+        except KeyError:
+            self.access_params = {}
         super(OAuthMethod, self).__init__(**kwargs)
 
     def login(self, form):
         # CSRF token valid for 5 minutes
-        csrf_token = csrf.generate_csrf(time_limit=300)
-        resp = self.oauth.authorize(callback=url_for('login.auth_method_login',
-                                    auth_method=self.safe_name,
-                                    _external=True), state=csrf_token)
-        current_app.logger.debug(u"Redirecting to : {}".format(resp.location))
-        return resp
+        oauth = OAuth2Session(self.client_id,
+                redirect_uri=self.redirect_uri,
+                scope=self.scope)
+        url, state = oauth.authorization_url(self.authorize_url)
+        session['state'] = state
+        current_app.logger.debug(u"Redirecting to : {}".format(url))
+        return redirect(url)
 
     def view(self):
         """Handle creating and/or logging in the user and updating their
         :py:class:`~.Pilot`\s and :py:class:`~.Group`\s.
         """
-        resp = self.oauth.authorized_response()
-        # Check that the response was successful
-        # Yeah, an exception as a return value. I don't know either.
-        if isinstance(resp, OAuthException):
-            flash(u"Login failed: {} ({})".format(resp.type, resp.message),
-                    u'error')
+        oauth = OAuth2Session(self.client_id,
+                redirect_uri=self.redirect_uri,
+                state=session['state'])
+        try:
+            token = oauth.fetch_token(self.token_url,
+                    authorization_response=request.url,
+                    method=self.oauth_method,
+                    client_secret=self.client_secret,
+                    auth=(self.client_id, self.client_secret))
+        except OAuth2Error as e:
+            flash(gettext(u"Login failed: %(error)s", error=e.error))
             return redirect(url_for('login.login'))
-        # Handle other kinds of errors
-        elif resp is None:
-            reason = ensure_unicode(request.args.get('error',
-                    u'Unknown error'))
-            if reason == u'access_denied':
-                reason = u'Access denied'
-            flash(u"Login failed: {}".format(reason), u'error')
-            return redirect(url_for('login.login'))
-        # Check CSRF token
-        csrf_token = request.args['state']
-        if not csrf.validate_csrf(csrf_token, time_limit=True):
-            flash(u"CSRF validation failed. Please try logging in again.",
-                    u'error')
-            return redirect(url_for('login.login'))
-        token = {'access_token': resp['access_token']}
+        # Sneaky workaround because current_user isn't set, and self.session
+        # relies on current_user
+        self._oauth_session = OAuth2Session(self.client_id, token=token)
         # Get the User object for this user, creating one if needed
-        user = self.get_user(token)
+        user = self.get_user()
+        user.token = token[u'access_token']
         if user is not None:
             # Apply site-wide admin flag
             user.admin = self.is_admin(user)
             # Login the user, so current_user will work
             self.login_user(user)
         else:
-            flash(u"Login failed.", u'error')
+            flash(gettext(u"Login failed."), u'error')
             return redirect(url_for('login.login'))
         # Add new Pilots
-        current_pilots = self.get_pilots(token)
+        current_pilots = self.get_pilots()
         for pilot in current_pilots:
             pilot.user = user
         # Remove old pilots
@@ -139,9 +136,8 @@ class OAuthMethod(AuthMethod):
         for pilot in user_pilots:
             if pilot not in current_pilots:
                 pilot.user = None
-        db.session.commit()
         # Add new groups
-        current_groups = self.get_groups(token)
+        current_groups = self.get_groups()
         for group in current_groups:
             user.groups.add(group)
         # Remove old groups
@@ -153,17 +149,13 @@ class OAuthMethod(AuthMethod):
         db.session.commit()
         return redirect(url_for('index'))
 
-    def get_user(self, token):
+    def get_user(self):
         """Returns the :py:class:`~.OAuthUser` instance for the given token.
 
         This method is to be implemented by subclasses of
         :py:class:`OAuthMethod` to use whatever APIs they have access to to get
         the user account given an access token.
 
-        :param token: The access token used for communicating with whatever API
-            you're using.
-        :type token: typically a :py:class:`dict` with the `access_token` key's
-            value set to the token string.
         :rtype: :py:class:`OAuthUser`
         """
         raise NotImplementedError
@@ -182,7 +174,7 @@ class OAuthMethod(AuthMethod):
         """
         return user.name in self.admins
 
-    def get_pilots(self, token):
+    def get_pilots(self):
         """Return a :py:class:`list` of :py:class:`~.Pilot`\s for the given
         token.
 
@@ -191,15 +183,11 @@ class OAuthMethod(AuthMethod):
         :py:class:`~.Pilot`\s associated with the account for the given access
         token.
 
-        :param token: The access token used for communicating with whatever API
-            you're using.
-        :type token: typically a :py:class:`dict` with the `access_token` key's
-            value set to the token string.
         :rtype: :py:class:`list` of :py:class:`~.Pilot`\s.
         """
         raise NotImplementedError
 
-    def get_groups(self, token):
+    def get_groups(self):
         """Returns a :py:class:`list` of :py:class:`~.Group`\s for the given
         token.
 
@@ -208,15 +196,23 @@ class OAuthMethod(AuthMethod):
         of :py:class:`~.Group`\s associated with the account for the given
         access token.
 
-        :param token: The access token used for communicating with whatever API
-            you're using.
-        :type token: typically a :py:class:`dict` with the `access_token` key's
-            value set to the token string.
         :rtype: :py:class:`list` of :py:class:`~.Group`\s.
         """
         raise NotImplementedError
 
+    @property
+    def session(self):
+        if not hasattr(self, '_oauth_session'):
+            if not current_user.is_anonymous:
+                token = {'token_type': 'Bearer'}
+                token['access_token'] = current_user.token
+                kwargs['token'] = token
+                self._oauth_session = OAuth2Session(self.client_id, **kwargs)
+        return self._oauth_session
+
 
 class OAuthUser(User):
+
     id = db.Column(db.Integer, db.ForeignKey(User.id), primary_key=True)
+
     token = db.Column(db.String(100, convert_unicode=True))
