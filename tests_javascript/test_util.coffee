@@ -24,5 +24,7 @@ suite 'Utilities', () ->
         utcNow = util.localToUTC now
         hoursOffset = math.fix (tzOffset / 60)
         minutesOffset = tzOffset % 60
-        assert.strictEqual utcNow.getHours() - hoursOffset, now.getHours()
-        assert.strictEqual utcNow.getMinutes() - minutesOffset, now.getMinutes()
+        expectedHours = (now.getHours() + hoursOffset) % 24
+        expectedMinutes = (now.getMinutes() + minutesOffset) % 60
+        assert.strictEqual utcNow.getHours(), expectedHours
+        assert.strictEqual utcNow.getMinutes(), expectedMinutes
