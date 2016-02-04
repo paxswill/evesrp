@@ -18,15 +18,20 @@
         {{#if modifiers}}
         <dt>{{gettext "Modifiers"}}</dt>
         <dd>
-          <a class="small-popover" data-toggle="popover" data-trigger="focus" data-content="
+          <a class="small-popover" data-toggle="popover" data-trigger="focus" data-content='
             <ul>
               {{#each modifiers}}
-              {{#unless void}}
-              {{! TODO: Use percent localization. }}
-              <li>{{value_str}}</li>
-              {{/unless}}
-              {{/each}}
-          </ul>" data-html="true" data-container="body" href="#" tabindex="0">Modifiers</a>
+              {{~#unless void}}
+              {{~#compare value 0 operator='>'~}}
+                <li class="text-success">
+              {{~else}}{{#compare value 0 operator="<"~}}
+                <li class="text-danger">
+              {{~else~}}
+                <li>
+              {{~/compare}}{{/compare}}{{modifier_header this}}</li>
+              {{~/unless}}
+              {{~/each}}
+          </ul>' data-html="true" data-container="body" href="#" tabindex="0">Modifiers</a>
         </dd>
         {{/if}}
         <dt>{{gettext "Actions"}}</dt>
