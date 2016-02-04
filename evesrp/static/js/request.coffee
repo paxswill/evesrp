@@ -15,46 +15,54 @@ modifierTemplate = require 'evesrp/templates/modifier'
 
 
 render = (request) ->
+    translationPromise = ui.setupTranslations()
+    formatPromise = ui.setupFormats()
+    bothPromise = (jQuery.when translationPromise, formatPromise)
     # Update the action menu
     $actionMenu = jQuery '#actionMenu'
-    $actionMenu.empty()
-    $actionMenu.append (actionMenuTemplate request)
+    translationPromise.done () ->
+        $actionMenu.empty()
+        $actionMenu.append (actionMenuTemplate request)
     # Update action log
     $actions = jQuery '#actionList'
-    $actions.empty()
-    $actions.append (actionsTemplate request)
+    bothPromise.done () ->
+        $actions.empty()
+        $actions.append (actionsTemplate request)
     # Update status badge
     $statusBadge = jQuery '#request-status'
-    $statusBadge.removeClass \
-        'label-warning label-info label-success label-danger'
-    $statusBadge.addClass "label-#{ util.statusColor request.status }"
-    $statusBadge.text (ui.i18n.gettext (capitalize request.status))
+    translationPromise.done () ->
+        $statusBadge.removeClass \
+            'label-warning label-info label-success label-danger'
+        $statusBadge.addClass "label-#{ util.statusColor request.status }"
+        $statusBadge.text (ui.i18n.gettext (capitalize request.status))
     # Update modifiers log
     if request.modifiers.length != 0
-        modifiers = for modifier in request.modifiers
-            if modifier.void
-                voidedModifierTemplate modifier
-            else if request.status == 'evaluating' and \
-                    'approved' in request.valid_actions
-                voidableModifierTemplate modifier
-            else
-                modifierTemplate modifier
-        $modifierList = jQuery '#modifierList'
-        $modifierList.empty()
-        $modifierList.append modifiers
+        bothPromise.done () ->
+            modifiers = for modifier in request.modifiers
+                if modifier.void
+                    voidedModifierTemplate modifier
+                else if request.status == 'evaluating' and \
+                        'approved' in request.valid_actions
+                    voidableModifierTemplate modifier
+                else
+                    modifierTemplate modifier
+            $modifierList = jQuery '#modifierList'
+            $modifierList.empty()
+            $modifierList.append modifiers
     # Update details and division
     (jQuery '#request-details').text request.details
     (jQuery '#request-division').text request.division.name
     # Update Payout
     $payout = jQuery '#request-payout'
-    $payout.tooltip 'destroy'
-    translated = ui.i18n.gettext "Base Payout: %(base_payout)s"
-    basePayout = ui.currencyFormat (parseFloat request.base_payout)
-    $payout.tooltip {
-        title: sprintf translated, {base_payout: basePayout}
-        placement: 'right'
-    }
-    $payout.text (ui.currencyFormat (parseFloat request.payout))
+    bothPromise.done () ->
+        $payout.tooltip 'destroy'
+        translated = ui.i18n.gettext "Base Payout: %(base_payout)s"
+        basePayout = ui.currencyFormat (parseFloat request.base_payout)
+        $payout.tooltip {
+            title: sprintf translated, {base_payout: basePayout}
+            placement: 'right'
+        }
+        $payout.text (ui.currencyFormat (parseFloat request.payout))
     # Disable modifier and payout forms if not evaluating
     $evaluatingOnly = jQuery '.evaluating-only'
     $evaluatingOnly.prop 'disabled', (request.status != 'evaluating')

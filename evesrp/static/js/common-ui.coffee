@@ -62,8 +62,8 @@ setupTranslations = () ->
     if module.i18nPromise?
         return module.i18nPromise
     currentLang = document.documentElement.lang
-    _globalizePromise = setupFormats currentLang
-    translationPromise = jQuery.ajax {
+    module.i18nPromise = jQuery.Deferred()
+    jQuery.ajax {
         type: 'GET'
         url: "#{ scriptRoot }/static/translations/#{ currentLang }.json"
         success: (data) ->
@@ -76,31 +76,33 @@ setupTranslations = () ->
                 locale_data: data.locale_data
                 domain: data.domain
             }
+            module.i18nPromise.resolve()
     }
-    module.i18nPromise = jQuery.when translationPromise, _globalizePromise
     return module.i18nPromise
 
 
-globalizePromise = null
+module.globalizePromise = null
 
 
 setupFormats = (locale) ->
+    unless locale?
+        locale = document.documentElement.lang
     # This chunk of code is lightly modified from the globalize docs
-    if globalizePromise?
-        return globalizePromise
+    if module.globalizePromise?
+        return module.globalizePromise
     # Load likelySubtags in to Globalize first, then create the instance to see
     # what normalized language tag Globalize/CLDR is expecting. From there we
     # use that language tag to download the correct language. See link for more
     # details: https://gist.github.com/rxaviers/bb143a6715d1392ecc96
     cldrRoot = "#{ scriptRoot }/static/cldr"
     subTagsGet = jQuery.getJSON "#{ cldrRoot }/supplemental/likelySubtags.json"
-    globalizePromise = jQuery.Deferred()
+    module.globalizePromise = jQuery.Deferred()
     subTagsGet.done (data) ->
         Globalize.load data
-        localeGlobalize = new Globalize locale
+        tempGlobalize = new Globalize locale
         # Note: the Gist above uses languageId, but it seems Globalize has
         # moved on and now uses minlanguageId (note the lower-case 'L').
-        languageTag = localeGlobalize.cldr.attributes.minlanguageId
+        languageTag = tempGlobalize.cldr.attributes.minlanguageId
         cldrGet = jQuery.when(
             jQuery.getJSON("#{ cldrRoot }/main/#{ languageTag }/ca-gregorian.json"),
             jQuery.getJSON("#{ cldrRoot }/main/#{ languageTag }/timeZoneNames.json"),
@@ -135,8 +137,8 @@ setupFormats = (locale) ->
             exports.dateFormatMedium = localeGlobalize.dateFormatter {
                 datetime: 'medium'
             }
-            globalizePromise.resolve()
-    return globalizePromise
+            module.globalizePromise.resolve()
+    return module.globalizePromise
 
 
 attributeGettext = (attribute) ->
@@ -152,4 +154,5 @@ attributeGettext = (attribute) ->
 exports.setupEvents = setupEvents
 exports.setupClipboard = setupClipboard
 exports.setupTranslations = setupTranslations
+exports.setupFormats = setupFormats
 exports.attributeGettext = attributeGettext

@@ -6,13 +6,13 @@ apiKeyTemplate = require 'evesrp/templates/api_keys'
 
 
 render = (data) ->
+    $table = jQuery '#apikeys'
+    $heading = table.find 'tr:first'
+    $oldRows = (($table.find 'tr').not ':first').not ':last'
+    $copyButtons = $oldRows.find '.copy-btn'
     i18nPromise = ui.setupTranslations()
     globalizePromise = ui.setupFormats()
     (jQuery.when i18nPromise, globalizePromise).done () ->
-        $table = jQuery '#apikeys'
-        $heading = table.find 'tr:first'
-        $oldRows = (($table.find 'tr').not ':first').not ':last'
-        $copyButtons = $oldRows.find '.copy-btn'
         # Remove tooltips and detach clipboard events
         ui.client.unclip $copyButtons
         # TODO: WTH am I redoing a search I just did (for .copy-btn)?

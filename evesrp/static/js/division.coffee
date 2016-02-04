@@ -6,15 +6,17 @@ entityOptionTemplate = require 'evesrp/templates/entity_option'
 
 
 render = (entities) ->
+    translationPromise = ui.setupTranslations()
     for permission in ['submit', 'review', 'pay', 'audit', 'admin']
         $table = (jQuery "##{ permission }").find 'table'
-        newTable = entityTableTemplate {
-            entities: entities[permission]
-            # This is not localized, as it's a programmatic identifier used in
-            # a form.
-            name: permission
-        }
-        $table.replaceWith newTable
+        translationPromise.done () ->
+            newTable = entityTableTemplate {
+                entities: entities[permission]
+                # This is not localized, as it's a programmatic identifier
+                # used in a form.
+                name: permission
+            }
+            $table.replaceWith newTable
 
 
 selectAttribute = () ->
@@ -58,7 +60,9 @@ createEntitySelect = (selector) ->
         type: 'GET'
         url: "#{ scriptRoot }/api/entities/"
     }
-    entitiesRequest.done (data, textStatus, jqxhr) ->
+    joinedPromise = jQuery.when entitiesRequest, ui.setupTranslations()
+    joinedPromise.done (entitiesResponse, translationResponse) ->
+        data = entitiesResponse[0]
         (jQuery selector).selectize {
             options: data.entities
             openOnFocus: false

@@ -218,93 +218,93 @@ createFilterBar = (selector) ->
                     else
                         items.push "#{ translatedAttribute }:#{ value }"
         return items
-    items = itemsFromFilter getFilters()
-    options = for item in items
-        [match, attribute, sign, realValue] = /(\w+):([-=<>])(.*)/.exec item
-        createOption realValue, attribute, sign
-    $select = (jQuery selector).selectize {
-        options: options
-        items: items
-        delimiter: ';'
-        create: (input, callback) ->
-            callback (createOption input, 'details', '=')
-        # Note: if an option is added with addOption, it counts as a
-        # user-defined option and will be removed if deselected, so we need to
-        # have `persist` be true and remove old details searches elsewhere.
-        persist: true
-        maxOptions: 20
-        maxItems: null
-        hideSelected: false
-        openOnFocus: false
-        closeAfterSelect: true
-        dropdownParent: 'body'
-        # Configure how to interpret/display data
-        searchField: ['realValue', 'display']
-        valueField: 'display'
-        labelField: 'display'
-        optgroups: {value: attr} for attr in attributes
-        optgroupField: 'attribute'
-        optgroupValueField: 'value'
-        optgroupLabelField: 'value'
-        render: {
-            option: (data, cb) ->
-                optionTemplate data
-            item: (data, cb) ->
-                itemTemplate data
-            option_create: (data, cb) ->
-                detailsTemplate data
-        }
-        # Callbacks
-        onChange: (value) ->
-            null
-        onItemAdd: (value, element) ->
-            # If responding to a popstate event, skip processing
-            if inPopState then return
-            filters = getFilters()
-            item = @options[value]
-            unless item.attribute in filters
-                filters[item.attribute] = []
-            # exact filters do not have any sign before them
-            if item.sign == '='
-                filterString = item.realValue
-            else
-                filterString = item.sign + item.realValue
-            filters[item.attribute] = _.union filters[item.attribute],
-                [filterString]
-            updateURL filters
-        onItemRemove: (value) ->
-            # If responding to a popstate event, skip processing
-            if inPopState then return
-            filters = getFilters()
-            item = @options[value]
-            if item.sign == '='
-                filterString = item.realValue
-            else
-                filterString = item.sign + item.realValue
-            filters[item.attribute] = _.without filters[item.attribute],
-                filterString
-            # Remove details values from the list of options
-            if item.attribute == 'details'
-                @removeOption value
-            updateURL filters
-        onDelete: (values) ->
-            # This is a bit of a hack, but to prevent selectize from showing
-            # the input when deleting, we're removing the items, but returning
-            # false (cancelling the normal deletion process)
-            while values.length
-                value = values.pop()
-                @removeItem value
-                if value in @options and @options[value].attribute == 'details'
+    ui.setupTranslations().done () ->
+        items = itemsFromFilter getFilters()
+        options = for item in items
+            [match, attribute, sign, realValue] = /(\w+):([-=<>])(.*)/.exec item
+            createOption realValue, attribute, sign
+        $select = (jQuery selector).selectize {
+            options: options
+            items: items
+            delimiter: ';'
+            create: (input, callback) ->
+                callback (createOption input, 'details', '=')
+            # Note: if an option is added with addOption, it counts as a
+            # user-defined option and will be removed if deselected, so we need
+            # to have `persist` be true and remove old details searches
+            # elsewhere.
+            persist: true
+            maxOptions: 20
+            maxItems: null
+            hideSelected: false
+            openOnFocus: false
+            closeAfterSelect: true
+            dropdownParent: 'body'
+            # Configure how to interpret/display data
+            searchField: ['realValue', 'display']
+            valueField: 'display'
+            labelField: 'display'
+            optgroups: {value: attr} for attr in attributes
+            optgroupField: 'attribute'
+            optgroupValueField: 'value'
+            optgroupLabelField: 'value'
+            render: {
+                option: (data, cb) ->
+                    optionTemplate data
+                item: (data, cb) ->
+                    itemTemplate data
+                option_create: (data, cb) ->
+                    detailsTemplate data
+            }
+            # Callbacks
+            onChange: (value) ->
+                null
+            onItemAdd: (value, element) ->
+                # If responding to a popstate event, skip processing
+                if inPopState then return
+                filters = getFilters()
+                item = @options[value]
+                unless item.attribute in filters
+                    filters[item.attribute] = []
+                # exact filters do not have any sign before them
+                if item.sign == '='
+                    filterString = item.realValue
+                else
+                    filterString = item.sign + item.realValue
+                filters[item.attribute] = _.union filters[item.attribute],
+                    [filterString]
+                updateURL filters
+            onItemRemove: (value) ->
+                # If responding to a popstate event, skip processing
+                if inPopState then return
+                filters = getFilters()
+                item = @options[value]
+                if item.sign == '='
+                    filterString = item.realValue
+                else
+                    filterString = item.sign + item.realValue
+                filters[item.attribute] = _.without filters[item.attribute],
+                    filterString
+                # Remove details values from the list of options
+                if item.attribute == 'details'
                     @removeOption value
-            false
-    }
-    selectize = $select[0].selectize
-    # Add options for each attribute
-    i18nPromise = ui.setupTranslations()
-    for attribute in attributes
-        selectize.load (loadCB) ->
-            attributePromise = getAttributeChoices attribute
-            i18nPromise.done () ->
+                updateURL filters
+            onDelete: (values) ->
+                # This is a bit of a hack, but to prevent selectize from showing
+                # the input when deleting, we're removing the items, but returning
+                # false (cancelling the normal deletion process)
+                while values.length
+                    value = values.pop()
+                    @removeItem value
+                    if value in @options and @options[value].attribute == 'details'
+                        @removeOption value
+                false
+        }
+        selectize = $select[0].selectize
+        # Add options for each attribute
+        for attribute in attributes
+            selectize.load (loadCB) ->
+                attributePromise = getAttributeChoices attribute
                 attributePromise.done (data) ->
                     options = []
                     key = data.key
@@ -319,29 +319,29 @@ createFilterBar = (selector) ->
                             else
                                 options.push (createOption value, key, '=')
                     loadCB options
-    # Add an event handler for onpopstate so that the filter keeps updated when
-    # using the forward/back buttons
-    (jQuery window).on 'popstate', (ev) ->
-        # jQuery wraps the event up
-        if ev.originalEvent?
-            state = ev.originalEvent.state
-        else
-            state = ev.state
-        oldItems = selectize.items
-        newItems = itemsFromFilter getFilters()
-        toRemove = _.difference oldItems, newItems
-        toAdd = _.difference newItems, oldItems
-        # Set the flag to ignore selectize item events
-        inPopState = true
-        for item in toRemove
-            selectize.removeItem item, true
-            if item of selectize.options
-                data = selectize.options[item]
-                if data.attribute == 'details'
-                    selectize.removeOption item
-        for item in toAdd
-            selectize.addItem item, true
-        inPopState = false
+        # Add an event handler for onpopstate so that the filter keeps updated when
+        # using the forward/back buttons
+        (jQuery window).on 'popstate', (ev) ->
+            # jQuery wraps the event up
+            if ev.originalEvent?
+                state = ev.originalEvent.state
+            else
+                state = ev.state
+            oldItems = selectize.items
+            newItems = itemsFromFilter getFilters()
+            toRemove = _.difference oldItems, newItems
+            toAdd = _.difference newItems, oldItems
+            # Set the flag to ignore selectize item events
+            inPopState = true
+            for item in toRemove
+                selectize.removeItem item, true
+                if item of selectize.options
+                    data = selectize.options[item]
+                    if data.attribute == 'details'
+                        selectize.removeOption item
+            for item in toAdd
+                selectize.addItem item, true
+            inPopState = false
 
 
 # Private exports

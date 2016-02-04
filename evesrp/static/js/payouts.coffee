@@ -17,29 +17,31 @@ refreshDelay = 7000
 renderRequest = (request) ->
     $panelList = jQuery '#requests'
     $panel = $panelList.find "#request-#{ request.id }"
-    $newPanel = jQuery (payoutTemplate request)
-    if $panel.length != 0
-        # Remove old listeners and popovers/tooltips
+    bothPromise = jQuery.when ui.setupTranslations(), ui.setupFormats()
+    bothPromise.done () ->
+        $newPanel = jQuery (payoutTemplate request)
+        if $panel.length != 0
+            # Remove old listeners and popovers/tooltips
+            $copyButtons = $panel.find '.copy-btn'
+            $copyButtons.tooltip 'destroy'
+            ui.client.unclip $copyButtons
+            ($panel.find '.small-popover').popover 'destroy'
+            # if this panel is expanded, keep it expanded
+            unless ($panel.find 'table.in').length == 0
+                ($newPanel.find 'table.collapse').addClass 'in'
+            $panel.replaceWith $newPanel
+        else
+            $panelList.append $newPanel
+        # Attach events and activate tooltips and popovers on the new panel
+        $panel = $panelList.find "#request-#{ request.id }"
         $copyButtons = $panel.find '.copy-btn'
-        $copyButtons.tooltip 'destroy'
-        ui.client.unclip $copyButtons
-        ($panel.find '.small-popover').popover 'destroy'
-        # if this panel is expanded, keep it expanded
-        unless ($panel.find 'table.in').length == 0
-            ($newPanel.find 'table.collapse').addClass 'in'
-        $panel.replaceWith $newPanel
-    else
-        $panelList.append $newPanel
-    # Attach events and activate tooltips and popovers on the new panel
-    $panel = $panelList.find "#request-#{ request.id }"
-    $copyButtons = $panel.find '.copy-btn'
-    ui.client.clip $copyButtons
-    $copyButtons.tooltip {trigger: 'manual'}
-    # Find the popover elements, prevent their default actions, and activate
-    # the popovers on them.
-    (($panel.find '.small-popover').on 'click', false).popover()
-    (jQuery '.null-link').on 'click', (ev) ->
-        ev.preventDefault()
+        ui.client.clip $copyButtons
+        $copyButtons.tooltip {trigger: 'manual'}
+        # Find the popover elements, prevent their default actions, and activate
+        # the popovers on them.
+        (($panel.find '.small-popover').on 'click', false).popover()
+        (jQuery '.null-link').on 'click', (ev) ->
+            ev.preventDefault()
 
 
 markPaid = (ev) ->
@@ -58,9 +60,8 @@ markPaid = (ev) ->
 copyUpdate = (client, args) ->
     # event handler for the ZeroClipboard copy event
     timeStamp = (new Date).getTime()
-    $panel = (jQuery this).clsoest '.panel'
-    if (timestamp - lastRefresh) > refreshDelay
-        updateRequest $panel.data 'request-id'
+    $panel = (jQuery this).closest '.panel'
+    updateRequest $panel.data 'request-id'
 
 
 getRequests = () ->

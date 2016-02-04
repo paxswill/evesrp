@@ -55,7 +55,7 @@ suite 'Handlebars Helpers', () ->
         # translations
         document.documentElement.lang = 'en-US'
         ui = require 'evesrp/common-ui'
-        ui.setupTranslations().done () ->
+        ui.setupFormats().done () ->
             mediumTemplate = Handlebars.compile '{{datefmt date}}'
             assert.strictEqual mediumTemplate({date: '2015-08-24T00:00Z'}),
                 'Aug 24, 2015, 12:00:00 AM'
