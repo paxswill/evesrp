@@ -24,7 +24,7 @@
           {# TRANS: The name of the type of ship a requests is about. Ex: Tristan, Ishtar, Scimitar. #}
           <dt>{% trans %}Ship{% endtrans %}</dt>
           <dd>{{ request.transformed.ship_type }}</dd>
-          {% if request.modifiers.count() > 0 %}
+          {% if request.modifiers.filter_by(voided=False).count() > 0 %}
           {# TRANS: A header for a list of payout modifications. These can be things like bonuses for fitting special kinds of modules or flying a special kind of ship, or penalties for fitting a ship incorrectly. #}
           <dt>{% trans %}Modifiers{% endtrans %}</dt>
           <dd><a class="small-popover" data-toggle="popover" data-trigger="focus" data-content="
