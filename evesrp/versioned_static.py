@@ -54,15 +54,6 @@ class VersionedStaticFlask(Flask):
                 raise e
             requested_hash = filename_match.group(2)
             real_filename = filename_match.group(1) + filename_match.group(3)
-            # Check that the file hash is for this file's contents
-            try:
-                file_hash = get_file_hash(real_filename)
-            except IOError:
-                raise e
-            if requested_hash != file_hash:
-                current_app.logger.warning(u"Hash did not match contents of "
-                                         u"file.")
-                raise e
             if filename != hashed_filename:
                 real_filename += '.map'
             return super(VersionedStaticFlask, self).send_static_file(
