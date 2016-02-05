@@ -106,7 +106,7 @@ setup(
             'ecdsa==0.11',
         ],
         'OAuth': [
-            'Flask-OAuthlib>=0.7.0',
+            'requests-oauthlib>=0.6.0',
         ],
     },
     zip_safe=False,
