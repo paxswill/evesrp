@@ -2,7 +2,7 @@
 <request id="{{ srp_request.id }}" status="{{ srp_request.status.value }}">
   <payout>
     <base>{{ srp_request.base_payout.currency() }}</base>
-    <computed>{{ srp_request.payout.currency(commas=False) }}</computed>
+    <computed>{{ srp_request.payout.currency() }}</computed>
   </payout>
   <details>{{ srp_request.details }}</details>
   <pilot>
@@ -39,7 +39,11 @@
     <modifier id="{{ modifier.id }}">
       <note>{{ modifier.note }}</note>
       <user id="{{ modifier.user.id }}" name="{{ modifier.user.name }}" />
-      <value>{{ modifier }}</value>
+      {% if modifier._type == "AbsoluteModifier" %}
+      <value type="absolute">{{ modifier.value.currency() }}</value>
+      {% elif modifier._type == "RelativeModifier" %}
+      <value type="relative">{{ modifier.value }}</value>
+      {% endif %}
       <timestamp>{{ modifier.timestamp.isoformat() }}</timestamp>
       {% if modifier.voided %}
       <void id="{{ modifier.voided_user.id }}" name="{{ modifier.voided_user.name }}">
