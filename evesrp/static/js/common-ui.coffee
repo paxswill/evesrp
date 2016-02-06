@@ -8,7 +8,10 @@ titleize = require 'underscore.string/titleize'
 flashTemplate = require 'evesrp/templates/flash'
 sprintf = require 'underscore.string/sprintf'
 Jed = require 'jed'
-Globalize = require 'globalize'
+Globalize = require 'globalize/dist/globalize-runtime'
+# Load the Globalize parts we need
+require 'globalize/dist/globalize-runtime/number'
+require 'globalize/dist/globalize-runtime/date'
 
 
 setLanguage = (ev) ->
@@ -85,59 +88,43 @@ module.globalizePromise = null
 
 
 setupFormats = (locale) ->
+    # find the locale for the current apge if not given one
     unless locale?
         locale = document.documentElement.lang
-    # This chunk of code is lightly modified from the globalize docs
+    # Defer to the currently running Promise if it exists
     if module.globalizePromise?
         return module.globalizePromise
-    # Load likelySubtags in to Globalize first, then create the instance to see
-    # what normalized language tag Globalize/CLDR is expecting. From there we
-    # use that language tag to download the correct language. See link for more
-    # details: https://gist.github.com/rxaviers/bb143a6715d1392ecc96
-    cldrRoot = "#{ scriptRoot }/static/cldr"
-    subTagsGet = jQuery.getJSON "#{ cldrRoot }/supplemental/likelySubtags.json"
+    # Load the precompiled Globalize formatters for this locale
     module.globalizePromise = jQuery.Deferred()
-    subTagsGet.done (data) ->
-        Globalize.load data
-        tempGlobalize = new Globalize locale
-        # Note: the Gist above uses languageId, but it seems Globalize has
-        # moved on and now uses minlanguageId (note the lower-case 'L').
-        languageTag = tempGlobalize.cldr.attributes.minlanguageId
-        cldrGet = jQuery.when(
-            jQuery.getJSON("#{ cldrRoot }/main/#{ languageTag }/ca-gregorian.json"),
-            jQuery.getJSON("#{ cldrRoot }/main/#{ languageTag }/timeZoneNames.json"),
-            jQuery.getJSON("#{ cldrRoot }/main/#{ languageTag }/numbers.json"),
-            jQuery.getJSON("#{ cldrRoot }/supplemental/numberingSystems.json"),
-            jQuery.getJSON("#{ cldrRoot }/supplemental/timeData.json"),
-            jQuery.getJSON("#{ cldrRoot }/supplemental/weekData.json")
-        )
-        cldrGet.done () ->
-            argsArray = [].slice.apply arguments, [0]
-            argsArray.map (data) -> Globalize.load data[0]
-            localeGlobalize = new Globalize locale
-            # The only currency we're formatting is Eve ISK, which is a fictional
-            # currency (so it won't be in the CLDR data, and I don't want to write
-            # my own data file).
-            exports.currencyFormat = localeGlobalize.numberFormatter {
-                style: 'decimal'
-                maximumFractionDigits: 2
-                minimumFractionDigits: 2
-                round: 'truncate'
-                useGrouping: true
-            }
-            exports.percentFormat = localeGlobalize.numberFormatter {
-                style: 'percent'
-            }
-            exports.numberFormat = localeGlobalize.numberFormatter {
-                style: 'decimal'
-            }
-            exports.dateFormatShort = localeGlobalize.dateFormatter {
-                datetime: 'short'
-            }
-            exports.dateFormatMedium = localeGlobalize.dateFormatter {
-                datetime: 'medium'
-            }
-            module.globalizePromise.resolve()
+    # Instead of using likely subtags, we're doing it ourselves for the cluple
+    # of locales we support the would need likely subtags
+    if locale == 'en-US'
+        locale = 'en'
+    Globalize = require "evesrp/globalize-#{ locale }"
+    Globalize.locale locale
+    # The only currency we're formatting is Eve ISK, which is a fictional
+    # currency (so it won't be in the CLDR data, and I don't want to write
+    # my own data file).
+    exports.currencyFormat = Globalize.numberFormatter {
+        style: 'decimal'
+        maximumFractionDigits: 2
+        minimumFractionDigits: 2
+        round: 'truncate'
+        useGrouping: true
+    }
+    exports.percentFormat = Globalize.numberFormatter {
+        style: 'percent'
+    }
+    exports.numberFormat = Globalize.numberFormatter {
+        style: 'decimal'
+    }
+    exports.dateFormatShort = Globalize.dateFormatter {
+        datetime: 'short'
+    }
+    exports.dateFormatMedium = Globalize.dateFormatter {
+        datetime: 'medium'
+    }
+    module.globalizePromise.resolve()
     return module.globalizePromise
 
 

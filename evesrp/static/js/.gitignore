@@ -2,3 +2,7 @@ evesrp.js
 evesrp.js.map
 evesrp.min.js
 evesrp.min.js.map
+formatters.js
+formatters.min.js
+formatters.min.js.map
+globalize-*.js

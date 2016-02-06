@@ -158,6 +158,7 @@
     {% block scripts %}
     <!-- scriptRoot is the root of this application, wherever it it -->
     <script type="text/javascript">scriptRoot = {{ request.script_root|tojson }};</script>
+    <script type="text/javascript" src="{{ static_file('js/formatters.min.js') }}"></script>
     <script type="text/javascript" src="{{ static_file('js/evesrp.min.js') }}"></script>
     {% endblock scripts %}
   </body>

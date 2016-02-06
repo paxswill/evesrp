@@ -44,8 +44,6 @@ setup(
     ],
     package_data={
         'evesrp': [
-            'static/cldr/main/*/*.json',
-            'static/cldr/supplemental/*.json',
             'static/css/*.css',
             'static/css/*.css.map',
             'static/evesso.png',
@@ -59,6 +57,8 @@ setup(
             'static/js/evesrp.js',
             'static/js/evesrp.min.js',
             'static/js/evesrp.min.js.map',
+            'static/js/formatters.min.js',
+            'static/js/formatters.min.js.map',
             'static/translations/*.json',
             'static/ZeroClipboard.swf',
             'templates/*.html',
