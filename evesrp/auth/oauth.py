@@ -111,6 +111,7 @@ class OAuthMethod(AuthMethod):
                     client_secret=self.client_secret,
                     auth=(self.client_id, self.client_secret))
         except OAuth2Error as e:
+            # TRANS: When there's an error associated with a login.
             flash(gettext(u"Login failed: %(error)s", error=e.error))
             return redirect(url_for('login.login'))
         # Sneaky workaround because current_user isn't set, and self.session
@@ -125,6 +126,7 @@ class OAuthMethod(AuthMethod):
             # Login the user, so current_user will work
             self.login_user(user)
         else:
+            # TRANS: Error shown for a failed login.
             flash(gettext(u"Login failed."), u'error')
             return redirect(url_for('login.login'))
         # Add new Pilots

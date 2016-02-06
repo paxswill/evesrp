@@ -205,6 +205,17 @@ msgstr "Administrator"
 msgid "Auditor"
 msgstr "Auditor"
 
+#. When there's an error associated with a login.
+#: evesrp/auth/oauth.py:115
+#, python-format
+msgid "Login failed: %(error)s"
+msgstr "Login failed: %(error)s"
+
+#. Error shown for a failed login.
+#: evesrp/auth/oauth.py:130
+msgid "Login failed."
+msgstr "Login failed."
+
 #. This is a header for the page listing all of the external API     keys for
 #. the app. Again, these are not CCP API keys.
 #. This is a link in the navigation bar to the page for managing the app's
