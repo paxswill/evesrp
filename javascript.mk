@@ -1,23 +1,33 @@
 include variables.mk
 .DELETE_ON_ERROR:
 
-##### Client File Pipeline #####
 JS_DIR := $(STATIC_DIR)/js
 REAL_JS_DIR := $(realpath ./$(JS_DIR))
-ifndef DEBUG
-UGLIFY_OPTS ?= -m -c
-endif
-UGLIFY_OPTS += --source-map-include-sources
-BROWSERIFY_OPTS := -t coffeeify -t hbsfy \
-                   --extension=".coffee" \
-                   --extension=".hbs"
-BROWSERIFY ?= $(NODE_BIN)/browserify
-COFFEE_FILES := $(wildcard $(JS_DIR)/*.coffee)
 
-all:: $(JS_DIR)/evesrp.min.js
+
+##### Compiled Globalize Files #####
+GLOBALIZE_COMPILER := $(NODE_BIN)/globalize-compiler
+COMPILED_GLOBALIZE_FILES := $(foreach locale,$(subst en-US,en,$(DASH_LOCALES)),\
+	$(JS_DIR)/globalize-$(locale).js)
+
+$(COMPILED_GLOBALIZE_FILES): $(JS_DIR)/globalize-%.js: $(JS_DIR)/evesrp.js
+	$(GLOBALIZE_COMPILER) -l $* -o $@ $<
 
 clean::
-	rm -f $(addprefix $(JS_DIR)/,evesrp.min.js evesrp.min.js.map evesrp.js)
+	rm -f $(addprefix $(JS_DIR)/,globalize-*.js)
+
+
+##### Browserify #####
+BROWSERIFY_OPTS := -t coffeeify -t hbsfy \
+                   --extension=".coffee" \
+                   --extension=".hbs" \
+				   --debug
+BROWSERIFY ?= $(NODE_BIN)/browserify
+EXORCIST ?= $(NODE_BIN)/exorcist
+COFFEE_FILES := $(wildcard $(JS_DIR)/*.coffee)
+
+clean::
+	rm -f $(addprefix $(JS_DIR)/,evesrp.js evesrp.js.map translations.js)
 
 distclean::
 	rm -f browserify.mk
@@ -34,20 +44,59 @@ browserify.mk: $(NODE_MODULES) $(NODE_MODULES)/evesrp
 	@printf "$(JS_DIR)/evesrp.js tests_javascript/evesrp.test.js: $(shell $(BROWSERIFY_MAKEFILE_CMD))" > $@
 	@printf "done\n"
 
-# The dependencies for evesrp.js are included from browserify.mk
-$(JS_DIR)/evesrp.js: $(NODE_MODULES)/evesrp
-	$(BROWSERIFY) -e $(JS_DIR)/main.coffee $(BROWSERIFY_OPTS) -o $@
-
 $(NODE_MODULES)/evesrp:
 	ln -s $(REAL_JS_DIR) $@
 
-$(JS_DIR)/evesrp.min.js: $(JS_DIR)/evesrp.js
-	$(NODE_BIN)/uglifyjs $(JS_DIR)/evesrp.js \
+# The dependencies for evesrp.js are included from browserify.mk
+$(JS_DIR)/evesrp.js: $(NODE_MODULES)/evesrp
+	$(BROWSERIFY) \
+		$(BROWSERIFY_OPTS) \
+		-r globalize/dist/globalize-runtime \
+		-r globalize/dist/globalize-runtime/number \
+		-r globalize/dist/globalize-runtime/date \
+		-e $(JS_DIR)/main.coffee \
+		-o $@
+
+# Bundle the compiled formatters
+$(JS_DIR)/formatters.js: $(COMPILED_GLOBALIZE_FILES)
+	$(BROWSERIFY) \
+		$(foreach mod,$^,-r ./$(mod):evesrp/$(basename $(notdir $(mod)))) \
+		$(foreach gmod,number date,-x globalize/dist/globalize-runtime/$(gmod)) \
+		-x globalize/dist/globalize-runtime \
+		-o $@
+
+# Externalize source map for evesrp.js
+$(JS_DIR)/evesrp.js.map: %.map: %
+	$(EXORCIST) -b $(REAL_JS_DIR) $@ < $< > $<.mapless
+	mv -f $<.mapless $<
+
+
+##### Minification #####
+UGLIFY ?= $(NODE_BIN)/uglifyjs
+ifndef DEBUG
+UGLIFY_OPTS ?= -m -c
+endif
+UGLIFY_OPTS += --source-map-include-sources
+
+all:: $(JS_DIR)/evesrp.min.js $(JS_DIR)/formatters.min.js
+
+clean::
+	rm -f $(addprefix $(JS_DIR)/,evesrp.min.js formatters.min.js)
+
+# Include the source map for evesrp.js
+$(JS_DIR)/evesrp.min.js: $(JS_DIR)/evesrp.js.map
+$(JS_DIR)/evesrp.min.js: UGLIFY_OPTS += \
+	--in-source-map $(JS_DIR)/evesrp.js.map
+	# --prefix relative
+
+$(JS_DIR)/%.min.js: $(JS_DIR)/%.js
+	$(UGLIFY) \
+		$< \
 		$(UGLIFY_OPTS) \
-		--output $@ \
 		--prefix relative \
-		--input-source-map \
-		--source-map $(JS_DIR)/evesrp.min.js.map
+		--source-map $@.map \
+		--source-map-url $(notdir $@.map) \
+		--output $@
 
 
 ##### Javascript testing
