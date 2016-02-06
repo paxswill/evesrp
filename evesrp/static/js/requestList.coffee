@@ -63,7 +63,7 @@ renderRequests = (data) ->
 renderPager = (data, filters) ->
     $pager = jQuery 'ul.pagination'
     numPages = (Math.ceil (data.request_count / pageSize - 1)) + 1
-    $pager.empty
+    $pager.empty()
     if numPages > 1
         $pager.removeClass 'hidden'
         # Prev arrow
