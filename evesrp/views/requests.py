@@ -688,7 +688,7 @@ def submit_request():
         else:
             # TRANS: Error message shown when trying to submit a killmail for
             # TRANS: SRP a second time.
-            flash(gettext(u"This kill has already been submitted", u'warning'))
+            flash(gettext(u"This kill has already been submitted"), u'warning')
             return redirect(url_for('.get_request_details',
                 request_id=srp_request.id))
     return render_template('form.html', form=form,
