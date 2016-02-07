@@ -152,24 +152,16 @@ tests_javascript/evesrp.test.js: BROWSERIFY_OPTS += \
 tests_javascript/evesrp.test.js: $(NODE_MODULES)/evesrp
 	$(BROWSERIFY) -e $(JS_DIR)/main.coffee $(BROWSERIFY_OPTS) -o $@
 
-CLDR_FILES = \
-		cldr-data/supplemental/likelySubtags.json \
-		cldr-dates-full/main/en/ca-gregorian.json \
-		cldr-dates-full/main/en/timeZoneNames.json \
-		cldr-numbers-full/main/en/numbers.json \
-		cldr-data/supplemental/numberingSystems.json \
-		cldr-data/supplemental/timeData.json \
-		cldr-data/supplemental/weekData.json \
-
 tests_javascript/translations.js:
-	$(BROWSERIFY) $(foreach mod,$(CLDR_FILES),-r $(mod)) \
+	$(BROWSERIFY) \
+		$(foreach file,$(COMPILED_GLOBALIZE_FILES),\
+		-r ./$(file):evesrp/$(basename $(notdir $(file)))) \
 		-r ./evesrp/static/translations/en-US.json:evesrp/translations/en-US.json \
 		-o $@
 
 # This excludes the evesrp.js files from the test bundles
 $(TESTS_JS): BROWSERIFY_OPTS += $(foreach \
 	mod,$(basename $(notdir $(COFFEE_FILES))),-x evesrp/$(mod)) \
-	$(foreach mod,$(CLDR_FILES),-x $(mod)) \
 	-x evesrp/translations/en-US.json
 
 $(TESTS_JS): %.js: %.coffee $(COFFEE_FILES) $(NODE_MODULES)/evesrp
