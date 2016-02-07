@@ -90,7 +90,7 @@ def update_navbar(response):
     }
     response_json['nav_counts'] = counts
     # Unauthenticated users get nothing
-    if not current_user.is_authenticated():
+    if not current_user.is_authenticated:
         response.set_data(json.dumps(response_json))
         return response
     counts['pending'] = request_count(PermissionType.review)
