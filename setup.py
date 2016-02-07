@@ -54,7 +54,6 @@ setup(
             'static/fonts/*.woff',
             'static/fonts/*.woff2',
             'static/fonts/*.otf',
-            'static/js/evesrp.js',
             'static/js/evesrp.min.js',
             'static/js/evesrp.min.js.map',
             'static/js/formatters.min.js',
