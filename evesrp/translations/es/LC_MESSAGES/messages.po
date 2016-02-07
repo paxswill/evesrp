@@ -226,13 +226,13 @@ msgstr "Claves API"
 #: evesrp/templates/apikeys.html:20
 #, python-format
 msgid ""
-"You can create API keys for this app\\'s <a href=\"%(doc_url)s\">external"
-" API</a> using the button below. This is unrelated to the official EVE "
-"API from CCP."
+"You can create API keys for this app's <a href=\"%(doc_url)s\">external "
+"API</a> using the button below. This is unrelated to the official EVE API"
+" from CCP."
 msgstr ""
-"Puede crear claves API para esta aplicación \\ 's <a "
-"href=\"%(doc_url)s\"> API externa </a> usando el botón de abajo. Esto no "
-"está relacionado con la API oficial de EVE del CCP."
+"Puede crear claves API para esta aplicación <a href=\"%(doc_url)s\"> API "
+"externa </a> usando el botón de abajo. Esto no está relacionado con la "
+"API oficial de EVE del CCP."
 
 #. This is a heading in a table, for the column with the actual API keys (a
 #. long string of random letters and numbers).

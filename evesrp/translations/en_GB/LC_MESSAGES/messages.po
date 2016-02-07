@@ -30,11 +30,9 @@ msgstr "%(kill_id)d: %(pilot)s lost a ship. Verified: %(verified)s"
 #. in case.
 #: evesrp/killmail.py:184
 msgid ""
-"A generic Killmail. If you see this text, you need to configure your "
-"application."
+"A generic Killmail. If you see this text, you need to configure your application."
 msgstr ""
-"A generic Killmail. If you see this text, you need to configure your "
-"application."
+"A generic Killmail. If you see this text, you need to configure your application."
 
 #. Error message shown when an invalid zKillboard URL is
 #. entered.
@@ -231,13 +229,13 @@ msgstr "API Keys"
 #: evesrp/templates/apikeys.html:20
 #, python-format
 msgid ""
-"You can create API keys for this app\\'s <a href=\"%(doc_url)s\">external"
-" API</a> using the button below. This is unrelated to the official EVE "
-"API from CCP."
+"You can create API keys for this app's <a href=\"%(doc_url)s\">external "
+"API</a> using the button below. This is unrelated to the official EVE API"
+" from CCP."
 msgstr ""
-"You can create API keys for this app\\'s <a href=\"%(doc_url)s\">external"
-" API</a> using the button below. This is unrelated to the official EVE "
-"API from CCP."
+"You can create API keys for this app's <a href=\"%(doc_url)s\">external "
+"API</a> using the button below. This is unrelated to the official EVE API"
+" from CCP."
 
 #. This is a heading in a table, for the column with the actual API keys (a
 #. long string of random letters and numbers).
