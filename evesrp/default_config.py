@@ -28,3 +28,5 @@ SRP_STATIC_FILE_HASH = False
 SRP_LOCALES = ['en_US', 'en_GB']
 
 BABEL_DEFAULT_LOCALE = 'en_US'
+
+SENTRY_USER_ATTRS = ['name', 'authmethod']

@@ -156,6 +156,14 @@
     {% endblock stats %}
     {% endblock body %}
     {% block scripts %}
+    {% if config['SENTRY_DSN_PUBLIC'] %}
+    <script type="text/javascript" src="https://cdn.ravenjs.com/2.1.0/raven.min.js"></script>
+    <script type="text/javascript">
+      Raven.config({{ config['SENTRY_DSN_PUBLIC'] }}, {
+        release: {{ app_version }},
+      }).install();
+    </script>
+    {% endif %}
     <!-- scriptRoot is the root of this application, wherever it it -->
     <script type="text/javascript">scriptRoot = {{ request.script_root|tojson }};</script>
     <script type="text/javascript" src="{{ static_file('js/formatters.min.js') }}"></script>

@@ -108,6 +108,9 @@ setup(
         'OAuth': [
             'requests-oauthlib>=0.6.0',
         ],
+        'Sentry': [
+            'raven[flask]>=5.10.2',
+        ],
     },
     zip_safe=False,
 )
