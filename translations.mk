@@ -10,6 +10,7 @@ endif
 
 
 ##### Base translations files #####
+.PRECIOUS: $(TRANSLATIONS_DIR)/*/LC_MESSAGES/*.po
 MO_FILES := $(foreach \
 	lang,$(UNDER_LOCALES),$(TRANSLATIONS_DIR)/$(lang)/LC_MESSAGES/messages.mo)
 
