@@ -206,14 +206,17 @@ class User(Entity):
                 .where(Permission.entity_id==cls.id)
         return user_permissions.union(group_permissions)
 
+    @property
     def is_authenticated(self):
         """Part of the interface for Flask-Login."""
         return True
 
+    @property
     def is_active(self):
         """Part of the interface for Flask-Login."""
         return True
 
+    @property
     def is_anonymous(self):
         """Part of the interface for Flask-Login."""
         return False

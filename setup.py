@@ -79,7 +79,7 @@ setup(
         'Babel>=2.2.0',
         'Flask>=0.10.1',
         'Flask-Babel>=0.9',
-        'Flask-Login>=0.2.11',
+        'Flask-Login>=0.3.2',
         'Flask-Migrate>=1.2.0',
         'Flask-Script==2.0.5',
         'Flask-SQLAlchemy==2.0',

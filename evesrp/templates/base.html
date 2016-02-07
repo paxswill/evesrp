@@ -32,7 +32,7 @@
           {% block collapsed_navitems %}
           <ul class="nav navbar-nav" id="left-nav">
             {% block navitems %}
-            {% if current_user.is_authenticated() %}
+            {% if current_user.is_authenticated %}
             {% if current_user.has_permission((PermissionType.review, PermissionType.audit)) %}
             {# TRANS: This is in the navigation bar at the top, and is a link to a list of request that are waiting to be evaluated. #}
             {{ macros.navbar_button(gettext('Pending'), 'requests.list_pending_requests', request_count(PermissionType.review), id='badge-pending')|indent(12)|safe }}
@@ -50,7 +50,7 @@
           </ul>
           <ul class="nav navbar-nav navbar-right" id="right-nav">
             {% block navitems_right %}
-            {% if current_user.is_anonymous() %}
+            {% if current_user.is_anonymous %}
             {# TRANS: This is a link in the navigation bar. It goes to the login page. #}
             {{ macros.navbar_button(gettext('Log In'), 'login.login')|indent(12)|safe }}
             {% else %}
