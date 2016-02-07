@@ -79,16 +79,21 @@ class OAuthMethod(AuthMethod):
         else:
             self.name = kwargs['name']
         # self.name must be defines before self.safe_name will work
-        self.redirect_uri = url_for('login.auth_method_login',
-                auth_method=self.safe_name, _external=True)
         try:
             self.access_params = kwargs.pop('access_token_params')
         except KeyError:
             self.access_params = {}
         super(OAuthMethod, self).__init__(**kwargs)
 
+    # Being done in a property so when url_for is called, it has access to a
+    # request, specifically the scheme.
+    @property
+    def redirect_uri(self):
+        return  url_for('login.auth_method_login',
+                auth_method=self.safe_name, _external=True)
+
+
     def login(self, form):
-        # CSRF token valid for 5 minutes
         oauth = OAuth2Session(self.client_id,
                 redirect_uri=self.redirect_uri,
                 scope=self.scope)
