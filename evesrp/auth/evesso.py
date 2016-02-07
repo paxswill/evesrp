@@ -121,6 +121,7 @@ class EveSSO(OAuthMethod):
                 alliance_group = EveSSOGroup(alliance_name.text,
                         int(alliance_id.text), True, self.name)
                 db.session.add(alliance_group)
+            groups.append(alliance_group)
         db.session.commit()
         return groups
 
