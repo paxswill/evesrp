@@ -17,6 +17,12 @@ from werkzeug.utils import import_string
 from .transformers import Transformer
 from .versioned_static import static_file, VersionedStaticFlask
 
+try:
+    import raven.contrib.flask as raven_flask
+    sentry = raven_flask.Sentry()
+except ImportError:
+    sentry = None
+
 
 db = sqlalchemy.SQLAlchemy()
 # Patch Flask-SQLAlchemy to use a custom Metadata instance with a naming scheme
@@ -118,6 +124,15 @@ def create_app(config=None, **kwargs):
             app.config.from_pyfile('config.py')
         except OSError:
             app.config.from_envvar('EVESRP_SETTINGS')
+
+    # Configure Sentry
+    if 'SENTRY_DSN' in app.config or 'SENTRY_DSN' in os.environ:
+        if sentry is not None:
+            app.config['SENTRY_RELEASE'] = __version__
+            sentry.init_app(app=app)
+        else:
+            app.logger.warning("SENTRY_DSN is defined but Sentry is not"
+                               " installed.")
 
     # Register SQLAlchemy monitoring before the DB is connected
     app.before_request(sqlalchemy_before)
