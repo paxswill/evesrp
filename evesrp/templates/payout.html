@@ -30,7 +30,6 @@
           <dd><a class="small-popover" data-toggle="popover" data-trigger="focus" data-content="
             <ul>
               {% for modifier in request.modifiers if not modifier.voided %}
-              {# TODO: Use percent localization #}
               {% if modifier.value > 0 %}
               <li class='text-success'>
               {% elif modifier.value < 0 %}
