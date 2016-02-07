@@ -60,37 +60,44 @@ renderRequests = (data) ->
         $summary.text "#{ requests_text } • #{ total_payouts } ISK"
 
 
-renderPager = (data, filters) ->
+renderPager = (data, currentFilters) ->
     $pager = jQuery 'ul.pagination'
     numPages = (Math.ceil (data.request_count / pageSize - 1)) + 1
+    tempFilters = JSON.parse (JSON.stringify currentFilters)
     $pager.empty()
     if numPages > 1
         $pager.removeClass 'hidden'
         # Prev arrow
-        if filters.page == 1
+        if currentFilters.page == 1
             $pager.append '<li class="disabled"><span>&laquo;</span></li>'
         else
-            $pager.append '<li><a id="prev_page" href="#">&laquo;</a></li>'
+            tempFilters.page = currentFilters.page - 1
+            newPath = filters.unParseFilters tempFilters
+            $pager.append "<li><a id=\"prev_page\" href=\"#{ newPath }\">&laquo;</a></li>"
         # Page numbers
-        for pageNum in util.pageNumbers numPages, filters.page
+        for pageNum in util.pageNumbers numPages, currentFilters.page
             unless pageNum == null
-                unless pageNum == filters.page
-                    $pager.append "<li><a href=\"#\">#{ pageNum }
+                tempFilters.page = pageNum
+                newPath = filters.unParseFilters tempFilters
+                unless pageNum == currentFilters.page
+                    $pager.append "<li><a href=\"#{ newPath }\">#{ pageNum }
                                    </a></li>"
                 else
                     # Highlight the current page number
                     $pager.append "<li class=\"active\">
-                                   <a href=\"#\">#{ pageNum }
+                                   <a href=\"#{ newPath }\">#{ pageNum }
                                    <span class=\"sr-only\" (current)</span>
                                    </a></li>"
             else
                 # null is the token for elided page numbers
                 $pager.append '<li class="disabled"><span>&hellip;</span></li>'
         # Next arrow
-        if filters.page == numPages
+        if currentFilters.page == numPages
             $pager.append '<li class="disabled"><span>&raquo;</span></li>'
         else
-            $pager.append '<li><a id="next_page" href="#">&raquo;</a></li>'
+            tempFilters.page = currentFilters.page + 1
+            newPath = filters.unParseFilters tempFilters
+            $pager.append "<li><a id=\"next_page\" href=\"#{ newPath }\">&raquo;</a></li>"
     else
         # Just hide the pager if there's only one page
         $pager.addClass 'hidden'
