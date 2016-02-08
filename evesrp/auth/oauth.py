@@ -9,7 +9,7 @@ from flask.ext.wtf import csrf
 import six
 from sqlalchemy.orm.exc import NoResultFound
 
-from .. import db
+from .. import db, sentry
 from ..util import ensure_unicode, DateTime
 from . import AuthMethod
 from .models import User, Group, Pilot
@@ -118,6 +118,7 @@ class OAuthMethod(AuthMethod):
         except OAuth2Error as e:
             # TRANS: When there's an error associated with a login.
             flash(gettext(u"Login failed: %(error)s", error=e.error))
+            sentry.captureException()
             return redirect(url_for('login.login'))
         # Sneaky workaround because current_user isn't set, and self.session
         # relies on current_user
