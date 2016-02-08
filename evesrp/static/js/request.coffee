@@ -76,7 +76,7 @@ render = (request) ->
             else if attr == 'pilot'
                 text = request.pilot.name
             # TODO: HTML Escape `text`
-            $element.html "a href=\"#{ link }\" target=\"_blank\">#{ text }<i class\"fa fa-external-link\"></i></a>"
+            $element.html "<a href=\"#{ link }\" target=\"_blank\">#{ text }<i class\"fa fa-external-link\"></i></a>"
 
 
 submitAction = (ev) ->
