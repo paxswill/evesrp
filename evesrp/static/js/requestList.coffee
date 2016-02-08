@@ -72,13 +72,13 @@ renderPager = (data, currentFilters) ->
             $pager.append '<li class="disabled"><span>&laquo;</span></li>'
         else
             tempFilters.page = currentFilters.page - 1
-            newPath = filters.unParseFilters tempFilters
+            newPath = filter.unParseFilters tempFilters
             $pager.append "<li><a id=\"prev_page\" href=\"#{ newPath }\">&laquo;</a></li>"
         # Page numbers
         for pageNum in util.pageNumbers numPages, currentFilters.page
             unless pageNum == null
                 tempFilters.page = pageNum
-                newPath = filters.unParseFilters tempFilters
+                newPath = filter.unParseFilters tempFilters
                 unless pageNum == currentFilters.page
                     $pager.append "<li><a href=\"#{ newPath }\">#{ pageNum }
                                    </a></li>"
@@ -96,7 +96,7 @@ renderPager = (data, currentFilters) ->
             $pager.append '<li class="disabled"><span>&raquo;</span></li>'
         else
             tempFilters.page = currentFilters.page + 1
-            newPath = filters.unParseFilters tempFilters
+            newPath = filter.unParseFilters tempFilters
             $pager.append "<li><a id=\"next_page\" href=\"#{ newPath }\">&raquo;</a></li>"
     else
         # Just hide the pager if there's only one page
