@@ -1,0 +1,9 @@
+[main]
+host = https://www.transifex.com
+
+[eve-srp.messagespot-34]
+file_filter = evesrp/translations/<lang>/LC_MESSAGES/messages.po
+source_file = messages.pot
+source_lang = en
+type = PO
+
