@@ -9,8 +9,37 @@ UNDER_LOCALES += en_CA
 endif
 
 
-##### Base translations files #####
+##### Message Template Files #####
+.PHONY: upload-transifex
+all:: upload-transifex
+
+clean::
+	rm -fv messages.pot generated_messages.pot
+
+upload-transifex: messages.pot
+	tx push -s
+
+messages.pot: generated_messages.pot manual_messages.pot
+	cat $^ > $@
+
+# Figure out how to bump the version automatically
+generated_messages.pot: babel.cfg evesrp/*.py evesrp/*/*.py evesrp/templates/*.html
+	pybabel extract \
+		-F babel.cfg \
+		-o $@ \
+		-c "TRANS:" \
+		--project=EVE-SRP \
+		--version=0.10.6-dev \
+		-k lazy_gettext \
+		-s \
+		--msgid-bugs-address=paxswill@paxswill.com \
+		--copyright-holder="Will Ross" \
+		.
+
+
+##### Locale Translation Files#####
 .PRECIOUS: $(TRANSLATIONS_DIR)/*/LC_MESSAGES/*.po
+.PHONY: download-transifex
 MO_FILES := $(foreach \
 	lang,$(UNDER_LOCALES),$(TRANSLATIONS_DIR)/$(lang)/LC_MESSAGES/messages.mo)
 
@@ -22,7 +51,9 @@ endif
 clean::
 	rm -fv $(TRANSLATIONS_DIR)/*/LC_MESSAGES/messages.mo
 	rm -fv $(TRANSLATIONS_DIR)/en_CA/LC_MESSAGES/messages.po
-	rm -fv messages.pot generated_messages.pot
+
+download-transifex:
+	tx pull
 
 $(MO_FILES): %.mo: %.po
 	pybabel compile \
@@ -67,22 +98,6 @@ else
 		--output="$@"
 endif
 
-messages.pot: generated_messages.pot manual_messages.pot
-	cat $^ > $@
-
-# Figure out how to bump the version automatically
-generated_messages.pot: babel.cfg evesrp/*.py evesrp/*/*.py evesrp/templates/*.html
-	pybabel extract \
-		-F babel.cfg \
-		-o $@ \
-		-c "TRANS:" \
-		--project=EVE-SRP \
-		--version=0.10.6-dev \
-		-k lazy_gettext \
-		-s \
-		--msgid-bugs-address=paxswill@paxswill.com \
-		--copyright-holder="Will Ross" \
-		.
 
 
 ##### JSON translations #####
