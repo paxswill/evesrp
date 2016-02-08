@@ -36,7 +36,7 @@
           {# TRANS: This is heading in a list of users/groups with a certain permission in a division. In this column is a button for each row, that will remove the permission for that person/group. #}
           <th>{% trans %}Remove{% endtrans %}</th>
         </tr>
-        {% for entity in division.permissions[permission]|map(attribute='entity') %}
+        {% for entity in division.permissions[permission]|map(attribute='entity')|sort(case_sensitive=True, attribute='authmethod')|sort(reverse=True, attribute='type_')|sort(case_sensitive=True, attribute='name') %}
         <tr>
           <td>{{ entity.name }}</td>
           {% if entity.users is defined %}

@@ -112,6 +112,31 @@ modifierHeader = (modifier) ->
     return new Handlebars.SafeString (sprintf localized, {amount: amount})
 
 
+sortEntities = (list) ->
+    workingList = list.slice()
+    workingList.sort (a, b) ->
+        # Sort by auth method name first
+        if a.source < b.source
+            return -1
+        else if a.source > b.source
+            return 1
+        else
+            # Sort Users above Groups if they have the same auth method
+            if a.count? and not b.count?
+                return 1
+            else if not a.count? and b.count?
+                return -1
+            else
+                # Sort by name if they're the same type as well
+                if a.name < b.name
+                    return -1
+                else if a.name > b.name
+                    return 1
+                else
+                    return 0
+    return workingList
+
+
 registerHelpers = (handlebars) ->
     handlebars.registerHelper({
         attr_gettext: ui.attributeGettext
@@ -127,6 +152,7 @@ registerHelpers = (handlebars) ->
         transformed: transformed
         gettext: gettext
         modifier_header: modifierHeader
+        sortEntities: sortEntities
     })
     return handlebars
 
