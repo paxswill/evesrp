@@ -64,8 +64,7 @@ class EveSSO(OAuthMethod):
             user = EveSSOUser(
                     character['name'],
                     character['owner_hash'],
-                    self.name,
-                    token=token['access_token'])
+                    self.name)
             db.session.add(user)
             db.session.commit()
         return user
