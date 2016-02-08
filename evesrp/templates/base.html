@@ -159,7 +159,7 @@
     {% if config['SENTRY_DSN_PUBLIC'] %}
     <script type="text/javascript" src="https://cdn.ravenjs.com/2.1.0/raven.min.js"></script>
     <script type="text/javascript">
-      Raven.config({{ config['SENTRY_DSN_PUBLIC'] }}, {
+      Raven.config("{{ config['SENTRY_DSN_PUBLIC'] }}", {
         release: {{ app_version }},
       }).install();
     </script>
