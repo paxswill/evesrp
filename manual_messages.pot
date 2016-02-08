@@ -9,7 +9,7 @@
 #. "from Test OAuth" being smaller and less visible as it's not as important
 #. as the user's name.
 #: evesrp/static/js/templates/entity_option.hbs:5
-msgid "%(user_name)s <small class="text-muted text-right">from %(auth_source)s</small>"
+msgid "%(user_name)s <small class='text-muted text-right'>from %(auth_source)s</small>"
 msgstr ""
 
 #. Text shown for group results when granting permissions. As with the user
@@ -19,7 +19,7 @@ msgstr ""
 #. "Test Alliance(2134) from Test OAuth" with the group name being
 #. "Test Alliance" and that group having 2134 member users.
 #: evesrp/static/js/templates/entity_option.hbs:3
-msgid "%(group_name)s(%(member_count)d) <small class="text-muted text-right">from %(auth_source)s</small>"
+msgid "%(group_name)s(%(member_count)d) <small class='text-muted text-right'>from %(auth_source)s</small>"
 msgstr ""
 
 #. Text shown in the tooltip that appears when a user hovers over a button that
