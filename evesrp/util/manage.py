@@ -12,7 +12,7 @@ import time
 import datetime as dt
 import flask
 from flask.ext import script
-from flask.ext.migrate import Migrate, MigrateCommand, _get_config, stamp
+from flask.ext.migrate import Migrate, MigrateCommand, stamp
 from alembic.migration import MigrationContext
 from alembic.script import ScriptDirectory
 import six
@@ -100,7 +100,8 @@ def create(force=False):
     conn = engine.connect()
     context = MigrationContext.configure(conn)
     current_rev = context.get_current_revision()
-    alembic_config = _get_config(directory=migrate_path)
+    alembic_config = flask.current_app.extensions['migrate'].migrate.get_config(
+            directory=migrate_path)
     script = ScriptDirectory.from_config(alembic_config)
     latest_rev = script.get_current_head()
     if current_rev == latest_rev and not force:
