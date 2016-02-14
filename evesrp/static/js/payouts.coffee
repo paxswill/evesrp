@@ -21,10 +21,10 @@ renderRequest = (request) ->
     bothPromise.done () ->
         $newPanel = jQuery (payoutTemplate request)
         if $panel.length != 0
-            # Remove old listeners and popovers/tooltips
+            # Remove clipboard handlers for the old copy buttons
             $copyButtons = $panel.find '.copy-btn'
-            $copyButtons.tooltip 'destroy'
             ui.client.unclip $copyButtons
+            # Remove old popovers
             ($panel.find '.small-popover').popover 'destroy'
             # if this panel is expanded, keep it expanded
             unless ($panel.find 'table.in').length == 0
@@ -32,11 +32,10 @@ renderRequest = (request) ->
             $panel.replaceWith $newPanel
         else
             $panelList.append $newPanel
-        # Attach events and activate tooltips and popovers on the new panel
+        # Attach events and activate popovers on the new panel
         $panel = $panelList.find "#request-#{ request.id }"
         $copyButtons = $panel.find '.copy-btn'
         ui.client.clip $copyButtons
-        $copyButtons.tooltip {trigger: 'manual'}
         # Find the popover elements, prevent their default actions, and activate
         # the popovers on them.
         (($panel.find '.small-popover').on 'click', false).popover()
@@ -103,11 +102,15 @@ setupEvents = () ->
     ui.setupClipboard()
     ui.client.on 'complete', copyUpdate
     # Tooltips
-    $copyBtns = (jQuery '.copy-btn')
-    $copyBtns.tooltip {trigger: 'manual'}
-    $copyBtns.on 'mouseover', (ev) ->
+    $requests = jQuery '#requests'
+    $requests.tooltip {
+        trigger: 'manual'
+        html: false
+        selector: '.copy-btn'
+    }
+    $requests.on 'mouseover', '.copy-btn', (ev) ->
         (jQuery this).tooltip 'show'
-    $copyBtns.on 'mouseout', (ev) ->
+    $requests.on 'mouseout', '.copy-btn', (ev) ->
         (jQuery this).tooltip 'hide'
     # Popovers
     ((jQuery '.small-popover').on 'click', false).popover()
