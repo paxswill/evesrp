@@ -11,14 +11,14 @@
         <dd><a href="{{killmail_url}}" target="_blank">{{id}} <i class="fa fa-external-link"></i></a></dd>
         <dt>{{gettext "Details"}}</dt>
         <dd>
-          <a class="small-popover" data-toggle="popover" data-trigger="focus" data-content="{{details}}" data-container="body" href="#" tabindex="0">{{gettext "Details"}}</a>
+          <a class="small-popover null-link details" data-toggle="popover" data-trigger="focus" data-content="{{details}}" data-container="body" href="#" tabindex="0">{{gettext "Details"}}</a>
         </dd>
         <dt>{{gettext "Ship"}}</dt>
         <dd>{{transformed . 'ship'}}</dd>
         {{#if modifiers}}
         <dt>{{gettext "Modifiers"}}</dt>
         <dd>
-          <a class="small-popover" data-toggle="popover" data-trigger="focus" data-content='
+          <a class="small-popover null-link modifiers" data-toggle="popover" data-trigger="focus" data-content='
             <ul>
               {{#each modifiers}}
               {{~#unless void}}

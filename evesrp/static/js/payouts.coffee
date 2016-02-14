@@ -24,8 +24,9 @@ renderRequest = (request) ->
             # Remove clipboard handlers for the old copy buttons
             $copyButtons = $panel.find '.copy-btn'
             ui.client.unclip $copyButtons
-            # Remove old popovers
-            ($panel.find '.small-popover').popover 'destroy'
+            # Hide tooltips and popovers
+            $copyButtons.tooltip 'hide'
+            ($panel.find '.small-popover').popover 'hide'
             # if this panel is expanded, keep it expanded
             unless ($panel.find 'table.in').length == 0
                 ($newPanel.find 'table.collapse').addClass 'in'
@@ -36,11 +37,6 @@ renderRequest = (request) ->
         $panel = $panelList.find "#request-#{ request.id }"
         $copyButtons = $panel.find '.copy-btn'
         ui.client.clip $copyButtons
-        # Find the popover elements, prevent their default actions, and activate
-        # the popovers on them.
-        (($panel.find '.small-popover').on 'click', false).popover()
-        (jQuery '.null-link').on 'click', (ev) ->
-            ev.preventDefault()
 
 
 markPaid = (ev) ->
@@ -113,7 +109,11 @@ setupEvents = () ->
     $requests.on 'mouseout', '.copy-btn', (ev) ->
         (jQuery this).tooltip 'hide'
     # Popovers
-    ((jQuery '.small-popover').on 'click', false).popover()
+    $requests.popover {
+        trigger: 'focus'
+        html: true
+        selector: '.small-popover'
+    }
     # Mark requests as paid
     (jQuery '#requests').on 'submit', markPaid
     # History and filters setup
@@ -124,7 +124,7 @@ setupEvents = () ->
     $window.on 'scroll', infiniteScroll
     # Prevent default action, but not bubbling for the links to expand the
     # list of actions for a request
-    (jQuery '.null-link').on 'click', (ev) ->
+    $requests.on 'click', '.null-link', (ev) ->
         ev.preventDefault()
 
 
