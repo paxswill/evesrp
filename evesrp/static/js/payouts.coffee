@@ -96,7 +96,8 @@ infiniteScroll = (ev) ->
 setupEvents = () ->
     # Clipboard setup
     ui.setupClipboard()
-    ui.client.on 'complete', copyUpdate
+    ui.client.on 'ready', (ev) ->
+        ui.client.on 'complete', copyUpdate
     # Tooltips
     $requests = jQuery '#requests'
     $requests.tooltip {

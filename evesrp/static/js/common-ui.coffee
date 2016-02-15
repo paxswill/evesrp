@@ -55,6 +55,8 @@ setupEvents = () ->
 setupClipboard = () ->
     ZeroClipboard.config {swfPath: "#{ scriptRoot }/static/ZeroClipboard.swf"}
     client = new ZeroClipboard (jQuery '.copy-btn')
+    client.on 'error', (ev) ->
+        client.destroy()
     exports.client = client
 
 
