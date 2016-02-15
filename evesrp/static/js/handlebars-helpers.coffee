@@ -80,17 +80,19 @@ count = (collection) ->
 gettext = (msgid, options) ->
     translated = ui.i18n.gettext msgid
     if _.isEmpty options.hash
-        return new Handlebars.SafeString translated
+        escaped = Handlebars.escapeExpression translated
+        return new Handlebars.SafeString escaped
     else
-        args = _.mapObject options.hash, Handlebars.Utils.escapeExpression
+        args = _.mapObject options.hash, Handlebars.escapeExpression
         return new Handlebars.SafeString (sprintf translated, args)
 
 
 transformed = (request, attr) ->
     if attr of request.transformed
+        safeText = Handlebars.escapeExpression request[attr]
         return new Handlebars.SafeString \
         "<a href=\"#{ request.transformed[attr] }\"
-            target=\"_blank\">#{ request[attr] }
+            target=\"_blank\">#{ safeText }
          <i class=\"fa fa-external-link\"></i></a>"
     request[attr]
 
@@ -109,11 +111,13 @@ modifierHeader = (modifier) ->
             localized = ui.i18n.gettext "%(amount)s bonus"
         else
             localized = ui.i18n.gettext "%(amount)s penalty"
-    return new Handlebars.SafeString (sprintf localized, {amount: amount})
+    escaped = Handlebars.escapeExpression (sprintf localized, {amount: amount})
+    return new Handlebars.SafeString escaped
 
 urlize = (str, options) ->
     limit =  options.hash?.limit
-    return util.urlize str, limit
+    escaped = Handlebars.escapeExpression str
+    return new Handlebars.SafeString (util.urlize escaped, limit)
 
 
 registerHelpers = (handlebars) ->
