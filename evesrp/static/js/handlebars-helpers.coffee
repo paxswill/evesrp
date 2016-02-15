@@ -111,6 +111,10 @@ modifierHeader = (modifier) ->
             localized = ui.i18n.gettext "%(amount)s penalty"
     return new Handlebars.SafeString (sprintf localized, {amount: amount})
 
+urlize = (str, options) ->
+    limit =  options.hash?.limit
+    return util.urlize str, limit
+
 
 registerHelpers = (handlebars) ->
     handlebars.registerHelper({
@@ -127,6 +131,7 @@ registerHelpers = (handlebars) ->
         transformed: transformed
         gettext: gettext
         modifier_header: modifierHeader
+        urlize: urlize
     })
     return handlebars
 

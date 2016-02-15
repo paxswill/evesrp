@@ -1,5 +1,6 @@
 jQuery = require 'jquery'
 _ = require 'underscore'
+linkify = require 'linkifyjs/html'
 
 
 exports.statusColor = (status) ->
@@ -42,3 +43,14 @@ exports.localToUTC = (date) ->
         date.getUTCHours(),
         date.getUTCMinutes(),
         date.getUTCSeconds()
+
+
+exports.urlize = (str, limit) ->
+    if limit is undefined
+        limit = Infinity
+    return linkify str, {
+        format: (value, type) ->
+            if type == 'url' and value.length > limit
+                value = "#{ value.slice 0, limit }..."
+            return value
+    }

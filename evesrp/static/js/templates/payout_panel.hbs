@@ -11,7 +11,7 @@
         <dd><a href="{{killmail_url}}" target="_blank">{{id}} <i class="fa fa-external-link"></i></a></dd>
         <dt>{{gettext "Details"}}</dt>
         <dd>
-          <a class="small-popover null-link details" data-toggle="popover" data-trigger="focus" data-content="{{details}}" data-container="body" href="#" tabindex="0">{{gettext "Details"}}</a>
+          <a class="small-popover null-link details" data-toggle="popover" data-trigger="focus" data-content="{{urlize details limit=15}}" data-container="body" href="#" tabindex="0">{{gettext "Details"}}</a>
         </dd>
         <dt>{{gettext "Ship"}}</dt>
         <dd>{{transformed . 'ship'}}</dd>

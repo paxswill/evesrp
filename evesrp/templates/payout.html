@@ -20,7 +20,7 @@
           <dd><a href="{{ request.killmail_url }}" target="_blank">{{ request.id }} <i class="fa fa-external-link"></i></a></dd>
           {# TRANS: Supporting details about the loss, like the fleet ping, a link an AAR, or what the fleet was doing. #}
           <dt>{% trans %}Details{% endtrans %}</dt>
-          <dd><a class="small-popover null-link details" data-toggle="popover" data-trigger="focus" data-content="{{ request.details|urlize(15) }}" data-container="body" href="#" tabindex="0">{% trans %}Details{% endtrans %}</a></dd>
+          <dd><a class="small-popover null-link details" data-toggle="popover" data-trigger="focus" data-content="{{ request.details|urlize(15)|forceescape }}" data-container="body" href="#" tabindex="0">{% trans %}Details{% endtrans %}</a></dd>
           {# TRANS: The name of the type of ship a requests is about. Ex: Tristan, Ishtar, Scimitar. #}
           <dt>{% trans %}Ship{% endtrans %}</dt>
           <dd>{{ request.transformed.ship_type }}</dd>
