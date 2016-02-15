@@ -78,21 +78,21 @@ suite 'Filtering', () ->
             _.defaults {pilot: ['Paxswill', 'DurrHurrDurr']}, defaults
 
     test 'Should unparse a filters object into a filter string', () ->
-        assert.strictEqual (filter._unParseFilters {}), ''
-        assert.strictEqual (filter._unParseFilters {pilot: ['Paxswill']}),
+        assert.strictEqual (filter.unParseFilters {}), ''
+        assert.strictEqual (filter.unParseFilters {pilot: ['Paxswill']}),
             'pilot/Paxswill'
-        assert.strictEqual (filter._unParseFilters \
+        assert.strictEqual (filter.unParseFilters \
             {pilot: ['Paxswill', 'DurrHurrDurr']}),
             'pilot/DurrHurrDurr,Paxswill'
-        assert.strictEqual (filter._unParseFilters \
+        assert.strictEqual (filter.unParseFilters \
             {system: [], pilot: ['Paxswill', 'DurrHurrDurr']}),
             'pilot/DurrHurrDurr,Paxswill'
-        assert.strictEqual (filter._unParseFilters \
+        assert.strictEqual (filter.unParseFilters \
             {page: 42, system: [], pilot: ['Paxswill', 'DurrHurrDurr']}),
             'page/42/pilot/DurrHurrDurr,Paxswill'
-        assert.strictEqual (filter._unParseFilters {details: ['Foo Bar']}),
+        assert.strictEqual (filter.unParseFilters {details: ['Foo Bar']}),
             'details/Foo Bar'
-        assert.strictEqual (filter._unParseFilters \
+        assert.strictEqual (filter.unParseFilters \
             {details: ['Foo Bar', 'Baz Qux']}),
             'details/Foo Bar/details/Baz Qux'
 
