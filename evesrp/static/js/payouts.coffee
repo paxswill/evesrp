@@ -100,14 +100,10 @@ setupEvents = () ->
     # Tooltips
     $requests = jQuery '#requests'
     $requests.tooltip {
-        trigger: 'manual'
+        trigger: 'hover focus'
         html: false
         selector: '.copy-btn'
     }
-    $requests.on 'mouseover', '.copy-btn', (ev) ->
-        (jQuery this).tooltip 'show'
-    $requests.on 'mouseout', '.copy-btn', (ev) ->
-        (jQuery this).tooltip 'hide'
     # Popovers
     $requests.popover {
         trigger: 'focus'
