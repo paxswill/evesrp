@@ -55,13 +55,9 @@ render = (request) ->
     # Update Payout
     $payout = jQuery '#request-payout'
     bothPromise.done () ->
-        $payout.tooltip 'destroy'
         translated = ui.i18n.gettext "Base Payout: %(base_payout)s"
         basePayout = ui.currencyFormat (parseFloat request.base_payout)
-        $payout.tooltip {
-            title: sprintf translated, {base_payout: basePayout}
-            placement: 'right'
-        }
+        $payout.prop 'title', (sprintf translated, {base_payout: basePayout})
         $payout.text (ui.currencyFormat (parseFloat request.payout))
     # Disable modifier and payout forms if not evaluating
     $evaluatingOnly = jQuery '.evaluating-only'
@@ -173,8 +169,8 @@ setupEvents = () ->
     (jQuery '#detailsModal form').on 'submit', updateDetails
     # Add tooltip showing base payout
     $payoutElement = jQuery '#requests-payout'
-    $payoutElement.tooltip {
-        title: $payoutElement.data 'initial-title'
+    (jQuery '.row').tooltip {
+        selector: '#request-payout'
         placement: 'right'
     }
 

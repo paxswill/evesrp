@@ -86,7 +86,7 @@
       <dt>{% trans %}Payout{% endtrans %}</dt>
       <dd>
       {# TRANS: The base payout assigned to a request as part of the evaluation process. This is without any modifiers (bonuses or penalties). This text is shown as a tooltip when the mouse is moved over the total payout number. #}
-      <span id="request-payout" data-initial-title="{% trans base_payout=(srp_request.base_payout|currencyfmt) %}Base Payout: {{ base_payout }}{% endtrans %}">
+      <span id="request-payout" data-toggle="tooltip" title="{% trans base_payout=(srp_request.base_payout|currencyfmt) %}Base Payout: {{ base_payout }}{% endtrans %}">
           {{ srp_request.payout|currencyfmt }}
         </span>
       </dd>
