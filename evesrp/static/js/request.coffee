@@ -50,7 +50,7 @@ render = (request) ->
             $modifierList.empty()
             $modifierList.append modifiers
     # Update details and division
-    (jQuery '#request-details').text request.details
+    (jQuery '#request-details').html (util.urlize request.details, 30)
     (jQuery '#request-division').text request.division.name
     # Update Payout
     $payout = jQuery '#request-payout'

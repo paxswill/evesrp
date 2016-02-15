@@ -6,7 +6,7 @@
   <h4 class="list-group-item-heading"></h4>
   {{/if}}
   <blockquote class="list-group-item-text">
-    <p>{{note}}</p>
+    <p>{{urlize note limit=30}}</p>
     <footer>{{user.name}} ({{datefmt timestamp}})</footer>
   </blockquote>
 </div>
