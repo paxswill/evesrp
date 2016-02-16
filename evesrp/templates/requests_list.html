@@ -74,6 +74,7 @@
       {% endfor %}
     </table>
     {% endblock table %}
+    {% block pagination %}
     <div class="text-center">
       {% if pager.pages > 1 %}
       <ul class="pagination">
@@ -107,6 +108,7 @@
       {{ ngettext('%(num)s request', '%(num)s requests', pager.total)|format(num=(pager.total|numberfmt)) }} &bull; {{ total_payouts|currencyfmt }} ISK
       </p>
     </div>
+    {% endblock pagination %}
   </div>
 </div>
 {% endblock content %}
