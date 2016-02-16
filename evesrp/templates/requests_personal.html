@@ -1,0 +1,17 @@
+{% extends "requests_list.html" %}
+
+{% block content %}
+{% if pager.total == 0 %}
+<p class="text-center">
+{% if current_user.has_permission(PermissionType.submit) %}
+{# TRANS: Message shown when a user has not submitted any requests yet, asking them to try submitting one. #}
+{% trans %}You have not submitted any requests. Try submitting some with the <strong>Submit</strong> button above.{% endtrans %}
+{% else %}
+{# TRANS: Message shown when a user has not submitted any requests, but is also unable to submit any. This could happen if a user logs in but it was not intended for them to log in. #}
+{% trans %}You do not have permission to submit requests.{% endtrans %}
+{% endif %}
+</p>
+{% else %}
+{{ super() }}
+{% endif %}
+{% endblock content %}

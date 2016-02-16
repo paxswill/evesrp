@@ -366,6 +366,8 @@ class PersonalRequests(RequestListing):
     It will show all requests the current user has submitted.
     """
 
+    template = 'requests_personal.html'
+
     def requests(self, filters):
         requests = super(PersonalRequests, self).requests(filters)
         requests = requests\
