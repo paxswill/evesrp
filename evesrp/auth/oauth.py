@@ -100,6 +100,10 @@ class OAuthMethod(AuthMethod):
         url, state = oauth.authorization_url(self.authorize_url)
         session['state'] = state
         current_app.logger.debug(u"Redirecting to : {}".format(url))
+        # Stash the 'next' parameter in the session to use it in the 'view'
+        # view. It's automatically added by Flask-Login.
+        if 'next' in request.args:
+            session['next'] = request.args['next']
         return redirect(url)
 
     def view(self):
@@ -155,7 +159,9 @@ class OAuthMethod(AuthMethod):
                 user.groups.remove(group)
         # Save all changes
         db.session.commit()
-        return redirect(url_for('index'))
+        # Redirect to the 'next' parameter given to the 'login' view.
+        # The next parameter is automatically added by Flask-Login.
+        return redirect(session.pop('next', False) or url_for('index'))
 
     def get_user(self):
         """Returns the :py:class:`~.OAuthUser` instance for the given token.
