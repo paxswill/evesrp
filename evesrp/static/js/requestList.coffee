@@ -143,15 +143,8 @@ changeSort = (ev) ->
 
 changePage = (ev) ->
     $target = jQuery ev.target
-    # Update the page number
-    filters = filter.getFilters()
-    if ($target.attr 'id') == 'prev_page'
-        filters.page -= 1
-    else if ($target.attr 'id') == 'next_page'
-        filters.page += 1
-    else
-        filters.page = parseInt $target.contents()[0].data, 10
-    filter.updateURL()
+    filters = filter.parseFilterString ($target.attr 'href')
+    filter.updateURL filters
     false
 
 
@@ -172,7 +165,7 @@ addQuickFilter = (ev) ->
 
 setupEvents = () ->
     (jQuery 'th a.heading').on 'click', changeSort
-    (jQuery 'ul.pagination').on 'click', changePage
+    (jQuery 'ul.pagination').on 'click', 'a', changePage
     (jQuery '.filterable a').on 'click', addQuickFilter
     $window = jQuery window
     $window.on 'popstate', getRequests

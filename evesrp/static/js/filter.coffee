@@ -349,9 +349,9 @@ exports._getAttributeChoices = getAttributeChoices
 exports._trimEmpty = trimEmpty
 exports._keyDifference = keyDifference
 exports._splitFilterString = splitFilterString
-exports._parseFilterString = parseFilterString
 # Public exports
 exports.getFilters = getFilters
 exports.unParseFilters = unParseFilters
+exports.parseFilterString = parseFilterString
 exports.updateURL = updateURL
 exports.createFilterBar = createFilterBar
