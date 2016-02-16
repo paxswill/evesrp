@@ -43,7 +43,7 @@ class RequestListing(View):
     """
 
     #: The template to use for listing requests
-    template = 'list_requests.html'
+    template = 'requests_list.html'
 
     #: Decorators to apply to the view functions
     decorators = [login_required, varies('Accept', 'X-Requested-With')]
@@ -326,7 +326,7 @@ class RequestListing(View):
                     main_link=url_for(request.endpoint, filters=filters,
                         _external=True))
         if request.is_xml:
-            return xmlify('request_list.xml', requests=pager.items,
+            return xmlify('requests_list.xml', requests=pager.items,
                     total_payouts=total_payouts)
         if 'title' in kwargs:
             title = kwargs.pop('title')
