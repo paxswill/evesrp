@@ -59,21 +59,21 @@ suite 'Filtering', () ->
 
     test 'Should parse the filter string into an object', () ->
         defaults = {page: 1, sort: '-submit_timestamp'}
-        assert.deepEqual (filter.parseFilterString ''), defaults
-        assert.deepEqual (filter.parseFilterString 'page/10/20'), defaults
-        assert.deepEqual (filter.parseFilterString 'page/10'),
+        assert.deepEqual (filter._parseFilterString ''), defaults
+        assert.deepEqual (filter._parseFilterString 'page/10/20'), defaults
+        assert.deepEqual (filter._parseFilterString 'page/10'),
             _.defaults {page: 10}, defaults
-        assert.deepEqual (filter.parseFilterString 'page/10/Pilot/Paxswill'),
+        assert.deepEqual (filter._parseFilterString 'page/10/Pilot/Paxswill'),
             _.defaults {page: 10, pilot: ['Paxswill']}, defaults
-        assert.deepEqual (filter.parseFilterString \
+        assert.deepEqual (filter._parseFilterString \
             'page/10/pilot/Paxswill,DurrHurrDurr'),
             _.defaults {page: 10, pilot: ['Paxswill', 'DurrHurrDurr']}, defaults
-        assert.deepEqual (filter.parseFilterString \
+        assert.deepEqual (filter._parseFilterString \
             'details/Foo%20Bar%20Baz/'),
             _.defaults {page: 1, details: ["Foo Bar Baz"]}, defaults
-        assert.deepEqual (filter.parseFilterString 'PILOT/Paxswill'),
+        assert.deepEqual (filter._parseFilterString 'PILOT/Paxswill'),
             _.defaults {pilot: ['Paxswill']}, defaults
-        assert.deepEqual (filter.parseFilterString \
+        assert.deepEqual (filter._parseFilterString \
             'pilot/Paxswill/pilot/DurrHurrDurr'),
             _.defaults {pilot: ['Paxswill', 'DurrHurrDurr']}, defaults
 

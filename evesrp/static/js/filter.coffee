@@ -158,6 +158,10 @@ getFilters = () ->
 
 
 updateURL = (filters) ->
+    # If we're given a path instead of filters, parse the path into filters
+    unless _.isArray filters
+        [basePath, filterPath] = splitFilterString filters
+        filters = parseFilterString filterPath
     oldFilters = getFilters()
     # Double check that the filters have actually changed
     if _.isEqual oldFilters, filters
@@ -349,9 +353,9 @@ exports._getAttributeChoices = getAttributeChoices
 exports._trimEmpty = trimEmpty
 exports._keyDifference = keyDifference
 exports._splitFilterString = splitFilterString
+exports._parseFilterString = parseFilterString
 # Public exports
 exports.getFilters = getFilters
 exports.unParseFilters = unParseFilters
-exports.parseFilterString = parseFilterString
 exports.updateURL = updateURL
 exports.createFilterBar = createFilterBar

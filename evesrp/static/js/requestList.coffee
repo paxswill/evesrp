@@ -143,8 +143,7 @@ changeSort = (ev) ->
 
 changePage = (ev) ->
     $target = jQuery ev.target
-    filters = filter.parseFilterString ($target.attr 'href')
-    filter.updateURL filters
+    filter.updateURL ($target.attr 'href')
     false
 
 
