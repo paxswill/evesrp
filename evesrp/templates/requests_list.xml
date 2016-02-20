@@ -8,4 +8,10 @@
     {{ request_xml(srp_request) }}
   {% endfor %}
 </requests>
+{% if prev is defined %}
+<prev>{{ prev }}</prev>
+{% endif %}
+{% if next is defined %}
+<next>{{ next }}</next>
+{% endif %}
 {% endblock content %}

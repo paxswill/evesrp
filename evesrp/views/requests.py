@@ -315,10 +315,35 @@ class RequestListing(View):
             filter_map['page'] = pager.pages
             return redirect(url_for(request.endpoint,
                     filters=self.unparse_filter(filter_map)))
+        # Prep previous and next page links for API responses
+        api_links = {}
+        link_kwargs = {
+            '_external': True,
+        }
+        if 'fmt' in request.args:
+            link_kwargs['fmt'] = request.args['fmt']
+        if pager.has_prev:
+            filter_map['page'] -= 1
+            api_links['prev'] = url_for(request.endpoint,
+                    filters=self.unparse_filter(filter_map), **link_kwargs)
+            filter_map['page'] = pager.page
+        if pager.has_next:
+            filter_map['page'] += 1
+            api_links['next'] = url_for(request.endpoint,
+                    filters=self.unparse_filter(filter_map), **link_kwargs)
+            filter_map['page'] = pager.page
+        # Handle API/RSS responses
         if request.is_json or request.is_xhr:
-            return jsonify(requests=pager.items,
-                    request_count=requests.count(),
-                    total_payouts=total_payouts.currency())
+            jsonify_kwargs = {
+                'requests': pager.items,
+                'request_count': requests.count(),
+                'total_payouts': total_payouts.currency()
+            }
+            # For JSON responses, add prev and next links (when appropriate) to
+            # aid API consumers in walking a list of requests.
+            if request.is_json:
+                jsonify_kwargs.update(api_links)
+            return jsonify(**jsonify_kwargs)
         if request.is_rss:
             return xmlify('rss.xml', content_type='application/rss+xml',
                     requests=pager.items,
@@ -326,8 +351,13 @@ class RequestListing(View):
                     main_link=url_for(request.endpoint, filters=filters,
                         _external=True))
         if request.is_xml:
-            return xmlify('requests_list.xml', requests=pager.items,
-                    total_payouts=total_payouts)
+            xmlify_kwargs = {
+                'requests': pager.items,
+                'total_payouts': total_payouts,
+            }
+            # As for JSON API responses, add prev and next links
+            xmlify_kwargs.update(api_links)
+            return xmlify('requests_list.xml', **xmlify_kwargs)
         if 'title' in kwargs:
             title = kwargs.pop('title')
         else:
