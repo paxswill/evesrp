@@ -10,7 +10,7 @@ import six
 from sqlalchemy.orm.exc import NoResultFound
 
 from .. import db, sentry
-from ..util import ensure_unicode, DateTime
+from ..util import ensure_unicode, DateTime, is_safe_redirect
 from . import AuthMethod
 from .models import User, Group, Pilot
 
@@ -161,7 +161,12 @@ class OAuthMethod(AuthMethod):
         db.session.commit()
         # Redirect to the 'next' parameter given to the 'login' view.
         # The next parameter is automatically added by Flask-Login.
-        return redirect(session.pop('next', False) or url_for('index'))
+        # Check that the 'next' parameter is safe.
+        next_url = request.args.get('next')
+        if next_url is not None:
+            if not is_safe_redirect(next_url):
+                next_url = None
+        return redirect(next_url or url_for('index'))
 
     def get_user(self):
         """Returns the :py:class:`~.OAuthUser` instance for the given token.

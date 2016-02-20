@@ -9,7 +9,7 @@ from wtforms.fields import StringField, PasswordField, HiddenField, SubmitField
 from wtforms.validators import InputRequired
 
 from .. import db, requests_session
-from ..util import ensure_unicode
+from ..util import ensure_unicode, is_safe_redirect
 from . import AuthMethod
 from .models import User, Group, Pilot
 
@@ -108,7 +108,12 @@ class TestAuth(AuthMethod):
             # All done
             db.session.commit()
             self.login_user(user)
-            return redirect(request.args.get('next') or url_for('index'))
+            # Check that the 'next' parameter is safe
+            next_url = request.args.get('next')
+            if next_url is not None:
+                if not is_safe_redirect(next_url):
+                    next_url = None
+            return redirect(next_url or url_for('index'))
         else:
             # Not sure what you did to get here, but somehow Auth has returned
             # an invalid response.
