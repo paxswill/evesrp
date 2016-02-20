@@ -57,3 +57,11 @@ msgstr ""
 #. happened).
 msgid "Submit Timestamp"
 msgstr ""
+
+#. Message shown when a user needs to log in.
+msgid "Please log in to access this page."
+msgstr ""
+
+#. Message shown when a user needs to log in again.
+msgid "Please reauthenticate to access this page."
+msgstr ""

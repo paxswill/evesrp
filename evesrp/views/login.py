@@ -3,7 +3,7 @@ from base64 import urlsafe_b64decode
 import binascii
 from flask import render_template, url_for, abort, session, redirect, request,\
         current_app, g, Blueprint
-from flask.ext.babel import lazy_gettext
+from flask.ext.babel import gettext, lazy_gettext
 from flask.ext.login import login_required, logout_user, LoginManager,\
     current_user
 from flask.ext.wtf import Form
@@ -108,7 +108,12 @@ def login():
             title=lazy_gettext(u'Log In'))
 
 
+def localize_login_messages(message):
+    return gettext(message)
+
+
 login_manager.login_view = 'login.login'
+login_manager.localize_callback = localize_login_messages
 
 
 # 302 redirects let the request method change to GET if it started as POST.
