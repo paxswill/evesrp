@@ -2,8 +2,7 @@
 {% from "macros.xml" import request_xml %}
 
 {% block content %}
-<requests>
-  <total-payouts>{{ total_payouts.currency() }}</total-payouts>
+<requests count="{{ requests|count }}" total-payouts="{{ total_payouts.currency() }}">
   {% for srp_request in requests %}
     {{ request_xml(srp_request) }}
   {% endfor %}
