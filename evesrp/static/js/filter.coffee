@@ -151,8 +151,8 @@ unParseFilters = (filters) ->
 getFilters = () ->
     # Check for a history state object to use for the filters, falling back
     # to parsing the URL path
-    unless _.isEmpty history.state?.data
-        return history.state.data
+    unless _.isEmpty history.state?
+        return history.state
     [basePath, filterPath] = splitFilterString window.location.pathname
     parseFilterString filterPath
 
