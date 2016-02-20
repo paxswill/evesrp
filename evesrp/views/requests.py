@@ -284,8 +284,12 @@ class RequestListing(View):
             current_app.logger.debug(u"Redirecting to filter '{}' from filter"
                                      u" '{}'.".format(canonical_filter,
                                          filters))
-            return redirect(url_for(request.endpoint,
-                    filters=canonical_filter), code=301)
+            url_kwargs = {
+                'filters': canonical_filter,
+            }
+            if 'fmt' in request.args:
+                url_kwargs['fmt'] = request.args['fmt']
+            return redirect(url_for(request.endpoint, **url_kwargs), code=301)
         requests = self.requests(filter_map)
         # Ignore rejected requests when summing the payout.
         # Discard ordering options, they affect the sum somehow.
