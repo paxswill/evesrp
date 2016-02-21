@@ -805,9 +805,6 @@ class AddNote(Form):
             validators=[InputRequired()])
 
 
-killmail_re = re.compile(r'#(\d+)')
-
-
 @blueprint.route('/<int:request_id>/', methods=['GET'])
 @login_required
 @varies('Accept')
@@ -956,6 +953,9 @@ def _change_details(srp_request):
         srp_request.details = form.details.data
         db.session.commit()
     return get_request_details(srp_request=srp_request)
+
+
+killmail_re = re.compile(r'#(\d+)')
 
 
 def _add_note(srp_request):
