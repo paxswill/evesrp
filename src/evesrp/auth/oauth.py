@@ -122,7 +122,8 @@ class OAuthMethod(AuthMethod):
         except OAuth2Error as e:
             # TRANS: When there's an error associated with a login.
             flash(gettext(u"Login failed: %(error)s", error=e.error))
-            sentry.captureException()
+            if 'SENTRY_RELEASE' in current_app.config:
+                sentry.captureException()
             return redirect(url_for('login.login'))
         # Sneaky workaround because current_user isn't set, and self.session
         # relies on current_user
