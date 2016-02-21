@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from base64 import urlsafe_b64decode
 import binascii
 from flask import render_template, url_for, abort, session, redirect, request,\
-        current_app, g, Blueprint
+        current_app, g, Blueprint, flash
 from flask.ext import login as flask_login
 from flask.ext.babel import gettext, lazy_gettext
 from flask.ext.wtf import Form
@@ -52,6 +52,24 @@ def apikey_loader(request):
 
     # returning None signifies failure for this method
     return None
+
+@login_manager.needs_refresh_handler
+def refresh_user():
+    auth_methods = {am.name: am for am in current_app.auth_methods}
+    user_auth_method = auth_methods[flask_login.current_user.authmethod]
+    if user_auth_method.refresh(flask_login.current_user):
+        current_app.logger.debug("Marking '{}' as fresh".format(
+            flask_login.current_user))
+        flask_login.confirm_login()
+        # Call the original endpoint
+        view = current_app.view_functions[request.endpoint]
+        return view(**request.view_args)
+    else:
+        flash(login_manager.needs_refresh_message,
+                category=login_manager.needs_refresh_message_category)
+        original_url = url_for(request.endpoint, **request.view_args)
+        return redirect(url_for('login.login', next=original_url,
+                _anchor=user_auth_method.safe_name))
 
 
 class APIKeyForm(Form):

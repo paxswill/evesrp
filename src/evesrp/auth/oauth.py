@@ -2,9 +2,9 @@ from __future__ import absolute_import
 import datetime as dt
 from flask import flash, redirect, current_app, url_for, request, session
 from flask.ext.babel import gettext
-from flask.ext.login import current_user
+from flask.ext.login import current_user, login_user, login_fresh
 from requests_oauthlib import OAuth2Session
-from oauthlib.oauth2 import OAuth2Error, TokenExpiredError
+from oauthlib.oauth2 import OAuth2Error
 from flask.ext.wtf import csrf
 import six
 from sqlalchemy.orm.exc import NoResultFound
@@ -85,6 +85,23 @@ class OAuthMethod(AuthMethod):
             self.access_params = kwargs.pop('access_token_params')
         except KeyError:
             self.access_params = {}
+
+        # Small function that will mark users as stale (not fresh) for
+        # Flask-Login if they no longer have valid tokens. This will trigger a
+        # refresh if there are refresh tokens, or require them to login on the
+        # next attempted privileged action.
+        @current_app.before_request
+        def enforce_user_freshness():
+            if current_user.is_authenticated and \
+                    current_user.authmethod == self.name and \
+                    login_fresh():
+                user = current_user._get_current_object()
+                if user.seconds_valid <= 0:
+                    current_app.logger.debug("Marking '{}' as stale".format(
+                        user))
+                    login_user(user, fresh=False)
+                    self.session.token = user.token
+
         super(OAuthMethod, self).__init__(**kwargs)
 
     # Being done in a property so when url_for is called, it has access to a
@@ -127,9 +144,9 @@ class OAuthMethod(AuthMethod):
             if 'SENTRY_RELEASE' in current_app.config:
                 sentry.captureException()
             return redirect(url_for('login.login'))
-        # Sneaky workaround because current_user isn't set, and self.session
-        # relies on current_user
-        self._oauth_session = OAuth2Session(self.client_id, token=token)
+        # Set the current session manually because the automated method relies
+        # on current_user.
+        self.session = OAuth2Session(self.client_id, token=token)
         # Get the User object for this user, creating one if needed
         user = self.get_user()
         # Update the tokens (and related info) for the user
@@ -140,35 +157,16 @@ class OAuthMethod(AuthMethod):
         else:
             user.set_expiration(self.default_token_expiry)
         user.refresh_token = token.get(u'refresh_token')
+        db.session.commit()
         if user is not None:
-            # Apply site-wide admin flag
-            user.admin = self.is_admin(user)
             # Login the user, so current_user will work
             self.login_user(user)
         else:
             # TRANS: Error shown for a failed login.
             flash(gettext(u"Login failed."), u'error')
             return redirect(url_for('login.login'))
-        # Add new Pilots
-        current_pilots = self.get_pilots()
-        for pilot in current_pilots:
-            pilot.user = user
-        # Remove old pilots
-        user_pilots = set(user.pilots)
-        for pilot in user_pilots:
-            if pilot not in current_pilots:
-                pilot.user = None
-        # Add new groups
-        current_groups = self.get_groups()
-        for group in current_groups:
-            user.groups.add(group)
-        # Remove old groups
-        user_groups = set(user.groups)
-        for group in user_groups:
-            if group not in current_groups and group in user.groups:
-                user.groups.remove(group)
-        # Save all changes
-        db.session.commit()
+        # Update admins, groups and pilots for the current user
+        self._update_user_info()
         # Redirect to the 'next' parameter given to the 'login' view.
         # The next parameter is automatically added by Flask-Login.
         # Check that the 'next' parameter is safe.
@@ -177,6 +175,33 @@ class OAuthMethod(AuthMethod):
             if not is_safe_redirect(next_url):
                 next_url = None
         return redirect(next_url or url_for('index'))
+
+
+    def _update_user_info(self):
+        current_app.logger.debug(
+                "Updating information for '{}' with OAuth".format(current_user))
+        # Set the site-wide admin flag
+        current_user.admin = self.is_admin(current_user)
+        # Add new Pilots
+        current_pilots = self.get_pilots()
+        for pilot in current_pilots:
+            pilot.user = current_user
+        # Remove old pilots
+        user_pilots = set(current_user.pilots)
+        for pilot in user_pilots:
+            if pilot not in current_pilots:
+                pilot.user = None
+        # Add new groups
+        current_groups = self.get_groups()
+        for group in current_groups:
+            current_user.groups.add(group)
+        # Remove old groups
+        user_groups = set(current_user.groups)
+        for group in user_groups:
+            if group not in current_groups and group in current_user.groups:
+                current_user.groups.remove(group)
+        # Save all changes
+        db.session.commit()
 
     def get_user(self):
         """Returns the :py:class:`~.OAuthUser` instance for the current token.
@@ -229,29 +254,56 @@ class OAuthMethod(AuthMethod):
         """
         raise NotImplementedError
 
+    def refresh(self, user):
+        """Refreshes the current user's information.
+
+        Attempts to refresh the pilots and groups for the given user. If the
+        current access token has expired, the refresh token is used to get a
+        new access token.
+        """
+        try:
+            self._update_user_info()
+        except OAuth2Error:
+            return False
+        else:
+            return True
+
     @property
     def session(self):
         if not hasattr(self, '_oauth_session'):
             if not current_user.is_anonymous:
-                token = {'token_type': 'Bearer'}
-                token['access_token'] = current_user.access_token
-                token['expires_in'] = int(current_user.seconds_valid)
-                if current_user.refresh_token is not None:
-                    token['refresh_token'] = current_user.refresh_token
-                kwargs['token'] = token
+                kwargs = {
+                    'token': current_user.token,
+                }
                 if self.refresh_url is not None:
                     kwargs['auto_refresh_url'] = self.refresh_url
                     kwargs['token_updater'] = token_saver
+                    kwargs['auto_refresh_kwargs'] = {
+                        'client_id': self.client_id,
+                        'client_secret': self.client_secret,
+                    }
+                current_app.logger.debug(u"Creating a new OAuth2Session for "
+                                         u"'{}'".format(current_user))
                 self._oauth_session = OAuth2Session(self.client_id, **kwargs)
         return self._oauth_session
 
+    @session.setter
+    def session(self, new_session):
+        self._oauth_session = new_session
+
+    @session.deleter
+    def session(self):
+        del self._oauth_session
+
 
 def token_saver(token):
+    current_app.logger.debug("Saving new OAuth tokens for user '{}'".format(
+        current_user))
     current_user.access_token = token[u'access_token']
     refresh_token = token.get(u'refresh_token')
     if refresh_token is not None and \
             refresh_token == current_user.refresh_token:
-        raise TokenExpiredError()
+        current_app.logger.warning(u"Refresh token did not change.")
     else:
         current_user.refresh_token = refresh_token
     current_user.set_expiration(token.get(u'expires_in', 0))
@@ -281,3 +333,12 @@ class OAuthUser(User):
             return current_duration.total_seconds()
         else:
             return 0
+
+    @property
+    def token(self):
+        token = {'token_type': 'Bearer'}
+        token['access_token'] = self.access_token
+        token['expires_in'] = int(self.seconds_valid)
+        if self.refresh_token is not None:
+            token['refresh_token'] = self.refresh_token
+        return token

@@ -4,6 +4,8 @@ import xml.etree.ElementTree as ET
 from flask import request, current_app, abort, flash
 from sqlalchemy.orm.exc import NoResultFound
 from flask.ext.wtf import Form
+from flask.ext.login import current_user
+from oauthlib.oauth2 import OAuth2Error
 
 from .oauth import OAuthMethod, OAuthUser
 from .. import db
@@ -33,9 +35,16 @@ class EveSSO(OAuthMethod):
 
     def _get_user_data(self):
         if not hasattr(request, '_user_data'):
-            resp = self.session.get(self.domain + '/oauth/verify').json()
-            current_app.logger.debug(u"SSO lookup results: {}".format(
-                    resp))
+            try:
+                resp = self.session.get(self.domain + '/oauth/verify').json()
+                current_app.logger.debug(u"SSO lookup results: {}".format(resp))
+            except OAuth2Error as e:
+                current_app.logger.error(u"Error verifying user data for user "
+                                         u"'{}': {}".format(current_user, e))
+                # The session can be bugged in some situations. Kill it to be
+                # sure.
+                del self.session
+                raise
             try:
                 char_data = {
                     'name': resp[u'CharacterName'],

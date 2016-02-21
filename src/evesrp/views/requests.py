@@ -7,7 +7,8 @@ from flask import render_template, abort, url_for, flash, Markup, request,\
     redirect, current_app, Blueprint, Markup, json, make_response
 from flask.views import View
 from flask.ext.babel import gettext, lazy_gettext, get_locale
-from flask.ext.login import login_required, current_user
+from flask.ext.login import login_required, fresh_login_required, \
+    current_user, login_fresh
 from flask.ext.sqlalchemy import Pagination
 from flask.ext.wtf import Form
 import iso8601
@@ -18,6 +19,7 @@ from wtforms.fields.html5 import URLField, DecimalField
 from wtforms.validators import InputRequired, AnyOf, URL, ValidationError,\
     StopValidation
 
+from .login import login_manager
 from .. import db
 from ..models import Request, Modifier, Action, ActionType, ActionError,\
         ModifierError, AbsoluteModifier, RelativeModifier
@@ -402,6 +404,8 @@ class PersonalRequests(RequestListing):
 
     template = 'requests_personal.html'
 
+    decorators = [login_required]
+
     def requests(self, filters):
         requests = super(PersonalRequests, self).requests(filters)
         requests = requests\
@@ -429,6 +433,8 @@ class PermissionRequestListing(RequestListing):
 
     This is used for the various permission-specific views.
     """
+
+    decorators = [fresh_login_required]
 
     def __init__(self, permissions, statuses, title=None):
         """Create a :py:class:`PermissionRequestListing` for the given
@@ -669,7 +675,7 @@ class RequestForm(Form):
 
 
 @blueprint.route('/add/', methods=['GET', 'POST'])
-@login_required
+@fresh_login_required
 def submit_request():
     """Submit a :py:class:`~.models.Request`\.
 
@@ -821,6 +827,10 @@ def get_request_details(request_id=None, srp_request=None):
     """
     if srp_request is None:
         srp_request = Request.query.get_or_404(request_id)
+    # A user should always be able to access their own requests, but others
+    # need fresh sessions.
+    if current_user != srp_request.submitter and not login_fresh():
+        return login_manager.needs_refresh()
     # Different templates are used for different roles
     if current_user.has_permission(PermissionType.review,
             srp_request.division):
@@ -985,6 +995,9 @@ def modify_request(request_id):
     :param int request_id: the ID of the request.
     """
     srp_request = Request.query.get_or_404(request_id)
+    # Force fresh permissions
+    if not login_fresh():
+        return login_manager.needs_refresh()
     if request.form['id_'] == 'modifier':
         return _add_modifier(srp_request)
     elif request.form['id_'] == 'payout':
@@ -1009,7 +1022,7 @@ class DivisionChange(Form):
 
 
 @blueprint.route('/<int:request_id>/division/', methods=['GET', 'POST'])
-@login_required
+@fresh_login_required
 def request_change_division(request_id):
     srp_request = Request.query.get_or_404(request_id)
     if not current_user.has_permission(PermissionType.review, srp_request) and\
