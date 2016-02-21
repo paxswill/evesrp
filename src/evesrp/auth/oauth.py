@@ -55,7 +55,7 @@ class OAuthMethod(AuthMethod):
         is significant).
 
         :param default_token_expiry: The default time (in seconds) access
-        tokens are valid for. Defaults to 0.
+        tokens are valid for. Defaults to 5 minutes.
 
         :type default_token_expiry: :py:type:`int`
         """
@@ -79,7 +79,7 @@ class OAuthMethod(AuthMethod):
         self.refresh_url = kwargs.pop('refresh_token_url', None)
         self.oauth_method = kwargs.pop('method', 'POST')
         self.scope = kwargs.pop('scope', None)
-        self.default_token_expiry = kwargs.pop('default_token_expiry', 0)
+        self.default_token_expiry = kwargs.pop('default_token_expiry', 300)
         self.name = kwargs.get('name', 'OAuth')
         try:
             self.access_params = kwargs.pop('access_token_params')
