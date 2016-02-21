@@ -53,6 +53,11 @@ class OAuthMethod(AuthMethod):
         :py:class:`~.TestOAuth` is similar to
         ``https://example.com/login/test_oauth/`` (Note the trailing slash, it
         is significant).
+
+        :param default_token_expiry: The default time (in seconds) access
+        tokens are valid for. Defaults to 0.
+
+        :type default_token_expiry: :py:type:`int`
         """
         keyword_mapping = {
             'key': 'client_id',
@@ -74,11 +79,8 @@ class OAuthMethod(AuthMethod):
         self.refresh_url = kwargs.pop('refresh_token_url', None)
         self.oauth_method = kwargs.pop('method', 'POST')
         self.scope = kwargs.pop('scope', None)
-        if 'name' not in kwargs:
-            self.name = 'OAuth'
-        else:
-            self.name = kwargs['name']
-        # self.name must be defines before self.safe_name will work
+        self.default_token_expiry = kwargs.pop('default_token_expiry', 0)
+        self.name = kwargs.get('name', 'OAuth')
         try:
             self.access_params = kwargs.pop('access_token_params')
         except KeyError:
@@ -130,10 +132,14 @@ class OAuthMethod(AuthMethod):
         self._oauth_session = OAuth2Session(self.client_id, token=token)
         # Get the User object for this user, creating one if needed
         user = self.get_user()
+        # Update the tokens (and related info) for the user
         user.access_token = token[u'access_token']
-        if 'refresh_token' in token:
-            user.refresh_token = token[u'refresh_token']
+        # If not given by the server, use the default expiry time
+        if u'expires_in' in token:
             user.set_expiration(token[u'expires_in'])
+        else:
+            user.set_expiration(self.default_token_expiry)
+        user.refresh_token = token.get(u'refresh_token')
         if user is not None:
             # Apply site-wide admin flag
             user.admin = self.is_admin(user)
@@ -173,7 +179,7 @@ class OAuthMethod(AuthMethod):
         return redirect(next_url or url_for('index'))
 
     def get_user(self):
-        """Returns the :py:class:`~.OAuthUser` instance for the given token.
+        """Returns the :py:class:`~.OAuthUser` instance for the current token.
 
         This method is to be implemented by subclasses of
         :py:class:`OAuthMethod` to use whatever APIs they have access to to get
@@ -229,11 +235,9 @@ class OAuthMethod(AuthMethod):
             if not current_user.is_anonymous:
                 token = {'token_type': 'Bearer'}
                 token['access_token'] = current_user.access_token
+                token['expires_in'] = int(current_user.seconds_valid)
                 if current_user.refresh_token is not None:
                     token['refresh_token'] = current_user.refresh_token
-                    now = dt.datetime.utcnow()
-                    current_duration = current_user.access_expiration - now
-                    token['expires_in'] = int(current_duration.total_seconds())
                 kwargs['token'] = token
                 if self.refresh_url is not None:
                     kwargs['auto_refresh_url'] = self.refresh_url
@@ -244,12 +248,13 @@ class OAuthMethod(AuthMethod):
 
 def token_saver(token):
     current_user.access_token = token[u'access_token']
-    if 'refresh_token' in token:
-        current_user.refresh_token = token[u'refresh_token']
-        current_user.set_expiration(token[u'expires_in'])
+    refresh_token = token.get(u'refresh_token')
+    if refresh_token is not None and \
+            refresh_token == current_user.refresh_token:
+        raise TokenExpiredError()
     else:
-        current_user.refresh_token = None
-        current_user.access_expiration = None
+        current_user.refresh_token = refresh_token
+    current_user.set_expiration(token.get(u'expires_in', 0))
     db.session.commit()
 
 
@@ -259,7 +264,7 @@ class OAuthUser(User):
 
     access_token = db.Column(db.String(100, convert_unicode=True))
 
-    access_expiration = db.Column(DateTime)
+    access_expiration = db.Column(DateTime, default=None)
 
     refresh_token = db.Column(db.String(100, convert_unicode=True))
 
@@ -267,3 +272,12 @@ class OAuthUser(User):
         now = dt.datetime.utcnow()
         expiration = now + dt.timedelta(seconds=expiration_seconds)
         self.access_expiration = expiration
+
+    @property
+    def seconds_valid(self):
+        if self.access_expiration is not None:
+            now = dt.datetime.utcnow()
+            current_duration = self.access_expiration - now
+            return current_duration.total_seconds()
+        else:
+            return 0
