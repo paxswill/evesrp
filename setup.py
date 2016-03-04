@@ -17,14 +17,14 @@ else:
 
 
 test_requirements = [
-    'beautifulsoup>=4.4.1',
-    'coverage>=3.7.1',
-    'httmock>=1.2.2',
+    'beautifulsoup >= 4.4.1',
+    'coverage >= 3.7.1',
+    'httmock >= 1.2.2',
 ]
 # unittest.mock was added in 3.3, but is available as a backport as the 'mock'
 # package on PyPI.
 if sys.version_info.major < 3 or sys.version_info.minor < 3:
-    test_requirements.append('mock>=1.0.1')
+    test_requirements.append('mock >= 1.0.1')
 
 
 setup(
@@ -76,21 +76,21 @@ setup(
         u'Topic :: Games/Entertainment',
     ],
     install_requires=[
-        'Babel>=2.2.0',
-        'Flask>=0.10.1',
-        'Flask-Babel>=0.9',
-        'Flask-Login>=0.3.2',
-        'Flask-Migrate~=1.7.0',
-        'Flask-Script==2.0.5',
-        'Flask-SQLAlchemy~=2.1',
-        'Flask-WTF==0.10.2',
-        'SQLAlchemy~=1.0.11',
-        'Werkzeug>=0.9.4',
-        'WTForms>=2.0.0',
-        'alembic~=0.8.4',
-        'requests>=2.9.1',
-        'six==1.7.3',
-        'iso8601>=0.1.5',
+        'Babel >= 2.2.0',
+        'Flask >= 0.10.1',
+        'Flask-Babel >= 0.9',
+        'Flask-Login >= 0.3.2',
+        'Flask-Migrate ~= 1.7.0',
+        'Flask-Script == 2.0.5',
+        'Flask-SQLAlchemy ~= 2.1',
+        'Flask-WTF == 0.10.2',
+        'SQLAlchemy ~= 1.0.11',
+        'Werkzeug >= 0.9.4',
+        'WTForms >= 2.0.0',
+        'alembic ~= 0.8.4',
+        'requests >= 2.9.1',
+        'six == 1.7.3',
+        'iso8601 >= 0.1.5',
     ],
     test_suite='tests',
     test_require=test_requirements,
@@ -101,14 +101,14 @@ setup(
     },
     extras_require={
         'BraveCore': [
-            'braveapi==0.1',
-            'ecdsa==0.11',
+            'braveapi == 0.1',
+            'ecdsa == 0.11',
         ],
         'OAuth': [
-            'requests-oauthlib>=0.6.0',
+            'requests-oauthlib >= 0.6.0',
         ],
         'Sentry': [
-            'raven[flask]>=5.10.2',
+            'raven[flask] >= 5.10.2',
         ],
     },
     zip_safe=False,
