@@ -143,7 +143,7 @@ class EveSSOGroup(Group):
 
     ccp_id = db.Column(db.Integer, nullable=False, unique=True, index=True)
 
-    alliance = db.Column(db.Boolean, nullable=False, default=False,
+    alliance = db.Column(db.Boolean(name='alliance'), nullable=False, default=False,
             index=True)
 
     __table_args__ = (
