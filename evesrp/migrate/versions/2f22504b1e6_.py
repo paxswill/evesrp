@@ -1,4 +1,4 @@
-"""empty message
+"""Add location attributes to Request.
 
 Revision ID: 2f22504b1e6
 Revises: None

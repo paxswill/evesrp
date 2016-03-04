@@ -147,7 +147,7 @@ class EveSSOGroup(Group):
             index=True)
 
     __table_args__ = (
-            db.UniqueConstraint(ccp_id, alliance),
+            db.UniqueConstraint(ccp_id, alliance, name='alliance_ccp_id'),
     )
 
     def __init__(self, name, ccp_id, alliance, authmethod, **kwargs):

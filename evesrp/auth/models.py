@@ -359,7 +359,8 @@ class Group(Entity):
 
 class Permission(db.Model, AutoID, AutoName):
     __table_args__ = (
-        db.UniqueConstraint('division_id', 'entity_id', 'permission'),
+        db.UniqueConstraint('division_id', 'entity_id', 'permission',
+            name='division_entity_permission'),
     )
 
     division_id = db.Column(db.Integer, db.ForeignKey('division.id'),
@@ -398,7 +399,8 @@ class TransformerRef(db.Model, AutoID, AutoName):
     """
 
     __table_args__ = (
-        db.UniqueConstraint('division_id', 'attribute_name'),
+        db.UniqueConstraint('division_id', 'attribute_name',
+            name='division_transformer'),
     )
 
     #: The attribute this transformer is applied to.
