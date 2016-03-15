@@ -109,13 +109,14 @@ class BraveCore(AuthMethod):
             for group in user_groups:
                 if group.name not in info.tags and group in user.groups:
                     user.groups.remove(group)
-            # Sync pilot (just the primary for now)
-            pilot = Pilot.query.get(info.character.id)
-            if not pilot:
-                pilot = Pilot(user, char_name, info.character.id)
-                db.session.add(pilot)
-            else:
-                pilot.user = user
+            # Sync pilots
+            for char_info in info.characters:
+                pilot = Pilot.query.get(char_info.character.id)
+                if not pilot:
+                    pilot = Pilot(user, char_info.character.name, char_info.character.id)
+                    db.session.add(pilot)
+                else:
+                    pilot.user = user
             db.session.commit()
             self.login_user(user)
             return redirect(url_for('index'))
