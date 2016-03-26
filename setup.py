@@ -43,31 +43,6 @@ setup(
     package_dir={
         '': 'src'
     },
-    package_data={
-        'evesrp': [
-            'static/css/*.css',
-            'static/css/*.css.map',
-            'static/evesso.png',
-            'static/favicon.ico',
-            'static/fonts/*.eot',
-            'static/fonts/*.ttf',
-            'static/fonts/*.svg',
-            'static/fonts/*.woff',
-            'static/fonts/*.woff2',
-            'static/fonts/*.otf',
-            'static/js/evesrp.min.js',
-            'static/js/evesrp.min.js.map',
-            'static/js/formatters.min.js',
-            'static/js/formatters.min.js.map',
-            'static/translations/*.json',
-            'static/ZeroClipboard.swf',
-            'templates/*.html',
-            'templates/*.xml',
-            'translations/*/LC_MESSAGES/messages.*',
-            'migrate/alembic.ini',
-            'migrate/script.py.mako',
-        ],
-    },
     classifiers=[
         u'Development Status :: 4 - Beta',
         u'Framework :: Flask',

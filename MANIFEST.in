@@ -1,0 +1,22 @@
+### Static Files served to browser clients
+# Compiled CSS
+include src/static/css/*.css src/static/css/*.css.map
+# Fonts
+include src/static/fonts/*.eot src/static/fonts/*.ttf src/static/fonts/*.svg 
+include src/static/fonts/*.woff src/static/fonts/*.woff2 src/static/fonts/*.otf
+# Compiled Javascript
+include src/static/js/evesrp.min.js src/static/js/evesrp.min.js.map
+include src/static/js/formatters.min.js src/static/js/formatters.min.js.map
+# JSON translation files
+include src/static/translations/*.json
+# Misc src/static files
+include src/static/ZeroClipboard.swf
+include src/static/evesso.png
+include src/static/favicon.ico
+### Templates
+include src/templates/*.html src/templates/*.xml
+### Translation files
+recursive-include src/translations messages.*
+# Include Alembic files
+include src/migrate/alembic.ini
+include src/migrate/script.py.mako
