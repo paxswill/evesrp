@@ -93,7 +93,7 @@ setup(
         'iso8601 >= 0.1.5',
     ],
     test_suite='tests',
-    test_require=test_requirements,
+    tests_require=test_requirements,
     entry_points={
         'console_scripts': [
             'evesrp = evesrp.util.manage:main',
