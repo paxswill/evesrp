@@ -92,7 +92,7 @@ setup(
         'six == 1.7.3',
         'iso8601 >= 0.1.5',
     ],
-    test_suite='tests',
+    test_suite='tests_python',
     tests_require=test_requirements,
     entry_points={
         'console_scripts': [
