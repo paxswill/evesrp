@@ -1,10 +1,14 @@
 #!/usr/bin/env python
-from setuptools import setup
+from setuptools import setup, find_packages
 import re
 import sys
+import os.path
 
 
-with open('evesrp/__init__.py', 'r') as f:
+setup_dir = os.path.abspath(os.path.dirname(__file__))
+
+
+with open(os.path.join(setup_dir, 'src', 'evesrp', '__init__.py'), 'r') as f:
     init_contents = ''
     for line in f:
         init_contents += line + '\n'
@@ -34,14 +38,10 @@ setup(
     author=u'Will Ross',
     author_email=u'paxswill@paxswill.com',
     url=u'https://github.com/paxswill/evesrp',
-    packages=[
-        'evesrp',
-        'evesrp.auth',
-        'evesrp.views',
-        'evesrp.util',
-        'evesrp.migrate',
-        'evesrp.migrate.versions',
-    ],
+    packages=find_packages(where='src'),
+    package_dir={
+        '': 'src'
+    },
     package_data={
         'evesrp': [
             'static/css/*.css',
