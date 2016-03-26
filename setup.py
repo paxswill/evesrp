@@ -38,6 +38,7 @@ setup(
     author=u'Will Ross',
     author_email=u'paxswill@paxswill.com',
     url=u'https://github.com/paxswill/evesrp',
+    license='BSD',
     packages=find_packages(where='src'),
     package_dir={
         '': 'src'
