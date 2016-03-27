@@ -10,31 +10,27 @@ python:
     - "3.5"
 
 env:
-    - DB="sqlite://"
-    - DB="postgresql+psycopg2://postgres@127.0.0.1/evesrp_test"
-    - DB="postgresql+pg8000://postgres@127.0.0.1/evesrp_test"
-    - DB="mysql+pymysql://root@127.0.0.1/evesrp_test"
-    - DB="mysql+cymysql://root@127.0.0.1/evesrp_test"
+    global:
+        - POSTGRES_USER="postgres"
+        - MYSQL_USER="root"
+    matrix:
+        - SRP_PYTHON="py27"
+        - SRP_PYTHON="py35"
+        - SRP_DB="sqlite"
+        - SRP_DB="psycopg2"
+        - SRP_DB="pymysql"
 
 matrix:
     include:
+        - env: SRP_PYTHON="py33" SRP_DB="sqlite"
+        - env: SRP_PYTHON="py34" SRP_DB="sqlite"
+        - env: SRP_PYTHON="py27" SRP_DB="mysqldb"
+        - env: SRP_PYTHON="pypy" SRP_DB="sqlite"
+        - env: SRP_PYTHON="pypy3" SRP_DB="sqlite"
         - env: TEST_SUITE="javascript"
-          python: "3.5"
-        - python: "2.7"
-          env: DB="mysql+mysqldb://root@127.0.0.1/evesrp_test"
-        - python: "3.3"
-          env: DB="sqlite://"
-        - python: "3.4"
-          env: DB="sqlite://"
-        - python: "pypy"
-          env: DB="sqlite://"
-        - python: "pypy3"
-          env: DB="sqlite://"
     allow_failures:
-        - python: "pypy"
-        - python: "pypy3"
-        - python: "2.7"
-          env: DB="mysql+mysqldb://root@127.0.0.1/evesrp_test"
+        - env: SRP_PYTHON="pypy" SRP_DB="sqlite"
+        - env: SRP_PYTHON="pypy3" SRP_DB="sqlite"
     fast_finish: true
 
 before_install:
@@ -51,10 +47,7 @@ install:
     - export CXX=g++-4.8
     - make build-deps
 
-before_script:
-    - psql -c 'CREATE DATABASE evesrp_test;' -U postgres
-    - mysql -e 'CREATE DATABASE evesrp_test;'
-    - make all
+before_script: make all
 
 script: make travis
 

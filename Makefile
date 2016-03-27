@@ -50,7 +50,8 @@ travis: test-javascript
 travis-success:
 	cat tests_javascript/coverage/lcov.info | $(NODE_BIN)/coveralls
 else
-travis: test-python
+travis:
+	tox -e $(SRP_PYTHON)-$(SRP_DB)
 travis-success:
 	coveralls
 endif
