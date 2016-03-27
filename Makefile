@@ -55,6 +55,7 @@ travis-success:
 	cat tests_javascript/coverage/lcov.info | $(NODE_BIN)/coveralls
 else
 travis-setup:
+	pip install tox
 travis:
 	tox -e $(SRP_PYTHON)-$(SRP_DB)
 travis-success:
