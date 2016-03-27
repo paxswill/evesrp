@@ -2,7 +2,7 @@ SHELL := /bin/sh
 include variables.mk
 
 .PHONY: all clean deep-clean doc-clean build-deps test test-python \
-	test-javascript docs travis travis-success sdist upload
+	test-javascript docs travis-setup travis travis-success sdist upload
 
 all:: docs
 
@@ -46,10 +46,15 @@ docs:
 	$(MAKE) -C doc html
 
 ifneq (,$(findstring javascript,$(TEST_SUITE)))
+travis-setup:
+	wget https://s3.amazonaws.com/travis-phantomjs/phantomjs-2.0.0-ubuntu-12.04.tar.bz2
+	tar -xjf phantomjs-2.0.0-ubuntu-12.04.tar.bz2
+	mv phantomjs $(HOME)/phantomjs
 travis: test-javascript
 travis-success:
 	cat tests_javascript/coverage/lcov.info | $(NODE_BIN)/coveralls
 else
+travis-setup:
 travis:
 	tox -e $(SRP_PYTHON)-$(SRP_DB)
 travis-success:

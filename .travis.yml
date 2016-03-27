@@ -33,10 +33,7 @@ matrix:
         - env: SRP_PYTHON="pypy3" SRP_DB="sqlite"
     fast_finish: true
 
-before_install:
-    - wget https://s3.amazonaws.com/travis-phantomjs/phantomjs-2.0.0-ubuntu-12.04.tar.bz2
-    - tar -xjf phantomjs-2.0.0-ubuntu-12.04.tar.bz2
-    - mv phantomjs $HOME/phantomjs
+before_install: make travis-setup
 
 install:
     - nvm install 5.3.0
