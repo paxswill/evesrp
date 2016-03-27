@@ -14,19 +14,20 @@ env:
         - POSTGRES_USER="postgres"
         - MYSQL_USER="root"
     matrix:
-        - SRP_PYTHON="py27"
-        - SRP_PYTHON="py35"
-        - SRP_DB="sqlite"
-        - SRP_DB="psycopg2"
-        - SRP_DB="pymysql"
+        - SRP_PYTHON="py27"    SRP_DB="sqlite"
+        - SRP_PYTHON="py27"    SRP_DB="psycopg2"
+        - SRP_PYTHON="py27"    SRP_DB="pymysql"
+        - SRP_PYTHON="py35"    SRP_DB="sqlite"
+        - SRP_PYTHON="py35"    SRP_DB="psycopg2"
+        - SRP_PYTHON="py35"    SRP_DB="pymysql"
 
 matrix:
     include:
-        - env: SRP_PYTHON="py33" SRP_DB="sqlite"
-        - env: SRP_PYTHON="py34" SRP_DB="sqlite"
-        - env: SRP_PYTHON="py27" SRP_DB="mysqldb"
-        - env: SRP_PYTHON="pypy" SRP_DB="sqlite"
-        - env: SRP_PYTHON="pypy3" SRP_DB="sqlite"
+        - env: SRP_PYTHON="py33"    SRP_DB="sqlite"
+        - env: SRP_PYTHON="py34"    SRP_DB="sqlite"
+        - env: SRP_PYTHON="py27"    SRP_DB="mysqldb"
+        - env: SRP_PYTHON="pypy"    SRP_DB="sqlite"
+        - env: SRP_PYTHON="pypy3"   SRP_DB="sqlite"
         - env: TEST_SUITE="javascript"
     allow_failures:
         - env: SRP_PYTHON="pypy" SRP_DB="sqlite"
