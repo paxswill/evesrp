@@ -1,8 +1,18 @@
 [run]
 branch = true
 source = evesrp
+parallel = true
 omit =
     evesrp/migrate/*
+
+[paths]
+source =
+    src/evesrp
+    .tox/*/lib/python*/site-packages/EVE-SRP
+    .tox/pypy/site-packages/EVE-SRP
+
+[report]
+show_missing = false
 
 [html]
 directory = coverage-report

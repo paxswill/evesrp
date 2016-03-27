@@ -3,12 +3,13 @@
 *.pem
 .env
 coverage-report
-test-report.html
+test-report*.html
 *.mo
 node_modules
 generated_messages.pot
 messages.pot
-.coverage
+.coverage*
 less.mk
 browserify.mk
 dist
+.tox

@@ -37,14 +37,9 @@ upload: all setup.py
 test:: test-python test-javascript
 
 test-python:
-	nosetests \
-		--with-html \
-		--html-file=test-report.html \
-		--with-coverage \
-		--cover-erase \
-		--cover-branch \
-		--cover-package=evesrp \
-		-w tests_python
+	coverage erase
+	tox
+	coverage combine
 	coverage html -d coverage-report
 
 docs:
