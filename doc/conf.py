@@ -20,7 +20,9 @@ import re
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('..'))
+current_dir = os.path.abspath(os.path.dirname(__file__))
+src_dir = os.path.abspath(os.path.join(os.path.dirname(current_dir), 'src'))
+sys.path.insert(0, src_dir)
 
 # -- General configuration ------------------------------------------------
 
@@ -60,15 +62,18 @@ copyright = '2014, Will Ross'
 # built documents.
 #
 # The short X.Y version.
-with open('../evesrp/__init__.py', 'r') as f:
-    init_contents = f.read()
-re_results =  re.search(
-        (r'^__version__ *= *u?[\'"](?P<release>(?P<version>\d+\.\d+)([\.\d]+)?'
-         r'(-\w+)?)[\'"]'),
-        init_contents, re.MULTILINE)
-if re_results:
-    version = re_results.group('version')
-    release = re_results.group('release')
+
+setup_dir = os.path.abspath(os.path.dirname(__file__))
+
+
+with open(os.path.join(src_dir, 'evesrp', '__init__.py'), 'r') as f:
+    init_contents = ''
+    for line in f:
+        init_contents += line + '\n'
+version = re.search(r'^__version__ *= *u?[\'"]([^\'"]*)[\'"]', init_contents,
+        re.MULTILINE)
+if version:
+    version = version.group(1)
 else:
     raise Exception(u"Unable to find __version__ in evesrp/__init__.py")
 
