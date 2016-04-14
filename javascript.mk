@@ -141,7 +141,7 @@ tests_javascript/evesrp.test.js: BROWSERIFY_OPTS += \
 tests_javascript/evesrp.test.js: $(NODE_MODULES)/evesrp
 	$(BROWSERIFY) -e $(JS_DIR)/main.coffee $(BROWSERIFY_OPTS) -o $@
 
-tests_javascript/translations.js:
+tests_javascript/translations.js: $(JSON_LOCALES) $(COMPILED_GLOBALIZE_FILES)
 	$(BROWSERIFY) \
 		$(foreach file,$(COMPILED_GLOBALIZE_FILES),\
 		-r $(file):evesrp/$(basename $(notdir $(file)))) \
