@@ -73,7 +73,7 @@ messages.pot: generated_messages.pot manual_messages.pot
 # Figure out how to bump the version automatically
 generated_messages.pot: babel.cfg $(addprefix $(SRC_DIR)/, *.py */*.py templates/*.html)
 	pybabel extract \
-		--mapping-file=babel.cfg \
+		-F babel.cfg \
 		--output-file=$@ \
 		--add-comments="TRANS:" \
 		--project=EVE-SRP \
