@@ -27,7 +27,7 @@ EXORCIST ?= $(NODE_BIN)/exorcist
 COFFEE_FILES := $(wildcard $(JS_DIR)/*.coffee)
 
 clean::
-	rm -f $(addprefix $(JS_DIR)/,evesrp.js evesrp.js.map translations.js)
+	rm -f $(addprefix $(JS_DIR)/,evesrp.js evesrp.js.map translations.js formatters.js)
 
 distclean::
 	rm -f browserify.mk
@@ -66,6 +66,9 @@ $(JS_DIR)/formatters.js: $(COMPILED_GLOBALIZE_FILES)
 		-o $@
 
 # Externalize source map for evesrp.js
+clean::
+	rm -f $(addprefix $(JS_DIR)/,*.map *.mapless)
+
 $(JS_DIR)/evesrp.js.map: %.map: %
 	$(EXORCIST) -b $(REAL_JS_DIR) $@ < $< > $<.mapless
 	mv -f $<.mapless $<
@@ -127,10 +130,7 @@ test-javascript:
 		lcovonly
 
 clean::
-	rm -f \
-		tests_javascript/tests_*.js \
-		evesrp.test.js \
-		tests_javascript/tests.html
+	rm -f $(addprefix tests_javascript/,test_*.js evesrp.test.js tests.html translations.js)
 	rm -rf tests_javascript/coverage
 
 # Instrument evesrp.test.js for code coverage
