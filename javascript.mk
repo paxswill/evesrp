@@ -2,7 +2,6 @@ include variables.mk
 .DELETE_ON_ERROR:
 
 JS_DIR := $(STATIC_DIR)/js
-REAL_JS_DIR := $(realpath ./$(JS_DIR))
 
 
 ##### Compiled Globalize Files #####
@@ -45,7 +44,7 @@ browserify.mk: $(NODE_MODULES) $(NODE_MODULES)/evesrp
 	@printf "done\n"
 
 $(NODE_MODULES)/evesrp:
-	ln -s $(REAL_JS_DIR) $@
+	ln -s $(JS_DIR) $@
 
 # The dependencies for evesrp.js are included from browserify.mk
 $(JS_DIR)/evesrp.js: $(NODE_MODULES)/evesrp
@@ -70,7 +69,7 @@ clean::
 	rm -f $(addprefix $(JS_DIR)/,*.map *.mapless)
 
 $(JS_DIR)/evesrp.js.map: %.map: %
-	$(EXORCIST) -b $(REAL_JS_DIR) $@ < $< > $<.mapless
+	$(EXORCIST) -b $(JS_DIR) $@ < $< > $<.mapless
 	mv -f $<.mapless $<
 
 
