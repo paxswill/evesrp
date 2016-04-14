@@ -12,7 +12,6 @@ distclean:: clean doc-clean
 build-deps: node_modules
 	pip install tox babel coverage
 	npm install
-	./scripts/mariadb.sh
 
 sdist: all setup.py
 	python setup.py sdist
