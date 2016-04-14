@@ -116,7 +116,6 @@ endif
 test:: test-javascript
 
 test-javascript: tests_javascript/tests.html tests_javascript/evesrp.test.js
-test-javascript: $(SHARED_FILES) $(NUMBERS_FILES) $(DATES_FILES) $(JSON_LOCALES)
 test-javascript:
 	$(NODE_BIN)/mocha-phantomjs \
 		-s webSecurityEnabled=false \
