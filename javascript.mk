@@ -110,16 +110,6 @@ else
 PHANTOMJS := $(NODE_MODULES)/phantomjs2/bin/phantomjs
 endif
 
-PYTHON_VERSION := $(shell python -c \
-	"from __future__ import print_function; \
-	import sys; \
-	print(sys.version_info.major)")
-
-KILL_STATIC_SERVER := kill \
-	`ps -o pid -o args | \
-	 egrep -e '[0-9]+ python -m (Simple)?[hH][tT][tT][pP]\.?[sS]erver 5000' | \
-	 egrep -oe '^ *[0-9]+'`
-
 test:: test-javascript
 
 test-javascript: tests_javascript/tests.html tests_javascript/evesrp.test.js
