@@ -137,7 +137,7 @@ clean::
 tests_javascript/evesrp.test.js: BROWSERIFY_OPTS += \
 	-t [ browserify-istanbul --ignore **/*.hbs ] \
 	$(foreach mod,$(COFFEE_FILES), \
-		-r ./$(mod):evesrp/$(basename $(notdir $(mod))))
+		-r $(mod):evesrp/$(basename $(notdir $(mod))))
 
 tests_javascript/evesrp.test.js: $(NODE_MODULES)/evesrp
 	$(BROWSERIFY) -e $(JS_DIR)/main.coffee $(BROWSERIFY_OPTS) -o $@
@@ -145,8 +145,8 @@ tests_javascript/evesrp.test.js: $(NODE_MODULES)/evesrp
 tests_javascript/translations.js:
 	$(BROWSERIFY) \
 		$(foreach file,$(COMPILED_GLOBALIZE_FILES),\
-		-r ./$(file):evesrp/$(basename $(notdir $(file)))) \
-		-r ./evesrp/static/translations/en-US.json:evesrp/translations/en-US.json \
+		-r $(file):evesrp/$(basename $(notdir $(file)))) \
+		-r $(STATIC_DIR)/translations/en-US.json:evesrp/translations/en-US.json \
 		-o $@
 
 # This excludes the evesrp.js files from the test bundles

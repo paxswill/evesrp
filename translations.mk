@@ -1,7 +1,7 @@
 include variables.mk
 
 
-TRANSLATIONS_DIR := evesrp/translations
+TRANSLATIONS_DIR := $(SRC_DIR)/translations
 UNDER_LOCALES := $(notdir $(wildcard $(TRANSLATIONS_DIR)/*))
 ifdef DEBUG
 # We use Canadian English for pseudolocalization testing. Sorry Canada.
@@ -71,7 +71,7 @@ messages.pot: generated_messages.pot manual_messages.pot
 	cat $^ > $@
 
 # Figure out how to bump the version automatically
-generated_messages.pot: babel.cfg evesrp/*.py evesrp/*/*.py evesrp/templates/*.html
+generated_messages.pot: babel.cfg $(addprefix $(SRC_DIR)/, *.py */*.py templates/*.html)
 	pybabel extract \
 		-F babel.cfg \
 		-o $@ \
