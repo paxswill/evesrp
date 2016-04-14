@@ -27,14 +27,14 @@ clean::
 $(MO_FILES): %.mo: %.po
 	pybabel compile \
 		--use-fuzzy \
-		-i "$<" \
-		-o "$@"
+		--input-file="$<" \
+		--output-file="$@"
 
 $(MO_FILES:.mo=.po): %.po: messages.pot
 	pybabel update \
-		-l $(*:$(TRANSLATIONS_DIR)/%/LC_MESSAGES/messages=%) \
-		-i "$<" \
-		-o "$@"
+		--locale=$(*:$(TRANSLATIONS_DIR)/%/LC_MESSAGES/messages=%) \
+		--input-file="$<" \
+		--output-file="$@"
 
 $(TRANSLATIONS_DIR)/en_CA/LC_MESSAGES/messages.po: messages.pot
 ifeq ($(findstring unicode,$(DEBUG)),unicode)
@@ -73,13 +73,13 @@ messages.pot: generated_messages.pot manual_messages.pot
 # Figure out how to bump the version automatically
 generated_messages.pot: babel.cfg $(addprefix $(SRC_DIR)/, *.py */*.py templates/*.html)
 	pybabel extract \
-		-F babel.cfg \
-		-o $@ \
-		-c "TRANS:" \
+		--mapping-file=babel.cfg \
+		--output-file=$@ \
+		--add-comments="TRANS:" \
 		--project=EVE-SRP \
 		--version=0.10.6-dev \
-		-k lazy_gettext \
-		-s \
+		--keywords=lazy_gettext \
+		--strip-comments \
 		--msgid-bugs-address=paxswill@paxswill.com \
 		--copyright-holder="Will Ross" \
 		.
