@@ -42,6 +42,10 @@ test-python:
 	coverage combine
 	coverage html -d coverage-report
 
+clean::
+	rm -f test-report*.html .coverage.*
+	rm -rf coverage-report tests_python/coverage-report
+
 docs:
 	$(MAKE) -C doc html
 
