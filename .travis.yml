@@ -1,8 +1,16 @@
 addons:
     mariadb: '10.0'
+    apt:
+      sources:
+        - ubuntu-toolchain-r-test
+      packages:
+        - gcc-4.6
+        - graphviz
 
 services:
     - postgresql
+
+sudo: false
 
 notifications:
     email:
@@ -10,7 +18,6 @@ notifications:
         on_failure: change
 
 language: python
-
 
 env:
     global:
@@ -43,9 +50,6 @@ before_install:
     - make travis-setup
 
 install:
-    - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-    - sudo apt-get -qq update
-    - sudo apt-get -qq install g++-4.8 graphviz
     - export CXX=g++-4.8
     - make build-deps
 
