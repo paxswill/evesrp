@@ -64,3 +64,5 @@ before_script: make all
 script: make travis
 
 after_success: make travis-success
+
+before_cache: rm -f node_modules/evesrp
