@@ -31,11 +31,12 @@ matrix:
         - env: SRP_PYTHON="pypy3" SRP_DB="sqlite"
     fast_finish: true
 
-before_install: make travis-setup
-
-install:
+before_install:
     - nvm install 5.3.0
     - npm install -g npm@latest
+    - make travis-setup
+
+install:
     - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
     - sudo apt-get -qq update
     - sudo apt-get -qq install g++-4.8 graphviz
