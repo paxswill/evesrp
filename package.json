@@ -32,7 +32,7 @@
     "istanbul": "^0.4.2",
     "mathjs": "^2.6.0",
     "mocha": "^2.2.5",
-    "mocha-phantomjs": "^4.0.2",
+    "mocha-phantomjs-core": "^2.0.1",
     "sinon": "^1.17.2"
   },
   "scripts": {

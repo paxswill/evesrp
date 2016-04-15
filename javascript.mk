@@ -116,12 +116,11 @@ test:: test-javascript
 
 test-javascript: tests_javascript/tests.html tests_javascript/evesrp.test.js
 test-javascript:
-	$(NODE_BIN)/mocha-phantomjs \
-		-s webSecurityEnabled=false \
-		--no-color \
-		--hooks tests_javascript/hooks.js \
-		--path $(PHANTOMJS) \
-		$<
+	$(PHANTOMJS) \
+		$(NODE_MODULES)/mocha-phantomjs-core/mocha-phantomjs-core.js \
+		$< \
+		spec \
+		'{"hooks": "$(PROJECT_ROOT)tests_javascript/hooks"}'
 	$(NODE_BIN)/istanbul report \
 		--root tests_javascript/coverage \
 		--dir tests_javascript/coverage \
