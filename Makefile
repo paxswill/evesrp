@@ -10,20 +10,9 @@ distclean:: clean doc-clean
 	rm -rf node_modules
 
 build-deps: node_modules
-	pip install -r requirements.txt
+	pip install tox babel coverage
 	npm install
 	./scripts/mariadb.sh
-ifneq (,$(findstring psycopg2,$(DB)))
-	pip install psycopg2
-else ifneq (,$(findstring pg8000,$(DB)))
-	pip install pg8000
-else ifneq (,$(findstring pymysql,$(DB)))
-	pip install pymysql
-else ifneq (,$(findstring cymysql,$(DB)))
-	pip install cython cymysql
-else ifneq (,$(findstring mysqldb,$(DB)))
-	pip install mysql-python
-endif
 
 sdist: all setup.py
 	python setup.py sdist
@@ -56,7 +45,6 @@ travis-success:
 	cat tests_javascript/coverage/lcov.info | $(NODE_BIN)/coveralls
 else
 travis-setup:
-	pip install tox babel
 travis:
 	tox -e $(SRP_PYTHON)-$(SRP_DB)
 travis-success:
