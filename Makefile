@@ -9,9 +9,6 @@ all:: docs
 distclean:: clean doc-clean
 	rm -rf node_modules
 
-doc-clean:
-	$(MAKE) -C doc clean
-
 build-deps: node_modules
 	pip install -r requirements.txt
 	npm install
@@ -47,7 +44,7 @@ clean::
 	rm -rf coverage-report tests_python/coverage-report
 
 docs:
-	$(MAKE) -C doc html
+	tox -e docs
 
 ifneq (,$(findstring javascript,$(TEST_SUITE)))
 travis-setup:
