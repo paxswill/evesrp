@@ -1,3 +1,9 @@
+addons:
+    mariadb: '10.0'
+
+services:
+    - postgresql
+
 notifications:
     email:
         on_success: change
