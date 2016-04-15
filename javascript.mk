@@ -59,7 +59,7 @@ $(JS_DIR)/evesrp.js: $(NODE_MODULES)/evesrp
 # Bundle the compiled formatters
 $(JS_DIR)/formatters.js: $(COMPILED_GLOBALIZE_FILES)
 	$(BROWSERIFY) \
-		$(foreach mod,$^,-r ./$(mod):evesrp/$(basename $(notdir $(mod)))) \
+		$(foreach mod,$^,-r $(mod):evesrp/$(basename $(notdir $(mod)))) \
 		$(foreach gmod,number date,-x globalize/dist/globalize-runtime/$(gmod)) \
 		-x globalize/dist/globalize-runtime \
 		-o $@
