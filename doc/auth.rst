@@ -157,8 +157,10 @@ OAuth
 A number of external authentication services have an OAuth provider for
 external applications to use with their API. To facilitate usage of thses
 services, an :py:class:`OAuthMethod` class has been provided for easy
-integration. Subclasses will need to implement the :py:meth:`~.get_user`\,
-:py:meth:`~.get_pilots` and :py:meth:`~.get_groups` methods. Additionally,
+integration. Subclasses will need to implement the
+:py:meth:`~OAuthMethod.get_user`\,
+:py:meth:`~OAuthMethod.get_pilots` and
+:py:meth:`~OAuthMethod.get_groups` methods. Additionally,
 implementations for :py:class:`JFLP's provider <evesrp.auth.j4oauth.J4OAuth>`
 and :py:class:`TEST's provider <evesrp.auth.testoauth.TestOAuth>` have been
 provided as a reference.
