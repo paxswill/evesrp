@@ -986,7 +986,7 @@ def modify_request(request_id):
     """Handles POST requests that modify :py:class:`~.models.Request`\s.
 
     Because of the numerous possible forms, this function bounces execution to
-    a more specific function based on the form's "id_" field.
+    a more specific function based on the form's "id\_" field.
 
     :param int request_id: the ID of the request.
     """
