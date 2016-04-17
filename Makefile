@@ -48,6 +48,7 @@ travis-setup:
 travis:
 	tox -e $(SRP_PYTHON)-$(SRP_DB)
 travis-success:
+	coverage combine
 	coveralls
 endif
 
