@@ -65,4 +65,6 @@ script: make travis
 
 after_success: make travis-success
 
-before_cache: rm -f node_modules/evesrp
+before_cache:
+    - rm -f node_modules/evesrp
+    - find ~/.cache/pip -name 'EVE_SRP*' -delete
