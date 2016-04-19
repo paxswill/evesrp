@@ -48,10 +48,8 @@ travis-success:
 else
 travis-setup:
 	pip install coveralls
-travis:
-	tox -e $(SRP_PYTHON)-$(SRP_DB)
+travis: test-python
 travis-success:
-	coverage combine
 	coveralls
 endif
 

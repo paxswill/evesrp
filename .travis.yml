@@ -61,7 +61,7 @@ install:
 
 before_script: make all
 
-script: make travis
+script: TOXENV="$SRP_PYTHON-$SRP_DB" make travis
 
 after_success: make travis-success
 
