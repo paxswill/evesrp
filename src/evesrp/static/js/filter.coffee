@@ -159,7 +159,7 @@ getFilters = () ->
 
 updateURL = (filters) ->
     # If we're given a path instead of filters, parse the path into filters
-    unless _.isArray filters
+    if _.isString filters
         [basePath, filterPath] = splitFilterString filters
         filters = parseFilterString filterPath
     oldFilters = getFilters()
