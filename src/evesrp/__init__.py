@@ -53,7 +53,7 @@ _patch_httplib()
 from .util import DB_STATS, AcceptRequest, WeakCiphersAdapter
 
 
-__version__ = u'0.12.2'
+__version__ = u'0.12.3.dev'
 
 
 requests_session = requests.Session()
