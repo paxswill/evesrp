@@ -11,7 +11,7 @@
     <h3>{% trans %}API Keys{% endtrans %}</h3>
     <p>
     {% with %}
-      {% if '-dev' in app_version %}
+      {% if 'dev' in app_version %}
       {% set doc_url = "https://eve-srp.readthedocs.org/en/latest/api.html" %}
       {% else %}
       {% set doc_url = ("https://eve-srp.readthedocs.org/en/v" ~ app_version ~ "/api.html") %}
