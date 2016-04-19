@@ -3,9 +3,9 @@ include variables.mk
 
 .PHONY: all clean deep-clean doc-clean build-deps test test-python \
 	test-javascript docs travis-setup travis travis-success sdist upload \
-	javascript translations
+	javascript translations static
 
-all:: docs javascript translations
+all:: docs javascript translations static
 
 distclean:: clean doc-clean
 	rm -rf node_modules

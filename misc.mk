@@ -1,4 +1,6 @@
 include variables.mk
+
+static:: javascript
 ##### CSS #####
 LESSC ?= $(NODE_BIN)/lessc
 LESSC_OPTS ?= --source-map \
@@ -6,7 +8,7 @@ LESSC_OPTS ?= --source-map \
 			  --source-map-basepath="$(PROJECT_ROOT)"
 CSS_DIR := $(STATIC_DIR)/css
 
-all:: $(CSS_DIR)/evesrp.css
+static:: $(CSS_DIR)/evesrp.css
 
 clean::
 	rm -f $(CSS_DIR)/evesrp.css $(CSS_DIR)/evesrp.css.map
@@ -32,7 +34,7 @@ $(CSS_DIR)/evesrp.css: $(CSS_DIR)/custom.less
 
 
 ##### ZeroClipboard SWF #####
-all:: $(STATIC_DIR)/ZeroClipboard.swf
+static:: $(STATIC_DIR)/ZeroClipboard.swf
 
 $(STATIC_DIR)/ZeroClipboard.swf: $(NODE_MODULES)/zeroclipboard/dist/ZeroClipboard.swf
 	cp "$^" "$@"
@@ -52,7 +54,7 @@ FONTS := \
 	$(addprefix glyphicons-halflings-regular.,$(SUFFIXES))
 FONTS := $(addprefix $(FONT_DIR)/,$(FONTS))
 
-all:: $(FONTS)
+static:: $(FONTS)
 
 clean::
 	rm -f $(addprefix $(FONT_DIR)/*.,$(SUFFIXES)) $(FONT_DIR)/*.otf
