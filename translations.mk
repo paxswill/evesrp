@@ -70,14 +70,13 @@ endif
 messages.pot: generated_messages.pot manual_messages.pot
 	cat $^ > $@
 
-# Figure out how to bump the version automatically
 generated_messages.pot: babel.cfg $(addprefix $(SRC_DIR)/, *.py */*.py templates/*.html)
 	pybabel extract \
 		-F babel.cfg \
 		--output-file=$@ \
 		--add-comments="TRANS:" \
 		--project=EVE-SRP \
-		--version=0.10.6-dev \
+		--version=$(VERSION) \
 		--keywords=lazy_gettext \
 		--strip-comments \
 		--msgid-bugs-address=paxswill@paxswill.com \
