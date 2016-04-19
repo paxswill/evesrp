@@ -1,9 +1,12 @@
 addons:
+# Use MariaDB instead of MySQL for for better defaults and better reflection of
+# what is actually being used.
     mariadb: '10.0'
     apt:
       sources:
         - ubuntu-toolchain-r-test
       packages:
+# See below why g++4.8 is required, graphviz is required for building the docs.
         - g++-4.8
         - graphviz
 
@@ -15,6 +18,8 @@ cache:
 services:
     - postgresql
 
+# sudo: false means we use the container-based infrastructure. Bit faster, and
+# we get caching for free.
 sudo: false
 
 notifications:
@@ -58,12 +63,15 @@ matrix:
     fast_finish: true
 
 before_install:
+# Update to a recent version of Node, npm and pip
     - nvm install 5.3.0
     - npm install -g npm@latest
     - npm install
+    - pip install --upgrade pip
     - make travis-setup
 
 install:
+# One of the Node modules (microtime, required by selectize) needs g++ >=4.8
     - export CXX=g++-4.8
     - make build-deps
 
@@ -72,5 +80,6 @@ script: TOXENV="$SRP_PYTHON-$SRP_DB" make travis
 after_success: make travis-success
 
 before_cache:
+# Remove our files from the caches
     - rm -f node_modules/evesrp
     - find ~/.cache/pip -name 'EVE_SRP*' -delete
