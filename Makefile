@@ -20,7 +20,8 @@ sdist: javascript translations setup.py
 upload: javascript translations setup.py
 	python setup.py sdist upload
 
-test:: test-python test-javascript
+# test-javascript gets added to the test target in javascript.mk
+test:: test-python
 
 test-python: translations
 	coverage erase
