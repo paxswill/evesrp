@@ -2,9 +2,10 @@ SHELL := /bin/sh
 include variables.mk
 
 .PHONY: all clean deep-clean doc-clean build-deps test test-python \
-	test-javascript docs travis-setup travis travis-success sdist upload
+	test-javascript docs travis-setup travis travis-success sdist upload \
+	javascript translations
 
-all:: docs
+all:: docs javascript translations
 
 distclean:: clean doc-clean
 	rm -rf node_modules
@@ -13,15 +14,15 @@ build-deps: node_modules
 	pip install tox babel coverage
 	npm install
 
-sdist: all setup.py
+sdist: javascript translations setup.py
 	python setup.py sdist
 
-upload: all setup.py
+upload: javascript translations setup.py
 	python setup.py sdist upload
 
 test:: test-python test-javascript
 
-test-python:
+test-python: translations
 	coverage erase
 	tox
 	coverage combine
@@ -34,6 +35,7 @@ clean::
 docs:
 	tox -e docs
 
+# Travis targets
 ifneq (,$(findstring javascript,$(TEST_SUITE)))
 travis-setup:
 	wget https://s3.amazonaws.com/travis-phantomjs/phantomjs-2.0.0-ubuntu-12.04.tar.bz2
@@ -52,6 +54,7 @@ travis-success:
 	coveralls
 endif
 
+# Node packages
 $(NODE_MODULES): package.json
 	npm install
 

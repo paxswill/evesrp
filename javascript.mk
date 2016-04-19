@@ -80,7 +80,7 @@ UGLIFY_OPTS ?= -m -c
 endif
 UGLIFY_OPTS += --source-map-include-sources
 
-all:: $(JS_DIR)/evesrp.min.js $(JS_DIR)/formatters.min.js
+javascript:: $(JS_DIR)/evesrp.min.js $(JS_DIR)/formatters.min.js
 
 clean::
 	rm -f $(addprefix $(JS_DIR)/,evesrp.min.js formatters.min.js)

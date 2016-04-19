@@ -14,7 +14,7 @@ endif
 MO_FILES := $(foreach \
 	lang,$(UNDER_LOCALES),$(TRANSLATIONS_DIR)/$(lang)/LC_MESSAGES/messages.mo)
 
-all:: $(MO_FILES)
+translations:: $(MO_FILES)
 ifndef DEBUG
 	rm -rfv $(TRANSLATIONS_DIR)/en_CA/
 endif
@@ -95,7 +95,7 @@ ifdef DEBUG
 PO2JSON_FLAGS += --pretty
 endif
 
-all:: $(JSON_LOCALES)
+translations:: $(JSON_LOCALES)
 ifndef DEBUG
 	rm -fv $(JSON_TRANSLATIONS_DIR)/en-CA.json
 endif
