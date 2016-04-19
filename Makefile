@@ -45,6 +45,10 @@ travis-setup:
 travis: test-javascript
 travis-success:
 	cat tests_javascript/coverage/lcov.info | $(NODE_BIN)/coveralls
+else ifneq (,$(findstring docs,$(TEST_SUITE)))
+travis-setup:
+travis: docs
+travis-success:
 else
 travis-setup:
 	pip install coveralls
