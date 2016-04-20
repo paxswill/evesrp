@@ -168,6 +168,7 @@ define TEST_HTML_START
     <link href="../node_modules/mocha/mocha.css" rel="stylesheet" />
   </head>
   <body>
+    <div id="fixtures" style="display: none"></div>
     <div id="mocha"></div>
     <script src="../node_modules/mocha/mocha.js"></script>
     <script src="./evesrp.test.js"></script>

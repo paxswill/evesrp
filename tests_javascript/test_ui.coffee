@@ -1,13 +1,58 @@
 assert = require 'assert'
+sinon = require 'sinon'
 ui = require 'evesrp/common-ui'
 
 suite 'Common UI', () ->
+
+    suiteSetup () ->
+        @server = sinon.fakeServer.create()
+        @server.respondImmediately = true
+        global.scriptRoot = ''
+
+        fixtures = jQuery '#fixtures'
+        @fixture = jQuery '<div id="common-ui-fixtures"></div>'
+        @languageFixture = @fixture.append """
+        <form method="GET">
+          <input id="lang" type="hidden" name="lang" value="">
+          <a class="langSelect" data-lang="es" href="#">Español</a>
+          <a class="langSelect" data-lang="de" href="#">Deutsch</a>
+        </form>
+        """
+        @flashesFixture = @fixture.append """<div id="#content"></div>"""
+        @navBarFixture = @fixture.append """
+        <div id="badge-pending"></div>
+        <div id="badge-payouts"></div>
+        <div id="badge-personal"></div>
+        """
+        fixtures.append @fixture
+        ui.setupEvents()
+
+    suiteTeardown () ->
+        @server.restore()
+        @fixture.remove()
 
     test 'Should set a new language'
 
     test 'Should render a flash'
 
-    test 'Should update item counts in the navbar'
+    test 'Should update item counts in the navbar', () ->
+        @server.respondImmediately = true
+        @server.respondWith [
+            200
+            {'Content-Type': 'application/json'}
+            JSON.stringify {nav_counts: {pending: 2, payouts: 4, personal: 6}}
+        ]
+        jQuery.get '/'
+        assert.strictEqual (@navBarFixture.find '#badge-pending').text(), '2'
+        assert.strictEqual (@navBarFixture.find '#badge-payouts').text(), '4'
+        assert.strictEqual (@navBarFixture.find '#badge-personal').text(), '6'
+        @server.respondWith [
+            200
+            {'Content-Type': 'application/json'}
+            JSON.stringify {nav_counts: {pending: 2, payouts: 0, personal: 6}}
+        ]
+        jQuery.get '/'
+        assert.strictEqual (@navBarFixture.find '#badge-payouts').text(), ''
 
     suite 'Localization', () ->
 
