@@ -17,7 +17,6 @@ suite 'Common UI', () ->
         <form method="GET">
           <input id="lang" type="hidden" name="lang" value="">
           <a class="langSelect" data-lang="es" href="#">Español</a>
-          <a class="langSelect" data-lang="de" href="#">Deutsch</a>
         </form>
         """
         @flashesFixture = jQuery """<div id="content"></div>"""
@@ -36,7 +35,12 @@ suite 'Common UI', () ->
         @sandbox.restore()
         @fixture.remove()
 
-    test 'Should set a new language'
+    test 'Should set a new language', () ->
+        submitSpy = @sandbox.stub jQuery.prototype, 'submit'
+        @languageFixture.find('a').click()
+        sinon.assert.calledOnce submitSpy
+        assert.strictEqual (submitSpy.firstCall.thisValue.find '#lang').val(),
+            'es'
 
     test 'Should render a flash', () ->
         @sandbox.server.respondWith [
