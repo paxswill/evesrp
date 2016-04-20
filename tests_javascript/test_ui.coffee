@@ -7,6 +7,7 @@ suite 'Common UI', () ->
     suiteSetup () ->
         @sandbox = sinon.sandbox.create()
         @sandbox.useFakeServer()
+        @sandbox.useFakeTimers()
         @sandbox.server.respondImmediately = true
         global.scriptRoot = ''
 
@@ -19,7 +20,7 @@ suite 'Common UI', () ->
           <a class="langSelect" data-lang="de" href="#">Deutsch</a>
         </form>
         """
-        @flashesFixture = @fixture.append """<div id="#content"></div>"""
+        @flashesFixture = @fixture.append """<div id="content"></div>"""
         @navBarFixture = @fixture.append """
         <div id="badge-pending"></div>
         <div id="badge-payouts"></div>
@@ -34,7 +35,36 @@ suite 'Common UI', () ->
 
     test 'Should set a new language'
 
-    test 'Should render a flash'
+    test 'Should render a flash', () ->
+        @sandbox.server.respondWith [
+            200
+            {'Content-Type': 'application/json'}
+            JSON.stringify {flashed_messages: [
+                {message: 'Testing1', category: 'warning'}
+            ]}
+        ]
+        jQuery.get '/'
+        alerts = @flashesFixture.find '.alert'
+        assert.strictEqual alerts.length, 1
+        assert.ok (alerts[0].innerText.indexOf 'Testing1') != -1
+        @sandbox.clock.tick 2500
+        @sandbox.server.respondWith [
+            200
+            {'Content-Type': 'application/json'}
+            JSON.stringify {flashed_messages: [
+                {message: 'Testing2', category: 'message'}
+            ]}
+        ]
+        jQuery.get '/'
+        alerts = @flashesFixture.find '.alert'
+        assert.strictEqual alerts.length, 2
+        @sandbox.clock.tick 3000
+        alerts = @flashesFixture.find '.alert'
+        assert.strictEqual alerts.length, 1
+        @sandbox.clock.tick 3000
+        alerts = @flashesFixture.find '.alert'
+        assert.strictEqual alerts.length, 0
+
 
     test 'Should update item counts in the navbar', () ->
         @sandbox.server.respondWith [
