@@ -5,8 +5,9 @@ ui = require 'evesrp/common-ui'
 suite 'Common UI', () ->
 
     suiteSetup () ->
-        @server = sinon.fakeServer.create()
-        @server.respondImmediately = true
+        @sandbox = sinon.sandbox.create()
+        @sandbox.useFakeServer()
+        @sandbox.server.respondImmediately = true
         global.scriptRoot = ''
 
         fixtures = jQuery '#fixtures'
@@ -28,7 +29,7 @@ suite 'Common UI', () ->
         ui.setupEvents()
 
     suiteTeardown () ->
-        @server.restore()
+        @sandbox.restore()
         @fixture.remove()
 
     test 'Should set a new language'
@@ -36,8 +37,7 @@ suite 'Common UI', () ->
     test 'Should render a flash'
 
     test 'Should update item counts in the navbar', () ->
-        @server.respondImmediately = true
-        @server.respondWith [
+        @sandbox.server.respondWith [
             200
             {'Content-Type': 'application/json'}
             JSON.stringify {nav_counts: {pending: 2, payouts: 4, personal: 6}}
@@ -46,7 +46,7 @@ suite 'Common UI', () ->
         assert.strictEqual (@navBarFixture.find '#badge-pending').text(), '2'
         assert.strictEqual (@navBarFixture.find '#badge-payouts').text(), '4'
         assert.strictEqual (@navBarFixture.find '#badge-personal').text(), '6'
-        @server.respondWith [
+        @sandbox.server.respondWith [
             200
             {'Content-Type': 'application/json'}
             JSON.stringify {nav_counts: {pending: 2, payouts: 0, personal: 6}}
