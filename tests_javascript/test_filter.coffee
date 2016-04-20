@@ -57,25 +57,29 @@ suite 'Filtering', () ->
         assert.deepEqual (filter._splitFilterString '/requests/all/'),
             ['requests/all', '']
 
+    defaultFilters = {page: 1, sort: '-submit_timestamp'}
+
     test 'Should parse the filter string into an object', () ->
         defaults = {page: 1, sort: '-submit_timestamp'}
-        assert.deepEqual (filter._parseFilterString ''), defaults
-        assert.deepEqual (filter._parseFilterString 'page/10/20'), defaults
+        assert.deepEqual (filter._parseFilterString ''), defaultFilters
+        assert.deepEqual (filter._parseFilterString 'page/10/20'),
+            defaultFilters
         assert.deepEqual (filter._parseFilterString 'page/10'),
-            _.defaults {page: 10}, defaults
+            _.defaults {page: 10}, defaultFilters
         assert.deepEqual (filter._parseFilterString 'page/10/Pilot/Paxswill'),
-            _.defaults {page: 10, pilot: ['Paxswill']}, defaults
+            _.defaults {page: 10, pilot: ['Paxswill']}, defaultFilters
         assert.deepEqual (filter._parseFilterString \
             'page/10/pilot/Paxswill,DurrHurrDurr'),
-            _.defaults {page: 10, pilot: ['Paxswill', 'DurrHurrDurr']}, defaults
+            _.defaults {page: 10, pilot: ['Paxswill', 'DurrHurrDurr']},
+                defaultFilters
         assert.deepEqual (filter._parseFilterString \
             'details/Foo%20Bar%20Baz/'),
-            _.defaults {page: 1, details: ["Foo Bar Baz"]}, defaults
+            _.defaults {page: 1, details: ["Foo Bar Baz"]}, defaultFilters
         assert.deepEqual (filter._parseFilterString 'PILOT/Paxswill'),
-            _.defaults {pilot: ['Paxswill']}, defaults
+            _.defaults {pilot: ['Paxswill']}, defaultFilters
         assert.deepEqual (filter._parseFilterString \
             'pilot/Paxswill/pilot/DurrHurrDurr'),
-            _.defaults {pilot: ['Paxswill', 'DurrHurrDurr']}, defaults
+            _.defaults {pilot: ['Paxswill', 'DurrHurrDurr']}, defaultFilters
 
     test 'Should unparse a filters object into a filter string', () ->
         assert.strictEqual (filter.unParseFilters {}), ''
@@ -96,13 +100,32 @@ suite 'Filtering', () ->
             {details: ['Foo Bar', 'Baz Qux']}),
             'details/Foo Bar/details/Baz Qux'
 
-    suite.skip 'Creating filter live objects', () ->
-        test 'Should check the history for a cached filter object'
-
-        test 'Should create a new filter object from the current URL'
+    suite 'Creating filter live objects', () ->
+        # Note: I am not using Sinon for these functions as they make use of
+        # window.history and window.location, which are special-cased in
+        # browser implementations so you cannot (easily, if at all) stub them.
+        # Manipulating the history is the easiest and simpliest method of
+        # testing these functions I've found.
 
         test 'Should not update the URL for an unchanged filter'
+        suiteSetup () ->
+            # Save the current location
+            @originalLocation = window.location.href
 
+        suiteTeardown () ->
+            # Undo our history manipulations
+            window.history.replaceState null, '', @originalLocation
+
+        test 'Should check the history for a cached filter object', () ->
+            window.history.replaceState {testing: true}, '', '/foo/bar'
+            assert.deepEqual filter.getFilters(), {testing: true}
+
+        test 'Should create a new filter object from the current URL', () ->
+            window.history.replaceState null, '', '/'
+            assert.deepEqual filter.getFilters(), defaultFilters
+            window.history.replaceState null, '', '/requests/all/page/10'
+            assert.deepEqual filter.getFilters(),
+                (_.defaults {page: 10}, defaultFilters)
         test 'Should reset the page to page 1 when changing the filters'
 
         test 'Should not reset the page when the page number is changing'
