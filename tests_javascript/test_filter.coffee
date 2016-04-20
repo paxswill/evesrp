@@ -1,4 +1,5 @@
 assert = require 'assert'
+sinon = require 'sinon'
 _ = require 'underscore'
 filter = require 'evesrp/filter'
 
@@ -146,6 +147,15 @@ suite 'Filtering', () ->
             filter.updateURL {page: 11}
             assert.deepEqual history.state, {page: 11}
             assert.strictEqual window.location.pathname, '/requests/all/page/11'
+
+        test 'Should trigger a filterchange event when the filter changes', () ->
+            window.history.replaceState {page: 10}, '', '/requests/all/page/10'
+            triggerSpy = sinon.spy jQuery.prototype, 'trigger'
+            filter.updateURL {page: 11}
+            sinon.assert.calledOnce triggerSpy
+            sinon.assert.calledWith triggerSpy, 'evesrp:filterchange'
+            jQuery.prototype.trigger.restore()
+
 
     test 'Should create a translated Selectize option'
 
