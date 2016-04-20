@@ -43,54 +43,54 @@ suite 'Common UI', () ->
             'es'
 
     test 'Should render a flash', () ->
-        @sandbox.server.respondWith [
+        @sandbox.server.respondWith '/flash-test1', [
             200
             {'Content-Type': 'application/json'}
             JSON.stringify {flashed_messages: [
                 {message: 'Testing1', category: 'warning'}
             ]}
         ]
-        jQuery.get '/'
-        alerts = @flashesFixture.find '.alert'
+        jQuery.get '/flash-test1'
+        alerts = @fixture.find '.alert'
         assert.strictEqual alerts.length, 1
         assert.ok (alerts[0].innerText.indexOf 'Testing1') != -1
         @sandbox.clock.tick 2500
-        @sandbox.server.respondWith [
+        @sandbox.server.respondWith '/flash-test2', [
             200
             {'Content-Type': 'application/json'}
             JSON.stringify {flashed_messages: [
                 {message: 'Testing2', category: 'message'}
             ]}
         ]
-        jQuery.get '/'
-        alerts = @flashesFixture.find '.alert'
+        jQuery.get '/flash-test2'
+        alerts = @fixture.find '.alert'
         assert.strictEqual alerts.length, 2
         @sandbox.clock.tick 3000
-        alerts = @flashesFixture.find '.alert'
+        alerts = @fixture.find '.alert'
         assert.strictEqual alerts.length, 1
         @sandbox.clock.tick 3000
-        alerts = @flashesFixture.find '.alert'
+        alerts = @fixture.find '.alert'
         assert.strictEqual alerts.length, 0
 
 
     test 'Should update item counts in the navbar', () ->
-        @sandbox.server.respondWith [
+        @sandbox.server.respondWith '/navbar-test1', [
             200
             {'Content-Type': 'application/json'}
             JSON.stringify {nav_counts: {pending: 2, payouts: 4, personal: 6}}
         ]
-        jQuery.get '/'
+        jQuery.get '/navbar-test1'
         assert.strictEqual (@fixture.find '#badge-pending').text(), '2'
         assert.strictEqual (@fixture.find '#badge-payouts').text(), '4'
         assert.strictEqual (@fixture.find '#badge-personal').text(), '6'
 
     test 'Should clear item counts in navbar for 0', () ->
-        @sandbox.server.respondWith [
+        @sandbox.server.respondWith '/navbar-test2', [
             200
             {'Content-Type': 'application/json'}
             JSON.stringify {nav_counts: {pending: 2, payouts: 0, personal: 6}}
         ]
-        jQuery.get '/'
+        jQuery.get '/navbar-test2'
         assert.strictEqual (@fixture.find '#badge-payouts').text(), ''
 
     suite 'Localization', () ->
