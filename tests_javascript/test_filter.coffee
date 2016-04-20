@@ -107,7 +107,6 @@ suite 'Filtering', () ->
         # Manipulating the history is the easiest and simpliest method of
         # testing these functions I've found.
 
-        test 'Should not update the URL for an unchanged filter'
         suiteSetup () ->
             # Save the current location
             @originalLocation = window.location.href
@@ -126,9 +125,27 @@ suite 'Filtering', () ->
             window.history.replaceState null, '', '/requests/all/page/10'
             assert.deepEqual filter.getFilters(),
                 (_.defaults {page: 10}, defaultFilters)
-        test 'Should reset the page to page 1 when changing the filters'
 
-        test 'Should not reset the page when the page number is changing'
+        test 'Should not update the URL for an unchanged filter', () ->
+            startingPath = '/requests/all/page/10'
+            startingFilter = {page: 10}
+            window.history.replaceState startingFilter, '', startingPath
+            filter.updateURL {page: 10}
+            assert.strictEqual window.location.pathname, startingPath
+            assert.deepEqual history.state, startingFilter
+
+        test 'Should reset the page to page 1 when changing the filters', () ->
+            window.history.replaceState {page: 10}, '', '/requests/all/page/10'
+            filter.updateURL {pilot: ['Paxswill'], page: 10}
+            assert.deepEqual history.state, {pilot: ['Paxswill'], page: 1}
+            assert.strictEqual window.location.pathname,
+                '/requests/all/page/1/pilot/Paxswill'
+
+        test 'Should not reset the page when the page number is changing', () ->
+            window.history.replaceState {page: 10}, '', '/requests/all/page/10'
+            filter.updateURL {page: 11}
+            assert.deepEqual history.state, {page: 11}
+            assert.strictEqual window.location.pathname, '/requests/all/page/11'
 
     test 'Should create a translated Selectize option'
 
