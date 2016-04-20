@@ -1,6 +1,8 @@
 assert = require 'assert'
 sinon = require 'sinon'
 ui = require 'evesrp/common-ui'
+en_US = require 'evesrp/translations/en-US.json'
+Jed = require 'jed'
 
 suite 'Common UI', () ->
 
@@ -97,15 +99,35 @@ suite 'Common UI', () ->
 suite 'Localization', () ->
 
     setup () ->
+        global.scriptRoot = ''
         @sandbox = sinon.sandbox.create()
         @sandbox.useFakeServer()
+        @sandbox.useFakeXMLHttpRequest()
 
     teardown () ->
         @sandbox.restore()
 
-    test 'Should retrieve translation files for the current locale'
+    test 'Should retrieve translation files for the current locale', () ->
+        requested = false
+        @sandbox.server.respondWith '/static/translations/en-US.json',
+            (request) ->
+                requested = true
+                request.respond 200, {'Content-Type': 'application/json'},
+                    JSON.stringify en_US
+        ui.setupTranslations()
+        @sandbox.server.respond()
+        assert.ok requested
 
-    test 'Should return the existing promise for an in-progress setup'
+    test 'Should return the existing promise for an in-progress setup', () ->
+        @sandbox.server.respondWith '/static/translations/en-US.json', [
+            200
+            {'Content-Type': 'application/json'}
+            JSON.stringify en_US
+        ]
+        firstPromise = ui.setupTranslations()
+        @sandbox.server.respond()
+        secondPromise = ui.setupTranslations()
+        assert.strictEqual firstPromise, secondPromise
 
     test 'Should translate strings to the current locale'
 
