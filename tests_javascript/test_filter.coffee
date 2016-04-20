@@ -100,7 +100,7 @@ suite 'Filtering', () ->
             {details: ['Foo Bar', 'Baz Qux']}),
             'details/Foo Bar/details/Baz Qux'
 
-    suite 'Creating filter live objects', () ->
+    suite 'Creating filter objects', () ->
         # Note: I am not using Sinon for these functions as they make use of
         # window.history and window.location, which are special-cased in
         # browser implementations so you cannot (easily, if at all) stub them.
