@@ -93,20 +93,28 @@ suite 'Common UI', () ->
         jQuery.get '/navbar-test2'
         assert.strictEqual (@fixture.find '#badge-payouts').text(), ''
 
-    suite 'Localization', () ->
 
-        test 'Should retrieve translation files for the current locale'
+suite 'Localization', () ->
 
-        test 'Should return the existing promise for an in-progress setup'
+    setup () ->
+        @sandbox = sinon.sandbox.create()
+        @sandbox.useFakeServer()
 
-        test 'Should translate strings to the current locale'
+    teardown () ->
+        @sandbox.restore()
 
-        test 'Should format currency for ISK for the current locale'
+    test 'Should retrieve translation files for the current locale'
 
-        test 'Should format percentages for the current locale'
+    test 'Should return the existing promise for an in-progress setup'
 
-        test 'Should format decimal numbers for the current locale'
+    test 'Should translate strings to the current locale'
 
-        test 'Should format dates in a short format for the current locale'
+    test 'Should format currency for ISK for the current locale'
 
-        test 'Should format dates in a medium format for the current locale'
+    test 'Should format percentages for the current locale'
+
+    test 'Should format decimal numbers for the current locale'
+
+    test 'Should format dates in a short format for the current locale'
+
+    test 'Should format dates in a medium format for the current locale'
