@@ -13,19 +13,22 @@ suite 'Common UI', () ->
 
         fixtures = jQuery '#fixtures'
         @fixture = jQuery '<div id="common-ui-fixtures"></div>'
-        @languageFixture = @fixture.append """
+        @languageFixture = jQuery """
         <form method="GET">
           <input id="lang" type="hidden" name="lang" value="">
           <a class="langSelect" data-lang="es" href="#">Español</a>
           <a class="langSelect" data-lang="de" href="#">Deutsch</a>
         </form>
         """
-        @flashesFixture = @fixture.append """<div id="content"></div>"""
-        @navBarFixture = @fixture.append """
-        <div id="badge-pending"></div>
-        <div id="badge-payouts"></div>
-        <div id="badge-personal"></div>
+        @flashesFixture = jQuery """<div id="content"></div>"""
+        @navBarFixture = jQuery """
+        <div id="badge-pending">1</div>
+        <div id="badge-payouts">3</div>
+        <div id="badge-personal">5</div>
         """
+        @fixture.append @languageFixture
+        @fixture.append @flashesFixture
+        @fixture.append @navBarFixture
         fixtures.append @fixture
         ui.setupEvents()
 
@@ -73,16 +76,18 @@ suite 'Common UI', () ->
             JSON.stringify {nav_counts: {pending: 2, payouts: 4, personal: 6}}
         ]
         jQuery.get '/'
-        assert.strictEqual (@navBarFixture.find '#badge-pending').text(), '2'
-        assert.strictEqual (@navBarFixture.find '#badge-payouts').text(), '4'
-        assert.strictEqual (@navBarFixture.find '#badge-personal').text(), '6'
+        assert.strictEqual (@fixture.find '#badge-pending').text(), '2'
+        assert.strictEqual (@fixture.find '#badge-payouts').text(), '4'
+        assert.strictEqual (@fixture.find '#badge-personal').text(), '6'
+
+    test 'Should clear item counts in navbar for 0', () ->
         @sandbox.server.respondWith [
             200
             {'Content-Type': 'application/json'}
             JSON.stringify {nav_counts: {pending: 2, payouts: 0, personal: 6}}
         ]
         jQuery.get '/'
-        assert.strictEqual (@navBarFixture.find '#badge-payouts').text(), ''
+        assert.strictEqual (@fixture.find '#badge-payouts').text(), ''
 
     suite 'Localization', () ->
 
