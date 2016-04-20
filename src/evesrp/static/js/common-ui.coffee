@@ -6,7 +6,7 @@ ZeroClipboard = require 'zeroclipboard'
 humanize = require 'underscore.string/humanize'
 titleize = require 'underscore.string/titleize'
 flashTemplate = require 'evesrp/templates/flash'
-sprintf = require 'underscore.string/sprintf'
+sprintf = (require 'sprintf-js').sprintf
 Jed = require 'jed'
 Globalize = require 'globalize/dist/globalize-runtime'
 # Load the Globalize parts we need

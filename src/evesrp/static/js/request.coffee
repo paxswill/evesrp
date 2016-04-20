@@ -6,7 +6,7 @@ require 'bootstrap/js/modal'
 util = require 'evesrp/util'
 ui = require 'evesrp/common-ui'
 capitalize = require 'underscore.string/capitalize'
-sprintf = require 'underscore.string/sprintf'
+sprintf = (require 'sprintf-js').sprintf
 actionMenuTemplate = require 'evesrp/templates/action_menu'
 actionsTemplate = require 'evesrp/templates/actions'
 voidedModifierTemplate = require 'evesrp/templates/voided_modifier'

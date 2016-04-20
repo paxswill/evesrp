@@ -2,7 +2,7 @@ jQuery = require 'jquery'
 Handlebars = require 'handlebars/runtime'
 _ = require 'underscore'
 capitalize = require 'underscore.string/capitalize'
-sprintf = require 'underscore.string/sprintf'
+sprintf = (require 'sprintf-js').sprintf
 util = require 'evesrp/util'
 ui = require 'evesrp/common-ui'
 
