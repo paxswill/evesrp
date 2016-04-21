@@ -28,6 +28,7 @@
     "zeroclipboard": "^2.2.0"
   },
   "devDependencies": {
+    "browserify-coffee-coverage": "^1.1.1",
     "browserify-istanbul": "^0.2.1",
     "coveralls": "^2.11.6",
     "istanbul": "^0.4.2",

@@ -123,16 +123,19 @@ test-javascript:
 		'{"hooks": "$(PROJECT_ROOT)tests_javascript/hooks"}'
 	$(NODE_BIN)/istanbul report \
 		--root tests_javascript/coverage \
-		--dir tests_javascript/coverage \
-		lcovonly
+		--dir tests_javascript/coverage
 
 clean::
 	rm -f $(addprefix tests_javascript/,test_*.js evesrp.test.js tests.html translations.js)
 	rm -rf tests_javascript/coverage
 
 # Instrument evesrp.test.js for code coverage
-tests_javascript/evesrp.test.js: BROWSERIFY_OPTS += \
-	-t [ browserify-istanbul --ignore **/*.hbs ] \
+tests_javascript/evesrp.test.js: BROWSERIFY_OPTS := \
+	--debug \
+	-t hbsfy \
+	--extension=".hbs" \
+	--extension=".coffee" \
+	-t [ browserify-coffee-coverage --instrumentor=istanbul ]\
 	$(foreach mod,$(COFFEE_FILES), \
 		-r $(mod):evesrp/$(basename $(notdir $(mod))))
 
