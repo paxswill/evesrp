@@ -14,10 +14,10 @@ build-deps: node_modules
 	pip install tox babel coverage
 	npm install
 
-sdist: javascript translations setup.py
+sdist: javascript translations static setup.py
 	python setup.py sdist
 
-upload: javascript translations setup.py
+upload: javascript translations static setup.py
 	python setup.py sdist upload
 
 # test-javascript gets added to the test target in javascript.mk
