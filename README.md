@@ -57,6 +57,9 @@ or
 
     pip install EVE-SRP[OAuth,BraveCore]
 
+Quick Side Note: If your system has an older version of pip (<6.0) or
+setuptools (<8.0) you will need to update them.
+
 You will also need the appropriate adapter for your database of choice. For
 example, I use PostgreSQL, and use the psycopg2 adapter:
 
