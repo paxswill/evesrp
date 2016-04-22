@@ -1,22 +1,25 @@
 ### Static Files served to browser clients
 # Compiled CSS
-include src/static/css/*.css src/static/css/*.css.map
+include src/evesrp/static/css/*.css src/evesrp/static/css/*.css.map
 # Fonts
-include src/static/fonts/*.eot src/static/fonts/*.ttf src/static/fonts/*.svg 
-include src/static/fonts/*.woff src/static/fonts/*.woff2 src/static/fonts/*.otf
+include src/evesrp/static/fonts/*.eot src/evesrp/static/fonts/*.ttf
+include src/evesrp/static/fonts/*.svg src/evesrp/static/fonts/*.woff
+include src/evesrp/static/fonts/*.woff2 src/evesrp/static/fonts/*.otf
 # Compiled Javascript
-include src/static/js/evesrp.min.js src/static/js/evesrp.min.js.map
-include src/static/js/formatters.min.js src/static/js/formatters.min.js.map
+include src/evesrp/static/js/evesrp.min.js
+include src/evesrp/static/js/evesrp.min.js.map
+include src/evesrp/static/js/formatters.min.js
+include src/evesrp/static/js/formatters.min.js.map
 # JSON translation files
-include src/static/translations/*.json
-# Misc src/static files
-include src/static/ZeroClipboard.swf
-include src/static/evesso.png
-include src/static/favicon.ico
+include src/evesrp/static/translations/*.json
+# Misc src/evesrp/static files
+include src/evesrp/static/ZeroClipboard.swf
+include src/evesrp/static/evesso.png
+include src/evesrp/static/favicon.ico
 ### Templates
-include src/templates/*.html src/templates/*.xml
+include src/evesrp/templates/*.html src/evesrp/templates/*.xml
 ### Translation files
-recursive-include src/translations messages.*
+recursive-include src/evesrp/translations messages.*
 # Include Alembic files
-include src/migrate/alembic.ini
-include src/migrate/script.py.mako
+include src/evesrp/migrate/alembic.ini
+include src/evesrp/migrate/script.py.mako
