@@ -43,6 +43,7 @@ setup(
     package_dir={
         '': 'src'
     },
+    include_package_data=True,
     classifiers=[
         u'Development Status :: 4 - Beta',
         u'Framework :: Flask',
