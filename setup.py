@@ -59,7 +59,7 @@ setup(
         'Flask-Login >= 0.3.2',
         'Flask-Migrate ~= 1.7.0',
         'Flask-Script == 2.0.5',
-        'Flask-SQLAlchemy ~= 2.1',
+        'Flask-SQLAlchemy == 2.0',
         'Flask-WTF == 0.10.2',
         'SQLAlchemy ~= 1.0.11',
         'Werkzeug >= 0.9.4',
