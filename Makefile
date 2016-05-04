@@ -11,7 +11,7 @@ distclean:: clean doc-clean
 	rm -rf node_modules
 
 build-deps: node_modules
-	pip install tox babel coverage
+	pip install tox babel coverage jinja2
 	npm install
 
 sdist: javascript translations static setup.py
