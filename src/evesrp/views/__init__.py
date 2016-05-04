@@ -1,12 +1,12 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 from flask import redirect, url_for, render_template, make_response, request,\
-        json, session
+        json, session, current_app
 from flask.ext import babel as flask_babel
 from flask.ext.login import login_required, current_user
 from babel import get_locale_identifier, negotiate_locale, parse_locale
 import six
-from .. import db, babel
+from .. import db, babel, sentry
 from ..models import Request, ActionType
 from ..auth import PermissionType
 from ..auth.models import Permission, Division
@@ -43,6 +43,8 @@ def error_page(error):
     else:
         response_content = render_template('error.html', code=code,
                 description=description, name=name, title=code)
+    if code == 500 and current_app.config['SENTRY_RELEASE']:
+        sentry.captureException()
     # Give a default response code for generic exceptions
     return make_response(response_content, code)
 
