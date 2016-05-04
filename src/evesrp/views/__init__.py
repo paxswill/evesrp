@@ -37,8 +37,7 @@ def error_page(error):
     name = error.name if hasattr(error, 'name') else u'Application Error'
     # Give the error information in a machine readable format for APIs
     if request.is_json or request.is_xhr:
-        response_content = jsonify(description=error.description,
-                code=code)
+        response_content = jsonify(description=description, code=code)
     elif request.is_xml:
         pass
     else:
