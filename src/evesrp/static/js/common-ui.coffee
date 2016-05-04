@@ -78,6 +78,15 @@ setupTranslations = () ->
                     # the console log.
                     errorMessage = sprintf "'%s' not found in domain '%s'", key, domain
                     console.log errorMessage
+                    if windowRaven?
+                        window.Raven.captureMessage errorMessage, {
+                            level: 'warning'
+                            extra: {
+                                key: key,
+                                domain: domain,
+                                language: currentLang
+                            }
+                        }
                 locale_data: data.locale_data
                 domain: data.domain
             }
