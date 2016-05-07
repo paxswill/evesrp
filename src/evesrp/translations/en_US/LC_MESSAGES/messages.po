@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: EVE-SRP 0.10.6-dev\n"
 "Report-Msgid-Bugs-To: paxswill@paxswill.com\n"
-"POT-Creation-Date: 2016-05-04 15:16-0400\n"
-"PO-Revision-Date: 2016-02-02 20:00-0500\n"
+"POT-Creation-Date: 2016-05-06 21:36-0400\n"
+"PO-Revision-Date: 2016-05-06 21:32-0400\n"
 "Last-Translator: \n"
 "Language: en_US\n"
 "Language-Team: en_US <LL@li.org>\n"
@@ -282,10 +282,15 @@ msgstr "Toggle Navigation"
 msgid "Pending"
 msgstr "Pending"
 
+# These translations strings below are manually updated, as trying to get
+# Babel
+# to extract from the Handlebars templates was too much of a pain. Edit them
+# in
+# manual_messages.pot
 #. This is in the navigation bar at the top, and is a link to a list of
 #. requests ready to pay out.
 #. Title for the special pay out mode request listing.
-#: src/evesrp/templates/base.html:42 src/evesrp/views/requests.py:486
+#: src/evesrp/templates/base.html:42 src/evesrp/views/requests.py:485
 msgid "Pay Outs"
 msgstr "Pay Outs"
 
@@ -302,8 +307,8 @@ msgstr "Log In"
 
 #. This is a link in the navigation bar to the page for submitting a request.
 #. Label for the button that submits the form.
-#: src/evesrp/templates/base.html:59 src/evesrp/views/requests.py:646
-#: src/evesrp/views/requests.py:1014
+#: src/evesrp/templates/base.html:59 src/evesrp/views/requests.py:640
+#: src/evesrp/views/requests.py:1008
 msgid "Submit"
 msgstr "Submit"
 
@@ -538,7 +543,7 @@ msgstr "This user doesn't have any notes."
 #. header show the ID number of the request.
 #. Title for the page showing the details about a single
 #. SRP request.
-#: src/evesrp/templates/payout.html:12 src/evesrp/views/requests.py:854
+#: src/evesrp/templates/payout.html:12 src/evesrp/views/requests.py:848
 #, python-format
 msgid "Request #%(request_id)s"
 msgstr "Request #%(request_id)s"
@@ -554,8 +559,8 @@ msgstr "External Lossmail"
 #. Label for a text entry field for inputting supporting details
 #. about a loss.
 #: src/evesrp/templates/payout.html:22 src/evesrp/templates/payout.html:23
-#: src/evesrp/templates/request_detail.html:53 src/evesrp/views/requests.py:638
-#: src/evesrp/views/requests.py:788
+#: src/evesrp/templates/request_detail.html:53 src/evesrp/views/requests.py:632
+#: src/evesrp/views/requests.py:782
 msgid "Details"
 msgstr "Details"
 
@@ -590,8 +595,8 @@ msgstr "Actions"
 #. SRP to.
 #: src/evesrp/templates/payout.html:51 src/evesrp/templates/permissions.html:13
 #: src/evesrp/templates/request_detail.html:47
-#: src/evesrp/templates/requests_list.html:58 src/evesrp/views/requests.py:643
-#: src/evesrp/views/requests.py:1012
+#: src/evesrp/templates/requests_list.html:58 src/evesrp/views/requests.py:637
+#: src/evesrp/views/requests.py:1006
 msgid "Division"
 msgstr "Division"
 
@@ -618,7 +623,7 @@ msgstr "Payout"
 #. transfer window.
 #. Label for a text field for inputting the reason a modifier is
 #. being applied.
-#: src/evesrp/templates/payout.html:60 src/evesrp/views/requests.py:748
+#: src/evesrp/templates/payout.html:60 src/evesrp/views/requests.py:742
 msgid "Reason"
 msgstr "Reason"
 
@@ -760,7 +765,7 @@ msgstr "User Notes"
 #. A button that when clicked, will show the interface for adding a note to a
 #. user.
 #. Label for text input field for a note to be added about a user.
-#: src/evesrp/templates/request_pay.html:52 src/evesrp/views/requests.py:797
+#: src/evesrp/templates/request_pay.html:52 src/evesrp/views/requests.py:791
 msgid "Add Note"
 msgstr "Add Note"
 
@@ -840,13 +845,15 @@ msgid ""
 "You have not submitted any requests. Try submitting some with the "
 "<strong>Submit</strong> button above."
 msgstr ""
+"You have not submitted any requests. Try submitting some with the "
+"<strong>Submit</strong> button above."
 
 #. Message shown when a user has not submitted any requests, but is also unable
 #. to submit any. This could happen if a user logs in but it was not intended
 #. for them to log in.
 #: src/evesrp/templates/requests_personal.html:11
 msgid "You do not have permission to submit requests."
-msgstr ""
+msgstr "You do not have permission to submit requests."
 
 #. On a form for creating a new division, this is a button for
 #. creating a new division (by submitting the form).
@@ -976,82 +983,65 @@ msgstr "Unknown filter attribute name: %(attribute)s."
 msgid "%(name)s's Requests"
 msgstr "%(name)s's Requests"
 
-#. Title for the page listing all SRP requests waiting to be approved
-#. or rejected.
-#: src/evesrp/views/requests.py:559
-msgid "Pending Requests"
-msgstr "Pending Requests"
-
-#. Title for the page listing all SRP requests that have been paid
-#. out rejected.
-#: src/evesrp/views/requests.py:564
-msgid "Completed Requests"
-msgstr "Completed Requests"
-
-#. Title for the page listing all SRP requests.
-#: src/evesrp/views/requests.py:569
-msgid "All Requests"
-msgstr "All Requests"
-
 #. Error message show when trying to submit a killmail
 #. that cannot be verified.
-#: src/evesrp/views/requests.py:604
+#: src/evesrp/views/requests.py:598
 #, python-format
 msgid "%(url)s cannot be verified."
 msgstr "%(url)s cannot be verified."
 
 #. Header for a list of the kinds of links that are acceptable to
 #. submit as killmails for SRP.
-#: src/evesrp/views/requests.py:626
+#: src/evesrp/views/requests.py:620
 #, python-format
 msgid "Acceptable Killmail Links:<ul>%(sources)s</ul>"
 msgstr "Acceptable Killmail Links:<ul>%(sources)s</ul>"
 
 #. Label for an input field for the killmail URL
-#: src/evesrp/views/requests.py:634
+#: src/evesrp/views/requests.py:628
 msgid "Killmail URL"
 msgstr "Killmail URL"
 
 #. Error message shown when trying to submit a request to a
 #. non-existant division.
-#: src/evesrp/views/requests.py:667
+#: src/evesrp/views/requests.py:661
 #, python-format
 msgid "No division with ID '%(div_id)s'."
 msgstr "No division with ID '%(div_id)s'."
 
 #. Error message shown when trying to a submit a request to a
 #. division you do not have the submission permission in.
-#: src/evesrp/views/requests.py:672
+#: src/evesrp/views/requests.py:666
 #, python-format
 msgid "You do not have permission to submit to division '%(name)s'."
 msgstr "You do not have permission to submit to division '%(name)s'."
 
 #. Error message shown when trying to submit a lossmail from
 #. A character not associated with your user account.
-#: src/evesrp/views/requests.py:707
+#: src/evesrp/views/requests.py:701
 msgid "You can only submit killmails of characters you control"
 msgstr "You can only submit killmails of characters you control"
 
 #. Error message shown when trying to submit a killmail for
 #. SRP a second time.
-#: src/evesrp/views/requests.py:727
+#: src/evesrp/views/requests.py:721
 msgid "This kill has already been submitted"
 msgstr "This kill has already been submitted"
 
 #. Title for the page showing the form for submitting SRP requests.
-#: src/evesrp/views/requests.py:732
+#: src/evesrp/views/requests.py:726
 msgid "Submit Request"
 msgstr "Submit Request"
 
 #. Label for an input field for the amount a modifier is for. Can be
 #. either a percentage or an ISK value (in millions of ISK).
-#: src/evesrp/views/requests.py:741
+#: src/evesrp/views/requests.py:735
 msgid "Value"
 msgstr "Value"
 
 #. Help text explaining a hidden feature about the notes made
 #. about users.
-#: src/evesrp/views/requests.py:800
+#: src/evesrp/views/requests.py:794
 msgid ""
 "If you have something like '#{Kill ID}', it will be linkified to the "
 "corresponding request (if it exists). For example, #1234567 would be "
@@ -1063,82 +1053,94 @@ msgstr ""
 
 #. Error message when someone who does not have the reviewer
 #. permission tries to change the base payout of a request.
-#: src/evesrp/views/requests.py:885
+#: src/evesrp/views/requests.py:879
 msgid "Only reviewers can change the base payout."
 msgstr "Only reviewers can change the base payout."
 
 #. Error message when a user tries to void (cancel) a
 #. modifier that does not exist.
-#: src/evesrp/views/requests.py:915
+#: src/evesrp/views/requests.py:909
 #, python-format
 msgid "Invalid modifier ID %(modifier_id)d."
 msgstr "Invalid modifier ID %(modifier_id)d."
 
 #. Error message shown when someone other than the request
 #. submitter tries to change the details of the request.
-#: src/evesrp/views/requests.py:932
+#: src/evesrp/views/requests.py:926
 msgid "Only the submitter can change the request details."
 msgstr "Only the submitter can change the request details."
 
 #. Error message shown when the submitter ties to change the
 #. details when the request is no long pending (not finished).
-#: src/evesrp/views/requests.py:937
+#: src/evesrp/views/requests.py:931
 msgid "Details can only be changed when the request is still pending."
 msgstr "Details can only be changed when the request is still pending."
 
 #. The old request details have are saved in a comment on the
 #. request. This is the text that is put at the beginning of the
 #. comment
-#: src/evesrp/views/requests.py:944
+#: src/evesrp/views/requests.py:938
 #, python-format
 msgid "Old Details: %(details)s"
 msgstr "Old Details: %(details)s"
 
 #. Error message shown when someone without the proper
 #. permissions tries to add a note to a user.
-#: src/evesrp/views/requests.py:962
+#: src/evesrp/views/requests.py:956
 msgid "You do not have permission to add a note to a user."
 msgstr "You do not have permission to add a note to a user."
 
 #. Error message shown when a user tries to move a request but is
 #. unable to becuase the request has been paid or rejected.
-#: src/evesrp/views/requests.py:1033
+#: src/evesrp/views/requests.py:1027
 msgid "Cannot change the division as this request is in a finalized state"
 msgstr "Cannot change the division as this request is in a finalized state"
 
 #. Message shown when a user tries to change a request's division
 #. but they do not have access to any other divisions.
-#: src/evesrp/views/requests.py:1048
+#: src/evesrp/views/requests.py:1042
 msgid "No other divisions to move to."
 msgstr "No other divisions to move to."
 
 #. When a request is moved from one division to another, a
 #. comment is added noting the old division's name and the new
 #. division's name. This is the text of that note.
-#: src/evesrp/views/requests.py:1060
+#: src/evesrp/views/requests.py:1054
 #, python-format
 msgid "Moving from division '%(old_division)s' to division '%(new_division)s'."
 msgstr "Moving from division '%(old_division)s' to division '%(new_division)s'."
 
 #. Confirmation message shown when wa request has been
 #. successfully moved to a new division.
-#: src/evesrp/views/requests.py:1073
+#: src/evesrp/views/requests.py:1067
 #, python-format
 msgid "Request #%(request_id)d moved to %(division)s division"
 msgstr "Request #%(request_id)d moved to %(division)s division"
 
 #. Title for the page showing the form for changing a
 #. request's division.
-#: src/evesrp/views/requests.py:1090
+#: src/evesrp/views/requests.py:1084
 #, python-format
 msgid "Change #%(request_id)d's Division"
 msgstr "Change #%(request_id)d's Division"
 
-# These translations strings below are manually updated, as trying to get
-# Babel
-# to extract from the Handlebars templates was too much of a pain. Edit them
-# in
-# manual_messages.pot
+#. Title for the page listing all SRP requests waiting to be approved
+#. or rejected.
+#: src/evesrp/views/requests.py:557
+msgid "Pending Requests"
+msgstr "Pending Requests"
+
+#. Title for the page listing all SRP requests that have been paid
+#. out or rejected.
+#: src/evesrp/views/requests.py:560
+msgid "Completed Requests"
+msgstr "Completed Requests"
+
+#. Title for the page listing all SRP requests.
+#: src/evesrp/views/requests.py:560
+msgid "All Requests"
+msgstr "All Requests"
+
 #. Text shown for individual user results when granting permissions. The HTML
 #. tags (<small class="text-muted"> etc) should
 #. be moved to go around the authentication source. An example of the output
@@ -1207,9 +1209,9 @@ msgstr "Submit Timestamp"
 
 #. Message shown when a user needs to log in.
 msgid "Please log in to access this page."
-msgstr ""
+msgstr "Please log in to access this page."
 
 #. Message shown when a user needs to log in again.
 msgid "Please reauthenticate to access this page."
-msgstr ""
+msgstr "Please reauthenticate to access this page."
 
