@@ -454,7 +454,7 @@ class PermissionRequestListing(RequestListing):
         else:
             return super(PermissionRequestListing, self).dispatch_request(
                     filters,
-                    title=self.title,
+                    title=gettext(self.title),
                     **kwargs)
 
     def requests(self, filters):
@@ -482,8 +482,7 @@ class PayoutListing(PermissionRequestListing):
     def __init__(self):
         # Just a special case of PermissionRequestListing
         super(PayoutListing, self).__init__((PermissionType.pay,),
-        # TRANS: Title for the special pay out mode request listing.
-                (ActionType.approved,), gettext(u'Pay Outs'))
+                (ActionType.approved,), u'Pay Outs')
 
     def requests(self, filters):
         if 'sort' not in filters:
@@ -554,19 +553,14 @@ def register_class_views(state):
     # Other more generalized listings
     register_perm_request_listing(state, 'list_pending_requests',
             '/pending/', (PermissionType.review, PermissionType.audit),
-    # TRANS: Title for the page listing all SRP requests waiting to be approved
-    # TRANS: or rejected.
-            ActionType.pending, gettext(u'Pending Requests'))
+            ActionType.pending, u'Pending Requests')
     register_perm_request_listing(state, 'list_completed_requests',
             '/completed/', PermissionType.elevated, ActionType.finalized,
-    # TRANS: Title for the page listing all SRP requests that have been paid
-    # TRANS: out rejected.
-            gettext(u'Completed Requests'))
+            u'Completed Requests')
     # Special all listing, mainly intended for API users
     register_perm_request_listing(state, 'list_all_requests',
             '/all/', PermissionType.elevated, ActionType.statuses,
-    # TRANS: Title for the page listing all SRP requests.
-            gettext(u'All Requests'))
+            u'All Requests')
 
 
 class ValidKillmail(URL):

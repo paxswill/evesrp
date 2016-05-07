@@ -2,6 +2,28 @@
 # to extract from the Handlebars templates was too much of a pain. Edit them in
 # manual_messages.pot
 
+#. Title for the special pay out mode request listing.
+#: src/evesrp/views/requests.py:485
+msgid "Pay Outs"
+msgstr ""
+
+#. Title for the page listing all SRP requests waiting to be approved
+#. or rejected.
+#: src/evesrp/views/requests.py:557
+msgid "Pending Requests"
+msgstr ""
+
+#. Title for the page listing all SRP requests that have been paid
+#. out or rejected.
+#: src/evesrp/views/requests.py:560
+msgid "Completed Requests"
+msgstr ""
+
+#. Title for the page listing all SRP requests.
+#: src/evesrp/views/requests.py:560
+msgid "All Requests"
+msgstr ""
+
 #. Text shown for individual user results when granting permissions. The HTML
 #. tags (<small class="text-muted"> etc) should
 #. be moved to go around the authentication source. An example of the output
