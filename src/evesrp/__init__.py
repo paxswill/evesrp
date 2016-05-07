@@ -170,8 +170,14 @@ def create_app(config=None, **kwargs):
     # Hook up Babel and associated callbacks
     babel.init_app(app)
     app.before_request(detect_language)
-    babel.localeselector(locale_selector)
-
+    # localeselector can be set only once per Babel instance. Really, this will
+    # only throw an exception when we're running tests. This also only became
+    # an issue when they changed when Babel.locale_selector_func was changed
+    # for version 0.10.
+    try:
+        babel.localeselector(locale_selector)
+    except AssertionError:
+        pass
 
     # Configure the Jinja context
     # Inject variables into the context
