@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Script to update the static data packaged with the app."""
 
 from __future__ import unicode_literals, print_function, division
 
