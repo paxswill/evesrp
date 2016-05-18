@@ -15,22 +15,32 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('o_auth_user',
-            sa.Column('access_expiration',
-                sa.DateTime(),
-                nullable=True))
-    op.add_column('o_auth_user',
-            sa.Column('refresh_token',
-                sa.String(length=100, convert_unicode=True),
-                nullable=True))
-    op.alter_column('o_auth_user', 'token', new_column_name='access_token',
-            existing_type=sa.String(length=100, convert_unicode=True),
-            existing_nullable=True)
+    # Inspect the current database to see if we're using OAuth
+    metadata = sa.MetaData(bind=op.get_bind())
+    metadata.reflect()
+    table_names = {t.name for t in metadata.sorted_tables}
+    if 'o_auth_user' in table_names:
+        op.add_column('o_auth_user',
+                sa.Column('access_expiration',
+                    sa.DateTime(),
+                    nullable=True))
+        op.add_column('o_auth_user',
+                sa.Column('refresh_token',
+                    sa.String(length=100, convert_unicode=True),
+                    nullable=True))
+        op.alter_column('o_auth_user', 'token', new_column_name='access_token',
+                existing_type=sa.String(length=100, convert_unicode=True),
+                existing_nullable=True)
 
 
 def downgrade():
-    op.drop_column('o_auth_user', 'refresh_token')
-    op.drop_column('o_auth_user', 'access_expiration')
-    op.alter_column('o_auth_user', 'access_token', new_column_name='token',
-            existing_type=sa.String(length=100, convert_unicode=True),
-            existing_nullable=True)
+    # Inspect the current database to see if we're using OAuth
+    metadata = sa.MetaData(bind=op.get_bind())
+    metadata.reflect()
+    table_names = {t.name for t in metadata.sorted_tables}
+    if 'o_auth_user' in table_names:
+        op.drop_column('o_auth_user', 'refresh_token')
+        op.drop_column('o_auth_user', 'access_expiration')
+        op.alter_column('o_auth_user', 'access_token', new_column_name='token',
+                existing_type=sa.String(length=100, convert_unicode=True),
+                existing_nullable=True)
