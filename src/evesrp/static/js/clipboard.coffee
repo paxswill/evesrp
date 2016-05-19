@@ -7,14 +7,23 @@ sprintf = (require 'sprintf-js').sprintf
 ui = require 'evesrp/common-ui'
 
 
+setupPromise = null
+
+
 setupClipboard = () ->
+    if setupPromise != null
+        return setupPromise
+    setupPromise = jQuery.Deferred()
     # Check for HTML5 clipboard support.
     unless document.queryCommandSupported 'copy'
         zClient = setupZeroClipboard()
         zClient.on 'error', (ev) ->
             setupClipboardJS()
+        zClient.on 'ready', (ev) ->
+            setupPromise.resolve()
     else
         setupClipboardJS()
+    return setupPromise
 
 
 setupZeroClipboard = () ->
@@ -55,6 +64,7 @@ setupClipboardJS = () ->
         $copyModal.modal()
         $document.on 'copy.evesrp', hideHandler
     module.jClient = jClient
+    setupPromise.resolve()
 
 
 clip = (elements) ->
