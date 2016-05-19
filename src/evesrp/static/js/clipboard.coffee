@@ -69,18 +69,18 @@ setupClipboardJS = () ->
 
 clip = (elements) ->
     # Only ZeroClipboard needs to clip/unclip individual items.
-    if module.zClient != null
+    if module.zClient?
         module.zClient.clip elements
 
 
 unclip = (elements) ->
     # Only ZeroClipboard needs to clip/unclip individual items.
-    if module.zClient != null
+    if module.zClient?
         module.zClient.unclip elements
 
 
 attachCopy = (handler) ->
-    if module.zClient != null
+    if module.zClient?
         module.zClient.on 'copy', handler
     else
         module.jClient.on 'success', handler
