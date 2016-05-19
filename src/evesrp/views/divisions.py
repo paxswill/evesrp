@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from flask import url_for, render_template, redirect, abort, flash, request,\
         Blueprint, current_app
 from flask.ext.babel import gettext, lazy_gettext
-from flask.ext.login import login_required, current_user
+from flask.ext.login import login_required, fresh_login_required, current_user
 from flask.ext.wtf import Form
 import six
 from six.moves import map
@@ -21,7 +21,7 @@ blueprint = Blueprint('divisions', __name__)
 
 
 @blueprint.route('/')
-@login_required
+@fresh_login_required
 def permissions():
     """Show a page listing all divisions.
     """
@@ -51,7 +51,7 @@ class AddDivisionForm(Form):
 
 
 @blueprint.route('/add/', methods=['GET', 'POST'])
-@login_required
+@fresh_login_required
 def add_division():
     """Present a form for adding a division and also process that form.
 
@@ -134,7 +134,7 @@ def transformer_choices(attr):
 
 
 @blueprint.route('/<int:division_id>/', methods=['GET'])
-@login_required
+@fresh_login_required
 @varies('Accept', 'X-Requested-With')
 def get_division_details(division_id=None, division=None):
     """Generate a page showing the details of a division.
@@ -294,7 +294,7 @@ def _modify_division_transformer(division):
 
 
 @blueprint.route('/<int:division_id>/', methods=['POST'])
-@login_required
+@fresh_login_required
 def modify_division(division_id):
     """Dispatches modification requests to the specialized view function for
     that operation.

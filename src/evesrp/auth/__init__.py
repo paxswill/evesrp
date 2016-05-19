@@ -86,6 +86,19 @@ class AuthMethod(object):
         lowered = no_space.lower()
         return lowered
 
+    def refresh(self, user):
+        """Refresh a user's information (if possible).
+
+        The :py:class:`~.AuthMethod` should attmept to refresh the given user's
+        information as if they were logging in for the first time.
+
+        :param user: The user to refresh.
+        :type user: :py:class:`~models.User`
+        :returns: Wether or not the refresh attempt succeeded.
+        :rtype: :py:type:`bool`
+        """
+        return False
+
 
 class AnonymousUser(flask_login.AnonymousUserMixin):
 

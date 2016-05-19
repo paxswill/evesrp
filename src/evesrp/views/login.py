@@ -2,10 +2,9 @@ from __future__ import absolute_import
 from base64 import urlsafe_b64decode
 import binascii
 from flask import render_template, url_for, abort, session, redirect, request,\
-        current_app, g, Blueprint
+        current_app, g, Blueprint, flash
+from flask.ext import login as flask_login
 from flask.ext.babel import gettext, lazy_gettext
-from flask.ext.login import login_required, logout_user, LoginManager,\
-    current_user
 from flask.ext.wtf import Form
 from six.moves import map
 from wtforms.fields import HiddenField
@@ -20,7 +19,7 @@ from ..util import ensure_unicode, jsonify, xmlify
 blueprint = Blueprint('login', __name__)
 
 
-login_manager = LoginManager()
+login_manager = flask_login.LoginManager()
 login_manager.anonymous_user = AnonymousUser
 
 
@@ -54,6 +53,24 @@ def apikey_loader(request):
     # returning None signifies failure for this method
     return None
 
+@login_manager.needs_refresh_handler
+def refresh_user():
+    auth_methods = {am.name: am for am in current_app.auth_methods}
+    user_auth_method = auth_methods[flask_login.current_user.authmethod]
+    if user_auth_method.refresh(flask_login.current_user):
+        current_app.logger.debug("Marking '{}' as fresh".format(
+            flask_login.current_user))
+        flask_login.confirm_login()
+        # Call the original endpoint
+        view = current_app.view_functions[request.endpoint]
+        return view(**request.view_args)
+    else:
+        flash(login_manager.needs_refresh_message,
+                category=login_manager.needs_refresh_message_category)
+        original_url = url_for(request.endpoint, **request.view_args)
+        return redirect(url_for('login.login', next=original_url,
+                _anchor=user_auth_method.safe_name))
+
 
 class APIKeyForm(Form):
     action = HiddenField(validators=[AnyOf(['add', 'delete'])])
@@ -61,19 +78,19 @@ class APIKeyForm(Form):
 
 
 @blueprint.route('/apikeys/', methods=['GET', 'POST'])
-@login_required
+@flask_login.login_required
 def api_keys():
     form = APIKeyForm()
     if form.validate_on_submit():
         if form.action.data == 'add':
-            key = APIKey(current_user)
+            key = APIKey(flask_login.current_user)
         else:
             key = APIKey.query.get(int(form.key_id.data))
             if key is not None:
                 db.session.delete(key)
         db.session.commit()
     if request.is_json or request.is_xhr:
-        return jsonify(api_keys=current_user.api_keys)
+        return jsonify(api_keys=flask_login.current_user.api_keys)
     if request.is_xml:
         return xmlify('apikeys.xml')
     return render_template('apikeys.html', form=form)
@@ -133,11 +150,11 @@ def auth_method_login(auth_method):
 
 
 @blueprint.route('/logout/')
-@login_required
+@flask_login.login_required
 def logout():
     """Logs the current user out.
 
     Redirects to :py:func:`.index`.
     """
-    logout_user()
+    flask_login.logout_user()
     return redirect(url_for('index'))
