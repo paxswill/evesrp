@@ -2,6 +2,7 @@ unless global.jQuery?
     global.jQuery = require 'jquery'
 require 'bootstrap/js/tooltip'
 ui = require 'evesrp/common-ui'
+clipboard = require 'evesrp/clipboard'
 apiKeyTemplate = require 'evesrp/templates/api_keys'
 
 
@@ -14,7 +15,7 @@ render = (data) ->
     globalizePromise = ui.setupFormats()
     (jQuery.when i18nPromise, globalizePromise).done () ->
         # Remove tooltips and detach clipboard events
-        ui.client.unclip $copyButtons
+        clipboard.unclip $copyButtons
         # TODO: WTH am I redoing a search I just did (for .copy-btn)?
         for btn in $copyButtons.find '.copy-btn'
             (jQuery btn).tooltip 'destroy'
@@ -23,7 +24,7 @@ render = (data) ->
         if data.api_keys.length != 0
             $newRows = jQuery (apiKeyTemplate data)
             $copyButtons = $newRows.find '.copy-btn'
-            ui.clipboardClient.clip $copyButtons
+            clipboard.clip $copyButtons
             $copyButtons.tooltip {
                 placement: 'bottom'
                 title: ui.i18n.gettext 'Copy to clipboard'
@@ -48,7 +49,7 @@ modifyKey = (ev) ->
 
 
 setupEvents = () ->
-    ui.setupClipboard()
+    clipboard.setup()
     (jQuery '#apiKeys').on 'submit', modifyKey
     (jQuery '#createKey').on 'submit', modifyKey
 

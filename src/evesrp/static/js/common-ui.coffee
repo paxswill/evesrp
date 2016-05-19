@@ -2,7 +2,6 @@ unless global.jQuery?
     global.jQuery = require 'jquery'
 require 'bootstrap/js/alert'
 _ = require 'underscore'
-ZeroClipboard = require 'zeroclipboard'
 humanize = require 'underscore.string/humanize'
 titleize = require 'underscore.string/titleize'
 flashTemplate = require 'evesrp/templates/flash'
@@ -50,14 +49,6 @@ setupEvents = () ->
         if data && 'nav_counts' of data
             renderNavbar(data)
     (jQuery '.langSelect').on 'click', setLanguage
-
-
-setupClipboard = () ->
-    ZeroClipboard.config {swfPath: "#{ scriptRoot }/static/ZeroClipboard.swf"}
-    client = new ZeroClipboard (jQuery '.copy-btn')
-    client.on 'error', (ev) ->
-        client.destroy()
-    exports.client = client
 
 
 module.i18nPromise = null
@@ -150,7 +141,6 @@ attributeGettext = (attribute) ->
 
 
 exports.setupEvents = setupEvents
-exports.setupClipboard = setupClipboard
 exports.setupTranslations = setupTranslations
 exports.setupFormats = setupFormats
 exports.attributeGettext = attributeGettext
