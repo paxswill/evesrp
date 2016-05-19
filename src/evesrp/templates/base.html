@@ -14,6 +14,16 @@
   </head>
   <body>
     {% block body %}
+    <div class="modal" id="copyModal" tabindex="1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-body">
+            {# TRANS: A quick message shown to someone when they need to press a key combo to copy text. #}
+            <p id="keyComboMessage">{{ gettext("Press %(key_combo)s to Copy.", key_combo="Ctrl-C") }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
     <nav class="navbar navbar-default navbar-static-top" role="navigation">
       <div class="container">
         <!-- Navbar "Brand and the collapse/expand toggle -->

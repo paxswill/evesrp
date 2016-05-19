@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: EVE-SRP 0.10.6-dev\n"
 "Report-Msgid-Bugs-To: paxswill@paxswill.com\n"
-"POT-Creation-Date: 2016-05-06 21:36-0400\n"
+"POT-Creation-Date: 2016-05-18 21:16-0400\n"
 "PO-Revision-Date: 2016-05-06 21:31-0400\n"
 "Last-Translator: \n"
 "Language: en_GB\n"
@@ -221,7 +221,7 @@ msgstr "Login failed."
 #. This is a link in the navigation bar to the page for managing the app's
 #. external API keys (not API keys from CCP, but those from within the app).
 #: src/evesrp/templates/apikeys.html:4 src/evesrp/templates/apikeys.html:11
-#: src/evesrp/templates/base.html:76
+#: src/evesrp/templates/base.html:86
 msgid "API Keys"
 msgstr "API Keys"
 
@@ -271,14 +271,21 @@ msgstr "No API keys have been created."
 msgid "Create API Key"
 msgstr "Create API Key"
 
+#. A quick message shown to someone when they need to press a key combo to copy
+#. text.
+#: src/evesrp/templates/base.html:22
+#, python-format
+msgid "Press %(key_combo)s to Copy."
+msgstr "Press %(key_combo)s to Copy."
+
 #. This is only for screen-readers (for blind users)
-#: src/evesrp/templates/base.html:23
+#: src/evesrp/templates/base.html:33
 msgid "Toggle Navigation"
 msgstr "Toggle Navigation"
 
 #. This is in the navigation bar at the top, and is a link to a list of request
 #. that are waiting to be evaluated.
-#: src/evesrp/templates/base.html:38
+#: src/evesrp/templates/base.html:48
 msgid "Pending"
 msgstr "Pending"
 
@@ -290,24 +297,24 @@ msgstr "Pending"
 #. This is in the navigation bar at the top, and is a link to a list of
 #. requests ready to pay out.
 #. Title for the special pay out mode request listing.
-#: src/evesrp/templates/base.html:42 src/evesrp/views/requests.py:485
+#: src/evesrp/templates/base.html:52 src/evesrp/views/requests.py:485
 msgid "Pay Outs"
 msgstr "Pay Outs"
 
 #. This is in the navigation bar at the top, and is a link to a list of request
 #. that have been either rejected or been paid.
-#: src/evesrp/templates/base.html:46
+#: src/evesrp/templates/base.html:56
 msgid "Completed"
 msgstr "Completed"
 
 #. This is a link in the navigation bar. It goes to the login page.
-#: src/evesrp/templates/base.html:55 src/evesrp/views/login.py:108
+#: src/evesrp/templates/base.html:65 src/evesrp/views/login.py:108
 msgid "Log In"
 msgstr "Log In"
 
 #. This is a link in the navigation bar to the page for submitting a request.
 #. Label for the button that submits the form.
-#: src/evesrp/templates/base.html:59 src/evesrp/views/requests.py:640
+#: src/evesrp/templates/base.html:69 src/evesrp/views/requests.py:640
 #: src/evesrp/views/requests.py:1008
 msgid "Submit"
 msgstr "Submit"
@@ -315,7 +322,7 @@ msgstr "Submit"
 #. This is a link in the navigation bar, linking to all of the requests the
 #. current user has ever made.
 #. The default title for a page with atable listing SRP requests.
-#: src/evesrp/templates/base.html:74 src/evesrp/views/requests.py:52
+#: src/evesrp/templates/base.html:84 src/evesrp/views/requests.py:52
 msgid "Requests"
 msgstr "Requests"
 
@@ -323,31 +330,31 @@ msgstr "Requests"
 #. user has in different reimbursement divisions.
 #. A column header in a table that lists the permissions you have in a division
 #. (there can be multiple permissions in a row, separated by commas).
-#: src/evesrp/templates/base.html:78 src/evesrp/templates/permissions.html:3
+#: src/evesrp/templates/base.html:88 src/evesrp/templates/permissions.html:3
 #: src/evesrp/templates/permissions.html:15
 msgid "Permissions"
 msgstr "Permissions"
 
 #. The link in the navigation bar at the top for logging out of the app.
-#: src/evesrp/templates/base.html:81
+#: src/evesrp/templates/base.html:91
 msgid "Log Out"
 msgstr "Log Out"
 
 #. This is a link to the Github project for the app. It's where people can
 #. contribute code to the project.
-#: src/evesrp/templates/base.html:118
+#: src/evesrp/templates/base.html:128
 msgid "Github Project"
 msgstr "Github Project"
 
 #. This is a link to the manual for the app.
-#: src/evesrp/templates/base.html:125
+#: src/evesrp/templates/base.html:135
 msgid "Help"
 msgstr "Help"
 
 #. This is a specialized line of text that is only visible to administrators.
 #. It shows the how many of database queries were executed to make this page,
 #. and how long they took (in milliseconds).
-#: src/evesrp/templates/base.html:151
+#: src/evesrp/templates/base.html:161
 #, python-format
 msgid "%(queries)d queries in %(time).3f ms"
 msgstr "%(queries)d queries in %(time).3f ms"

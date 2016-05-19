@@ -3,6 +3,7 @@ unless global.jQuery?
 require 'bootstrap/js/tooltip'
 require 'bootstrap/js/popover'
 ui = require 'evesrp/common-ui'
+clipboard = require 'evesrp/clipboard'
 filter = require 'evesrp/filter'
 payoutTemplate = require 'evesrp/templates/payout_panel'
 
@@ -23,7 +24,7 @@ renderRequest = (request) ->
         if $panel.length != 0
             # Remove clipboard handlers for the old copy buttons
             $copyButtons = $panel.find '.copy-btn'
-            ui.client.unclip $copyButtons
+            clipboard.unclip $copyButtons
             # Hide tooltips and popovers
             $copyButtons.tooltip 'hide'
             ($panel.find '.small-popover').popover 'hide'
@@ -36,7 +37,7 @@ renderRequest = (request) ->
         # Attach events and activate popovers on the new panel
         $panel = $panelList.find "#request-#{ request.id }"
         $copyButtons = $panel.find '.copy-btn'
-        ui.client.clip $copyButtons
+        clipboard.clip $copyButtons
 
 
 markPaid = (ev) ->
@@ -52,10 +53,13 @@ markPaid = (ev) ->
     false
 
 
-copyUpdate = (client, args) ->
+copyUpdate = (ev) ->
+    # # Event handler for copy events to refresh buttons
     # event handler for the ZeroClipboard copy event
-    timeStamp = (new Date).getTime()
-    $panel = (jQuery this).closest '.panel'
+    if ev.trigger?
+        $panel = (jQuery ev.trigger).closest '.panel'
+    else
+        $panel = (jQuery this).closest '.panel'
     updateRequest $panel.data 'request-id'
 
 
@@ -95,9 +99,8 @@ infiniteScroll = (ev) ->
 
 setupEvents = () ->
     # Clipboard setup
-    ui.setupClipboard()
-    ui.client.on 'ready', (ev) ->
-        ui.client.on 'complete', copyUpdate
+    clipboard.setup()
+    clipboard.attachCopy copyUpdate
     # Tooltips
     $requests = jQuery '#requests'
     $requests.tooltip {
