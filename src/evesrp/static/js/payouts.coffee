@@ -81,7 +81,7 @@ updateRequest = (requestID) ->
     # TODO: Add actual locking to the app for requests
     jQuery.ajax {
         type: 'GET'
-        url: "#{ scriptRoot }/request/#{ requestID }"
+        url: "#{ scriptRoot }/request/#{ requestID }/"
         success: renderRequest
     }
 
