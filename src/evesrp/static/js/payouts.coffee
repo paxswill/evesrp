@@ -53,10 +53,13 @@ markPaid = (ev) ->
     false
 
 
-copyUpdate = (client, args) ->
+copyUpdate = (ev) ->
+    # # Event handler for copy events to refresh buttons
     # event handler for the ZeroClipboard copy event
-    timeStamp = (new Date).getTime()
-    $panel = (jQuery this).closest '.panel'
+    if ev.trigger?
+        $panel = (jQuery ev.trigger).closest '.panel'
+    else
+        $panel = (jQuery this).closest '.panel'
     updateRequest $panel.data 'request-id'
 
 
