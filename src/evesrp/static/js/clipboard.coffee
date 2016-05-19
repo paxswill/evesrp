@@ -20,6 +20,9 @@ setupClipboard = () ->
         zClient.on 'error', (ev) ->
             setupClipboardJS()
         zClient.on 'ready', (ev) ->
+            zClient.on 'copy', (copyEvent) ->
+                for handler in copyHandlers
+                    handler copyEvent
             setupPromise.resolve()
     else
         setupClipboardJS()
@@ -59,10 +62,17 @@ setupClipboardJS = () ->
             keyCombo = 'Ctrl-C'
         newText = sprintf translatedText, {key_combo: keyCombo}
         ($copyModal.find '#keyComboMessage').text newText
-    # Show the modal when Clipboard.js encounteres an error
+    # Show the modal when Clipboard.js encounters an error
     jClient.on 'error', (ev) ->
         $copyModal.modal()
         $document.on 'copy.evesrp', hideHandler
+    # Fire handlers for copy events
+    jClient.on 'error', (ev) ->
+        for handler in copyHandlers
+            handler ev
+    jClient.on 'success', (ev) ->
+        for handler in copyHandlers
+            handler ev
     module.jClient = jClient
     setupPromise.resolve()
 
@@ -79,11 +89,11 @@ unclip = (elements) ->
         module.zClient.unclip elements
 
 
+copyHandlers = []
+
+
 attachCopy = (handler) ->
-    if module.zClient?
-        module.zClient.on 'copy', handler
-    else
-        module.jClient.on 'success', handler
+    copyHandlers.push handler
 
 
 exports.setup = setupClipboard
