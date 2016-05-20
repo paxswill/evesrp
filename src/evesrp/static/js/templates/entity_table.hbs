@@ -8,8 +8,8 @@
   {{#each entities}}
   <tr>
     <td>{{this.name}}</td>
-    {{#if this.length}}
-    <td>{{gettext "Group"}} ({{this.length}})</td>
+    {{#if this.count}}
+    <td>{{gettext "Group"}} ({{this.count}})</td>
     {{else}}
     <td>{{gettext "User"}}</td>
     {{/if}}
