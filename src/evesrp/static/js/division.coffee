@@ -90,7 +90,7 @@ createEntitySelect = (selector) ->
                         $id.val ''
                     complete: (jqxhr) ->
                         data = jqxhr.responseJSON
-                        render data.entities
+                        render data.permissions
                 }
             render: {
                 option: (item, escape) ->
@@ -116,7 +116,7 @@ setupEvents = () ->
             data: $form.serialize()
             complete: (jqxhr) ->
                 data = jqxhr.responseJSON
-                render data.entities
+                render data.permissions
         }
         false
 

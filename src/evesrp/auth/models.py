@@ -508,11 +508,11 @@ class Division(db.Model, AutoID, AutoName):
                 division_id=self.id)
         parent[u'name'] = self.name
         if extended:
-            entities = {}
+            permissions = {}
             for perm in PermissionType.all:
                 members = []
                 for member in [p.entity for p in self.permissions[perm]]:
-                    members.append(member._json(extended))
-                entities[perm.name] = members
-            parent[u'entities'] = entities
+                    members.append(member._json(False))
+                permissions[perm.name] = members
+            parent[u'permissions'] = permissions
         return parent
