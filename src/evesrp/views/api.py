@@ -20,24 +20,102 @@ api = Blueprint('api', __name__)
 filters = Blueprint('filters', __name__)
 
 
-@api.route('/entities/')
+@api.route('/user/')
 @login_required
-def list_entities():
-    """Return a JSON object with a list of all of the specified entity type.
+def list_users():
+    """Return a JSON object with a list of all users.
 
     Example output::
         {
-          entities: [
-            {name: 'Bar', id: 1, source: 'Auth Source', type: 'User'},
-            {name: 'Foo', id: 0, source: 'Another Auth Source', type: 'Group'},
-            {name: 'Baz', id: 20, source: 'Auth Source', type: 'Group'}
+          'users': [
+            {
+              'name': 'Bar',
+              'id': 1,
+              'source': 'Auth Source',
+              'type': 'user',
+              'href': 'http://example.com/user/1'
+            },
+            {
+              'name': 'Foo',
+              'id': 3,
+              'source': 'Another Auth Source',
+              'type': user',
+              'href': 'http://example.com/user/3'
+            },
+            {
+              'name': 'Baz',
+              'id': 2,
+              'source': 'Auth Source',
+              'type': 'user',
+              'href': 'http://example.com/user/2'
+            },
           ]
         }
 
     This method is only accesible to administrators.
-
-    :param str entity_type: Either ``'user'`` or ``'group'``.
     """
+    if not current_user.admin and not \
+            current_user.has_permission(PermissionType.admin):
+        abort(403)
+    user_query = db.session.query(User.id, User.name, User.authmethod)
+    users = map(lambda u: dict(id=u.id, name=u.name, source=u.authmethod,
+                               type=u'user',
+                               href=url_for('.user_detail', user_id=u.id)),
+                user_query)
+    return jsonify(users=users)
+
+
+@api.route('/group/')
+@login_required
+def list_groups():
+    """Return a JSON object with a list of all groups.
+
+    Example output::
+        {
+          'groups': [
+            {
+              'name': 'Bar',
+              'id': 1,
+              'source': 'Auth Source',
+              'type': 'group',
+              'href': 'http://example.com/group/1'
+            },
+            {
+              'name': 'Foo',
+              'id': 3,
+              'source': 'Another Auth Source',
+              'type': 'group',
+              'href': 'http://example.com/group/3'
+            },
+            {
+              'name': 'Baz',
+              'id': 2,
+              'source': 'Auth Source',
+              'type': 'group',
+              'href': 'http://example.com/group/2'
+            },
+          ]
+        }
+
+    This method is only accesible to administrators.
+    """
+    if not current_user.admin and not \
+            current_user.has_permission(PermissionType.admin):
+        abort(403)
+    group_query = db.session.query(Group.id, Group.name, Group.authmethod)
+    groups = map(lambda g: dict(id=g.id, name=g.name, source=g.authmethod,
+                               type=u'group',
+                               href=url_for('.group_detail', group_id=g.id)),
+                group_query)
+    return jsonify(groups=groups)
+
+
+
+
+
+@api.route('/entities/')
+@login_required
+def list_entities():
     if not current_user.admin and not \
             current_user.has_permission(PermissionType.admin):
         abort(403)

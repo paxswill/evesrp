@@ -1,5 +1,6 @@
 jQuery = require 'jquery'
 require 'selectize'
+capitalize = require 'underscore.string/capitalize'
 ui = require 'evesrp/common-ui'
 entityTableTemplate = require 'evesrp/templates/entity_table'
 entityOptionTemplate = require 'evesrp/templates/entity_option'
@@ -55,16 +56,10 @@ selectTransformer = () ->
 
 
 createEntitySelect = (selector) ->
-    # Get options first
-    entitiesRequest = jQuery.ajax {
-        type: 'GET'
-        url: "#{ scriptRoot }/api/entities/"
-    }
-    joinedPromise = jQuery.when entitiesRequest, ui.setupTranslations()
-    joinedPromise.done (entitiesResponse, translationResponse) ->
-        data = entitiesResponse[0]
-        (jQuery selector).selectize {
-            options: data.entities
+    $selects = jQuery selector
+    ui.setupTranslations().done () ->
+        $selects.selectize {
+            options: []
             openOnFocus: false
             closeAfterSelect: true
             dropdownParent: 'body'
@@ -96,12 +91,31 @@ createEntitySelect = (selector) ->
                 option: (item, escape) ->
                     entityOptionTemplate item
                 optgroup_header: (data, escape) ->
-                    # data will be either 'User' or 'Group' as specified in the
+                    # data will be either 'user' or 'group' as specified in the
                     # various optgroup related options above.
-                    i18n_value = ui.i18n.gettext data.value
+                    i18n_value = ui.i18n.gettext (capitalize data.value)
                     "<div class=\"optgroup-header\"> #{ escape(i18n_value) }s</div>"
             }
         }
+
+    addEntityOptions = (data) ->
+        if 'users' of data
+            entities = data.users
+        else if 'groups' of data
+            entities = data.groups
+        $selects.each () ->
+            @selectize.addOption entities
+
+    usersRequest = jQuery.ajax {
+        type: 'GET'
+        url: "#{ scriptRoot }/user/"
+        success: addEntityOptions
+    }
+    groupsRequest = jQuery.ajax {
+        type: 'GET'
+        url: "#{ scriptRoot }/group/"
+        success: addEntityOptions
+    }
 
 
 setupEvents = () ->
