@@ -25,18 +25,48 @@ blueprint = Blueprint('divisions', __name__)
 def permissions():
     """Show a page listing all divisions.
     """
+    divisions = []
     if current_user.admin:
-        return render_template('divisions.html',
-                divisions=Division.query.all())
-    if current_user.has_permission(PermissionType.admin):
+        divisions = Division.query.all()
+    elif current_user.has_permission(PermissionType.admin):
         admin_permissions = current_user.permissions.filter_by(
                 permission=PermissionType.admin).values(Permission.division_id)
         admin_permissions = map(lambda x: x[0], admin_permissions)
         divisions = db.session.query(Division).\
-                filter(Division.id.in_(admin_permissions))
+                filter(Division.id.in_(admin_permissions)).all()
+    # Handle JSON API requests
+    if request.is_json or request.is_xhr:
+        json_response = {}
+        # Instead of using the normal _json method, we're hand-crafting this
+        # because this is the only place this will be exposed.
+        user_divisions = {}
+        for permission in current_user.permissions:
+            try:
+                division = user_divisions[permission.division.id]
+            except KeyError:
+                division = permission.division._json()
+                division[u'permissions'] = {p.value: [] for p in
+                                            PermissionType.all}
+                user_divisions[permission.division.id] = division
+            division[u'permissions'][permission.permission].append(
+                    entity._json(False))
+        json_response[u'permissions'] = user_divisions.values()
+        # Again, hand crafting this one so we get counts (which are not
+        # normally returned)
+        if divisions:
+            division_counts = []
+            for division in divisions:
+                division_info = division._json()
+                division_info[u'permission_counts'] = \
+                    {pt.value: len(division.permissions[pt]) for pt in \
+                            PermissionType.all}
+                division_counts.append(division_info)
+            json_response[u'divisions_counts'] = division_counts
+        return jsonify(**json_response)
+    # Default to HTML requests
+    if divisions:
         return render_template('divisions.html', divisions=divisions)
     return render_template('permissions.html')
-    return abort(403)
 
 
 class AddDivisionForm(Form):
