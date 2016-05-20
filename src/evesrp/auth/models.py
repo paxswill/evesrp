@@ -502,7 +502,7 @@ class Division(db.Model, AutoID, AutoName):
     def __unicode__(self):
         return u"{}".format(self.name)
 
-    def _json(self, division_permissions=True, **kwargs):
+    def _json(self, division_permissions=False, **kwargs):
         try:
             parent = super(Division, self)._json(**kwargs)
         except AttributeError:
