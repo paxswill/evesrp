@@ -249,6 +249,7 @@ class User(Entity):
         except AttributeError:
             parent = {}
         parent[u'href'] = url_for('api.user_detail', user_id=self.id)
+        parent[u'type'] = u'user'
         return parent
 
 
@@ -352,6 +353,7 @@ class Group(Entity):
         except AttributeError:
             parent = {}
         parent[u'href'] = url_for('api.group_detail', group_id=self.id)
+        parent[u'type'] = u'group'
         if extended:
             parent[u'count'] = len(self.users)
         return parent
