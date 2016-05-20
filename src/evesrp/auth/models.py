@@ -250,6 +250,11 @@ class User(Entity):
             parent = {}
         parent[u'href'] = url_for('api.user_detail', user_id=self.id)
         parent[u'type'] = u'user'
+        if extended:
+            notes = []
+            for note in self.notes:
+                notes.append(note._json())
+            parent[u'notes'] = notes
         return parent
 
 
@@ -277,6 +282,16 @@ class Note(db.Model, AutoID, Timestamped, AutoName):
         self.user = user
         self.noter = noter
         self.content = ensure_unicode(note)
+
+    def _json(self, extended=False):
+        try:
+            parent = super(Note, self)._json(extended)
+        except AttributeError:
+            parent = {}
+        parent[u'note'] = self.content
+        parent[u'timestamp'] = self.timestamp.isoformat()
+        parent[u'submitter'] = self.noter._json(extended=False)
+        return parent
 
 
 @unistr
