@@ -107,9 +107,9 @@ class Entity(db.Model, AutoID, AutoName):
             perms = perms.filter_by(division=division)
         return db.session.query(perms.exists()).all()[0][0]
 
-    def _json(self, extended=False):
+    def _json(self, **kwargs):
         try:
-            parent = super(Entity, self)._json(extended)
+            parent = super(Entity, self)._json(**kwargs)
         except AttributeError:
             parent = {}
         parent[u'name'] = self.name
@@ -138,9 +138,9 @@ class APIKey(db.Model, AutoID, AutoName, Timestamped):
         """The key data in a modified base-64 format safe for use in URLs."""
         return urlsafe_b64encode(self.key).decode('utf-8').replace(u'=', u',')
 
-    def _json(self, extended=False):
+    def _json(self, **kwargs):
         try:
-            parent = super(APIKey, self)._json(extended)
+            parent = super(APIKey, self)._json(**kwargs)
         except AttributeError:
             parent = {}
         parent[u'key'] = self.hex_key
@@ -243,17 +243,17 @@ class User(Entity):
             choices.append((six.next(group).id, name))
         return choices
 
-    def _json(self, extended=False):
+    def _json(self, user_notes=False, **kwargs):
         try:
-            parent = super(User, self)._json(extended)
+            parent = super(User, self)._json(**kwargs)
         except AttributeError:
             parent = {}
         parent[u'href'] = url_for('api.user_detail', user_id=self.id)
         parent[u'type'] = u'user'
-        if extended:
+        if user_notes:
             notes = []
             for note in self.notes:
-                notes.append(note._json())
+                notes.append(note._json(**kwargs))
             parent[u'notes'] = notes
         return parent
 
@@ -283,14 +283,16 @@ class Note(db.Model, AutoID, Timestamped, AutoName):
         self.noter = noter
         self.content = ensure_unicode(note)
 
-    def _json(self, extended=False):
+    def _json(self, **kwargs):
         try:
-            parent = super(Note, self)._json(extended)
+            parent = super(Note, self)._json(**kwargs)
         except AttributeError:
             parent = {}
         parent[u'note'] = self.content
         parent[u'timestamp'] = self.timestamp.isoformat()
-        parent[u'submitter'] = self.noter._json(extended=False)
+        if 'user_notes' in kwargs:
+            del kwargs['user_notes']
+        parent[u'submitter'] = self.noter._json(**kwargs)
         return parent
 
 
@@ -333,14 +335,15 @@ class Pilot(db.Model, AutoID, AutoName):
     def __unicode__(self):
         return self.name
 
-    def _json(self, extended=False):
+    def _json(self, pilot_user=False, pilot_requests=False, **kwargs):
         try:
-            parent = super(Pilot, self)._json(extended)
+            parent = super(Pilot, self)._json(**kwargs)
         except AttributeError:
             parent = {}
         parent[u'name'] = self.name
-        if extended:
+        if pilot_user:
             parent[u'user'] = self.user
+        if pilot_requests:
             parent[u'requests'] = self.requests
         return parent
 
@@ -362,14 +365,14 @@ class Group(Entity):
     #: Synonym for :py:attr:`entity_permissions`
     permissions = db.synonym('entity_permissions')
 
-    def _json(self, extended=False):
+    def _json(self, group_count=False, **kwargs):
         try:
-            parent = super(Group, self)._json(extended)
+            parent = super(Group, self)._json(**kwargs)
         except AttributeError:
             parent = {}
         parent[u'href'] = url_for('api.group_detail', group_id=self.id)
         parent[u'type'] = u'group'
-        if extended:
+        if group_count:
             parent[u'count'] = len(self.users)
         return parent
 
@@ -499,20 +502,20 @@ class Division(db.Model, AutoID, AutoName):
     def __unicode__(self):
         return u"{}".format(self.name)
 
-    def _json(self, extended=False):
+    def _json(self, division_permissions=True, **kwargs):
         try:
-            parent = super(Division, self)._json(extended)
+            parent = super(Division, self)._json(**kwargs)
         except AttributeError:
             parent = {}
         parent[u'href'] = url_for('divisions.get_division_details',
                 division_id=self.id)
         parent[u'name'] = self.name
-        if extended:
+        if division_permissions:
             permissions = {}
             for perm in PermissionType.all:
                 members = []
                 for member in [p.entity for p in self.permissions[perm]]:
-                    members.append(member._json(False))
+                    members.append(member._json(**kwargs))
                 permissions[perm.name] = members
             parent[u'permissions'] = permissions
         return parent

@@ -129,16 +129,16 @@ class Action(db.Model, AutoID, Timestamped, AutoName):
         return "{x.__class__.__name__}({x.request}, {x.user}, {x.type_})".\
                 format(x=self)
 
-    def _json(self, extended=False):
+    def _json(self, action_extended=False, **kwargs):
         try:
-            parent = super(Action, self)._json(extended)
+            parent = super(Action, self)._json(**kwargs)
         except AttributeError:
             parent = {}
         parent[u'type'] = self.type_
-        if extended:
+        if action_extended:
             parent[u'note'] = self.note or u''
             parent[u'timestamp'] = self.timestamp
-            parent[u'user'] = self.user
+            parent[u'user'] = self.user._json(**kwargs)
         return parent
 
 
@@ -282,19 +282,19 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
             raise ModifierError(gettext(u"Only reviewers can add modifiers."))
         return request
 
-    def _json(self, extended=False):
+    def _json(self, modifier_extended=False, **kwargs):
         try:
-            parent = super(Modifier, self)._json(extended)
+            parent = super(Modifier, self)._json(**kwargs)
         except AttributeError:
             parent = {}
         parent[u'value'] = self.value
-        if extended:
+        if modifier_extended:
             parent[u'note'] = self.note or u''
             parent[u'timestamp'] = self.timestamp
-            parent[u'user'] = self.user
+            parent[u'user'] = self.user._json(**kwargs),
             if self.voided:
                 parent[u'void'] = {
-                    u'user': self.voided_user,
+                    u'user': self.voided_user._json(**kwargs),
                     u'timestamp': self.voided_timestamp,
                 }
             else:
@@ -319,12 +319,12 @@ class AbsoluteModifier(Modifier):
     value = db.Column(PrettyNumeric(precision=15, scale=2), nullable=False,
             default=Decimal(0))
 
-    def _json(self, extended=False):
+    def _json(self, **kwargs):
         try:
-            parent = super(AbsoluteModifier, self)._json(extended)
+            parent = super(AbsoluteModifier, self)._json(**kwargs)
         except AttributeError:
             parent = {}
-        parent[u'type'] = 'absolute'
+        parent[u'type'] = u'absolute'
         return parent
 
 
@@ -342,9 +342,9 @@ class RelativeModifier(Modifier):
     value = db.Column(db.Numeric(precision=8, scale=5), nullable=False,
             default=Decimal(0))
 
-    def _json(self, extended=False):
+    def _json(self, **kwargs):
         try:
-            parent = super(RelativeModifier, self)._json(extended)
+            parent = super(RelativeModifier, self)._json(**kwargs)
         except AttributeError:
             parent = {}
         parent[u'type'] = 'relative'
@@ -677,14 +677,15 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
 
         return RequestTransformer(self)
 
-    def _json(self, extended=False):
+    def _json(self, request_actions=False, request_modifiers=False,
+              request_valid=False, request_transformed=False, **kwargs ):
         try:
-            parent = super(Request, self)._json(extended)
+            parent = super(Request, self)._json(**kwargs)
         except AttributeError:
             parent = {}
         parent[u'href'] = url_for('requests.get_request_details',
                 request_id=self.id)
-        attrs = (u'killmail_url', u'kill_timestamp', u'pilot',
+        attrs = (u'killmail_url', u'pilot',
                  u'alliance', u'corporation', u'submitter',
                  u'division', u'status', u'base_payout', u'payout',
                  u'details', u'id', u'ship_type', u'system', u'constellation',
@@ -697,11 +698,16 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
                 parent[attr] = payout.currency()
             else:
                 parent[attr] = getattr(self, attr)
-        parent[u'submit_timestamp'] = self.timestamp
-        if extended:
-            parent[u'actions'] = map(lambda a: a._json(True), self.actions)
-            parent[u'modifiers'] = map(lambda m: m._json(True), self.modifiers)
+        parent[u'submit_timestamp'] = self.timestamp.isoformat()
+        parent[u'kill_timestamp'] = self.kill_timestamp.isoformat()
+        if request_actions:
+            parent[u'actions'] = map(lambda a: a._json(**kwargs), self.actions)
+        if request_modifiers:
+            parent[u'modifiers'] = map(lambda m: m._json(**kwargs),
+                                       self.modifiers)
+        if request_valid:
             parent[u'valid_actions'] = self.valid_actions(current_user)
+        if request_transformed:
             parent[u'transformed'] = dict(self.transformed)
         return parent
 

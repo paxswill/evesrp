@@ -43,7 +43,7 @@ class EnumSymbol(object):
             return unicode(self.description)
         return self.description
 
-    def _json(self, extended=False):
+    def _json(self, **kwargs):
         # Not going to account for inheritance, as nothing should be inheriting
         # from EnumSymbol
         return self.name

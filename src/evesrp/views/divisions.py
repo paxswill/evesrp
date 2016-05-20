@@ -152,7 +152,8 @@ def get_division_details(division_id=None, division=None):
             current_user.has_permission(PermissionType.admin, division):
         abort(403)
     if request.is_json or request.is_xhr:
-        return jsonify(division._json(True))
+        return jsonify(division._json(division_permissions=True,
+                                      group_count=True))
     return render_template(
             'division_detail.html',
             division=division,

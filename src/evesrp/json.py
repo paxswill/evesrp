@@ -23,20 +23,6 @@ class IterableEncoder(JSONEncoder):
 class PrivateJsonEncoder(JSONEncoder):
     def default(self, o):
         if hasattr(o, '_json'):
-            try:
-                extended = request.json_extended
-            except AttributeError:
-                extended = request.args.get('extended', False)
-            # request.json_extended can be a dict to set extended mode for only
-            # certain types of objects
-            if isinstance(extended, dict):
-                scope_class = object
-                scope_extended = False
-                for cls, ext in six.iteritems(extended):
-                    if isinstance(o, cls) and issubclass(type(o), scope_class):
-                        scope_extended = ext
-                        scope_class = cls
-                extended = scope_extended
             return o._json(extended)
         return super(PrivateJsonEncoder, self).default(o)
 

@@ -341,7 +341,8 @@ class RequestListing(View):
         # Handle API/RSS responses
         if request.is_json or request.is_xhr:
             jsonify_kwargs = {
-                'requests': pager.items,
+                'requests': [req._json(self.json_extensions) 
+                             for req in pager.items],
                 'request_count': requests.count(),
                 'total_payouts': total_payouts.currency()
             }
@@ -370,6 +371,10 @@ class RequestListing(View):
             title = self.title
         return render_template(self.template, pager=pager, filters=filter_map,
                 total_payouts=total_payouts, title=title, **kwargs)
+
+    @property
+    def json_extensions(self):
+        return {}
 
     @classproperty
     def _load_options(cls):
@@ -495,14 +500,15 @@ class PayoutListing(PermissionRequestListing):
             filters['sort'] = 'submit_timestamp'
         return super(PayoutListing, self).requests(filters)
 
+    @property
+    def json_extensions(self):
+        return {
+            'request_actions': True,
+            'request_modifiers': True,
+            'request_transformed': True,
+        }
+
     def dispatch_request(self, filters='', **kwargs):
-        if hasattr(request, 'json_extended'):
-            if isinstance(request.json_extended, bool):
-                old_value = request.json_extended
-                request.json_extended = defaultdict(lambda: old_value)
-        else:
-            request.json_extended = {}
-        request.json_extended[Request] = True
         if not current_user.has_permission(self.permissions):
             abort(403)
         return super(PayoutListing, self).dispatch_request(
@@ -840,7 +846,12 @@ def get_request_details(request_id=None, srp_request=None):
     else:
         abort(403)
     if request.is_json or request.is_xhr:
-        return jsonify(srp_request._json(True))
+        return jsonify(srp_request._json(request_actions=True,
+                                         request_modifiers=True,
+                                         request_valid=True,
+                                         request_transformed=True,
+                                         action_extended=True,
+                                         modifier_extended=True))
     if request.is_xml:
         return xmlify('request.xml', srp_request=srp_request)
     return render_template(template, srp_request=srp_request,
