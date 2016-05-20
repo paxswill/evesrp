@@ -14,7 +14,7 @@ class AutoID(object):
 
     def _json(self, **kwargs):
         try:
-            parent = super(AutoName, self)._json(extended)
+            parent = super(AutoID, self)._json(extended)
         except AttributeError:
             parent = {}
         parent[u'id'] = self.id
