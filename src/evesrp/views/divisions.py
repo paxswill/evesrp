@@ -48,8 +48,8 @@ def permissions():
                 division[u'permissions'] = {p.value: [] for p in
                                             PermissionType.all}
                 user_divisions[permission.division.id] = division
-            division[u'permissions'][permission.permission].append(
-                    entity._json(False))
+            division[u'permissions'][permission.permission.value].append(
+                    permission.entity._json(group_count=True))
         json_response[u'permissions'] = user_divisions.values()
         # Again, hand crafting this one so we get counts (which are not
         # normally returned)
