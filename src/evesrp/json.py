@@ -23,7 +23,7 @@ class IterableEncoder(JSONEncoder):
 class PrivateJsonEncoder(JSONEncoder):
     def default(self, o):
         if hasattr(o, '_json'):
-            return o._json(extended)
+            return o._json()
         return super(PrivateJsonEncoder, self).default(o)
 
 
