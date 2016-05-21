@@ -374,7 +374,12 @@ class RequestListing(View):
 
     @property
     def json_extensions(self):
-        return {}
+        return {
+            'request_actions': False,
+            'request_modifiers': False,
+            'request_valid': False,
+            'request_transformed': False,
+        }
 
     @classproperty
     def _load_options(cls):
@@ -502,11 +507,13 @@ class PayoutListing(PermissionRequestListing):
 
     @property
     def json_extensions(self):
-        return {
+        extensions = super(PayoutListing, self).json_extensions
+        extensions.update({
             'request_actions': True,
             'request_modifiers': True,
             'request_transformed': True,
-        }
+        })
+        return extensions
 
     def dispatch_request(self, filters='', **kwargs):
         if not current_user.has_permission(self.permissions):

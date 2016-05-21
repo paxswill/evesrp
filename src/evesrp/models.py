@@ -679,8 +679,8 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
 
         return RequestTransformer(self)
 
-    def _json(self, request_actions=False, request_modifiers=False,
-              request_valid=False, request_transformed=False, **kwargs ):
+    def _json(self, request_actions=True, request_modifiers=True,
+              request_valid=False, request_transformed=True, **kwargs ):
         try:
             parent = super(Request, self)._json(**kwargs)
         except AttributeError:
