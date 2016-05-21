@@ -291,6 +291,8 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
         if modifier_extended:
             parent[u'note'] = self.note or u''
             parent[u'timestamp'] = self.timestamp
+            if 'user_notes' in kwargs:
+                del kwargs['user_notes']
             parent[u'user'] = self.user._json(**kwargs),
             if self.voided:
                 parent[u'void'] = {
