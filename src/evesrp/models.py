@@ -135,10 +135,10 @@ class Action(db.Model, AutoID, Timestamped, AutoName):
         except AttributeError:
             parent = {}
         parent[u'type'] = self.type_
+        parent[u'user'] = self.user._json(**kwargs)
         if action_extended:
             parent[u'note'] = self.note or u''
             parent[u'timestamp'] = self.timestamp
-            parent[u'user'] = self.user._json(**kwargs)
         return parent
 
 
