@@ -700,8 +700,8 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
                 parent[attr] = payout.currency()
             else:
                 parent[attr] = getattr(self, attr)
-        parent[u'submit_timestamp'] = self.timestamp.isoformat()
-        parent[u'kill_timestamp'] = self.kill_timestamp.isoformat()
+        parent[u'submit_timestamp'] = self.timestamp
+        parent[u'kill_timestamp'] = self.kill_timestamp
         if request_actions:
             parent[u'actions'] = map(lambda a: a._json(**kwargs), self.actions)
         if request_modifiers:

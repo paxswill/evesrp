@@ -289,7 +289,7 @@ class Note(db.Model, AutoID, Timestamped, AutoName):
         except AttributeError:
             parent = {}
         parent[u'note'] = self.content
-        parent[u'timestamp'] = self.timestamp.isoformat()
+        parent[u'timestamp'] = self.timestamp
         if 'user_notes' in kwargs:
             del kwargs['user_notes']
         parent[u'submitter'] = self.noter._json(**kwargs)

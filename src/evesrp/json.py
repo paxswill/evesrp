@@ -3,6 +3,7 @@ from flask import request
 from flask.json import JSONEncoder
 import six
 from decimal import Decimal
+from datetime import datetime
 from .util import PrettyDecimal
 
 if six.PY3:
@@ -36,6 +37,14 @@ class DecimalEncoder(JSONEncoder):
         return super(DecimalEncoder, self).default(o)
 
 
+class TimestampEncoder(JSONEncoder):
+    def default(self, o):
+        if isinstance(o, datetime):
+            return o.isoformat()
+        return super(TimestampEncoder, self).default(o)
+
+
 # Multiple inheritance FTW
-class SRPEncoder(PrivateJsonEncoder, IterableEncoder, DecimalEncoder):
+class SRPEncoder(PrivateJsonEncoder, IterableEncoder, DecimalEncoder,
+                 TimestampEncoder):
     pass
