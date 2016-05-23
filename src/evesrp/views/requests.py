@@ -855,7 +855,7 @@ def get_request_details(request_id=None, srp_request=None):
     if request.is_json or request.is_xhr:
         return jsonify(srp_request._json(request_actions=True,
                                          request_modifiers=True,
-                                         request_valid=True,
+                                         request_valid_actions=True,
                                          request_transformed=True,
                                          action_extended=True,
                                          modifier_extended=True))

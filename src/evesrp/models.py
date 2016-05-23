@@ -680,7 +680,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         return RequestTransformer(self)
 
     def _json(self, request_actions=True, request_modifiers=True,
-              request_valid=False, request_transformed=True, **kwargs ):
+              request_valid_actions=False, request_transformed=True, **kwargs):
         try:
             parent = super(Request, self)._json(**kwargs)
         except AttributeError:
@@ -707,7 +707,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         if request_modifiers:
             parent[u'modifiers'] = map(lambda m: m._json(**kwargs),
                                        self.modifiers)
-        if request_valid:
+        if request_valid_actions:
             parent[u'valid_actions'] = self.valid_actions(current_user)
         if request_transformed:
             parent[u'transformed'] = dict(self.transformed)
