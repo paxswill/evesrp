@@ -303,7 +303,7 @@ def _config_requests_session(app):
             raise inner_exc
     requests_session = requests.Session()
     requests_session.headers.update({'User-Agent': ua_string})
-    requests_session.mount('https://public-crest.eveonline.com',
+    requests_session.mount('https://crest-tq.eveonline.com',
             WeakCiphersAdapter())
     app.requests_session = requests_session
 

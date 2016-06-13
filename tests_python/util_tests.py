@@ -180,7 +180,7 @@ def no_alliance_zkillboard(url, request):
     return response(content=json.dumps(resp))
 
 
-_parsed_crest_url = urlparse('http://public-crest.eveonline.com/killmails/30290604/'
+_parsed_crest_url = urlparse('http://crest-tq.eveonline.com/killmails/30290604/'
                              '787fb3714062f1700560d4a83ce32c67640b1797/')
 @urlmatch(scheme=_parsed_crest_url.scheme,
           netloc=_parsed_crest_url.netloc,

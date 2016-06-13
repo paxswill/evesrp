@@ -7,7 +7,7 @@ from evesrp import ships
 
 # Using a purposely invalid typeID to ensure we hit HTTMock
 _parsed_svipul = urlparse(
-        'https://public-crest.eveonline.com/types/123456789/')
+        'https://crest-tq.eveonline.com/types/123456789/')
 @urlmatch(scheme=_parsed_svipul.scheme,
           netloc=_parsed_svipul.netloc,
           path=_parsed_svipul.path)
@@ -20,7 +20,7 @@ def svipul_lookup(url, request):
 
 
 _parsed_invalid = urlparse(
-        'https://public-crest.eveonline.com/types/999999999/')
+        'https://crest-tq.eveonline.com/types/999999999/')
 @urlmatch(scheme=_parsed_invalid.scheme,
           netloc=_parsed_invalid.netloc,
           path=_parsed_invalid.path)

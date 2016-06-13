@@ -17,7 +17,7 @@ def jita_lookup(url, request):
         # system->constellation and constellation->region lookups
         'constellation': {
             'href':
-                'https://public-crest.eveonline.com/constellations/20000020/',
+                'https://crest-tq.eveonline.com/constellations/20000020/',
             'id': 20000020,
             'id_str': '20000020' 
         },
@@ -34,7 +34,7 @@ def kimotoro_lookup(url, request):
     resp = {
         'name': 'Kimotoro',
         'region': {'href':
-            'https://public-crest.eveonline.com/regions/10000002/'},
+            'https://crest-tq.eveonline.com/regions/10000002/'},
     }
     return response(content=json.dumps(resp))
 

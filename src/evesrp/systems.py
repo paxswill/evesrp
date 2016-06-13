@@ -8,9 +8,9 @@ REGION_TYPE = 'application/vnd.ccp.eve.Region-v1+json'
 CONSTELLATION_TYPE = 'application/vnd.ccp.eve.Constellation-v1+json'
 SYSTEM_TYPE = 'application/vnd.ccp.eve.System-v1+json'
 
-REGION_SLUG = 'https://public-crest.eveonline.com/regions/{}/'
-CONSTELLATION_SLUG = 'https://public-crest.eveonline.com/constellations/{}/'
-SYSTEM_SLUG = 'https://public-crest.eveonline.com/solarsystems/{}/'
+REGION_SLUG = 'https://crest-tq.eveonline.com/regions/{}/'
+CONSTELLATION_SLUG = 'https://crest-tq.eveonline.com/constellations/{}/'
+SYSTEM_SLUG = 'https://crest-tq.eveonline.com/solarsystems/{}/'
 
 
 region_names = NameLookup(static_data.region_names, REGION_SLUG, REGION_TYPE)
