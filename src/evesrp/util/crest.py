@@ -26,11 +26,22 @@ def check_crest_response(response):
 
 class NameLookup(object):
 
-    def __init__(self, starting_data, url_slug, content_type, attribute='name'):
+    def __init__(self, starting_data, root_key, content_type, attribute='name'):
         self._dict = starting_data
-        self.url_slug = url_slug
         self.content_type = content_type
         self.attribute_name = attribute
+        self.root_key = root_key
+
+    @property
+    def url_slug(self):
+        if not hasattr(self, '_url_slug'):
+            root_resp = current_app.requests_session.get(
+                    'https://crest-tq.eveonline.com/')
+            root_json = root_resp.json()
+            url_slug = root_json[self.root_key]['href']
+            url_slug += '{}/'
+            self._url_slug = url_slug
+        return self._url_slug
 
     def _access_attribute(self, obj, attribute=None):
         if attribute is None:
