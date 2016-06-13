@@ -8,7 +8,11 @@ http://techspot.zzzeek.org/files/2011/decl_enum.py
 import six
 from sqlalchemy.types import SchemaType
 import re
-from speaklater import is_lazy_string
+# Flask-Babel 0.11 vendored speaklater
+try:
+    from flask_babel.speaklater import LazyString
+except ImportError:
+    from speaklater import _LazyString as LazyString
 from .unistr import unistr, ensure_unicode
 from .. import db
 
@@ -39,7 +43,7 @@ class EnumSymbol(object):
         return u"<%s>" % self.name
 
     def __unicode__(self):
-        if is_lazy_string(self.description):
+        if isinstance(self.description, LazyString):
             return unicode(self.description)
         return self.description
 
