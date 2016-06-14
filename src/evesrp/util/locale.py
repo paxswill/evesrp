@@ -1,7 +1,7 @@
 import six
 from babel import numbers, Locale
 from flask import current_app
-from flask.ext.babel import format_datetime, get_locale
+from flask_babel import format_datetime, get_locale
 from .. import babel
 
 

@@ -68,7 +68,7 @@ With these in mind, let's implement our :py:class:`AuthMethod` subclass::
 
     from evesrp.auth import AuthMethod
     from flask import redirect, url_for, render_template, request
-    from flask.ext.wtf import Form
+    from flask_wtf import Form
     from sqlalchemy.orm.exc import NoResultFound
     from wtforms.fields import StringField, PasswordField, SubmitField
     from wtforms.validators import InputRequired, EqualTo

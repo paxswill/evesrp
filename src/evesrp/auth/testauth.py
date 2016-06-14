@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import hashlib
 
 from flask import flash, url_for, redirect, abort, request
-from flask.ext.wtf import Form
+from flask_wtf import Form
 import six
 from sqlalchemy.orm.exc import NoResultFound
 from wtforms.fields import StringField, PasswordField, HiddenField, SubmitField

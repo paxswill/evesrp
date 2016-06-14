@@ -1,9 +1,9 @@
 from __future__ import absolute_import
 from flask import url_for, render_template, redirect, abort, flash, request,\
         Blueprint, current_app
-from flask.ext.babel import gettext, lazy_gettext
-from flask.ext.login import login_required, fresh_login_required, current_user
-from flask.ext.wtf import Form
+from flask_babel import gettext, lazy_gettext
+from flask_login import login_required, fresh_login_required, current_user
+from flask_wtf import Form
 import six
 from six.moves import map
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound

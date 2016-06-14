@@ -2,14 +2,11 @@ from __future__ import absolute_import
 import re
 
 from flask import redirect, url_for, current_app
-from flask.ext.babel import gettext, lazy_gettext
-from flask.ext.login import current_user
-import flask.ext.login as flask_login
-from flask.ext.wtf import Form
+from flask_babel import gettext, lazy_gettext
+import flask_login
+from flask_wtf import Form
 from wtforms.fields import SubmitField, HiddenField
 from ..util import DeclEnum, classproperty, ensure_unicode
-
-
 
 
 class AuthMethod(object):
@@ -29,7 +26,7 @@ class AuthMethod(object):
         self.name = ensure_unicode(name)
 
     def form(self):
-        """Return a :py:class:`flask.ext.wtf.Form` subclass to login with."""
+        """Return a :py:class:`flask_wtf.Form` subclass to login with."""
         class AuthForm(Form):
             submit = SubmitField(gettext(
                     u'Log In using %(authmethod_name)s',
@@ -60,7 +57,7 @@ class AuthMethod(object):
     def login_user(user):
         """Signal to the authentication systems that a new user has logged in.
 
-        Handles calling :py:func:`flask.ext.login.login_user` and any other
+        Handles calling :py:func:`flask_login.login_user` and any other
         related housekeeping functions for you.
 
         :param user: The user that has been authenticated and is logging in.

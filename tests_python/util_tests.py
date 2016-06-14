@@ -12,7 +12,7 @@ from evesrp.auth.models import User
 from wtforms.fields import StringField, SubmitField
 from sqlalchemy.orm.exc import NoResultFound
 from flask import redirect, url_for, request, render_template
-from flask.ext.wtf import Form
+from flask_wtf import Form
 
 
 class TestApp(TestCase):

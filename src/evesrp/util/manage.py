@@ -11,8 +11,8 @@ from decimal import Decimal
 import time
 import datetime as dt
 import flask
-from flask.ext import script
-from flask.ext.migrate import Migrate, MigrateCommand, stamp
+import flask_script as script
+from flask_migrate import Migrate, MigrateCommand, stamp
 from alembic.migration import MigrationContext
 from alembic.script import ScriptDirectory
 import six
