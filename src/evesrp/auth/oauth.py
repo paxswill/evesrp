@@ -55,9 +55,8 @@ class OAuthMethod(AuthMethod):
         is significant).
 
         :param default_token_expiry: The default time (in seconds) access
-        tokens are valid for. Defaults to 5 minutes.
-
-        :type default_token_expiry: :py:type:`int`
+            tokens are valid for. Defaults to 5 minutes.
+        :type default_token_expiry: :py:class:`int`
         """
         keyword_mapping = {
             'key': 'client_id',
