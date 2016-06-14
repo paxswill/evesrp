@@ -5,6 +5,24 @@ from .util_tests import TestApp, response
 from evesrp import systems
 
 
+@urlmatch(scheme='https',
+          netloc=r'crest-tq\.eveonline\.com',
+          path=r'^/?$')
+def crest_root(url, request):
+    resp = {
+        'regions': {
+            'href': 'https://crest-tq.eveonline.com/regions/',
+        },
+        'constellations': {
+            'href': 'https://crest-tq.eveonline.com/constellations/',
+        },
+        'systems': {
+            'href': 'https://crest-tq.eveonline.com/solarsystems/',
+        },
+    }
+    return response(content=json.dumps(resp))
+
+
 # Prefixing all ID numbers with 999 to force them to not be found in the
 # packaged info.
 @urlmatch(scheme='https',
@@ -51,32 +69,35 @@ def forge_lookup(url, request):
     return response(content=json.dumps(resp))
 
 
+location_lookups = [crest_root, jita_lookup, kimotoro_lookup, forge_lookup]
+
+
 class TestLocationLookup(TestApp):
 
     def test_system_name(self):
         with self.app.test_request_context():
-            with HTTMock(jita_lookup):
+            with HTTMock(*location_lookups):
                 self.assertEqual(systems.system_names[99930000142], 'Jita')
 
     def test_constellation_name(self):
         with self.app.test_request_context():
-            with HTTMock(kimotoro_lookup):
+            with HTTMock(*location_lookups):
                 self.assertEqual(systems.constellation_names[99920000020],
                         'Kimotoro')
 
     def test_region_name(self):
         with self.app.test_request_context():
-            with HTTMock(forge_lookup):
+            with HTTMock(*location_lookups):
                 self.assertEqual(systems.region_names[99910000002], 'The Forge')
 
     def test_systems_constellations(self):
         with self.app.test_request_context():
-            with HTTMock(jita_lookup, kimotoro_lookup):
+            with HTTMock(*location_lookups):
                 self.assertEqual(systems.systems_constellations[99930000142],
                         20000020)
 
     def test_constellations_regions(self):
         with self.app.test_request_context():
-            with HTTMock(kimotoro_lookup, forge_lookup):
+            with HTTMock(*location_lookups):
                 self.assertEqual(systems.constellations_regions[99920000020],
                         10000002)
