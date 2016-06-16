@@ -67,9 +67,11 @@
       {# TRANS: The corporation a pilot was in when the loss occured. #}
       <dt>{% trans %}Corporation{% endtrans %}</dt>
       <dd id="corporation">{{ srp_request.transformed.corporation }}</dd>
+      {% if srp_request.alliance is not none %}
       {# TRANS: The alliance a pilot was in when the loss occured. #}
       <dt>{% trans %}Alliance{% endtrans %}</dt>
       <dd id="alliance">{{ srp_request.transformed.alliance|default(' ') }}
+      {% endif %}
       {# TRANS: The solar system, constellation and region a loss occured in. #}
       <dt>{% trans %}Location{% endtrans %}</dt>
       <dd>
