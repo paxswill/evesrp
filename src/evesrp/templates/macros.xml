@@ -6,7 +6,11 @@
   </payout>
   <details>{{ srp_request.details }}</details>
   <pilot>
+    {% if srp_request.alliance is none %}
+    <alliance></alliance>
+    {% else %}
     <alliance>{{ srp_request.alliance }}</alliance>
+    {% endif %}
     <corporation>{{ srp_request.corporation }}</corporation>
     <name>{{ srp_request.pilot.name }}</name>
   </pilot>
