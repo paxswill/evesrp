@@ -323,7 +323,7 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
         if resp.status_code != 200:
             raise retrieval_error
         try:
-            json = resp.json()
+            json = resp.json(parse_float=Decimal)
         except ValueError as e:
             raise retrieval_error
         try:
@@ -350,10 +350,10 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
         # For consistency, store self.value in millions. Decimal is being used
         # for precision at large values.
         # Old versions of zKB don't give the ISK value
-        try:
-            self.value = Decimal(json[u'zkb'][u'totalValue'])
-        except KeyError:
-            self.value = Decimal(0)
+        self.value = json[u'zkb'].get(u'totalValue', Decimal(0))
+        # Old versions of zKB return numerical values as strings.
+        if not isinstance(self.value, Decimal):
+            self.value = Decimal(self.value)
         # Parse the timestamp
         time_struct = time.strptime(json[u'killTime'], '%Y-%m-%d %H:%M:%S')
         self.timestamp = dt.datetime(*(time_struct[0:6]),
