@@ -43,7 +43,7 @@ def error_page(error):
     else:
         response_content = render_template('error.html', code=code,
                 description=description, name=name, title=code)
-    if code == 500 and current_app.config['SENTRY_RELEASE']:
+    if code == 500 and current_app.config.get('SENTRY_RELEASE') is not None:
         sentry.captureException()
     # Give a default response code for generic exceptions
     return make_response(response_content, code)
