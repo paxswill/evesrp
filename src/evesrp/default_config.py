@@ -10,6 +10,10 @@ SRP_AUTH_METHODS = []
 # Default database is an in-memory SQLite DB.
 SQLALCHEMY_DATABASE_URI = 'sqlite://'
 
+# We don't track modifications, and Flask-SQLAlchemy emits a warning if we
+# don't silence it.
+SQLALCHEMY_TRACK_MODIFICATIONS = False
+
 # CREST killmails don't have any external dependencies
 SRP_KILLMAIL_SOURCES = [ZKillmail, CRESTMail]
 
