@@ -125,27 +125,25 @@ def response(*args, **kwargs):
 @urlmatch(netloc=r'(.*\.)?zkillboard\.com', path=r'.*37637533.*')
 def paxswill_zkillboard(url, request):
     resp = [{
-        'killID': '37637533',
-        'solarSystemID': '30001228',
+        'killID': 37637533,
+        'solarSystemID': 30001228,
         'killTime': '2014-03-20 02:32:00',
-        'moonID': '0',
+        'moonID': 0,
         'victim': {
-            'shipTypeID': '12017',
-            'damageTaken': '25198',
+            'shipTypeID': 12017,
+            'damageTaken': 25198,
             'factionName': 'Caldari State',
-            'factionID': '500001',
+            'factionID': 500001,
             'allianceName': 'Test Alliance Please Ignore',
-            'allianceID': '498125261',
+            'allianceID': 498125261,
             'corporationName': 'Dreddit',
-            'corporationID': '1018389948',
+            'corporationID': 1018389948,
             'characterName': 'Paxswill',
-            'characterID': '570140137',
-            'victim': '',
+            'characterID': 570140137,
         },
         'zkb': {
-            'totalValue': '273816945.63',
-            'points': '22',
-            'involved': 42,
+            'totalValue': 273816945.63,
+            'points': 22,
         }
     }]
     return response(content=json.dumps(resp))
@@ -153,6 +151,8 @@ def paxswill_zkillboard(url, request):
 
 @urlmatch(netloc=r'(.*\.)?zkillboard\.com', path=r'.*38862043.*')
 def no_alliance_zkillboard(url, request):
+    # NOTE: Keep integers wrapped up as strings in this response to simulate
+    # old zKillboard behavior.
     resp = [{
         'killID': '38862043',
         'solarSystemID': '30002811',
