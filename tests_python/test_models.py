@@ -19,17 +19,23 @@ class TestModels(TestLogin):
             div = Division('Testing Division')
             mock_killmail = dict(
                     id=12842852,
-                    ship_type='Erebus',
+                    type_name='Erebus',
+                    type_id=671,
                     corporation='Ever Flow',
+                    corporation_id=1991488321,
                     alliance='Northern Coalition.',
+                    alliance_id=1727758877,
                     killmail_url=('http://eve-kill.net/?a=kill_detail'
                         '&kll_id=12842852'),
-                    base_payout=Decimal(73957900000),
+                    base_payout=73957900000,
                     kill_timestamp=dt.datetime(2012, 3, 25, 0, 44, 0,
                         tzinfo=utc),
                     system='92D-OI',
+                    system_id=30001312,
                     constellation='XHYS-O',
+                    constellation_id=20000191,
                     region='Venal',
+                    region_id=10000015,
                     pilot_id=133741,
             )
             Pilot(self.normal_user, 'eLusi0n', 133741)

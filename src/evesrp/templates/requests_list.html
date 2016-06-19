@@ -63,7 +63,7 @@
         {% block table_row scoped %}
         <td data-attribute="id"><a href="{{ url_for('requests.get_request_details', request_id=request.id) }}">{{ request.id }}</a></td>
         {{ request_cell('pilot', request.pilot.name) }}
-        {{ request_cell('ship', request.ship_type) }}
+        {{ request_cell('ship', request.type_name) }}
         {{ request_cell('system', request.system) }}
         {{ request_cell('status', request.status) }}
         {{ request_cell('payout', request.payout|currencyfmt, False) }}

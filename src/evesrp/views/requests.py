@@ -146,13 +146,13 @@ class RequestListing(View):
         filters.setdefault('sort', '-submit_timestamp')
         # Apply the filters
         known_attrs = ('page', 'division', 'alliance', 'corporation',
-                'pilot', 'system', 'constellation', 'region', 'ship_type',
+                'pilot', 'system', 'constellation', 'region', 'type_name',
                 'status', 'details', 'payout', 'base_payout', 'kill_timestamp',
                 'submit_timestamp')
         for attr, values in six.iteritems(filters):
             # massage pretty attribute names to the not-so-pretty ones
             if attr == 'ship':
-                real_attr = 'ship_type'
+                real_attr = 'type_name'
             elif attr == 'submit_timestamp':
                 real_attr = 'timestamp'
             else:
@@ -189,7 +189,7 @@ class RequestListing(View):
                     sort_attr = values
                 # massage special attribute names
                 if sort_attr == 'ship':
-                    sort_attr = 'ship_type'
+                    sort_attr = 'type_name'
                 elif sort_attr == 'submit_timestamp':
                     sort_attr = 'timestamp'
                 # Handle special (joined) sorts
@@ -389,7 +389,7 @@ class RequestListing(View):
         """
         return (
                 db.Load(Request).load_only('id', 'pilot_id', 'division_id',
-                    'system', 'ship_type', 'status', 'timestamp',
+                    'system', 'type_name', 'status', 'timestamp',
                     'base_payout'),
                 db.Load(Division).joinedload('name'),
                 db.Load(Pilot).joinedload('name'),

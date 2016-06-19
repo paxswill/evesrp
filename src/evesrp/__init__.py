@@ -329,13 +329,15 @@ def _config_killmails(app):
 # Decimal itself is passed in as a value for a Numeric column.
 @db.event.listens_for(Engine, 'before_execute', retval=True)
 def _workaround_decimal_subclasses(conn, clauseelement, multiparams, params):
+
     def filter_decimal_subclasses(parameters):
-        for key in six.iterkeys(parameters):
-            value = parameters[key]
-            # Only get instances of subclasses of Decimal, not direct
-            # Decimal instances
-            if type(value) != Decimal and isinstance(value, Decimal):
-                parameters[key] = Decimal(value)
+        if parameters is not None:
+            for key in six.iterkeys(parameters):
+                value = parameters[key]
+                # Only get instances of subclasses of Decimal, not direct
+                # Decimal instances
+                if type(value) != Decimal and isinstance(value, Decimal):
+                    parameters[key] = Decimal(value)
 
     if multiparams:
         for mp in multiparams:

@@ -6,7 +6,7 @@
     <link>{{ main_link }}</link>
     {% for srp_request in requests %}
     <item>
-      <title>{{ srp_request.pilot.name }}'s {{ srp_request.ship_type }} in {{ srp_request.system }} on {{ srp_request.kill_timestamp.strftime('%d %b %Y %H:%M') }}</title>
+      <title>{{ srp_request.pilot.name }}'s {{ srp_request.type_name }} in {{ srp_request.system }} on {{ srp_request.kill_timestamp.strftime('%d %b %Y %H:%M') }}</title>
       <description>{{ srp_request.status }}</description>
       <link>{{ url_for('requests.get_request_details', _external=True, request_id=srp_request.id) }}</link>
       {% if srp_request.actions|length == 0 %}

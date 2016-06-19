@@ -51,7 +51,7 @@ class TestDivisionDetails(TestLogin):
             db.session.add(Group('Group 1', self.default_authmethod.name,
                     id=10))
             db.session.commit()
-        self.app.config['SRP_SHIP_TYPE_URL_TRANSFORMERS'] = [
+        self.app.config['SRP_TYPE_NAME_URL_TRANSFORMERS'] = [
             ('Test Transformer', ''),
         ]
         evesrp.init_app(self.app)
@@ -88,28 +88,28 @@ class TestDivisionDetails(TestLogin):
         client = self.login(self.admin_name)
         resp = client.post('/division/1/', follow_redirects=True, data={
                 'transformer': 'Test Transformer',
-                'attribute': 'ship_type',
+                'attribute': 'type_name',
                 'form_id': 'transformer',
         })
         self.assertEqual(resp.status_code, 200)
         with self.app.test_request_context():
             division = Division.query.get(1)
-            self.assertEqual(division.transformers['ship_type'],
-                    self.app.url_transformers['ship_type']['Test Transformer'])
+            self.assertEqual(division.transformers['type_name'],
+                    self.app.url_transformers['type_name']['Test Transformer'])
 
     def test_unset_url_transformer(self):
         client = self.login(self.admin_name)
         with self.app.test_request_context():
             division = Division.query.get(1)
             division.ship_transformer = \
-                    self.app.url_transformers['ship_type']['Test Transformer']
+                    self.app.url_transformers['type_name']['Test Transformer']
             db.session.commit()
         resp = client.post('/division/1/', follow_redirects=True, data={
                 'transformer': 'none',
-                'attribute': 'ship_type',
+                'attribute': 'type_name',
                 'form_id': 'transformer',
         })
         self.assertEqual(resp.status_code, 200)
         with self.app.test_request_context():
             division = Division.query.get(1)
-            self.assertIsNone(division.transformers.get('ship_type', None))
+            self.assertIsNone(division.transformers.get('type_name', None))

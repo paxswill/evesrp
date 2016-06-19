@@ -104,9 +104,17 @@ class Killmail(object):
 
         The name of the constellation where the kill occured.
 
+    .. py:attribute:: constellation_id
+
+        The ID of the region where the kill occured.
+
     .. py:attribute:: region
 
         The name of the region where the kill occured.
+
+    .. py:attribute:: region_id
+
+        The ID of the region where the kill occured.
     """
 
     def __init__(self, **kwargs):
@@ -166,15 +174,21 @@ class Killmail(object):
         name of the attribute on the :py:class:`~evesrp.models.Request`.
         """
         yield ('id', self.kill_id)
-        yield ('ship_type', self.ship)
+        yield ('type_name', self.ship)
+        yield ('type_id', self.ship_id)
         yield ('corporation', self.corp)
+        yield ('corporation_id', self.corp_id)
         yield ('alliance', self.alliance)
+        yield ('alliance_id', self.alliance_id)
         yield ('killmail_url', self.url)
         yield ('base_payout', self.value)
         yield ('kill_timestamp', self.timestamp)
         yield ('system', self.system)
+        yield ('system_id', self.system_id)
         yield ('constellation', self.constellation)
+        yield ('constellation_id', self.constellation_id)
         yield ('region', self.region)
+        yield ('region_id', self.region_id)
         yield ('pilot_id', self.pilot_id)
 
 
@@ -214,19 +228,28 @@ class LocationMixin(object):
         return systems.system_names[self.system_id]
 
     @property
+    def constellation_id(self):
+        """Provides the constellation ID using :py:attr:`Killmail.system_id`.
+        """
+        return systems.systems_constellations[self.system_id]
+
+
+    @property
     def constellation(self):
         """Provides the constellation name using :py:attr:`Killmail.system_id`.
         """
-        constellation_id = systems.systems_constellations[self.system_id]
-        return systems.constellation_names[constellation_id]
+        return systems.constellation_names[self.constellation_id]
+
+    @property
+    def region_id(self):
+        """Provides the region ID using :py:attr:`Killmail.system_id`."""
+        return systems.constellations_regions[self.constellation_id]
+
 
     @property
     def region(self):
-        """Provides the region name using :py:attr:`Killmail.system_id`.
-        """
-        constellation_id = systems.systems_constellations[self.system_id]
-        region_id = systems.constellations_regions[constellation_id]
-        return systems.region_names[region_id]
+        """Provides the region name using :py:attr:`Killmail.system_id`."""
+        return systems.region_names[self.region_id]
 
 
 class RequestsSessionMixin(object):
@@ -312,6 +335,9 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
             raise LookupError(gettext(u"Invalid killmail: %(url)s", url=url))
         # JSON is defined to be UTF-8 in the standard
         victim = json[u'victim']
+        # zKB used to return its integer values as strings. Still allow for
+        # that as there might be an old version still floating around
+        # somewhere.
         self.pilot_id = int(victim[u'characterID'])
         self.pilot = victim[u'characterName']
         self.corp_id = int(victim[u'corporationID'])

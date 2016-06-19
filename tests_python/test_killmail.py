@@ -101,8 +101,7 @@ class TestZKillmail(TestCase):
                 u'value': Decimal('273816945.63'),
             }
             for attr, value in expected_values.items():
-                self.assertEqual(getattr(km, attr), value,
-                        msg=u'{} is not {}'.format(attr, value))
+                self.assertEqual(getattr(km, attr), value)
 
     def test_no_alliance_killmail(self):
         with HTTMock(*all_mocks):
@@ -118,8 +117,7 @@ class TestZKillmail(TestCase):
                 u'value': Decimal('10432408.70'),
             }
             for attr, value in expected_values.items():
-                self.assertEqual(getattr(km, attr), value,
-                        msg=u'{} is not {}'.format(attr, value))
+                self.assertEqual(getattr(km, attr), value)
 
     def test_invalid_zkb_url(self):
         with self.assertRaisesRegexp(ValueError,
@@ -163,8 +161,7 @@ class TestCRESTmail(TestCase):
                 u'system': u'Todifrauan',
             }
             for attr, value in expected_values.items():
-                self.assertEqual(getattr(km, attr), value,
-                        msg=u'{} is not {}'.format(attr, value))
+                self.assertEqual(getattr(km, attr), value)
 
     def test_invalid_crest_url(self):
         with self.assertRaisesRegexp(ValueError,

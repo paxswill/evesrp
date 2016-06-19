@@ -21,7 +21,6 @@ else:
 
 
 test_requirements = [
-    'beautifulsoup >= 4.4.1',
     'coverage >= 3.7.1',
     'httmock >= 1.2.2',
 ]
@@ -68,6 +67,7 @@ setup(
         'requests >= 2.9.1',
         'six == 1.7.3',
         'iso8601 >= 0.1.5',
+        'beautifulsoup4 >= 4.4.1',
     ],
     test_suite='tests_python',
     tests_require=test_requirements,

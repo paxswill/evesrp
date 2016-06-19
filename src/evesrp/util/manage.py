@@ -18,6 +18,7 @@ from alembic.script import ScriptDirectory
 import six
 from .. import create_app, db, migrate, models, auth, killmail
 from .datetime import utc
+from ..migrate import process_request_ids as pri
 
 
 if six.PY3:
@@ -111,6 +112,13 @@ def create(force=False):
         db.create_all()
         if current_rev is None:
             stamp()
+
+
+@migrate_manager.command
+def preprocess(url, apikey, datafile='srp_requests.json'):
+    """Preprocess requests for the b439d76d388c migration."""
+    app = pri.SRPApp(url, apikey, datafile)
+    app.migrate_requests(catch_exceptions=True)
 
 
 @manager.shell

@@ -12,12 +12,17 @@ from ...util_tests import TestLogin
 class TestRequestList(TestLogin):
 
     sample_request_data = {
-        'ship_type': 'Revenant',
-        'corporation': 'Center of Applied Studies',
+        'type_name': 'Revenant',
+        'type_id': 3514,
+        'corporation': 'Center for Advanced Studies',
+        'corporation_id': 1000169,
         'kill_timestamp': dt.datetime.utcnow(),
         'system': 'Jita',
+        'system_id': 30000142,
         'constellation': 'Kimotoro',
+        'constellation_id': 20000020,
         'region': 'The Forge',
+        'region_id': 10000002,
         'pilot_id': 1,
     }
 

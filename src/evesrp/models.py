@@ -395,16 +395,25 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     pilot = db.relationship('Pilot', back_populates='requests',
             cascade='save-update,merge,refresh-expire,expunge')
 
+    #: The Eve ID of :py:attribute:`.corporation`\.
+    corporation_id = db.Column(db.Integer, nullable=False)
+
     #: The corporation of the :py:attr:`pilot` at the time of the killmail.
     corporation = db.Column(db.String(150, convert_unicode=True),
             nullable=False, index=True)
+
+    #: The Eve ID of :py:attribute:`.alliance`\.
+    alliance_id = db.Column(db.Integer, nullable=True)
 
     #: The alliance of the :py:attr:`pilot` at the time of the killmail.
     alliance = db.Column(db.String(150, convert_unicode=True), nullable=True,
             index=True)
 
+    #: The type ID of the item destroyed.
+    type_id = db.Column(db.Integer, nullable=False)
+
     #: The type of ship that was destroyed.
-    ship_type = db.Column(db.String(75, convert_unicode=True), nullable=False,
+    type_name = db.Column(db.String(75, convert_unicode=True), nullable=False,
             index=True)
 
     # TODO: include timezones
@@ -468,13 +477,22 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     terminal states.
     """
 
+    #: The location ID for :py:attribute:`.system`\.
+    system_id = db.Column(db.Integer, nullable=False)
+
     #: The solar system this loss occured in.
     system = db.Column(db.String(25, convert_unicode=True), nullable=False,
             index=True)
 
+    #: The location ID for :py:attribute:`.constellation`\.
+    constellation_id = db.Column(db.Integer, nullable=False)
+
     #: The constellation this loss occured in.
     constellation = db.Column(db.String(25, convert_unicode=True),
             nullable=False, index=True)
+
+    #: The location ID for :py:attribute:`.region`\.
+    region_id = db.Column(db.Integer, nullable=False)
 
     #: The region this loss occured in.
     region = db.Column(db.String(25, convert_unicode=True), nullable=False,
@@ -671,11 +689,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
             def __iter__(self):
                 for attr, transformer in\
                         self._request.division.transformers.items():
-                    if attr == 'ship_type':
-                        yield ('ship', transformer(getattr(self._request,
-                                attr)))
-                    else:
-                        yield (attr, transformer(getattr(self._request, attr)))
+                    yield (attr, transformer(getattr(self._request, attr)))
 
         return RequestTransformer(self)
 
@@ -690,12 +704,10 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
         attrs = (u'killmail_url', u'pilot',
                  u'alliance', u'corporation', u'submitter',
                  u'division', u'status', u'base_payout', u'payout',
-                 u'details', u'id', u'ship_type', u'system', u'constellation',
+                 u'details', u'id', u'type_name', u'system', u'constellation',
                  u'region')
         for attr in attrs:
-            if attr == u'ship_type':
-                parent['ship'] = self.ship_type
-            elif u'payout' in attr:
+            if u'payout' in attr:
                 payout = getattr(self, attr)
                 parent[attr] = payout.currency()
             else:

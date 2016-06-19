@@ -307,10 +307,15 @@ class FuzzworksTypeLookup(object):
                 self.data[key] = fuzzworks_json['typeID']
         return self.data[key]
 
+    def items(self):
+        # Python3 could use yield from :(
+        for key, value in self.data:
+            yield key, value
+
 
 class SRPApp(object):
 
-    def __init__(self, base_url, api_key, data_path='srp_requests.json'):
+    def __init__(self, base_url=None, api_key=None, data_path='srp_requests.json'):
         self.base_url = base_url
         self.api_key = api_key
         self.data_path = data_path

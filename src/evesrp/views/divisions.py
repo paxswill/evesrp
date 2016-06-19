@@ -126,7 +126,7 @@ transformer_choices = [
     # TRANS: Label for the region a loss occured in.
     ('region', lazy_gettext(u'Region')),
     # TRANS: Label for the type of ship that was lost.
-    ('ship_type', lazy_gettext(u'Ship')),
+    ('type_name', lazy_gettext(u'Ship')),
     # TRANS: Label for the status a request is in (ex: Unevaluated, Approved)
     ('status', lazy_gettext(u'Request Status')),
 ]

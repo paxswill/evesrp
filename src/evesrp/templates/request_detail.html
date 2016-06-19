@@ -80,7 +80,7 @@
         <span id="system">{{ srp_request.transformed.system }}</span>
       </dd>
       <dt>{% trans %}Ship{% endtrans %}</dt>
-      <dd>{{ srp_request.transformed.ship_type }}</dd>
+      <dd>{{ srp_request.transformed.type_name }}</dd>
       {# TRANS: The status a request is in. Possiblities include Unevaluated, Approved, Rejected, Paid and Incomplete. #}
       <dt>{% trans %}Status{% endtrans %}</dt>
       <dd><span id="request-status" class="label label-{{ macros.status_color(srp_request.status) }}">{{ srp_request.transformed.status }}</span></dd>

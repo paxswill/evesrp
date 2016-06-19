@@ -212,7 +212,7 @@ class FiltersRequestListing(object):
                     'pilot_id',
                     'corporation',
                     'alliance',
-                    'ship_type',
+                    'type_name',
                     'status',
                     'base_payout',
                     'kill_timestamp',
@@ -237,7 +237,7 @@ class FiltersRequestListing(object):
                 u'pilot': request.pilot.name,
                 u'corporation': request.corporation,
                 u'alliance': request.alliance,
-                u'ship': request.ship_type,
+                u'ship': request.type_name,
                 u'status': request.status.name,
                 u'payout': payout.currency(),
                 u'kill_timestamp': request.kill_timestamp,
@@ -297,7 +297,7 @@ def _first(o):
 @filters.route('/ship/')
 @login_required
 def filter_ships():
-    ships = db.session.query(Request.ship_type).distinct()
+    ships = db.session.query(Request.type_name).distinct()
     return jsonify(key=u'ship', ship=map(_first, ships))
 
 
