@@ -284,7 +284,7 @@ def _modify_division_entity(division):
             # TRANS: Error message that is shown when one or more fields of a
             # TRANS: form are shown.
             flash(gettext(u"Errors for %(field_name)s: %(error)s.",
-                field_name=field_name, errors=errors), u'error')
+                field_name=field_name, error=errors), u'error')
         current_app.logger.info("Malformed entity permission POST: {}".format(
                 form.errors))
     return get_division_details(division=division)
@@ -318,7 +318,7 @@ def _modify_division_transformer(division):
             errors = u", ".join(errors)
             # TRANS: Generic error message shown for the fields in a form.
             flash(gettext(u"Errors for %(field_name)s: %(error)s.",
-                field_name=field_name, errors=errors), u'error')
+                field_name=field_name, error=errors), u'error')
         current_app.logger.info("Malformed division transformer POST: {}".
                 format(form.errors))
     return get_division_details(division=division)
