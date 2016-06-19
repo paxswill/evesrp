@@ -3,9 +3,9 @@ from base64 import urlsafe_b64decode
 import binascii
 from flask import render_template, url_for, abort, session, redirect, request,\
         current_app, g, Blueprint, flash
-from flask.ext import login as flask_login
-from flask.ext.babel import gettext, lazy_gettext
-from flask.ext.wtf import Form
+import flask_login
+from flask_babel import gettext, lazy_gettext
+from flask_wtf import Form
 from six.moves import map
 from wtforms.fields import HiddenField
 from wtforms.validators import AnyOf

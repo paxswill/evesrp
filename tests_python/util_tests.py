@@ -12,7 +12,7 @@ from evesrp.auth.models import User
 from wtforms.fields import StringField, SubmitField
 from sqlalchemy.orm.exc import NoResultFound
 from flask import redirect, url_for, request, render_template
-from flask.ext.wtf import Form
+from flask_wtf import Form
 
 
 class TestApp(TestCase):
@@ -180,7 +180,7 @@ def no_alliance_zkillboard(url, request):
     return response(content=json.dumps(resp))
 
 
-_parsed_crest_url = urlparse('http://public-crest.eveonline.com/killmails/30290604/'
+_parsed_crest_url = urlparse('http://crest-tq.eveonline.com/killmails/30290604/'
                              '787fb3714062f1700560d4a83ce32c67640b1797/')
 @urlmatch(scheme=_parsed_crest_url.scheme,
           netloc=_parsed_crest_url.netloc,

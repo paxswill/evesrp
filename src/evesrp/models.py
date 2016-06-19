@@ -9,8 +9,8 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.event import listens_for
 from sqlalchemy.schema import DDL, DropIndex
 from flask import Markup, current_app, url_for
-from flask.ext.babel import gettext, lazy_gettext
-from flask.ext.login import current_user
+from flask_babel import gettext, lazy_gettext
+from flask_login import current_user
 
 from . import db
 from .util import DeclEnum, classproperty, AutoID, Timestamped, AutoName,\

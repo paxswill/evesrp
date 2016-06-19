@@ -3,8 +3,8 @@ from __future__ import absolute_import
 import xml.etree.ElementTree as ET
 from flask import request, current_app, abort, flash
 from sqlalchemy.orm.exc import NoResultFound
-from flask.ext.wtf import Form
-from flask.ext.login import current_user
+from flask_wtf import Form
+from flask_login import current_user
 from oauthlib.oauth2 import OAuth2Error
 
 from .oauth import OAuthMethod, OAuthUser
