@@ -32,7 +32,7 @@ Utilities
     options argument. This function should be functionally identical to
     Flask-SQLAlchemy's
     :py:meth:`Pagination.iter_pages\
-    <flask.ext.sqlalchemy.Pagination.iter_pages>`
+    <flask_sqlalchemy.Pagination.iter_pages>`
     (including in default arguments). One deviation is that this function uses
     0-indexed page numbers instead of 1-indexed, to ease compatibility with
     PourOver. Skipped numbers are represented by ``null``.

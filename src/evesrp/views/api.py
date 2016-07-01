@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 from flask import url_for, redirect, abort, request, Blueprint, current_app
-from flask.ext.login import login_required, current_user
+from flask_login import login_required, current_user
 import six
 from six.moves import filter, map
 from sqlalchemy.orm.exc import NoResultFound

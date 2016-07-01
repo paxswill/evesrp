@@ -10,7 +10,7 @@ import six
 from .util import unistr, urlparse, urlunparse, utc
 
 from flask import Markup, current_app
-from flask.ext.babel import gettext, lazy_gettext
+from flask_babel import gettext, lazy_gettext
 import requests
 from sqlalchemy import create_engine, Table, MetaData
 from sqlalchemy.sql import select

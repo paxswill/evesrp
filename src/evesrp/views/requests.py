@@ -6,11 +6,11 @@ import babel
 from flask import render_template, abort, url_for, flash, Markup, request,\
     redirect, current_app, Blueprint, Markup, json, make_response
 from flask.views import View
-from flask.ext.babel import gettext, lazy_gettext, get_locale
-from flask.ext.login import login_required, fresh_login_required, \
+from flask_babel import gettext, lazy_gettext, get_locale
+from flask_login import login_required, fresh_login_required, \
     current_user, login_fresh
-from flask.ext.sqlalchemy import Pagination
-from flask.ext.wtf import Form
+from flask_sqlalchemy import Pagination
+from flask_wtf import Form
 import iso8601
 import six
 from six.moves import map

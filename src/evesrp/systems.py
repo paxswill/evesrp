@@ -8,21 +8,17 @@ REGION_TYPE = 'application/vnd.ccp.eve.Region-v1+json'
 CONSTELLATION_TYPE = 'application/vnd.ccp.eve.Constellation-v1+json'
 SYSTEM_TYPE = 'application/vnd.ccp.eve.System-v1+json'
 
-REGION_SLUG = 'https://public-crest.eveonline.com/regions/{}/'
-CONSTELLATION_SLUG = 'https://public-crest.eveonline.com/constellations/{}/'
-SYSTEM_SLUG = 'https://public-crest.eveonline.com/solarsystems/{}/'
 
-
-region_names = NameLookup(static_data.region_names, REGION_SLUG, REGION_TYPE)
+region_names = NameLookup(static_data.region_names, 'regions', REGION_TYPE)
 
 
 constellation_names = NameLookup(
         static_data.constellation_names,
-        CONSTELLATION_SLUG,
+        'constellations',
         CONSTELLATION_TYPE)
 
 
-system_names = NameLookup(static_data.system_names, SYSTEM_SLUG, SYSTEM_TYPE)
+system_names = NameLookup(static_data.system_names, 'systems', SYSTEM_TYPE)
 
 
 class ConstellationRegionLookup(NameLookup):
@@ -30,7 +26,7 @@ class ConstellationRegionLookup(NameLookup):
     def __init__(self):
         super(ConstellationRegionLookup, self).__init__(
                 static_data.constellations_to_regions,
-                CONSTELLATION_SLUG,
+                'constellations',
                 CONSTELLATION_TYPE,
                 'region.href')
 
@@ -39,17 +35,19 @@ class ConstellationRegionLookup(NameLookup):
         # parent item will either be a CREST URL or an integer type ID
         if isinstance(parent_item, int):
             return parent_item
-        match = re.match(REGION_SLUG.replace('{}', '(.*)'), parent_item)
-        if not match:
+        resp = current_app.requests_session.get(parent_item,
+                headers={'Accept': REGION_TYPE})
+        if check_crest_response(resp) and resp.status_code == 200:
+            self._dict[key] = resp.json()['id']
+        else:
             message = "Cannot find the name for the ID requested: {}"\
                     .format(key)
             raise KeyError(message)
-        self._dict[key] = int(match.group(1))
         return self._dict[key]
 
 
 systems_constellations = NameLookup(static_data.systems_to_constellations,
-                                    SYSTEM_SLUG,
+                                    'systems',
                                     SYSTEM_TYPE,
                                     'constellation.id')
 

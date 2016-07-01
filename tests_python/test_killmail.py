@@ -150,7 +150,7 @@ class TestCRESTmail(TestCase):
 
     def test_crest_killmails(self):
         with HTTMock(*all_mocks):
-            km = killmail.CRESTMail('http://public-crest.eveonline.com/'
+            km = killmail.CRESTMail('http://crest-tq.eveonline.com/'
                     'killmails/30290604/'
                     '787fb3714062f1700560d4a83ce32c67640b1797/')
             expected_values = {
@@ -178,7 +178,7 @@ class TestCRESTmail(TestCase):
                 status_code=403)
 
         with HTTMock(bad_hash):
-            url = ''.join(('http://public-crest.eveonline.com/killmails/',
+            url = ''.join(('http://crest-tq.eveonline.com/killmails/',
                     '30290604/787fb3714062f1700560d4a83ce32c67640b1797/'))
             with self.assertRaisesRegexp(LookupError,
                     u"Error retrieving CREST killmail:.*"):

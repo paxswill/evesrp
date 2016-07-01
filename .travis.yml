@@ -52,14 +52,16 @@ matrix:
         - env: SRP_PYTHON="py34"    SRP_DB="sqlite"
         - env: SRP_PYTHON="py27"    SRP_DB="mysqldb"
         - env: SRP_PYTHON="pypy"    SRP_DB="sqlite"
-        - env: SRP_PYTHON="pypy3"   SRP_DB="sqlite"
+# Disable PyPy3 until it supports Python 3.3
+#       - env: SRP_PYTHON="pypy3"   SRP_DB="sqlite"
 # Special test suites
         - env: TEST_SUITE="javascript"
         - env: TEST_SUITE="docs"
     allow_failures:
 # Pypy is weird and takes a long time to test
-        - env: SRP_PYTHON="pypy" SRP_DB="sqlite"
-        - env: SRP_PYTHON="pypy3" SRP_DB="sqlite"
+        - env: SRP_PYTHON="pypy"    SRP_DB="sqlite"
+# See above note on PyPy3
+#       - env: SRP_PYTHON="pypy3"   SRP_DB="sqlite"
     fast_finish: true
 
 before_install:

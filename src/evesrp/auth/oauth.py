@@ -1,11 +1,11 @@
 from __future__ import absolute_import
 import datetime as dt
 from flask import flash, redirect, current_app, url_for, request, session
-from flask.ext.babel import gettext
-from flask.ext.login import current_user, login_user, login_fresh
+from flask_babel import gettext
+from flask_login import current_user, login_user, login_fresh
 from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2 import OAuth2Error
-from flask.ext.wtf import csrf
+from flask_wtf import csrf
 import six
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -55,9 +55,8 @@ class OAuthMethod(AuthMethod):
         is significant).
 
         :param default_token_expiry: The default time (in seconds) access
-        tokens are valid for. Defaults to 5 minutes.
-
-        :type default_token_expiry: :py:type:`int`
+            tokens are valid for. Defaults to 5 minutes.
+        :type default_token_expiry: :py:class:`int`
         """
         keyword_mapping = {
             'key': 'client_id',

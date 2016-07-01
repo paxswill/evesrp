@@ -6,9 +6,9 @@ import requests
 import sys
 import warnings
 from flask import current_app, g
-from flask.ext import sqlalchemy
-from flask.ext.babel import Babel, get_locale
-from flask.ext.wtf.csrf import CsrfProtect
+import flask_sqlalchemy
+from flask_babel import Babel, get_locale
+from flask_wtf.csrf import CsrfProtect
 import six
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -24,7 +24,7 @@ except ImportError:
     sentry = None
 
 
-db = sqlalchemy.SQLAlchemy()
+db = flask_sqlalchemy.SQLAlchemy()
 # Patch Flask-SQLAlchemy to use a custom Metadata instance with a naming scheme
 # for constraints.
 def _patch_metadata():
@@ -37,10 +37,10 @@ def _patch_metadata():
         'uq': 'uq_%(table_name)s_%(column_0_name)s',
     }
     metadata = MetaData(naming_convention=naming_convention)
-    base = declarative_base(cls=sqlalchemy.Model, name='Model',
-                            metaclass=sqlalchemy._BoundDeclarativeMeta,
+    base = declarative_base(cls=flask_sqlalchemy.Model, name='Model',
+                            metaclass=flask_sqlalchemy._BoundDeclarativeMeta,
                             metadata=metadata)
-    base.query = sqlalchemy._QueryProperty(db)
+    base.query = flask_sqlalchemy._QueryProperty(db)
     db.Model = base
 _patch_metadata()
 
@@ -304,7 +304,7 @@ def _config_requests_session(app):
             raise inner_exc
     requests_session = requests.Session()
     requests_session.headers.update({'User-Agent': ua_string})
-    requests_session.mount('https://public-crest.eveonline.com',
+    requests_session.mount('https://crest-tq.eveonline.com',
             WeakCiphersAdapter())
     app.requests_session = requests_session
 
