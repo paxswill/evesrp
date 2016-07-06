@@ -8,8 +8,8 @@ omit =
 [paths]
 source =
     src/evesrp
-    .tox/*/lib/python*/site-packages/EVE-SRP
-    .tox/pypy/site-packages/EVE-SRP
+    .tox/*/lib/python*/site-packages/evesrp
+    .tox/*/site-packages/evesrp
 
 [report]
 show_missing = false
