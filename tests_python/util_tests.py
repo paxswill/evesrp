@@ -3,7 +3,9 @@ from __future__ import unicode_literals
 from unittest import TestCase
 import json
 from six.moves.urllib.parse import urlparse
-from os import environ as env
+import os
+import tempfile
+import shutil
 import httmock
 from httmock import urlmatch
 from evesrp import create_app, db, init_app
@@ -25,11 +27,20 @@ class TestApp(TestCase):
         }
         # Default to an ephemeral SQLite DB for testing unless given another
         # database to connect to.
-        config['SQLALCHEMY_DATABASE_URI'] = env.get('DB', 'sqlite:///')
+        db_uri = os.environ.get('DB')
+        if db_uri is None:
+            self.temp_dir = tempfile.mkdtemp()
+            sqlite_path = os.path.join(self.temp_dir, 'evesrp.sqlite')
+            db_uri = 'sqlite:///' + sqlite_path
+            print("Creating " + self.temp_dir)
+        config['SQLALCHEMY_DATABASE_URI'] = db_uri
         self.app = create_app(config)
         db.create_all(app=self.app)
 
     def tearDown(self):
+        if hasattr(self, 'temp_dir'):
+            print("Removing " + self.temp_dir)
+            shutil.rmtree(self.tempdir)
         db.drop_all(app=self.app)
 
 
