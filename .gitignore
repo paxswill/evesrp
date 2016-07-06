@@ -13,3 +13,4 @@ less.mk
 browserify.mk
 dist
 .tox
+.cache
