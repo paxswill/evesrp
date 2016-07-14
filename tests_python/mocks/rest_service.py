@@ -1,6 +1,7 @@
 # Heavily inspired by https://github.com/danriti/python-mocked-service
 from __future__ import absolute_import
 import os.path
+import re
 
 from httmock import response, urlmatch
 
@@ -30,6 +31,8 @@ class RESTService(object):
         self.headers = headers
 
     def __call__(self, url, request):
+        if not re.match(self.netloc, url.netloc):
+            return None
         path = url.netloc + url.path
         resource = Resource(path)
         method = request.method.lower()
