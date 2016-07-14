@@ -1,0 +1,88 @@
+{
+    "name": "The Forge",
+    "description": "\"The greater the State becomes, the greater humanity under it flourishes.\"",
+    "marketBuyOrders": {
+        "href": "https://crest-tq.eveonline.com/market/10000002/orders/buy/"
+    },
+    "marketHistory": {
+        "href": "https://crest-tq.eveonline.com/market/10000002/history/"
+    },
+    "constellations": [
+        {
+            "href": "https://crest-tq.eveonline.com/constellations/20000017/",
+            "id": 20000017,
+            "id_str": "20000017"
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/constellations/20000018/",
+            "id": 20000018,
+            "id_str": "20000018"
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/constellations/20000019/",
+            "id": 20000019,
+            "id_str": "20000019"
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/constellations/20000020/",
+            "id": 20000020,
+            "id_str": "20000020"
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/constellations/20000021/",
+            "id": 20000021,
+            "id_str": "20000021"
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/constellations/20000022/",
+            "id": 20000022,
+            "id_str": "20000022"
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/constellations/20000023/",
+            "id": 20000023,
+            "id_str": "20000023"
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/constellations/20000024/",
+            "id": 20000024,
+            "id_str": "20000024"
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/constellations/20000025/",
+            "id": 20000025,
+            "id_str": "20000025"
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/constellations/20000026/",
+            "id": 20000026,
+            "id_str": "20000026"
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/constellations/20000027/",
+            "id": 20000027,
+            "id_str": "20000027"
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/constellations/20000028/",
+            "id": 20000028,
+            "id_str": "20000028"
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/constellations/20000029/",
+            "id": 20000029,
+            "id_str": "20000029"
+        }
+    ],
+    "marketOrders": {
+        "href": "https://crest-tq.eveonline.com/market/10000002/orders/"
+    },
+    "id_str": "10000002",
+    "marketOrdersAll": {
+        "href": "https://crest-tq.eveonline.com/market/10000002/orders/all/"
+    },
+    "id": 10000002,
+    "marketSellOrders": {
+        "href": "https://crest-tq.eveonline.com/market/10000002/orders/sell/"
+    }
+}

@@ -1,0 +1,48 @@
+{
+    "position": {
+        "y": 64999452632293260,
+        "x": -134996400468185440,
+        "z": 103325617317521340
+    },
+    "region": {
+        "href": "https://crest-tq.eveonline.com/regions/10000002/"
+    },
+    "systems": [
+        {
+            "href": "https://crest-tq.eveonline.com/solarsystems/30000139/",
+            "id": 30000139,
+            "id_str": "30000139"
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/solarsystems/30000140/",
+            "id": 30000140,
+            "id_str": "30000140"
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/solarsystems/30000141/",
+            "id": 30000141,
+            "id_str": "30000141"
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/solarsystems/30000142/",
+            "id": 30000142,
+            "id_str": "30000142"
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/solarsystems/30000143/",
+            "id": 30000143,
+            "id_str": "30000143"
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/solarsystems/30000144/",
+            "id": 30000144,
+            "id_str": "30000144"
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/solarsystems/30000145/",
+            "id": 30000145,
+            "id_str": "30000145"
+        }
+    ],
+    "name": "Kimotoro"
+}

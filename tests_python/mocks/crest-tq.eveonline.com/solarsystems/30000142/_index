@@ -1,0 +1,206 @@
+{
+    "stats": {
+        "href": "https://crest-tq.eveonline.com/solarsystems/30000142/stats/"
+    },
+    "planets": [
+        {
+            "href": "https://crest-tq.eveonline.com/planets/40009077/"
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/planets/40009078/"
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/planets/40009080/",
+            "moons": [
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009081/"
+                }
+            ]
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/planets/40009082/",
+            "moons": [
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009083/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009084/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009085/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009087/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009088/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009089/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009090/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009091/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009092/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009093/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009094/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009097/"
+                }
+            ]
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/planets/40009098/",
+            "moons": [
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009099/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009100/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009101/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009102/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009103/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009104/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009105/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009106/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009107/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009108/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009109/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009110/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009111/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009112/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009113/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009114/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009115/"
+                }
+            ]
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/planets/40009116/",
+            "moons": [
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009118/"
+                }
+            ]
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/planets/40009119/",
+            "moons": [
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009121/"
+                },
+                {
+                    "href": "https://crest-tq.eveonline.com/moons/40009122/"
+                }
+            ]
+        },
+        {
+            "href": "https://crest-tq.eveonline.com/planets/40009123/"
+        }
+    ],
+    "stargates": [
+        {
+            "id_str": "50001248",
+            "href": "https://crest-tq.eveonline.com/stargates/50001248/",
+            "id": 50001248,
+            "name": "Stargate (Maurasi)"
+        },
+        {
+            "id_str": "50001249",
+            "href": "https://crest-tq.eveonline.com/stargates/50001249/",
+            "id": 50001249,
+            "name": "Stargate (Perimeter)"
+        },
+        {
+            "id_str": "50001250",
+            "href": "https://crest-tq.eveonline.com/stargates/50001250/",
+            "id": 50001250,
+            "name": "Stargate (New Caldari)"
+        },
+        {
+            "id_str": "50013876",
+            "href": "https://crest-tq.eveonline.com/stargates/50013876/",
+            "id": 50013876,
+            "name": "Stargate (Sobaseki)"
+        },
+        {
+            "id_str": "50013913",
+            "href": "https://crest-tq.eveonline.com/stargates/50013913/",
+            "id": 50013913,
+            "name": "Stargate (Muvolailen)"
+        },
+        {
+            "id_str": "50013921",
+            "href": "https://crest-tq.eveonline.com/stargates/50013921/",
+            "id": 50013921,
+            "name": "Stargate (Niyabainen)"
+        },
+        {
+            "id_str": "50013928",
+            "href": "https://crest-tq.eveonline.com/stargates/50013928/",
+            "id": 50013928,
+            "name": "Stargate (Ikuchi)"
+        }
+    ],
+    "securityClass": "B",
+    "href": "https://crest-tq.eveonline.com/solarsystems/30000142/",
+    "id_str": "30000142",
+    "securityStatus": 0.9459131360054016,
+    "position": {
+        "y": 60755306909963630,
+        "x": -129064861734878260,
+        "z": 117469227060090290
+    },
+    "sovereignty": {
+        "id_str": "500001",
+        "href": "https://crest-tq.eveonline.com/alliances/500001/",
+        "id": 500001,
+        "name": "Caldari State"
+    },
+    "constellation": {
+        "href": "https://crest-tq.eveonline.com/constellations/20000020/",
+        "id": 20000020,
+        "id_str": "20000020"
+    },
+    "id": 30000142,
+    "name": "Jita"
+}
