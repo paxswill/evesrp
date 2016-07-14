@@ -119,3 +119,8 @@ def user_login(user, evesrp_app):
 @pytest.fixture
 def crest():
     return mocks.crest
+
+
+@pytest.fixture
+def zkillboard():
+    return mocks.zKillboard

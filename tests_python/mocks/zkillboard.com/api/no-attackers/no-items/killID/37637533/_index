@@ -1,0 +1,24 @@
+[
+  {
+    "killID":37637533,
+    "killTime":"2014-03-20 02:32:00",
+    "zkb":{
+      "totalValue":273816945.63,
+      "points":22
+    },
+    "victim":{
+      "allianceName":"Test Alliance Please Ignore",
+      "corporationID":1018389948,
+      "allianceID":498125261,
+      "factionID":500001,
+      "shipTypeID":12017,
+      "corporationName":"Dreddit",
+      "characterName":"Paxswill",
+      "factionName":"Caldari State",
+      "damageTaken":25198,
+      "characterID":570140137
+    },
+    "solarSystemID":30001228,
+    "moonID":0
+  }
+]

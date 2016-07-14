@@ -1,10 +1,10 @@
 from __future__ import absolute_import
 from unittest import TestCase
 from decimal import Decimal
-from httmock import HTTMock, all_requests
+import re
+import pytest
+from httmock import HTTMock, all_requests, response
 from evesrp import killmail
-from .util_tests import TestApp, all_mocks, response
-from .test_systems import jita_lookup, kimotoro_lookup, forge_lookup
 
 
 class TestKillmail(TestCase):
@@ -43,30 +43,33 @@ class TestNameMixin(TestCase):
         self.assertEqual(km.ship, u'Devoter')
 
 
-class TestLocationMixin(TestApp):
+@pytest.fixture
+def location_mixed():
+    LocationMixed = type('LocationMixed', (killmail.Killmail,
+                                           killmail.LocationMixin),
+                         dict())
+    return LocationMixed
 
-    def setUp(self):
-        super(TestLocationMixin, self).setUp()
-        self.LocationMixed = type('LocationMixed', (killmail.Killmail,
-                killmail.LocationMixin), dict())
 
-    def test_system(self):
-        with self.app.test_request_context():
-            with HTTMock(jita_lookup, kimotoro_lookup, forge_lookup):
-                km = self.LocationMixed(system_id=30000142)
-                self.assertEqual(km.system, u'Jita')
+class TestLocationMixin(object):
 
-    def test_constellation(self):
-        with self.app.test_request_context():
-            with HTTMock(jita_lookup, kimotoro_lookup, forge_lookup):
-                km = self.LocationMixed(system_id=30000142)
-                self.assertEqual(km.constellation, u'Kimotoro')
+    def test_system(self, evesrp_app, crest, location_mixed):
+        with evesrp_app.test_request_context():
+            with HTTMock(crest):
+                km = location_mixed(system_id=30000142)
+                assert km.system == u'Jita'
 
-    def test_region(self):
-        with self.app.test_request_context():
-            with HTTMock(jita_lookup, kimotoro_lookup, forge_lookup):
-                km = self.LocationMixed(system_id=30000142)
-                self.assertEqual(km.region, u'The Forge')
+    def test_constellation(self, evesrp_app, crest, location_mixed):
+        with evesrp_app.test_request_context():
+            with HTTMock(crest):
+                km = location_mixed(system_id=30000142)
+                assert km.constellation == u'Kimotoro'
+
+    def test_region(self, evesrp_app, crest, location_mixed):
+        with evesrp_app.test_request_context():
+            with HTTMock(crest):
+                km = location_mixed(system_id=30000142)
+                assert km.region == u'The Forge'
 
 
 class TestRequestsMixin(TestCase):
@@ -85,10 +88,10 @@ class TestRequestsMixin(TestCase):
         self.assertIs(km.requests_session, session)
 
 
-class TestZKillmail(TestCase):
+class TestZKillmail(object):
 
-    def test_fw_killmail(self):
-        with HTTMock(*all_mocks):
+    def test_fw_killmail(self, zkillboard, crest):
+        with HTTMock(zkillboard, crest):
             # Actual testing
             km = killmail.ZKillmail('https://zkillboard.com/kill/37637533/')
             expected_values = {
@@ -101,10 +104,10 @@ class TestZKillmail(TestCase):
                 u'value': Decimal('273816945.63'),
             }
             for attr, value in expected_values.items():
-                self.assertEqual(getattr(km, attr), value)
+                assert getattr(km, attr) == value
 
-    def test_no_alliance_killmail(self):
-        with HTTMock(*all_mocks):
+    def test_no_alliance_killmail(self, zkillboard, crest):
+        with HTTMock(zkillboard, crest):
             # Actual testing
             km = killmail.ZKillmail('https://zkillboard.com/kill/38862043/')
             expected_values = {
@@ -117,12 +120,13 @@ class TestZKillmail(TestCase):
                 u'value': Decimal('10432408.70'),
             }
             for attr, value in expected_values.items():
-                self.assertEqual(getattr(km, attr), value)
+                assert getattr(km, attr) == value
 
     def test_invalid_zkb_url(self):
-        with self.assertRaisesRegexp(ValueError,
-                u"'.*' is not a valid zKillboard killmail"):
+        with pytest.raises(ValueError) as excinfo:
             killmail.ZKillmail('foobar')
+        assert re.match(u"'.*' is not a valid zKillboard killmail",
+                        str(excinfo.value))
 
     def test_invalid_zkb_response(self):
         @all_requests
@@ -131,9 +135,10 @@ class TestZKillmail(TestCase):
 
         with HTTMock(bad_response):
             url = 'https://zkillboard.com/kill/38862043/'
-            with self.assertRaisesRegexp(LookupError,
-                    u"Error retrieving killmail data:.*"):
+            with pytest.raises(LookupError) as excinfo:
                 killmail.ZKillmail(url)
+            assert re.match(u"Error retrieving killmail data:.*",
+                            str(excinfo.value))
 
     def test_invalid_kill_ids(self):
         @all_requests
@@ -142,14 +147,15 @@ class TestZKillmail(TestCase):
 
         with HTTMock(empty_response):
             url = 'https://zkillboard.com/kill/0/'
-            with self.assertRaisesRegexp(LookupError, u"Invalid killmail: .*"):
+            with pytest.raises(LookupError) as excinfo:
                 killmail.ZKillmail(url)
+            assert re.match(u"Invalid killmail: .*", str(excinfo.value))
 
 
-class TestCRESTmail(TestCase):
+class TestCRESTmail(object):
 
-    def test_crest_killmails(self):
-        with HTTMock(*all_mocks):
+    def test_crest_killmails(self, crest):
+        with HTTMock(crest):
             km = killmail.CRESTMail('http://crest-tq.eveonline.com/'
                     'killmails/30290604/'
                     '787fb3714062f1700560d4a83ce32c67640b1797/')
@@ -161,12 +167,13 @@ class TestCRESTmail(TestCase):
                 u'system': u'Todifrauan',
             }
             for attr, value in expected_values.items():
-                self.assertEqual(getattr(km, attr), value)
+                assert getattr(km, attr) == value
 
     def test_invalid_crest_url(self):
-        with self.assertRaisesRegexp(ValueError,
-                u"'.*' is not a valid CREST killmail"):
+        with pytest.raises(ValueError) as excinfo:
             killmail.CRESTMail('foobar')
+        assert re.match(u"'.*' is not a valid CREST killmail",
+                        str(excinfo.value))
 
     def test_invalid_crest_response(self):
         @all_requests
@@ -180,6 +187,7 @@ class TestCRESTmail(TestCase):
         with HTTMock(bad_hash):
             url = ''.join(('http://crest-tq.eveonline.com/killmails/',
                     '30290604/787fb3714062f1700560d4a83ce32c67640b1797/'))
-            with self.assertRaisesRegexp(LookupError,
-                    u"Error retrieving CREST killmail:.*"):
+            with pytest.raises(LookupError) as excinfo:
                 killmail.CRESTMail(url)
+            assert re.match(u"Error retrieving CREST killmail:.*",
+                            str(excinfo.value))

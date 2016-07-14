@@ -1,0 +1,2 @@
+The integers in this response are being kept as strings to simulate old
+zKillboard behavior.

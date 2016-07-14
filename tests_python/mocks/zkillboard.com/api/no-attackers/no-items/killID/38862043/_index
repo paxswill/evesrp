@@ -1,0 +1,26 @@
+[
+  {
+    "killID":"38862043",
+    "killTime":"2014-05-15 03:11:00",
+    "zkb":{
+      "involved":1,
+      "totalValue":"10432408.70",
+      "points":"8"
+    },
+    "victim":{
+      "corporationID":"98070272",
+      "victim":"",
+      "damageTaken":"1507",
+      "factionName":"",
+      "allianceName":"",
+      "factionID":"0",
+      "shipTypeID":"598",
+      "corporationName":"Omega LLC",
+      "characterName":"Dave Duclas",
+      "allianceID":"0",
+      "characterID":"90741463"
+    },
+    "solarSystemID":"30002811",
+    "moonID":"0"
+  }
+]
