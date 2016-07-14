@@ -9,6 +9,7 @@ from wtforms.fields import StringField, SubmitField
 from evesrp import create_app, db
 from evesrp.auth import AuthMethod
 from evesrp.auth.models import User
+from . import mocks
 
 
 # NullAuthForm and NullAuth define an AuthMethod that does no actual
@@ -113,3 +114,8 @@ def user_login(user, evesrp_app):
             data.items()}
     client.post('/login/', follow_redirects=True, data=data)
     return client
+
+
+@pytest.fixture
+def crest():
+    return mocks.crest

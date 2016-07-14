@@ -1,0 +1,853 @@
+{
+    "graphicID": {
+        "id_str": "21052",
+        "href": "https://crest-tq.eveonline.com/graphicids/21052/",
+        "id": 21052,
+        "sofDNA": "mde3_t3:minmatarbase:minmatar"
+    },
+    "capacity": 430,
+    "description": "Released in YC 117 as the result of the first Republic Fleet joint research project to include engineers from all seven Minmatar tribes, the Svipul is a powerful symbol of inter-tribal unity for many Republic citizens.\r\n\r\nAlthough the contributions of engineers from the Nefantar and Starkmanir tribes were fairly minor, a large delegation from the Vo-Lakat Thukker caravan and donations from Republic loyalist capsuleers across the cluster were invaluable to the development of this incredibly adaptable warship.",
+    "portionSize_str": "1",
+    "portionSize": 1,
+    "volume": 47000,
+    "dogma": {
+        "attributes": [
+            {
+                "attribute": {
+                    "id_str": "3",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/3/",
+                    "id": 3,
+                    "name": "damage"
+                },
+                "value": 0
+            },
+            {
+                "attribute": {
+                    "id_str": "4",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/4/",
+                    "id": 4,
+                    "name": "mass"
+                },
+                "value": 1500000
+            },
+            {
+                "attribute": {
+                    "id_str": "9",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/9/",
+                    "id": 9,
+                    "name": "hp"
+                },
+                "value": 550
+            },
+            {
+                "attribute": {
+                    "id_str": "11",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/11/",
+                    "id": 11,
+                    "name": "powerOutput"
+                },
+                "value": 59
+            },
+            {
+                "attribute": {
+                    "id_str": "12",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/12/",
+                    "id": 12,
+                    "name": "lowSlots"
+                },
+                "value": 4
+            },
+            {
+                "attribute": {
+                    "id_str": "13",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/13/",
+                    "id": 13,
+                    "name": "medSlots"
+                },
+                "value": 4
+            },
+            {
+                "attribute": {
+                    "id_str": "14",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/14/",
+                    "id": 14,
+                    "name": "hiSlots"
+                },
+                "value": 6
+            },
+            {
+                "attribute": {
+                    "id_str": "15",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/15/",
+                    "id": 15,
+                    "name": "powerLoad"
+                },
+                "value": 0
+            },
+            {
+                "attribute": {
+                    "id_str": "19",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/19/",
+                    "id": 19,
+                    "name": "powerToSpeed"
+                },
+                "value": 1
+            },
+            {
+                "attribute": {
+                    "id_str": "21",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/21/",
+                    "id": 21,
+                    "name": "warpFactor"
+                },
+                "value": 0
+            },
+            {
+                "attribute": {
+                    "id_str": "37",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/37/",
+                    "id": 37,
+                    "name": "maxVelocity"
+                },
+                "value": 230
+            },
+            {
+                "attribute": {
+                    "id_str": "38",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/38/",
+                    "id": 38,
+                    "name": "capacity"
+                },
+                "value": 430
+            },
+            {
+                "attribute": {
+                    "id_str": "48",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/48/",
+                    "id": 48,
+                    "name": "cpuOutput"
+                },
+                "value": 205
+            },
+            {
+                "attribute": {
+                    "id_str": "49",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/49/",
+                    "id": 49,
+                    "name": "cpuLoad"
+                },
+                "value": 0
+            },
+            {
+                "attribute": {
+                    "id_str": "55",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/55/",
+                    "id": 55,
+                    "name": "rechargeRate"
+                },
+                "value": 240000
+            },
+            {
+                "attribute": {
+                    "id_str": "70",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/70/",
+                    "id": 70,
+                    "name": "agility"
+                },
+                "value": 3.5
+            },
+            {
+                "attribute": {
+                    "id_str": "76",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/76/",
+                    "id": 76,
+                    "name": "maxTargetRange"
+                },
+                "value": 40000
+            },
+            {
+                "attribute": {
+                    "id_str": "79",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/79/",
+                    "id": 79,
+                    "name": "scanSpeed"
+                },
+                "value": 5000
+            },
+            {
+                "attribute": {
+                    "id_str": "101",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/101/",
+                    "id": 101,
+                    "name": "launcherSlotsLeft"
+                },
+                "value": 1
+            },
+            {
+                "attribute": {
+                    "id_str": "102",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/102/",
+                    "id": 102,
+                    "name": "turretSlotsLeft"
+                },
+                "value": 4
+            },
+            {
+                "attribute": {
+                    "id_str": "109",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/109/",
+                    "id": 109,
+                    "name": "kineticDamageResonance"
+                },
+                "value": 0.67
+            },
+            {
+                "attribute": {
+                    "id_str": "110",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/110/",
+                    "id": 110,
+                    "name": "thermalDamageResonance"
+                },
+                "value": 0.67
+            },
+            {
+                "attribute": {
+                    "id_str": "111",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/111/",
+                    "id": 111,
+                    "name": "explosiveDamageResonance"
+                },
+                "value": 0.67
+            },
+            {
+                "attribute": {
+                    "id_str": "113",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/113/",
+                    "id": 113,
+                    "name": "emDamageResonance"
+                },
+                "value": 0.67
+            },
+            {
+                "attribute": {
+                    "id_str": "124",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/124/",
+                    "id": 124,
+                    "name": "mainColor"
+                },
+                "value": 16777215
+            },
+            {
+                "attribute": {
+                    "id_str": "129",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/129/",
+                    "id": 129,
+                    "name": "maxPassengers"
+                },
+                "value": 450
+            },
+            {
+                "attribute": {
+                    "id_str": "136",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/136/",
+                    "id": 136,
+                    "name": "uniformity"
+                },
+                "value": 1
+            },
+            {
+                "attribute": {
+                    "id_str": "153",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/153/",
+                    "id": 153,
+                    "name": "warpCapacitorNeed"
+                },
+                "value": 8.13e-7
+            },
+            {
+                "attribute": {
+                    "id_str": "161",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/161/",
+                    "id": 161,
+                    "name": "volume"
+                },
+                "value": 47000
+            },
+            {
+                "attribute": {
+                    "id_str": "162",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/162/",
+                    "id": 162,
+                    "name": "radius"
+                },
+                "value": 144
+            },
+            {
+                "attribute": {
+                    "id_str": "182",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/182/",
+                    "id": 182,
+                    "name": "requiredSkill1"
+                },
+                "value": 34533
+            },
+            {
+                "attribute": {
+                    "id_str": "192",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/192/",
+                    "id": 192,
+                    "name": "maxLockedTargets"
+                },
+                "value": 7
+            },
+            {
+                "attribute": {
+                    "id_str": "208",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/208/",
+                    "id": 208,
+                    "name": "scanRadarStrength"
+                },
+                "value": 0
+            },
+            {
+                "attribute": {
+                    "id_str": "209",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/209/",
+                    "id": 209,
+                    "name": "scanLadarStrength"
+                },
+                "value": 11
+            },
+            {
+                "attribute": {
+                    "id_str": "210",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/210/",
+                    "id": 210,
+                    "name": "scanMagnetometricStrength"
+                },
+                "value": 0
+            },
+            {
+                "attribute": {
+                    "id_str": "211",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/211/",
+                    "id": 211,
+                    "name": "scanGravimetricStrength"
+                },
+                "value": 0
+            },
+            {
+                "attribute": {
+                    "id_str": "217",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/217/",
+                    "id": 217,
+                    "name": "propulsionGraphicID"
+                },
+                "value": 394
+            },
+            {
+                "attribute": {
+                    "id_str": "246",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/246/",
+                    "id": 246,
+                    "name": "gfxBoosterID"
+                },
+                "value": 394
+            },
+            {
+                "attribute": {
+                    "id_str": "263",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/263/",
+                    "id": 263,
+                    "name": "shieldCapacity"
+                },
+                "value": 800
+            },
+            {
+                "attribute": {
+                    "id_str": "265",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/265/",
+                    "id": 265,
+                    "name": "armorHP"
+                },
+                "value": 700
+            },
+            {
+                "attribute": {
+                    "id_str": "267",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/267/",
+                    "id": 267,
+                    "name": "armorEmDamageResonance"
+                },
+                "value": 0.2
+            },
+            {
+                "attribute": {
+                    "id_str": "268",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/268/",
+                    "id": 268,
+                    "name": "armorExplosiveDamageResonance"
+                },
+                "value": 0.9
+            },
+            {
+                "attribute": {
+                    "id_str": "269",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/269/",
+                    "id": 269,
+                    "name": "armorKineticDamageResonance"
+                },
+                "value": 0.75
+            },
+            {
+                "attribute": {
+                    "id_str": "270",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/270/",
+                    "id": 270,
+                    "name": "armorThermalDamageResonance"
+                },
+                "value": 0.4875
+            },
+            {
+                "attribute": {
+                    "id_str": "271",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/271/",
+                    "id": 271,
+                    "name": "shieldEmDamageResonance"
+                },
+                "value": 0.5
+            },
+            {
+                "attribute": {
+                    "id_str": "272",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/272/",
+                    "id": 272,
+                    "name": "shieldExplosiveDamageResonance"
+                },
+                "value": 0.5
+            },
+            {
+                "attribute": {
+                    "id_str": "273",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/273/",
+                    "id": 273,
+                    "name": "shieldKineticDamageResonance"
+                },
+                "value": 0.6
+            },
+            {
+                "attribute": {
+                    "id_str": "274",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/274/",
+                    "id": 274,
+                    "name": "shieldThermalDamageResonance"
+                },
+                "value": 0.6
+            },
+            {
+                "attribute": {
+                    "id_str": "277",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/277/",
+                    "id": 277,
+                    "name": "requiredSkill1Level"
+                },
+                "value": 1
+            },
+            {
+                "attribute": {
+                    "id_str": "283",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/283/",
+                    "id": 283,
+                    "name": "droneCapacity"
+                },
+                "value": 0
+            },
+            {
+                "attribute": {
+                    "id_str": "422",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/422/",
+                    "id": 422,
+                    "name": "techLevel"
+                },
+                "value": 3
+            },
+            {
+                "attribute": {
+                    "id_str": "479",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/479/",
+                    "id": 479,
+                    "name": "shieldRechargeRate"
+                },
+                "value": 800000
+            },
+            {
+                "attribute": {
+                    "id_str": "482",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/482/",
+                    "id": 482,
+                    "name": "capacitorCapacity"
+                },
+                "value": 600
+            },
+            {
+                "attribute": {
+                    "id_str": "484",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/484/",
+                    "id": 484,
+                    "name": "shieldUniformity"
+                },
+                "value": 0.75
+            },
+            {
+                "attribute": {
+                    "id_str": "524",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/524/",
+                    "id": 524,
+                    "name": "armorUniformity"
+                },
+                "value": 0.75
+            },
+            {
+                "attribute": {
+                    "id_str": "525",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/525/",
+                    "id": 525,
+                    "name": "structureUniformity"
+                },
+                "value": 1
+            },
+            {
+                "attribute": {
+                    "id_str": "552",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/552/",
+                    "id": 552,
+                    "name": "signatureRadius"
+                },
+                "value": 50
+            },
+            {
+                "attribute": {
+                    "id_str": "564",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/564/",
+                    "id": 564,
+                    "name": "scanResolution"
+                },
+                "value": 375
+            },
+            {
+                "attribute": {
+                    "id_str": "600",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/600/",
+                    "id": 600,
+                    "name": "warpSpeedMultiplier"
+                },
+                "value": 4.5
+            },
+            {
+                "attribute": {
+                    "id_str": "633",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/633/",
+                    "id": 633,
+                    "name": "metaLevel"
+                },
+                "value": 5
+            },
+            {
+                "attribute": {
+                    "id_str": "661",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/661/",
+                    "id": 661,
+                    "name": "maxDirectionalVelocity"
+                },
+                "value": 2000
+            },
+            {
+                "attribute": {
+                    "id_str": "662",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/662/",
+                    "id": 662,
+                    "name": "minTargetVelDmgMultiplier"
+                },
+                "value": 0.25
+            },
+            {
+                "attribute": {
+                    "id_str": "793",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/793/",
+                    "id": 793,
+                    "name": "shipBonusPirateFaction"
+                },
+                "value": 50
+            },
+            {
+                "attribute": {
+                    "id_str": "1132",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/1132/",
+                    "id": 1132,
+                    "name": "upgradeCapacity"
+                },
+                "value": 400
+            },
+            {
+                "attribute": {
+                    "id_str": "1137",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/1137/",
+                    "id": 1137,
+                    "name": "rigSlots"
+                },
+                "value": 3
+            },
+            {
+                "attribute": {
+                    "id_str": "1154",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/1154/",
+                    "id": 1154,
+                    "name": "upgradeSlotsLeft"
+                },
+                "value": 3
+            },
+            {
+                "attribute": {
+                    "id_str": "1178",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/1178/",
+                    "id": 1178,
+                    "name": "heatCapacityHi"
+                },
+                "value": 100
+            },
+            {
+                "attribute": {
+                    "id_str": "1179",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/1179/",
+                    "id": 1179,
+                    "name": "heatDissipationRateHi"
+                },
+                "value": 0.01
+            },
+            {
+                "attribute": {
+                    "id_str": "1196",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/1196/",
+                    "id": 1196,
+                    "name": "heatDissipationRateMed"
+                },
+                "value": 0.01
+            },
+            {
+                "attribute": {
+                    "id_str": "1198",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/1198/",
+                    "id": 1198,
+                    "name": "heatDissipationRateLow"
+                },
+                "value": 0.01
+            },
+            {
+                "attribute": {
+                    "id_str": "1199",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/1199/",
+                    "id": 1199,
+                    "name": "heatCapacityMed"
+                },
+                "value": 100
+            },
+            {
+                "attribute": {
+                    "id_str": "1200",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/1200/",
+                    "id": 1200,
+                    "name": "heatCapacityLow"
+                },
+                "value": 100
+            },
+            {
+                "attribute": {
+                    "id_str": "1224",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/1224/",
+                    "id": 1224,
+                    "name": "heatGenerationMultiplier"
+                },
+                "value": 0.85
+            },
+            {
+                "attribute": {
+                    "id_str": "1259",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/1259/",
+                    "id": 1259,
+                    "name": "heatAttenuationHi"
+                },
+                "value": 0.76
+            },
+            {
+                "attribute": {
+                    "id_str": "1261",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/1261/",
+                    "id": 1261,
+                    "name": "heatAttenuationMed"
+                },
+                "value": 0.63
+            },
+            {
+                "attribute": {
+                    "id_str": "1262",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/1262/",
+                    "id": 1262,
+                    "name": "heatAttenuationLow"
+                },
+                "value": 0.63
+            },
+            {
+                "attribute": {
+                    "id_str": "1271",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/1271/",
+                    "id": 1271,
+                    "name": "droneBandwidth"
+                },
+                "value": 0
+            },
+            {
+                "attribute": {
+                    "id_str": "1281",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/1281/",
+                    "id": 1281,
+                    "name": "baseWarpSpeed"
+                },
+                "value": 1
+            },
+            {
+                "attribute": {
+                    "id_str": "1547",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/1547/",
+                    "id": 1547,
+                    "name": "rigSize"
+                },
+                "value": 1
+            },
+            {
+                "attribute": {
+                    "id_str": "1555",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/1555/",
+                    "id": 1555,
+                    "name": "fwLpKill"
+                },
+                "value": 40
+            },
+            {
+                "attribute": {
+                    "id_str": "1768",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/1768/",
+                    "id": 1768,
+                    "name": "typeColorScheme"
+                },
+                "value": 11313
+            },
+            {
+                "attribute": {
+                    "id_str": "1985",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/1985/",
+                    "id": 1985,
+                    "name": "stanceSwitchTime"
+                },
+                "value": 10000
+            },
+            {
+                "attribute": {
+                    "id_str": "1989",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/1989/",
+                    "id": 1989,
+                    "name": "roleBonusTacticalDestroyer1"
+                },
+                "value": -95
+            },
+            {
+                "attribute": {
+                    "id_str": "2004",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/2004/",
+                    "id": 2004,
+                    "name": "shipBonusTacticalDestroyerMinmatar1"
+                },
+                "value": 10
+            },
+            {
+                "attribute": {
+                    "id_str": "2005",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/2005/",
+                    "id": 2005,
+                    "name": "shipBonusTacticalDestroyerMinmatar2"
+                },
+                "value": 10
+            },
+            {
+                "attribute": {
+                    "id_str": "2006",
+                    "href": "https://crest-tq.eveonline.com/dogma/attributes/2006/",
+                    "id": 2006,
+                    "name": "shipBonusTacticalDestroyerMinmatar3"
+                },
+                "value": -5
+            }
+        ],
+        "effects": [
+            {
+                "effect": {
+                    "id_str": "1171",
+                    "href": "https://crest-tq.eveonline.com/dogma/effects/1171/",
+                    "id": 1171,
+                    "name": "massFactor"
+                },
+                "isDefault": false
+            },
+            {
+                "effect": {
+                    "id_str": "2215",
+                    "href": "https://crest-tq.eveonline.com/dogma/effects/2215/",
+                    "id": 2215,
+                    "name": "shipBonusPirateFrigateProjDamage"
+                },
+                "isDefault": false
+            },
+            {
+                "effect": {
+                    "id_str": "6009",
+                    "href": "https://crest-tq.eveonline.com/dogma/effects/6009/",
+                    "id": 6009,
+                    "name": "probeLauncherCPUPercentBonusTacticalDestroyer"
+                },
+                "isDefault": false
+            },
+            {
+                "effect": {
+                    "id_str": "6036",
+                    "href": "https://crest-tq.eveonline.com/dogma/effects/6036/",
+                    "id": 6036,
+                    "name": "shipHeatDamageMinmatarTacticalDestroyer3"
+                },
+                "isDefault": false
+            },
+            {
+                "effect": {
+                    "id_str": "6037",
+                    "href": "https://crest-tq.eveonline.com/dogma/effects/6037/",
+                    "id": 6037,
+                    "name": "shipSPTDamageMinmatarTacticalDestroyer1"
+                },
+                "isDefault": false
+            },
+            {
+                "effect": {
+                    "id_str": "6038",
+                    "href": "https://crest-tq.eveonline.com/dogma/effects/6038/",
+                    "id": 6038,
+                    "name": "shipSPTOptimalMinmatarTacticalDestroyer2"
+                },
+                "isDefault": false
+            }
+        ]
+    },
+    "radius": 144,
+    "id_str": "34562",
+    "published": true,
+    "mass": 1500000,
+    "id": 34562,
+    "name": "Svipul"
+}

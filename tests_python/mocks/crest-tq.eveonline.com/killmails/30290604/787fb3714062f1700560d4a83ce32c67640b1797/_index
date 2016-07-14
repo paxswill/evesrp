@@ -1,0 +1,402 @@
+{
+    "solarSystem": {
+        "id_str": "30002062",
+        "href": "https://crest-tq.eveonline.com/solarsystems/30002062/",
+        "id": 30002062,
+        "name": "Todifrauan"
+    },
+    "killID": 30290604,
+    "killTime": "2013.05.05 18:09:00",
+    "attackers": [
+        {
+            "alliance": {
+                "id_str": "99000645",
+                "href": "https://crest-tq.eveonline.com/alliances/99000645/",
+                "id": 99000645,
+                "name": "RvB - RED Federation",
+                "icon": {
+                    "href": "http://imageserver.eveonline.com/Alliance/99000645_128.png"
+                }
+            },
+            "shipType": {
+                "id_str": "16242",
+                "href": "https://crest-tq.eveonline.com/inventory/types/16242/",
+                "id": 16242,
+                "name": "Thrasher",
+                "icon": {
+                    "href": "http://imageserver.eveonline.com/Type/16242_128.png"
+                }
+            },
+            "corporation": {
+                "id_str": "1699307293",
+                "href": "https://crest-tq.eveonline.com/corporations/1699307293/",
+                "id": 1699307293,
+                "name": "Red Federation",
+                "icon": {
+                    "href": "http://imageserver.eveonline.com/Corporation/1699307293_128.png"
+                }
+            },
+            "character": {
+                "id_str": "91634669",
+                "href": "https://crest-tq.eveonline.com/characters/91634669/",
+                "id": 91634669,
+                "name": "Lemming Malgalad",
+                "icon": {
+                    "href": "http://imageserver.eveonline.com/Character/91634669_128.jpg"
+                }
+            },
+            "damageDone_str": "330",
+            "weaponType": {
+                "id_str": "16242",
+                "href": "https://crest-tq.eveonline.com/inventory/types/16242/",
+                "id": 16242,
+                "name": "Thrasher",
+                "icon": {
+                    "href": "http://imageserver.eveonline.com/Type/16242_128.png"
+                }
+            },
+            "finalBlow": false,
+            "securityStatus": -1.9,
+            "damageDone": 330
+        },
+        {
+            "alliance": {
+                "id_str": "99000645",
+                "href": "https://crest-tq.eveonline.com/alliances/99000645/",
+                "id": 99000645,
+                "name": "RvB - RED Federation",
+                "icon": {
+                    "href": "http://imageserver.eveonline.com/Alliance/99000645_128.png"
+                }
+            },
+            "shipType": {
+                "id_str": "16242",
+                "href": "https://crest-tq.eveonline.com/inventory/types/16242/",
+                "id": 16242,
+                "name": "Thrasher",
+                "icon": {
+                    "href": "http://imageserver.eveonline.com/Type/16242_128.png"
+                }
+            },
+            "corporation": {
+                "id_str": "1699307293",
+                "href": "https://crest-tq.eveonline.com/corporations/1699307293/",
+                "id": 1699307293,
+                "name": "Red Federation",
+                "icon": {
+                    "href": "http://imageserver.eveonline.com/Corporation/1699307293_128.png"
+                }
+            },
+            "character": {
+                "id_str": "1378570260",
+                "href": "https://crest-tq.eveonline.com/characters/1378570260/",
+                "id": 1378570260,
+                "name": "val ona",
+                "icon": {
+                    "href": "http://imageserver.eveonline.com/Character/1378570260_128.jpg"
+                }
+            },
+            "damageDone_str": "240",
+            "weaponType": {
+                "id_str": "2905",
+                "href": "https://crest-tq.eveonline.com/inventory/types/2905/",
+                "id": 2905,
+                "name": "250mm Light Artillery Cannon II",
+                "icon": {
+                    "href": "http://imageserver.eveonline.com/Type/2905_128.png"
+                }
+            },
+            "finalBlow": true,
+            "securityStatus": 2.9,
+            "damageDone": 240
+        },
+        {
+            "alliance": {
+                "id_str": "99000652",
+                "href": "https://crest-tq.eveonline.com/alliances/99000652/",
+                "id": 99000652,
+                "name": "RvB - BLUE Republic",
+                "icon": {
+                    "href": "http://imageserver.eveonline.com/Alliance/99000652_128.png"
+                }
+            },
+            "shipType": {
+                "id_str": "11400",
+                "href": "https://crest-tq.eveonline.com/inventory/types/11400/",
+                "id": 11400,
+                "name": "Jaguar",
+                "icon": {
+                    "href": "http://imageserver.eveonline.com/Type/11400_128.png"
+                }
+            },
+            "corporation": {
+                "id_str": "1741770561",
+                "href": "https://crest-tq.eveonline.com/corporations/1741770561/",
+                "id": 1741770561,
+                "name": "Blue Republic",
+                "icon": {
+                    "href": "http://imageserver.eveonline.com/Corporation/1741770561_128.png"
+                }
+            },
+            "character": {
+                "id_str": "1603207575",
+                "href": "https://crest-tq.eveonline.com/characters/1603207575/",
+                "id": 1603207575,
+                "name": "GatesMcTaste",
+                "icon": {
+                    "href": "http://imageserver.eveonline.com/Character/1603207575_128.jpg"
+                }
+            },
+            "damageDone_str": "0",
+            "weaponType": {
+                "id_str": "3244",
+                "href": "https://crest-tq.eveonline.com/inventory/types/3244/",
+                "id": 3244,
+                "name": "Warp Disruptor II",
+                "icon": {
+                    "href": "http://imageserver.eveonline.com/Type/3244_128.png"
+                }
+            },
+            "finalBlow": false,
+            "securityStatus": -2.2,
+            "damageDone": 0
+        }
+    ],
+    "attackerCount": 3,
+    "victim": {
+        "alliance": {
+            "id_str": "434243723",
+            "href": "https://crest-tq.eveonline.com/alliances/434243723/",
+            "id": 434243723,
+            "name": "C C P Alliance",
+            "icon": {
+                "href": "http://imageserver.eveonline.com/Alliance/434243723_128.png"
+            }
+        },
+        "damageTaken": 570,
+        "items": [
+            {
+                "singleton": 0,
+                "itemType": {
+                    "id_str": "24343",
+                    "href": "https://crest-tq.eveonline.com/inventory/types/24343/",
+                    "id": 24343,
+                    "name": "Aurora Alpha",
+                    "icon": {
+                        "href": "http://imageserver.eveonline.com/Type/24343_128.png"
+                    }
+                },
+                "quantityDestroyed_str": "1",
+                "flag": 89,
+                "flag_str": "89",
+                "singleton_str": "0",
+                "quantityDestroyed": 1
+            },
+            {
+                "singleton": 0,
+                "itemType": {
+                    "id_str": "24344",
+                    "href": "https://crest-tq.eveonline.com/inventory/types/24344/",
+                    "id": 24344,
+                    "name": "Aurora Delta",
+                    "icon": {
+                        "href": "http://imageserver.eveonline.com/Type/24344_128.png"
+                    }
+                },
+                "quantityDestroyed_str": "1",
+                "flag": 89,
+                "flag_str": "89",
+                "singleton_str": "0",
+                "quantityDestroyed": 1
+            },
+            {
+                "singleton": 0,
+                "itemType": {
+                    "id_str": "24347",
+                    "href": "https://crest-tq.eveonline.com/inventory/types/24347/",
+                    "id": 24347,
+                    "name": "Aurora Beta",
+                    "icon": {
+                        "href": "http://imageserver.eveonline.com/Type/24347_128.png"
+                    }
+                },
+                "quantityDestroyed_str": "1",
+                "flag": 89,
+                "flag_str": "89",
+                "singleton_str": "0",
+                "quantityDestroyed": 1
+            },
+            {
+                "singleton": 0,
+                "itemType": {
+                    "id_str": "19551",
+                    "href": "https://crest-tq.eveonline.com/inventory/types/19551/",
+                    "id": 19551,
+                    "name": "High-grade Snake Beta",
+                    "icon": {
+                        "href": "http://imageserver.eveonline.com/Type/19551_128.png"
+                    }
+                },
+                "quantityDestroyed_str": "1",
+                "flag": 89,
+                "flag_str": "89",
+                "singleton_str": "0",
+                "quantityDestroyed": 1
+            },
+            {
+                "singleton": 0,
+                "itemType": {
+                    "id_str": "24345",
+                    "href": "https://crest-tq.eveonline.com/inventory/types/24345/",
+                    "id": 24345,
+                    "name": "Aurora Omega",
+                    "icon": {
+                        "href": "http://imageserver.eveonline.com/Type/24345_128.png"
+                    }
+                },
+                "quantityDestroyed_str": "1",
+                "flag": 89,
+                "flag_str": "89",
+                "singleton_str": "0",
+                "quantityDestroyed": 1
+            },
+            {
+                "singleton": 0,
+                "itemType": {
+                    "id_str": "19555",
+                    "href": "https://crest-tq.eveonline.com/inventory/types/19555/",
+                    "id": 19555,
+                    "name": "High-grade Snake Epsilon",
+                    "icon": {
+                        "href": "http://imageserver.eveonline.com/Type/19555_128.png"
+                    }
+                },
+                "quantityDestroyed_str": "1",
+                "flag": 89,
+                "flag_str": "89",
+                "singleton_str": "0",
+                "quantityDestroyed": 1
+            },
+            {
+                "singleton": 0,
+                "itemType": {
+                    "id_str": "24346",
+                    "href": "https://crest-tq.eveonline.com/inventory/types/24346/",
+                    "id": 24346,
+                    "name": "Aurora Epsilon",
+                    "icon": {
+                        "href": "http://imageserver.eveonline.com/Type/24346_128.png"
+                    }
+                },
+                "quantityDestroyed_str": "1",
+                "flag": 89,
+                "flag_str": "89",
+                "singleton_str": "0",
+                "quantityDestroyed": 1
+            },
+            {
+                "singleton": 0,
+                "itemType": {
+                    "id_str": "2589",
+                    "href": "https://crest-tq.eveonline.com/inventory/types/2589/",
+                    "id": 2589,
+                    "name": "Genolution Core Augmentation CA-2",
+                    "icon": {
+                        "href": "http://imageserver.eveonline.com/Type/2589_128.png"
+                    }
+                },
+                "quantityDestroyed_str": "1",
+                "flag": 89,
+                "flag_str": "89",
+                "singleton_str": "0",
+                "quantityDestroyed": 1
+            },
+            {
+                "singleton": 0,
+                "itemType": {
+                    "id_str": "19556",
+                    "href": "https://crest-tq.eveonline.com/inventory/types/19556/",
+                    "id": 19556,
+                    "name": "High-grade Snake Omega",
+                    "icon": {
+                        "href": "http://imageserver.eveonline.com/Type/19556_128.png"
+                    }
+                },
+                "quantityDestroyed_str": "1",
+                "flag": 89,
+                "flag_str": "89",
+                "singleton_str": "0",
+                "quantityDestroyed": 1
+            },
+            {
+                "singleton": 0,
+                "itemType": {
+                    "id_str": "19553",
+                    "href": "https://crest-tq.eveonline.com/inventory/types/19553/",
+                    "id": 19553,
+                    "name": "High-grade Snake Gamma",
+                    "icon": {
+                        "href": "http://imageserver.eveonline.com/Type/19553_128.png"
+                    }
+                },
+                "quantityDestroyed_str": "1",
+                "flag": 89,
+                "flag_str": "89",
+                "singleton_str": "0",
+                "quantityDestroyed": 1
+            },
+            {
+                "singleton": 0,
+                "itemType": {
+                    "id_str": "2082",
+                    "href": "https://crest-tq.eveonline.com/inventory/types/2082/",
+                    "id": 2082,
+                    "name": "Genolution Core Augmentation CA-1",
+                    "icon": {
+                        "href": "http://imageserver.eveonline.com/Type/2082_128.png"
+                    }
+                },
+                "quantityDestroyed_str": "1",
+                "flag": 89,
+                "flag_str": "89",
+                "singleton_str": "0",
+                "quantityDestroyed": 1
+            }
+        ],
+        "damageTaken_str": "570",
+        "character": {
+            "id_str": "92168909",
+            "href": "https://crest-tq.eveonline.com/characters/92168909/",
+            "id": 92168909,
+            "name": "CCP FoxFour",
+            "icon": {
+                "href": "http://imageserver.eveonline.com/Character/92168909_128.jpg"
+            }
+        },
+        "shipType": {
+            "id_str": "670",
+            "href": "https://crest-tq.eveonline.com/inventory/types/670/",
+            "id": 670,
+            "name": "Capsule",
+            "icon": {
+                "href": "http://imageserver.eveonline.com/Type/670_128.png"
+            }
+        },
+        "corporation": {
+            "id_str": "109299958",
+            "href": "https://crest-tq.eveonline.com/corporations/109299958/",
+            "id": 109299958,
+            "name": "C C P",
+            "icon": {
+                "href": "http://imageserver.eveonline.com/Corporation/109299958_128.png"
+            }
+        }
+    },
+    "killID_str": "30290604",
+    "attackerCount_str": "3",
+    "war": {
+        "href": "https://crest-tq.eveonline.com/wars/0/",
+        "id": 0,
+        "id_str": "0"
+    }
+}
