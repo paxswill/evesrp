@@ -1,7 +1,5 @@
-import json
-from six.moves.urllib.parse import urlparse
-from httmock import HTTMock, urlmatch
-from .util_tests import TestApp, response
+import pytest
+from httmock import HTTMock
 from evesrp import ships
 
 
@@ -41,22 +39,24 @@ def _invalid_lookup(url, request):
 invalid_lookup = [crest_root, _invalid_lookup]
 
 
-class TestShipLookup(TestApp):
+def test_known_ship_type():
+    assert ships.ships[587] == 'Rifter'
 
-    def test_known(self):
-        self.assertEqual(ships.ships[587], 'Rifter')
 
-    def test_unknown(self):
-        with self.app.test_request_context():
-            with HTTMock(*svipul_lookup):
-                self.assertEqual(ships.ships[123456789], 'Svipul')
+def test_unknown_ship_type(evesrp_app):
+    # Tested within a context so the dynamic lookup capability has access
+    # to a requests session.
+    with evesrp_app.test_request_context():
+        with HTTMock(*svipul_lookup):
+            assert ships.ships[123456789] == 'Svipul'
 
-    def test_invalid_id(self):
-        # Check what happens when you pass in strings or whatever
-        with self.assertRaises(TypeError):
-            ships.ships['Svipul']
-        # Check for invalid typeIDs
-        with self.app.test_request_context():
-            with HTTMock(*invalid_lookup):
-                with self.assertRaises(KeyError):
-                    ships.ships[999999999]
+
+def test_invalid_id(evesrp_app):
+    # Check what happens when you pass in strings or whatever
+    with pytest.raises(TypeError):
+        ships.ships['Svipul']
+    # Check for invalid typeIDs
+    with evesrp_app.test_request_context():
+        with HTTMock(*invalid_lookup):
+            with pytest.raises(KeyError):
+                ships.ships[999999999]
