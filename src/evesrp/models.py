@@ -629,7 +629,13 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
             status_history = db.inspect(self).attrs.status.history
             if status_history.has_changes():
                 new_status = status_history.added[0]
-                old_status = status_history.deleted[0]
+                # Sometimes (it seems particularly when multiple changes are
+                # being committed at once) this method will be called before
+                # self.status has been updated.
+                try:
+                    old_status = status_history.deleted[0]
+                except IndexError:
+                    old_status = ActionType.evaluating
             else:
                 new_status = action.type_
                 old_status = self.status
