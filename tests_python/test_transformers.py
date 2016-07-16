@@ -1,10 +1,6 @@
 from __future__ import unicode_literals
 from unittest import TestCase
 from evesrp.transformers import Transformer
-try:
-    from unittest.mock import MagicMock
-except ImportError:
-    from mock import MagicMock
 
 
 class TestTransformer(TestCase):
