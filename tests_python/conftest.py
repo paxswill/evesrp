@@ -77,13 +77,13 @@ def app_config():
 @pytest.yield_fixture
 def evesrp_app(app_config):
     app = create_app(app_config)
+    db.create_all(app=app)
     # Implicit shared app context for all users of this fixture
     ctx = app.app_context()
     ctx.push()
-    db.create_all()
     yield app
-    db.drop_all()
     ctx.pop()
+    db.drop_all(app=app)
 
 
 
