@@ -38,6 +38,7 @@ def a_user(request, user, other_user):
         return other_user
 
 
+@pytest.mark.parametrize('user_role', ['Normal'])
 class TestModifiers(object):
 
     def test_add_modifier(self, srp_request, a_user, request_status):
@@ -68,6 +69,7 @@ class TestModifiers(object):
                 db.session.commit()
 
 
+@pytest.mark.parametrize('user_role', ['Normal'])
 class TestActionStatus(object):
 
     def test_default_status(self, srp_request):
@@ -92,6 +94,7 @@ class TestActionStatus(object):
             assert srp_request.status == request_status
 
 
+@pytest.mark.parametrize('user_role', ['Normal'])
 class TestDelete(object):
 
     def test_delete_action(self, srp_request, other_user):
