@@ -187,3 +187,11 @@ def srp_request(user, other_user):
     AbsoluteModifier(srp_request, other_user, 'Absolute Fixture Modifier', 10)
     db.session.commit()
     return srp_request
+
+
+@pytest.yield_fixture
+def request_context(evesrp_app):
+    request_ctx = evesrp_app.test_request_context()
+    request_ctx.push()
+    yield request_ctx
+    request_ctx.pop()

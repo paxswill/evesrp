@@ -12,6 +12,9 @@ from evesrp.auth.models import Pilot, Division, Permission
 from evesrp.util import utc
 
 
+pytestmark = pytest.mark.usefixtures('request_context')
+
+
 @pytest.fixture(params=ActionType.statuses, ids=(lambda s: s.value))
 def request_status(request, srp_request, other_user):
     # Skip if the status already matches
@@ -89,7 +92,7 @@ class TestActionStatus(object):
             assert srp_request.status == request_status
 
 
-class TestDelete_new(object):
+class TestDelete(object):
 
     def test_delete_action(self, srp_request, other_user):
         action = Action(srp_request, other_user, type_=ActionType.approved)
