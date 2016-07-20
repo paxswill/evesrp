@@ -1,21 +1,20 @@
 from decimal import Decimal
-from unittest import TestCase
 from evesrp.util.decimal import PrettyDecimal
 
 
-class TestPrettyDecimal(TestCase):
+class TestPrettyDecimal(object):
 
     def test_integer(self):
         pd = PrettyDecimal('123')
-        self.assertEqual(pd.currency(), '123.00')
-        self.assertEqual(pd, Decimal('123'))
+        assert pd.currency() == '123.00'
+        assert pd == Decimal('123')
 
     def test_two_decimal_places(self):
         pd = PrettyDecimal('123.45')
-        self.assertEqual(pd.currency(), '123.45')
-        self.assertEqual(pd, Decimal('123.45'))
+        assert pd.currency() == '123.45'
+        assert pd == Decimal('123.45')
 
     def test_three_decimal_places(self):
         pd = PrettyDecimal('123.456')
-        self.assertEqual(pd.currency(), '123.46')
-        self.assertEqual(pd, Decimal('123.456'))
+        assert pd.currency() == '123.46'
+        assert pd == Decimal('123.456')

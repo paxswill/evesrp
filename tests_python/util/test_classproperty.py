@@ -1,10 +1,11 @@
-from unittest import TestCase
+import pytest
 from evesrp.util.classproperty import classproperty
 
 
-class TestClassProperty(TestCase):
+class TestClassProperty(object):
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def property_class(self):
         class Foo(object):
             @classproperty
             def bar(cls):
@@ -12,8 +13,8 @@ class TestClassProperty(TestCase):
         self.Foo = Foo
 
     def test_class_prop(self):
-        self.assertEqual(self.Foo.bar, 'Baz')
+        assert self.Foo.bar == 'Baz'
 
     def test_class_instance(self):
         foo = self.Foo()
-        self.assertEqual(foo.bar, 'Baz')
+        assert foo.bar == 'Baz'
