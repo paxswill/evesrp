@@ -62,6 +62,7 @@ def app_config():
         'SECRET_KEY': 'testing',
         'SRP_USER_AGENT_EMAIL': 'testing@example.com',
         'WTF_CSRF_ENABLED': False,
+        'TESTING': True,
     }
     # Default to an ephemeral SQLite DB for testing unless given another
     # database to connect to.
@@ -85,6 +86,18 @@ def evesrp_app(app_config):
     ctx.pop()
     db.drop_all(app=app)
 
+
+@pytest.yield_fixture
+def request_context(evesrp_app):
+    request_ctx = evesrp_app.test_request_context()
+    request_ctx.push()
+    yield request_ctx
+    request_ctx.pop()
+
+
+@pytest.fixture
+def test_client(evesrp_app):
+    return evesrp_app.test_client()
 
 
 # Tests modules that are admin-only should override this fixture
@@ -187,11 +200,3 @@ def srp_request(user, other_user):
     AbsoluteModifier(srp_request, other_user, 'Absolute Fixture Modifier', 10)
     db.session.commit()
     return srp_request
-
-
-@pytest.yield_fixture
-def request_context(evesrp_app):
-    request_ctx = evesrp_app.test_request_context()
-    request_ctx.push()
-    yield request_ctx
-    request_ctx.pop()
