@@ -6,6 +6,7 @@ from os import environ as env
 import pytest
 from flask import redirect, url_for, request, render_template
 from flask_wtf import Form
+from sqlalchemy.orm.exc import NoResultFound
 from wtforms.fields import StringField, SubmitField
 from evesrp import create_app, db
 from evesrp.models import Request, AbsoluteModifier
@@ -106,10 +107,13 @@ def user_role(request):
     return request.param
 
 
-def create_user(name, app, is_admin=False):
-    # TODO Parameterize with auth method is ebing used?
-    auth_method = app.config['SRP_AUTH_METHODS'][0]
-    user = User(name, auth_method.name)
+@pytest.fixture
+def authmethod(evesrp_app):
+    return evesrp_app.config['SRP_AUTH_METHODS'][0]
+
+
+def create_user(name, app, authmethod, is_admin=False):
+    user = User(name, authmethod.name)
     user.admin = is_admin
     db.session.add(user)
     db.session.commit()
@@ -119,43 +123,40 @@ def create_user(name, app, is_admin=False):
 # Some tests require having two distinct users. `user` and `other_user`
 # guarantee that there will be different users.
 @pytest.fixture
-def user(evesrp_app, user_role):
+def user(evesrp_app, authmethod, user_role):
     username = user_role + ' User'
     is_admin = user_role == 'Admin'
-    return create_user(username, evesrp_app, is_admin)
+    return create_user(username, evesrp_app, authmethod, is_admin)
 
 
 @pytest.fixture
-def other_user(evesrp_app, user_role):
+def other_user(evesrp_app, authmethod, user_role):
     username = 'Other ' + user_role + ' User'
     is_admin = user_role == 'Admin'
-    return create_user(username, evesrp_app, is_admin)
+    return create_user(username, evesrp_app, authmethod, is_admin)
 
 
-
-def _user_login(user, evesrp_app):
+def _user_login(user, evesrp_app, authmethod):
     client = evesrp_app.test_client()
     data = {
         'name': user.name,
         'submit': 'true',
     }
-    # TODO Parameterize with auth method is ebing used?
-    auth_method = evesrp_app.config['SRP_AUTH_METHODS'][0]
     # Munge the paremeter names for the authmethod
-    data = {auth_method.safe_name + '-' + field: value for field, value in
+    data = {authmethod.safe_name + '-' + field: value for field, value in
             data.items()}
     client.post('/login/', follow_redirects=True, data=data)
     return client
 
 
 @pytest.fixture
-def user_login(user, evesrp_app):
-    return _user_login(user, evesrp_app)
+def user_login(user, evesrp_app, authmethod):
+    return _user_login(user, evesrp_app, authmethod)
 
 
 @pytest.fixture
-def other_user_login(other_user, evesrp_app):
-    return _user_login(other_user, evesrp_app)
+def other_user_login(other_user, evesrp_app, authmethod):
+    return _user_login(other_user, evesrp_app, authmethod)
 
 
 @pytest.fixture
