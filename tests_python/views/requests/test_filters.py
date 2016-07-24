@@ -1,9 +1,7 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-from __future__ import print_function
 import datetime as dt
 from decimal import Decimal
 from itertools import product, cycle
+import pytest
 from flask import json
 from evesrp import db
 from evesrp.models import Request, ActionType
@@ -11,10 +9,10 @@ from evesrp.auth import PermissionType
 from evesrp.auth.models import Pilot, Division, Permission
 from evesrp.util.datetime import utc
 from evesrp.util.decimal import PrettyDecimal
-from ...util_tests import TestLogin
 
 
-class TestFilterBase(TestLogin):
+@pytest.mark.parametrize('user_role', ['Normal'])
+class TestFilters(object):
 
     DIV_1 = 'Division One'
     DIV_2 = 'Division Two'
@@ -274,53 +272,54 @@ class TestFilterBase(TestLogin):
         },
     ]
 
-    def setUp(self):
-        super(TestFilterBase, self).setUp()
-        with self.app.test_request_context():
-            # Divisions
-            divisions = {
-                self.DIV_1: Division(self.DIV_1),
-                self.DIV_2: Division(self.DIV_2),
-                self.DIV_3: Division(self.DIV_3),
-            }
-            # Give all permissions in all divisions to admin_user
-            for division in divisions.values():
-                for permission in PermissionType.all:
-                    Permission(division, permission, self.admin_user)
-            # Pilots
-            pilots = {
-                'Paxswill': 570140137,
-                'Sapporo Jones': 772506501,
-                'DurrHurrDurr': 1456384556,
-                'Gevlon Goblin': 91662677,
-                'Zora Aran': 534674271,
-            }
-            for name, id in pilots.items():
-                if id % 2 == 0:
-                    user = self.normal_user
-                else:
-                    user = self.admin_user
-                db.session.add(Pilot(user, name, id))
-            # Lossmails/requests
-            for request_data in self.killmails:
-                # Copy dict before we pop stuff out of it
-                data_copy = dict(request_data)
-                # Distribute requests between users 
-                if request_data['id'] % 2 == 0:
-                    user = self.admin_user
-                else:
-                    user = self.normal_user
-                details = data_copy.pop('details')
-                division = divisions[data_copy.pop('division')]
-                status = data_copy.pop('status')
-                data_copy['pilot_id'] = pilots[data_copy.pop('pilot')]
-                request = Request(user, details, division, data_copy.items())
-                # Set status after the base payout has been set
-                request.status = status
-            db.session.commit()
+    # This is a bit janky
+    @pytest.fixture(autouse=True)
+    def setUp(self, evesrp_app, user, other_user):
+        # Divisions
+        divisions = {
+            self.DIV_1: Division(self.DIV_1),
+            self.DIV_2: Division(self.DIV_2),
+            self.DIV_3: Division(self.DIV_3),
+        }
+        # Give all permissions in all divisions to the first user
+        for division in divisions.values():
+            for permission in PermissionType.all:
+                Permission(division, permission, user)
+        # Pilots
+        pilots = {
+            'Paxswill': 570140137,
+            'Sapporo Jones': 772506501,
+            'DurrHurrDurr': 1456384556,
+            'Gevlon Goblin': 91662677,
+            'Zora Aran': 534674271,
+        }
+        # Divy up the characters between the two users
+        for name, id in pilots.items():
+            if id % 2 == 0:
+                request_user = user
+            else:
+                request_user = other_user
+            db.session.add(Pilot(request_user, name, id))
+        # Lossmails/requests
+        for request_data in self.killmails:
+            # Copy dict before we pop stuff out of it
+            data_copy = dict(request_data)
+            # Distribute requests between users 
+            if request_data['id'] % 2 == 0:
+                request_user = user
+            else:
+                request_user = other_user
+            details = data_copy.pop('details')
+            division = divisions[data_copy.pop('division')]
+            status = data_copy.pop('status')
+            data_copy['pilot_id'] = pilots[data_copy.pop('pilot')]
+            request = Request(request_user, details, division,
+                              data_copy.items())
+            # Set status after the base payout has been set
+            request.status = status
+        db.session.commit()
 
-    def check_filter_url(self, url, expected_ids, expected_total):
-        client = self.login(self.admin_name)
+    def check_filter_url(self, url, expected_ids, expected_total, client):
         resp = client.get(url, headers={'Accept':'application/json'},
                 follow_redirects=False)
         if resp.status_code == 301:
@@ -330,18 +329,42 @@ class TestFilterBase(TestLogin):
                     follow_redirects=False)
         resp_obj = json.loads(resp.data)
         # Check that the returned requests match
-        self.assertEqual(expected_ids,
-                {request['id'] for request in resp_obj['requests']})
+        assert expected_ids == \
+            {request['id'] for request in resp_obj['requests']}
         # Check that the totals add up properly (in a roundabout way)
-        self.assertEqual(PrettyDecimal(expected_total).currency(),
-                resp_obj['total_payouts'])
+        assert PrettyDecimal(expected_total).currency() == \
+            resp_obj['total_payouts']
 
+    def test_empty_filter(self, user_login):
+        matching_ids = {k['id'] for k in self.killmails}
+        #total_payout = Decimal(0)
+        #for killmail in self.killmails:
+            #if killmail['status'] != ActionType
+        total_payout = sum([Decimal(k['base_payout']) for k in
+                                 self.killmails if k['status'] !=
+                                 ActionType.rejected])
+        self.check_filter_url('/request/all/', matching_ids, total_payout,
+                              user_login)
 
-class TestExactFilter(TestFilterBase):
-
-    choices = [None]
-
-    def test_exact_filter_combos(self):
+    @pytest.mark.parametrize('test_info', [
+        # Some of these tests must return multiple results with the same
+        # payout for complete coverage.
+        ('division', (DIV_1, DIV_2, DIV_3)),
+        ('alliance', ('Test Alliance Please Ignore', 'Brave Collective',
+                      'Goonswarm Federation')),
+        ('corporation', ('Dreddit', 'Unholy Knights of Cthulu', 'Goonwaffe',
+                         'Science and Trade Institute')),
+        ('pilot', ('Paxswill', 'DurrHurrDurr', 'Gevlon Goblin',
+                   'Sapporo Jones', 'Zora Aran')),
+        ('type_name', ('Tristan', 'Crow', 'Vexor', 'Guardian')),
+        ('region', ('Black Rise', 'Catch', 'Aridia', 'Scalding Pass')),
+        ('constellation', ('UX3-N2', 'Ishaga', 'Mareerieh', '9HXQ-G',
+                           'Selonat')),
+        ('system', ('GE-8JV', 'Todifrauan', 'RNF-YH', '4-CM8I', 'Karan')),
+        ('status', ActionType.statuses),
+    ])
+    def test_single_filter(self, user_login, test_info):
+        attribute, choices = test_info
         # Explanation for the below: product(seq, repeat=n) computes a
         # cartesian product of sequence seq against itself n times. By using
         # this as a constructor to frozenset, we can combinations with repeated
@@ -349,122 +372,39 @@ class TestExactFilter(TestFilterBase):
         # is used as set() is mutable, and thus unhashable. This is all wrapped
         # in a set comprehension to deduplicate combinations that differ only
         # in ordering (ex: ['Foo', 'Bar'] and ['Bar', 'Foo']).
-        choice_combos = {frozenset(combo) for combo in product(self.choices,
-            repeat=2)}
+        choice_combos = {frozenset(combo) for combo in product(choices,
+                                                               repeat=2)}
         for combo in choice_combos:
             # Find the set of matching killmail IDs first
             matching_ids = set()
             total_payout = Decimal(0)
             for request in self.killmails:
-                if combo == {None} or request.get(self.attribute) in combo:
+                if request.get(attribute) in combo:
                     matching_ids.add(request['id'])
                     if request['status'] != ActionType.rejected:
                         total_payout += Decimal(request['base_payout'])
             # Ask the app what it thinks the matching requests are
-            if combo != {None}:
-                if self.attribute == 'type_name':
-                    filter_attribute = 'ship'
-                else:
-                    filter_attribute = self.attribute
-                if self.attribute == 'status':
-                    values = ','.join(map(lambda x: x.value, combo))
-                else:
-                    values = ','.join(combo)
-                url = '/request/all/{}/{}'.format(filter_attribute, values)
+            if attribute == 'type_name':
+                filter_attribute = 'ship'
             else:
-                url = '/request/all/'
-            self.check_filter_url(url, matching_ids, total_payout)
+                filter_attribute = attribute
+            if attribute == 'status':
+                values = ','.join(map(lambda x: x.value, combo))
+            else:
+                values = ','.join(combo)
+            url = '/request/all/{}/{}'.format(filter_attribute, values)
+            self.check_filter_url(url, matching_ids, total_payout, user_login)
 
-
-class TestDivisionFilter(TestExactFilter):
-
-    attribute = 'division'
-
-    choices = [TestFilterBase.DIV_1, TestFilterBase.DIV_2, TestFilterBase.DIV_3]
-
-
-class TestAllianceFilter(TestExactFilter):
-
-    attribute = 'alliance'
-
-    choices = [
-        'Test Alliance Please Ignore',
-        'Brave Collective',
-        'Goonswarm Federation',
-    ]
-
-
-class TestCorporationFilter(TestExactFilter):
-
-    attribute = 'corporation'
-
-    choices = [
-        'Dreddit',
-        'Unholy Knights of Cthulu',
-        'Goonwaffe',
-        'Science and Trade Institute',
-        'Brave Collective - Lollipop Division',
-    ]
-
-
-class TestPilotFilter(TestExactFilter):
-
-    attribute = 'pilot'
-
-    choices = [
-        'Paxswill',
-        'DurrHurrDurr',
-        'Gevlon Goblin',
-        'Sapporo Jones',
-        'Zora Aran',
-    ]
-
-
-class TestShipFilter(TestExactFilter):
-
-    attribute = 'type_name'
-
-    choices = ['Tristan', 'Crow', 'Vexor', 'Guardian']
-
-
-class TestRegionFilter(TestExactFilter):
-
-    attribute = 'region'
-
-    choices = ['Black Rise', 'Catch', 'Aridia', 'Scalding Pass']
-
-
-class TestConstellationFilter(TestExactFilter):
-
-    attribute = 'constellation'
-
-    choices = ['UX3-N2', 'Ishaga', 'Mareerieh', '9HXQ-G', 'Selonat']
-
-
-class TestSystemFilter(TestExactFilter):
-
-    attribute = 'system'
-
-    choices = ['GE-8JV', 'Todifrauan', 'RNF-YH', '4-CM8I', 'Karan']
-
-
-class TestStatusFilter(TestExactFilter):
-
-    attribute = 'status'
-
-    choices = ActionType.statuses
-
-
-class TestMultipleFilter(TestFilterBase):
-
-    choices = {}
-
-    def test_exact_multiple_filters(self):
+    def test_multiple_filters(self, user_login):
+        choices = {
+            'corporation': ['Dreddit'],
+            'region': ['Catch'],
+        }
         # Compute expected values
         matching_ids = set()
         total_payout = Decimal(0)
         for request in self.killmails:
-            for attribute, valid_values in self.choices.items():
+            for attribute, valid_values in choices.items():
                 if request.get(attribute) not in valid_values:
                     break
             else:
@@ -473,14 +413,6 @@ class TestMultipleFilter(TestFilterBase):
                     total_payout += request['base_payout']
         # Ask the app what it thinks is the answer
         url = '/request/all/'
-        for attribute, values in self.choices.items():
+        for attribute, values in choices.items():
             url += '{}/{}/'.format(attribute, ','.join(values))
-        self.check_filter_url(url, matching_ids, total_payout)
-
-
-class TestDredditCatchFilter(TestMultipleFilter):
-
-    choices = {
-        'corporation': ['Dreddit'],
-        'region': ['Catch'],
-    }
+        self.check_filter_url(url, matching_ids, total_payout, user_login)
