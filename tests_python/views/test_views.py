@@ -25,7 +25,6 @@ def test_request_count(status, permission, user, user_login):
     requests needing attention.
     """
     division = Division('Counting Division')
-    pilot = Pilot(user, 'A Pilot', 0)
     Permission(division, permission, user)
     request_data = {
         'type_name': 'Revenant',
@@ -41,6 +40,7 @@ def test_request_count(status, permission, user, user_login):
         'region_id': 10000002,
         'pilot_id': 1,
     }
+    pilot = Pilot(user, 'A Pilot', request_data['pilot_id'])
     Request(user, 'Foo', division, request_data.items(),
             killmail_url='http://example.com', status=status)
     db.session.commit()
