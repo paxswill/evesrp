@@ -25,6 +25,8 @@ test:: test-python
 
 test-python: translations
 	coverage erase
+	mkdir -p test-reports
+	rm -f test-reports/*.html
 	tox
 	coverage combine
 	coverage html -d coverage-report

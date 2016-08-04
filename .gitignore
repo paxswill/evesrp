@@ -3,7 +3,7 @@
 *.pem
 .env
 coverage-report
-test-report*.html
+test-reports
 *.mo
 node_modules
 generated_messages.pot
