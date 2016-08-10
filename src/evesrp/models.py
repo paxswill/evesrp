@@ -395,14 +395,14 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     pilot = db.relationship('Pilot', back_populates='requests',
             cascade='save-update,merge,refresh-expire,expunge')
 
-    #: The Eve ID of :py:attribute:`.corporation`\.
+    #: The Eve ID of :py:attr:`.corporation`\.
     corporation_id = db.Column(db.Integer, nullable=False)
 
     #: The corporation of the :py:attr:`pilot` at the time of the killmail.
     corporation = db.Column(db.String(150, convert_unicode=True),
             nullable=False, index=True)
 
-    #: The Eve ID of :py:attribute:`.alliance`\.
+    #: The Eve ID of :py:attr:`.alliance`\.
     alliance_id = db.Column(db.Integer, nullable=True)
 
     #: The alliance of the :py:attr:`pilot` at the time of the killmail.
@@ -477,21 +477,21 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     terminal states.
     """
 
-    #: The location ID for :py:attribute:`.system`\.
+    #: The location ID for :py:attr:`.system`\.
     system_id = db.Column(db.Integer, nullable=False)
 
     #: The solar system this loss occured in.
     system = db.Column(db.String(25, convert_unicode=True), nullable=False,
             index=True)
 
-    #: The location ID for :py:attribute:`.constellation`\.
+    #: The location ID for :py:attr:`.constellation`\.
     constellation_id = db.Column(db.Integer, nullable=False)
 
     #: The constellation this loss occured in.
     constellation = db.Column(db.String(25, convert_unicode=True),
             nullable=False, index=True)
 
-    #: The location ID for :py:attribute:`.region`\.
+    #: The location ID for :py:attr:`.region`\.
     region_id = db.Column(db.Integer, nullable=False)
 
     #: The region this loss occured in.
