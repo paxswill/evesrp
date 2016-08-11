@@ -21,8 +21,8 @@ from wtforms.validators import InputRequired, AnyOf, URL, ValidationError,\
 
 from .login import login_manager
 from .. import db
-from ..models import Request, Modifier, Action, ActionType, ActionError,\
-        ModifierError, AbsoluteModifier, RelativeModifier
+from ..models import Request, Modifier, Action, ActionType, AbsoluteModifier,\
+    RelativeModifier, StatusError, SRPPermissionError
 from ..util import xmlify, jsonify, classproperty, PrettyDecimal, varies,\
         ensure_unicode, parse_datetime
 from ..auth import PermissionType
@@ -821,7 +821,7 @@ class AddNote(Form):
 @blueprint.route('/<int:request_id>/', methods=['GET'])
 @login_required
 @varies('Accept')
-def get_request_details(request_id=None, srp_request=None):
+def get_request_details(request_id=None, srp_request=None, status_code=200):
     """Handles responding to all of the :py:class:`~.models.Request` detail
     functions.
 
@@ -861,21 +861,31 @@ def get_request_details(request_id=None, srp_request=None):
                                          modifier_extended=True))
     if request.is_xml:
         return xmlify('request.xml', srp_request=srp_request)
-    return render_template(template, srp_request=srp_request,
-            modifier_form=ModifierForm(formdata=None),
-            payout_form=PayoutForm(formdata=None),
-            action_form=ActionForm(formdata=None),
-            void_form=VoidModifierForm(formdata=None),
-            details_form=ChangeDetailsForm(formdata=None, obj=srp_request),
-            note_form=AddNote(formdata=None),
-            # TRANS: Title for the page showing the details about a single
-            # TRANS: SRP request.
-            title=gettext(u"Request #%(request_id)s",
-                    request_id=srp_request.id))
+    rendered = render_template(template, srp_request=srp_request,
+                               modifier_form=ModifierForm(formdata=None),
+                               payout_form=PayoutForm(formdata=None),
+                               action_form=ActionForm(formdata=None),
+                               void_form=VoidModifierForm(formdata=None),
+                               details_form=ChangeDetailsForm(formdata=None,
+                                                              obj=srp_request),
+                               note_form=AddNote(formdata=None),
+                               # TRANS: Title for the page showing the details
+                               # TRANS: about a single SRP request.
+                               title=gettext(u"Request #%(request_id)s",
+                                             request_id=srp_request.id))
+    if status_code != 200:
+        # 200 is the default status code, so we only need to care about the
+        # non-default case.
+        response = make_response(rendered)
+        response.status_code = status_code
+        return response
+    else:
+        return rendered
 
 
 def _add_modifier(srp_request):
     form = ModifierForm()
+    status_code = 200
     if form.validate():
         if 'bonus' in form.type_.data:
             value = form.value.data
@@ -891,40 +901,56 @@ def _add_modifier(srp_request):
             mod = ModClass(srp_request, current_user, form.note.data, value)
             db.session.add(mod)
             db.session.commit()
-        except ModifierError as e:
+        except StatusError as e:
             flash(unicode(e), u'error')
-    return get_request_details(srp_request=srp_request)
+            status_code = 400
+        except SRPPermissionError as e:
+            flash(unicode(e), u'error')
+            status_code = 403
+    return get_request_details(srp_request=srp_request,
+                               status_code=status_code)
 
 
 def _change_payout(srp_request):
     form = PayoutForm()
+    status_code = 200
     if not current_user.has_permission(PermissionType.review, srp_request):
         # TRANS: Error message when someone who does not have the reviewer
         # TRANS: permission tries to change the base payout of a request.
         flash(gettext(u"Only reviewers can change the base payout."), u'error')
+        status_code = 403
     elif form.validate():
         try:
             srp_request.base_payout = form.value.data * 1000000
             db.session.commit()
-        except ModifierError as e:
+        except StatusError as e:
             flash(unicode(e), u'error')
-    return get_request_details(srp_request=srp_request)
+            status_code = 400
+    return get_request_details(srp_request=srp_request,
+                               status_code=status_code)
 
 
 def _add_action(srp_request):
     form = ActionForm()
+    status_code =200
     if form.validate():
         type_ = ActionType.from_string(form.type_.data)
         try:
             Action(srp_request, current_user, form.note.data, type_)
             db.session.commit()
-        except ActionError as e:
+        except StatusError as e:
             flash(unicode(e), u'error')
-    return get_request_details(srp_request=srp_request)
+            status_code = 400
+        except SRPPermissionError as e:
+            flash(unicode(e), u'error')
+            status_code = 403
+    return get_request_details(srp_request=srp_request,
+                               status_code=status_code)
 
 
 def _void_modifier(srp_request):
     form = VoidModifierForm()
+    status_code = 200
     if form.validate():
         modifier_id = int(form.modifier_id.data)
         modifier = Modifier.query.get(modifier_id)
@@ -932,30 +958,39 @@ def _void_modifier(srp_request):
             # TRANS: Error message when a user tries to void (cancel) a
             # TRANS: modifier that does not exist.
             flash(gettext(u"Invalid modifier ID %(modifier_id)d.",
-                    modifier_id=modifier_id),
-                u'error')
+                          modifier_id=modifier_id),
+                  u'error')
+            status_code = 400
         else:
             try:
                 modifier.void(current_user)
                 db.session.commit()
-            except ModifierError as e:
+            except StatusError as e:
                 flash(unicode(e), u'error')
-    return get_request_details(srp_request=srp_request)
+                status_code = 400
+            except SRPPermissionError as e:
+                flash(unicode(e), u'error')
+                status_code = 403
+    return get_request_details(srp_request=srp_request,
+                               status_code=status_code)
 
 
 def _change_details(srp_request):
     form = ChangeDetailsForm()
+    status_code = 200
     if current_user != srp_request.submitter:
         # TRANS: Error message shown when someone other than the request
         # TRANS: submitter tries to change the details of the request.
         flash(gettext(u"Only the submitter can change the request details."),
                 u'error')
+        status_code = 403
     elif srp_request.finalized:
         # TRANS: Error message shown when the submitter ties to change the
         # TRANS: details when the request is no long pending (not finished).
         flash(gettext(u"Details can only be changed when the request is still "
-                      u"pending.")
-                , u'error')
+                      u"pending."),
+              u'error')
+        status_code = 400
     elif form.validate():
         # TRANS: The old request details have are saved in a comment on the
         # TRANS: request. This is the text that is put at the beginning of the
@@ -970,7 +1005,8 @@ def _change_details(srp_request):
                 action_type)
         srp_request.details = form.details.data
         db.session.commit()
-    return get_request_details(srp_request=srp_request)
+    return get_request_details(srp_request=srp_request,
+                               status_code=status_code)
 
 
 killmail_re = re.compile(r'#(\d+)')
