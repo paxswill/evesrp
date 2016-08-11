@@ -75,8 +75,18 @@ class ActionType(DeclEnum):
                 cls.incomplete))
 
 
-class ActionError(ValueError):
-    """Error raised for invalid state changes for a :py:class:`Request`."""
+class StatusError(ValueError):
+    """Error raised when the :py:class:`request <Request>` is in the wrong
+    state to make a modification."""
+    pass
+
+
+# PermissionError would've been a nicer name, but it's defined as a builtin
+# type in Python >=3.3
+class SRPPermissionError(ValueError):
+    """Error raised when the :py:class:`User` does not have the correct
+    permissions to make that change to a :py:class:`request <Request>`\.
+    """
     pass
 
 
@@ -85,8 +95,8 @@ class Action(db.Model, AutoID, Timestamped, AutoName):
     
     :py:class:`Request`\s enforce permissions when actions are added to them.
     If the user adding the action does not have the appropriate
-    :py:class:`~.Permission`\s in the request's :py:class:`Division`, an
-    :py:exc:`ActionError` will be raised.
+    :py:class:`~.Permission`\s in the request's :py:class:`Division`, a
+    :py:exc:`SRPPermissionError` will be raised.
 
     With the exception of the :py:attr:`comment <ActionType.comment>` action
     (which just adds text to a request), actions change the
@@ -142,13 +152,6 @@ class Action(db.Model, AutoID, Timestamped, AutoName):
         return parent
 
 
-class ModifierError(ValueError):
-    """Error raised when a modification is attempted to a :py:class:`Request`
-    when it's in an invalid state.
-    """
-    pass
-
-
 class Modifier(db.Model, AutoID, Timestamped, AutoName):
     """Modifiers apply bonuses or penalties to Requests.
 
@@ -159,7 +162,7 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
     :py:class:`Request`\s enforce permissions when modifiers are added. If the
     user adding a modifier does not have the appropriate
     :py:class:`~.Permission`\s in the request's :py:class:`~.Division`, a
-    :py:exc:`ModifierError` will be raised.
+    :py:exc:`SRPPermissionError` will be raised.
     """
 
     #: Discriminator column for SQLAlchemy
@@ -256,16 +259,16 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
             # TRANS: Error message shown when trying to void (cancel) a
             # modifier but the request is not in the evaluating state, so the
             # attempt fails.
-            raise ModifierError(gettext(u"Modifiers can only be voided when "
-                                        u"the request is in the evaluating "
-                                        u"state."))
+            raise StatusError(gettext(u"Modifiers can only be voided when "
+                                      u"the request is in the evaluating "
+                                      u"state."))
         if not user.has_permission(PermissionType.review,
                 self.request.division):
             # TRANS: Error message shown when you attempt to void a modifier
             # but are prevented from doing so because you do not hold the
             # reviewer permission.
-            raise ModifierError("You must be a reviewer to be able to void "
-                                "modifiers.")
+            raise SRPPermissionError(gettext(u"You must be a reviewer to be "
+                                             u"able to void modifiers."))
         self.voided_user = user
         self.voided_timestamp = dt.datetime.utcnow()
 
@@ -274,12 +277,13 @@ class Modifier(db.Model, AutoID, Timestamped, AutoName):
         if current_app.config['SRP_SKIP_VALIDATION']:
             return request
         if request.status != ActionType.evaluating:
-            raise ModifierError(gettext(u"Modifiers can only be added when the"
-                                        u" request is in an evaluating "
-                                        u"state."))
+            raise StatusError(gettext(u"Modifiers can only be added when the"
+                                      u" request is in an evaluating "
+                                      u"state."))
         if not self.user.has_permission(PermissionType.review,
                 request.division):
-            raise ModifierError(gettext(u"Only reviewers can add modifiers."))
+            raise SRPPermissionError(gettext(
+                u"Only reviewers can add modifiers."))
         return request
 
     def _json(self, modifier_extended=False, **kwargs):
@@ -426,7 +430,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
 
     This value is clamped to a lower limit of 0. It can only be changed when
     this request is in an :py:attr:`~ActionType.evaluating` state, or else a
-    :py:exc:`ModifierError` will be raised.
+    :py:exc:`StatusError` will be raised.
     """
 
     #: The payout for this requests taking into account all active modifiers.
@@ -444,7 +448,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
 
     At the time an :py:class:`Action` is added to this request, the type of
     action is checked and the state diagram below is enforced. If the action is
-    invalid, an :py:exc:`ActionError` is raised.
+    invalid, a :py:exc:`StatusError` is raised.
 
     .. digraph:: request_workflow
 
@@ -545,9 +549,9 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
             else:
                 return Decimal(value)
         else:
-            raise ModifierError(gettext(u"The request must be in the "
-                                        u"evaluating state to change the base "
-                                        u"payout."))
+            raise StatusError(gettext(u"The request must be in the "
+                                      u"evaluating state to change the base "
+                                      u"payout."))
 
     state_rules = {
         ActionType.evaluating: {
@@ -594,7 +598,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
     @db.validates('status')
     def _validate_status(self, attr, new_status):
         """Enforces that status changes follow the status state machine.
-        When an invalid change is attempted, :py:class:`ActionError` is
+        When an invalid change is attempted, :py:class:`StatusError` is
         raised.
         """
         if current_app.config['SRP_SKIP_VALIDATION']:
@@ -611,7 +615,7 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
                                  u"change to from %(old_status)s.",
                     new_status=new_status,
                     old_status=self.status)
-            raise ActionError(error_text)
+            raise StatusError(error_text)
         return new_status
 
     @db.validates('actions')
@@ -650,17 +654,17 @@ class Request(db.Model, AutoID, Timestamped, AutoName):
                 # the status validator).
                 return action
             if not action.user.has_permission(permissions, self.division):
-                raise ActionError(gettext(u"Insufficient permissions to "
-                                          u"perform that action."))
+                raise SRPPermissionError(gettext(u"Insufficient permissions "
+                                                 u"to perform that action."))
         elif action.type_ == ActionType.comment:
             if action.user != self.submitter \
                     and not action.user.has_permission(
                             (PermissionType.review, PermissionType.pay,
                                 PermissionType.admin),
                             self.division):
-                raise ActionError(gettext(u"You must either own or have "
-                                          u"special privileges to comment on "
-                                          u"this request."))
+                raise SRPPermissionError(gettext(u"You must either own or "
+                                                 u"have special privileges to "
+                                                 u"comment on this request."))
         return action
 
     def __repr__(self):

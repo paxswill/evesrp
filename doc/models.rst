@@ -27,15 +27,15 @@ Models
        :py:class:`Request`\s that require further action to be put in a
        :py:attr:`finalized` state.
 
-.. autoexception:: ActionError
+.. autoexception:: StatusError
+    :exclude-members: __weakref__
+
+.. autoexception:: SRPPermissionError
     :exclude-members: __weakref__
 
 .. autoclass:: Action
     :exclude-members: request_id, user_id
     :show-inheritance:
-
-.. autoclass:: ModifierError
-    :exclude-members: __weakref__
 
 .. autoclass:: Modifier
     :exclude-members: request_id, user_id, voided_user_id

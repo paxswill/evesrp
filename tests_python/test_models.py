@@ -5,8 +5,8 @@ from decimal import Decimal
 import pytest
 from .util_tests import TestLogin
 from evesrp import db
-from evesrp.models import ActionType, ActionError, Action, Request,\
-        Modifier, AbsoluteModifier, RelativeModifier, ModifierError
+from evesrp.models import ActionType, Action, Request, Modifier,\
+    AbsoluteModifier, RelativeModifier, StatusError, SRPPermissionError
 from evesrp.auth import PermissionType
 from evesrp.auth.models import Pilot, Division, Permission
 from evesrp.util import utc
@@ -49,10 +49,16 @@ class TestModifiers(object):
             AbsoluteModifier(srp_request, a_user, '', 10)
             db.session.commit()
             assert srp_request.payout == start_payout + 10
-        else:
-            with pytest.raises(ModifierError) as excinfo:
+        # Status is checked before permissions
+        elif status_success and not permissions_success:
+            with pytest.raises(SRPPermissionError) as excinfo:
                 AbsoluteModifier(srp_request, a_user, '', 10)
                 db.session.commit()
+        else:
+            with pytest.raises(StatusError) as excinfo:
+                AbsoluteModifier(srp_request, a_user, '', 10)
+                db.session.commit()
+
 
     def test_void_modifier(self, srp_request, a_user, request_status):
         status_success = request_status == ActionType.evaluating
@@ -63,10 +69,16 @@ class TestModifiers(object):
             modifier.void(a_user)
             db.session.commit()
             assert srp_request.payout == srp_request.base_payout
-        else:
-            with pytest.raises(ModifierError) as excinfo:
+        # Request status is checked before permissions
+        elif status_success and not permissions_success:
+            with pytest.raises(SRPPermissionError) as excinfo:
                 modifier.void(a_user)
                 db.session.commit()
+        else:
+            with pytest.raises(StatusError) as excinfo:
+                modifier.void(a_user)
+                db.session.commit()
+
 
 
 @pytest.mark.parametrize('user_role', ['Normal'])
@@ -88,7 +100,7 @@ class TestActionStatus(object):
             db.session.commit()
             assert srp_request.status == next_status
         else:
-            with pytest.raises(ActionError) as excinfo:
+            with pytest.raises(StatusError) as excinfo:
                 Action(srp_request, other_user, type_=next_status)
                 db.session.commit()
             assert srp_request.status == request_status
