@@ -79,6 +79,10 @@ class TestModifiers(object):
                 modifier.void(a_user)
                 db.session.commit()
 
+    @pytest.mark.xfail(reason="To be implemented")
+    def test_evalutaion_order(self, user_role):
+        pass
+
 
 
 @pytest.mark.parametrize('user_role', ['Normal'])

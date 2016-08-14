@@ -148,15 +148,23 @@ def _user_login(user, evesrp_app, authmethod):
     client.post('/login/', follow_redirects=True, data=data)
     return client
 
+@pytest.fixture
+def get_login(evesrp_app, authmethod):
+    def _get_login(a_user):
+        return _user_login(a_user, evesrp_app, authmethod)
+    return _get_login
+
 
 @pytest.fixture
-def user_login(user, evesrp_app, authmethod):
-    return _user_login(user, evesrp_app, authmethod)
+def user_login(user, get_login):
+    # TODO: Raise deprecation warning in favor of get_login
+    return get_login(user)
 
 
 @pytest.fixture
-def other_user_login(other_user, evesrp_app, authmethod):
-    return _user_login(other_user, evesrp_app, authmethod)
+def other_user_login(other_user, get_login):
+    # TODO: Raise deprecation warning in favor of get_login
+    return get_login(other_user)
 
 
 @pytest.fixture

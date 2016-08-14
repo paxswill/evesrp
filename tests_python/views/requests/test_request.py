@@ -1,316 +1,234 @@
 from __future__ import absolute_import
-from __future__ import unicode_literals
-import re
-import datetime as dt
-from decimal import Decimal
-from ...util_tests import TestLogin
+import pytest
 from evesrp import db
-from evesrp.models import Request, Action, AbsoluteModifier, RelativeModifier,\
-        ActionType, PrettyDecimal
+from evesrp.models import ActionType
 from evesrp.auth import PermissionType
-from evesrp.auth.models import User, Pilot, Division, Permission
-from evesrp.util import utc
-from evesrp import views
+from evesrp.auth.models import Division, Permission
 
 
-class TestRequest(TestLogin):
+pytestmark = pytest.mark.parametrize('user_role', ('Normal', ))
 
-    def setUp(self):
-        super(TestRequest, self).setUp()
-        with self.app.test_request_context():
-            d1 = Division('Division One')
-            d2 = Division('Division Two')
-            db.session.add(d1)
-            db.session.add(d2)
-            # Yup, the Gyrobus killmail
-            mock_killmail = dict(
-                    id=12842852,
-                    type_name='Erebus',
-                    type_id=671,
-                    corporation='Ever Flow',
-                    corporation_id=1991488321,
-                    alliance='Northern Coalition.',
-                    alliance_id=1727758877,
-                    killmail_url=('http://eve-kill.net/?a=kill_detail'
-                        '&kll_id=12842852'),
-                    base_payout=73957900000,
-                    kill_timestamp=dt.datetime(2012, 3, 25, 0, 44, 0,
-                        tzinfo=utc),
-                    system='92D-OI',
-                    system_id=30001312,
-                    constellation='XHYS-O',
-                    constellation_id=20000191,
-                    region='Venal',
-                    region_id=10000015,
-                    pilot_id=133741,
-            )
-            Pilot(self.normal_user, 'eLusi0n', 133741)
-            Request(self.normal_user, 'Original details', d1,
-                    mock_killmail.items())
-            db.session.commit()
-        self.request_path = '/request/12842852/'
 
-    def _add_permission(self, user_name, permission,
-            division_name='Division One'):
-        """Helper to grant permissions to the division the request is in."""
-        with self.app.test_request_context():
-            division = Division.query.filter_by(name=division_name).one()
-            user = User.query.filter_by(name=user_name).one()
-            Permission(division, permission, user)
-            db.session.commit()
+@pytest.fixture
+def srp_request(srp_request):
+    division = srp_request.division
+    permissions = Permission.query.filter_by(division=division).delete()
+    db.session.commit()
+    return srp_request
 
-    @property
-    def request(self):
-        return Request.query.get(12842852)
 
-class TestRequestAccess(TestRequest):
+@pytest.fixture
+def request_path(srp_request):
+    return '/request/{}/'.format(srp_request.id)
 
-    def test_basic_request_access(self):
-        # Grab some clients
-        # The normal user is the submitter
-        norm_client = self.login(self.normal_name)
-        admin_client = self.login(self.admin_name)
-        # Users always have access to requests they've submitted
-        resp = norm_client.get(self.request_path)
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn('Lossmail', resp.get_data(as_text=True))
-        resp = admin_client.get(self.request_path)
-        self.assertEqual(resp.status_code, 403)
 
-    def _test_permission_access(self, user_name, permission,
-            division_name, accessible=True):
-        self._add_permission(user_name, permission, division_name)
-        # Get a client and fire off the request
-        client = self.login(user_name)
-        resp = client.get(self.request_path)
-        if accessible:
-            self.assertEqual(resp.status_code, 200)
-            self.assertIn('Lossmail', resp.get_data(as_text=True))
+@pytest.fixture
+def other_division(evesrp_app):
+    division = Division('Other Division')
+    db.session.commit()
+    return division
+
+
+@pytest.fixture(params=(PermissionType.review, PermissionType.pay,
+                        PermissionType.submit), ids=(lambda p: p.value))
+def permission(request):
+    return request.param
+
+
+@pytest.fixture(params=(ActionType.approved, ActionType.paid,
+                        ActionType.rejected, ActionType.incomplete),
+                ids=(lambda s: s.value))
+def status(request):
+    return request.param
+
+
+def test_basic_request_access(user, other_user, get_login, request_path):
+    # Test that the owning user has access, and other users do not
+    other_resp = get_login(other_user).get(request_path)
+    assert other_resp.status_code == 403
+    owner_resp = get_login(user).get(request_path)
+    assert owner_resp.status_code == 200
+    assert 'Lossmail' in owner_resp.get_data(as_text=True)
+
+
+@pytest.mark.parametrize('permission', (PermissionType.review,
+                                        PermissionType.pay),
+                         ids=(lambda p: p.value))
+@pytest.mark.parametrize('division_name', ('Testing Division',
+                                           'Other Division'))
+def test_permission_access(other_user, get_login, permission,
+                           division_name, other_division, srp_request,
+                           request_path):
+    # Test that users with the appropriate permission in the appropriate
+    # division have access to the request
+    if division_name == 'Testing Division':
+        division = srp_request.division
+    else:
+        division = other_division
+    Permission(division, permission, other_user)
+    db.session.commit()
+    resp = get_login(other_user).get(request_path)
+    if division_name == 'Testing Division':
+        assert resp.status_code == 200
+        assert 'Lossmail' in resp.get_data(as_text=True)
+    else:
+        assert resp.status_code == 403
+
+
+def test_set_payout(user, other_user, get_login, permission, srp_request,
+                    request_path):
+    if permission != PermissionType.submit:
+        # This could be confusing, but for the cases where you're testing
+        # that users other than the submitter can access the request with
+        # the correct permission we set 'user' to the value of 'other_user'
+        # just so it's a bit easier to type out.
+        user = other_user
+        Permission(srp_request.division, permission, user)
+    test_payout = 42
+    old_payout = srp_request.base_payout
+    with get_login(user) as client:
+        resp = client.post(request_path, follow_redirects=True, data={
+                'id_': 'payout',
+                'value': test_payout})
+        payout = srp_request.base_payout
+        # When submitting, the value is in millions. Scale it back when we
+        # compare it to the request's base payout.
+        test_payout *= 1000000
+        # Check that the correct status code gets returned and that the
+        # payout didn't change
+        if permission == PermissionType.review:
+            assert resp.status_code == 200
+            assert payout == test_payout
         else:
-            self.assertEqual(resp.status_code, 403)
-
-    def test_review_same_division_access(self):
-        self._test_permission_access(self.admin_name, PermissionType.review,
-                'Division One')
-
-    def test_review_other_division_access(self):
-        self._test_permission_access(self.admin_name, PermissionType.review,
-                'Division Two', False)
-
-    def test_pay_same_division_access(self):
-        self._test_permission_access(self.admin_name, PermissionType.pay,
-                'Division One')
-
-    def test_pay_other_division_access(self):
-        self._test_permission_access(self.admin_name, PermissionType.pay,
-                'Division Two', False)
+            assert resp.status_code == 403
+            assert payout == old_payout
 
 
-class TestRequestSetPayout(TestRequest):
-
-    def _test_set_payout(self, user_name, permission, permissable=True):
-        if permission is not None:
-            self._add_permission(user_name, permission)
-        client = self.login(user_name)
-        test_payout = 42
-        with client as c:
-            resp = client.post(self.request_path, follow_redirects=True, data={
-                    'id_': 'payout',
-                    'value': test_payout})
-            self.assertEqual(resp.status_code, 200)
-            with self.app.test_request_context():
-                payout = self.request.payout
-                base_payout = self.request.base_payout
-            if permissable:
-                real_test_payout = test_payout * 1000000
-                self.assertEqual(payout, real_test_payout)
-            else:
-                self.assertIn('Only reviewers can change the base payout.',
-                        resp.get_data(as_text=True))
-                self.assertEqual(base_payout, Decimal('73957900000'))
-
-    def test_reviewer_set_base_payout(self):
-        self._test_set_payout(self.admin_name, PermissionType.review)
-
-    def test_payer_set_base_payout(self):
-        self._test_set_payout(self.admin_name, PermissionType.pay, False)
-
-    def test_submitter_set_base_payout(self):
-        self._test_set_payout(self.normal_name, None, False)
-
-    def test_set_payout_invalid_request_state(self):
-        statuses = (
-            ActionType.approved,
-            ActionType.paid,
-            ActionType.rejected,
-            ActionType.incomplete,
-        )
-        self._add_permission(self.normal_name, PermissionType.review)
-        self._add_permission(self.normal_name, PermissionType.pay)
-        client = self.login()
-        for status in statuses:
-            with self.app.test_request_context():
-                if status == ActionType.paid:
-                    self.request.status = ActionType.approved
-                self.request.status = status
-                db.session.commit()
-            resp = client.post(self.request_path, follow_redirects=True, data={
-                    'id_': 'payout',
-                    'value': '42'})
-            self.assertIn('The request must be in the evaluating state '
-                    'to change the base payout.', resp.get_data(as_text=True))
-            with self.app.test_request_context():
-                self.request.status = ActionType.evaluating
-                db.session.commit()
+def test_set_payout_invalid_state(user, get_login, srp_request, request_path,
+                                  status):
+    if status == ActionType.paid:
+        # Satisfy the state machine
+        srp_request.status = ActionType.approved
+    srp_request.status = status
+    # Add permissions so this user can change the payout
+    Permission(srp_request.division, PermissionType.review, user)
+    db.session.commit()
+    before_payout = srp_request.base_payout
+    with get_login(user) as client:
+        resp = client.post(request_path, follow_redirects=True,
+                           data={
+                               'id_': 'payout',
+                               'value': '42',
+                           })
+        assert resp.status_code == 400
+        assert srp_request.base_payout == before_payout
 
 
-class TestRequestAddModifiers(TestRequest):
-
-    def _test_add_modifier(self, user_name, permissible=True):
-        client = self.login(user_name)
-        resp = client.post(self.request_path, follow_redirects=True, data={
-                'id_': 'modifier',
-                'value': '10',
-                'type_': 'abs-bonus',})
-        self.assertEqual(resp.status_code, 200)
-        with self.app.test_request_context():
-            modifiers = self.request.modifiers.all()
-            modifiers_length = len(modifiers)
-            if modifiers_length > 0:
-                first_value = modifiers[0].value
-        if permissible:
-            self.assertEqual(modifiers_length, 1)
-            self.assertEqual(first_value, 10000000)
+def test_add_modifier(user, other_user, get_login, srp_request, request_path,
+                      permission):
+    if permission != PermissionType.submit:
+        user = other_user
+        Permission(srp_request.division, permission, user)
+        db.session.commit()
+    before_modifier_count = len(srp_request.modifiers.all())
+    with get_login(user) as client:
+        resp = client.post(request_path, follow_redirects=True,
+                           data={
+                               'id_': 'modifier',
+                               'value': '10',
+                               'type_': 'abs-bonus',
+                           })
+        modifier_count = len(srp_request.modifiers.all())
+        if permission == PermissionType.review:
+            assert resp.status_code == 200
+            assert (before_modifier_count + 1) == modifier_count
         else:
-            self.assertEqual(modifiers_length, 0)
-            self.assertIn('Only reviewers can add modifiers.',
-                    resp.get_data(as_text=True))
-
-    def test_reviewer_add_modifier(self):
-        self._add_permission(self.admin_name, PermissionType.review)
-        self._test_add_modifier(self.admin_name)
-
-    def test_payer_add_modifier(self):
-        self._add_permission(self.admin_name, PermissionType.pay)
-        self._test_add_modifier(self.admin_name, False)
-
-    def test_submitter_add_modifier(self):
-        self._test_add_modifier(self.normal_name, False)
+            assert resp.status_code == 403
+            assert before_modifier_count == modifier_count
 
 
-class TestRequestVoidModifiers(TestRequest):
+def test_add_modifier_invalid_state(user, get_login, srp_request, request_path,
+                                    status):
+    if status == ActionType.paid:
+        srp_request.status = ActionType.approved
+    srp_request.status = status
+    Permission(srp_request.division, PermissionType.review, user)
+    db.session.commit()
+    before_modifier_count = len(srp_request.modifiers.all())
+    with get_login(user) as client:
+        resp = client.post(request_path, follow_redirects=True,
+                           data={
+                               'id_': 'modifier',
+                               'value': '10',
+                               'type_': 'abs-bonus',
+                           })
+        modifier_count = len(srp_request.modifiers.all())
+        assert resp.status_code == 400
+        assert modifier_count == before_modifier_count
 
-    def _add_modifier(self, user_name, value, absolute=True):
-        with self.app.test_request_context():
-            user = User.query.filter_by(name=user_name).one()
-            if absolute:
-                mod = AbsoluteModifier(self.request, user, '', value)
-            else:
-                mod = RelativeModifier(self.request, user, '', value)
-            db.session.commit()
-            return mod.id
 
-    def _test_void_modifier(self, user_name, permissible=True):
-        self._add_permission(self.admin_name, PermissionType.review)
-        mod_id = self._add_modifier(self.admin_name, 10)
-        client = self.login(user_name)
-        resp = client.post(self.request_path, follow_redirects=True, data={
-                'id_': 'void',
-                'modifier_id': mod_id})
-        self.assertEqual(resp.status_code, 200)
-        with self.app.test_request_context():
-            payout = self.request.payout
-        if permissible:
-            self.assertEqual(payout, Decimal(73957900000))
+def test_void_modifier(user, other_user, get_login, srp_request, request_path,
+                       permission):
+    if permission != PermissionType.submit:
+        user = other_user
+        Permission(srp_request.division, permission, user)
+        db.session.commit()
+    before_payout = srp_request.payout
+    mod_id = srp_request.modifiers.one().id
+    with get_login(user) as client:
+        resp = client.post(request_path, follow_redirects=True,
+                           data={
+                               'id_': 'void',
+                               'modifier_id': mod_id,
+                           })
+        if permission == PermissionType.review:
+            assert resp.status_code == 200
+            assert srp_request.payout != before_payout
         else:
-            self.assertEqual(payout, Decimal(73957900000) + 10)
-            self.assertIn('You must be a reviewer to be able to void',
-                    resp.get_data(as_text=True))
-
-    def test_reviewer_void_modifier(self):
-        self._add_permission(self.normal_name, PermissionType.review)
-        self._test_void_modifier(self.normal_name)
-
-    def test_payer_void_modifier(self):
-        self._add_permission(self.normal_name, PermissionType.pay)
-        self._test_void_modifier(self.normal_name, False)
-
-    def test_submitter_void_modifier(self):
-        self._test_void_modifier(self.normal_name, False)
-
-    def test_modifier_evaluation(self):
-        with self.app.test_request_context():
-            self._add_permission(self.admin_name, PermissionType.review)
-            self.assertEqual(self.request.payout, Decimal(73957900000))
-            self._add_modifier(self.admin_name, Decimal(10000000))
-            self.assertEqual(self.request.payout,
-                    Decimal(73957900000) + Decimal(10000000))
-            self._add_modifier(self.admin_name, Decimal('-0.1'), False)
-            self.assertEqual(self.request.payout,
-                    (Decimal(73957900000) + Decimal(10000000)) *
-                    (1 + Decimal('-0.1')))
+            assert resp.status_code == 403
+            assert srp_request.payout == before_payout
 
 
-class TestChangeDivision(TestRequest):
-
-    def setUp(self):
-        super(TestChangeDivision, self).setUp()
-        with self.app.test_request_context():
-            db.session.add(Division('Division Three'))
-            db.session.commit()
-
-    def _send_request(self, user_name):
-        with self.app.test_request_context():
-            new_division_id = Division.query.filter_by(
-                    name='Division Two').one().id
-        client = self.login(user_name)
-        return client.post(self.request_path + 'division/',
-                follow_redirects=True,
-                data={'division': new_division_id})
-
-    def test_submitter_change_submit_division(self):
-        self._add_permission(self.normal_name, PermissionType.submit,
-                'Division Two')
-        self._add_permission(self.normal_name, PermissionType.submit,
-                'Division Three')
-        resp = self._send_request(self.normal_name)
-        self.assertEqual(resp.status_code, 200)
-        with self.app.test_request_context():
-            d2 = Division.query.filter_by(name='Division Two').one()
-            self.assertEqual(self.request.division, d2)
-
-    def test_submitter_change_nonsubmit_division(self):
-        resp = self._send_request(self.normal_name)
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn(u"No other divisions", resp.get_data(as_text=True))
-        with self.app.test_request_context():
-            d1 = Division.query.filter_by(name='Division One').one()
-            self.assertEqual(self.request.division, d1)
-
-    def test_submitter_change_division_finalized(self):
-        self._add_permission(self.normal_name, PermissionType.submit,
-                'Division Two')
-        self._add_permission(self.normal_name, PermissionType.submit,
-                'Division Three')
-        self._add_permission(self.admin_name, PermissionType.admin)
-        with self.app.test_request_context():
-            Action(self.request, self.admin_user, type_=ActionType.rejected)
-            db.session.commit()
-        resp = self._send_request(self.normal_name)
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn(u"in a finalized state", resp.get_data(as_text=True))
-        with self.app.test_request_context():
-            d1 = Division.query.filter_by(name='Division One').one()
-            self.assertEqual(self.request.division, d1)
-
-    def test_reviewer_change_division(self):
-        self._add_permission(self.admin_name, PermissionType.review)
-        self._add_permission(self.normal_name, PermissionType.submit,
-                'Division Two')
-        self._add_permission(self.normal_name, PermissionType.submit,
-                'Division Three')
-        resp = self._send_request(self.normal_name)
-        self.assertEqual(resp.status_code, 200)
-        with self.app.test_request_context():
-            d2 = Division.query.filter_by(name='Division Two').one()
-            self.assertEqual(self.request.division, d2)
+@pytest.mark.parametrize('new_division', (True, False),
+                         ids=('New_Division', 'No_New_Division'))
+@pytest.mark.parametrize('status', ActionType.statuses,
+                         ids=(lambda s: s.value))
+def test_change_division(user, other_user, get_login, srp_request,
+                         request_path, permission, status, new_division):
+    # Set up the new division and permissions
+    other_division = Division("Other Division")
+    if permission != PermissionType.submit:
+        user = other_user
+        Permission(srp_request.division, permission, user)
+    if new_division:
+        Permission(other_division, PermissionType.submit,
+                   srp_request.submitter)
+    # Massage the request status if needed
+    if status != ActionType.evaluating:
+        if status == ActionType.paid:
+            srp_request.status = ActionType.approved
+        srp_request.status = status
+    db.session.commit()
+    old_division_id = srp_request.division.id
+    with get_login(user) as client:
+        resp = client.post(request_path + 'division/', follow_redirects=True,
+                           data={'division': other_division.id})
+        # PermissionType.pay is the only permission under test here that can't
+        # change the division.
+        if permission == PermissionType.pay:
+            assert resp.status_code == 403
+            success = False
+        elif status not in ActionType.pending:
+            assert 'finalized state' in resp.get_data(as_text=True)
+            # redirect causing an eventual 200
+            assert resp.status_code == 200
+            success = False
+        elif not new_division:
+            assert 'No other divisions' in resp.get_data(as_text=True)
+            # redirect ahoy
+            assert resp.status_code == 200
+            success = False
+        else:
+            assert 'moved to' in resp.get_data(as_text=True)
+            success = True
+        assert (old_division_id != srp_request.division.id) == success
