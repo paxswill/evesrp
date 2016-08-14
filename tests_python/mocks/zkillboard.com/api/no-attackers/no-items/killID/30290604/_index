@@ -1,0 +1,26 @@
+[
+    {
+        "killID": 30290604,
+        "solarSystemID": 30002062,
+        "killTime": "2013-05-05 18:09:00",
+        "moonID": 0,
+        "victim": {
+            "shipTypeID": 670,
+            "characterID": 92168909,
+            "characterName": "CCP FoxFour",
+            "corporationID": 109299958,
+            "corporationName": "C C P",
+            "allianceID": 434243723,
+            "allianceName": "C C P Alliance",
+            "factionID": 0,
+            "factionName": "",
+            "damageTaken": 570
+        },
+        "zkb": {
+            "hash": "787fb3714062f1700560d4a83ce32c67640b1797",
+            "totalValue": 2317684170.66,
+            "points": 1,
+            "involved": 3
+        }
+    }
+]
