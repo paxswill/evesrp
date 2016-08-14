@@ -13,6 +13,14 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
 
+# Mark all tests in this package as functional tests
+def pytest_collection_modifyitems(items):
+    for item in items:
+        if item.get_marker('browser') is None:
+            if item.fspath is not None and 'functional' in str(item.fspath):
+                item.add_marker(pytest.mark.browser)
+
+
 class ThreadingWSGIServer(ThreadingMixIn, simple_server.WSGIServer):
     
     # So we can use addresses accidentally left in use (like by a badly closing

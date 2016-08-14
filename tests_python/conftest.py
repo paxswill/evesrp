@@ -16,6 +16,23 @@ from evesrp.util import utc
 from . import mocks
 
 
+# Local plugin that adds a command line option for running functional tests
+# only.
+
+def pytest_addoption(parser):
+    parser.addoption('-F', action='store_true',
+                     help="Run only functional tests.")
+
+
+def pytest_runtest_setup(item):
+    browser = item.get_marker('browser')
+    run_functional = item.config.getoption('-F')
+    if browser is None and run_functional:
+        pytest.skip("Only running functional tests")
+    elif browser is not None and not run_functional:
+        pytest.skip("Not running functional tests")
+
+
 # NullAuthForm and NullAuth define an AuthMethod that does no actual
 # authentication. It's used to test that logging in actually works and that
 # functionality that only works for authenticated users also works.
