@@ -85,7 +85,7 @@ def app_config(app_config):
     # If using an SQLite in-memory DB, change it to an actual file DB so it can
     # be shared between threads (I'm not going to try enforcing a recent SQLite
     # version to use shared in-memory databases across threads).
-    if app_config['SQLALCHEMY_DATABASE_URI'] == 'sqlite:///':
+    if app_config['SQLALCHEMY_DATABASE_URI'] in ('sqlite:///', 'sqlite://'):
         _, path = tempfile.mkstemp()
         app_config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{}'.format(path)
     else:
