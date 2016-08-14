@@ -83,3 +83,20 @@ def app_config(app_config):
     yield app_config
     if path is not None:
         os.remove(path)
+
+
+@pytest.yield_fixture
+def driver_login(user, driver, server_address):
+    driver.get(server_address + '/login/')
+    name = driver.find_element_by_id('null_auth_1-name')
+    name.send_keys(user.name)
+    name.send_keys(Keys.RETURN)
+    yield
+    # Logout just to keep things clean
+    right_nav = driver.find_element_by_id('right-nav')
+    dropdown = right_nav.find_element_by_class_name('dropdown')
+    # Calling click here to make it visible, acting like a real user
+    dropdown.click()
+    logout_link = dropdown.find_elements_by_tag_name('a')[-1]
+    logout_link.click()
+    driver.delete_all_cookies()
