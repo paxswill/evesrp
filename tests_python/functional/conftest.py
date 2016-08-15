@@ -11,6 +11,7 @@ from httmock import HTTMock
 import pytest
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
 
 
 # Mark all tests in this package as functional tests
@@ -54,6 +55,8 @@ def driver(request):
                                       command_executor=command_url)
     else:
         driver = getattr(webdriver, browser)()
+    # TODO: Add mobile testing as well
+    driver.set_window_size(1024, 768)
     yield driver
     driver.quit()
 
@@ -109,10 +112,14 @@ def driver_login(user, driver, server_address):
     name.send_keys(Keys.RETURN)
     yield
     # Logout just to keep things clean
+    chain = ActionChains(driver)
     right_nav = driver.find_element_by_id('right-nav')
     dropdown = right_nav.find_element_by_class_name('dropdown')
+    chain.move_to_element(dropdown)
     # Calling click here to make it visible, acting like a real user
-    dropdown.click()
+    chain.click(dropdown)
     logout_link = dropdown.find_elements_by_tag_name('a')[-1]
-    logout_link.click()
+    chain.move_to_element(logout_link)
+    chain.click(logout_link)
+    chain.perform()
     driver.delete_all_cookies()
