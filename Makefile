@@ -23,7 +23,8 @@ upload: javascript translations static setup.py
 # test-javascript gets added to the test target in javascript.mk
 test:: test-python
 
-test-python: translations
+test-python: translations javascript static
+# TODO: Split browser based testing into a different target
 	coverage erase
 	mkdir -p test-reports
 	rm -f test-reports/*.html

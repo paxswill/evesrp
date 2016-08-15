@@ -9,6 +9,10 @@ addons:
 # See below why g++4.8 is required, graphviz is required for building the docs.
         - g++-4.8
         - graphviz
+    sauce_connect:
+        username: "paxswill"
+        access_key:
+            secure: "TCzTxalXay5EWRO/XhJdwjZvtqTfRADZGt55mNY+67IP5eZoSiJzOGf41/smYo+3HMBHvzq22mhYwDA2r04bDT2camNq/L67FhF6R2pfdtAhBFnpuuQPSw249v5xahRHYGJ1/lZWCai7PpbnGFMjMz7JqLqtKPasQgq9P1TDTLA="
 
 cache:
   pip: true
