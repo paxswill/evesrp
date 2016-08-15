@@ -41,13 +41,13 @@ env:
 matrix:
     include:
 # Standard support
-        - env: SRP_PYTHON="py27" SRP_DB="sqlite" SELENIUM_DRIVER="PhantomJS,Chrome,Firefox,Edge"
+        - env: SRP_PYTHON="py27" SRP_DB="sqlite" SELENIUM_DRIVER="PhantomJS,Chrome,Firefox"
           python: 2.7
         - env: SRP_PYTHON="py27" SRP_DB="psycopg2"
           python: 2.7
         - env: SRP_PYTHON="py27" SRP_DB="pymysql"
           python: 2.7
-        - env: SRP_PYTHON="py35" SRP_DB="sqlite" SELENIUM_DRIVER="PhantomJS,Chrome,Firefox,Edge"
+        - env: SRP_PYTHON="py35" SRP_DB="sqlite" SELENIUM_DRIVER="PhantomJS,Chrome,Firefox"
           python: 3.5
         - env: SRP_PYTHON="py35" SRP_DB="psycopg2"
           python: 3.5
