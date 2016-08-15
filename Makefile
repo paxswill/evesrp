@@ -40,11 +40,15 @@ docs:
 	tox -e docs
 
 # Travis targets
-ifneq (,$(findstring javascript,$(TEST_SUITE)))
-travis-setup:
+$(HOME)/phantomjs:
 	wget https://s3.amazonaws.com/travis-phantomjs/phantomjs-2.0.0-ubuntu-12.04.tar.bz2
 	tar -xjf phantomjs-2.0.0-ubuntu-12.04.tar.bz2
 	mv phantomjs $(HOME)/phantomjs
+
+# Depending on the value of TEST_SUITE, the travis-setup, travis and
+# travis-success targets are defined differently.
+ifneq (,$(findstring javascript,$(TEST_SUITE)))
+travis-setup: $(HOME)/phantomjs
 travis: test-javascript
 travis-success:
 	cat tests_javascript/coverage/lcov.info | $(NODE_BIN)/coveralls
@@ -53,7 +57,13 @@ travis-setup:
 travis: docs
 travis-success:
 else
+# if SELENIUM_DRIVER is defined, download the phantomjs binary for browser
+# testing.
+ifeq (,$(SELENIUM_DRIVER))
+travis-setup: $(HOME)/phantomjs
+else
 travis-setup:
+endif
 	pip install coveralls
 travis: test-python
 travis-success:
