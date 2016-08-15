@@ -11,6 +11,7 @@ from httmock import HTTMock
 import pytest
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.utils import join_host_port
 from selenium.webdriver.common.action_chains import ActionChains
 
 
@@ -85,7 +86,8 @@ def server_address(app_server):
     host, port = app_server.socket.getsockname()
     if host in ('0.0.0.0', '::'):
         host = 'localhost'
-    address = "http://{}:{}".format(host, port)
+    joined = join_host_port(host, port)
+    address = "http://{}".format(joined)
     return address
 
 
