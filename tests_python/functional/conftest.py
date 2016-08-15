@@ -28,9 +28,15 @@ class ThreadingWSGIServer(ThreadingMixIn, simple_server.WSGIServer):
     allow_reuse_address = True
 
 
-@pytest.yield_fixture(scope='session')
-def driver():
-    browser = os.environ.get('SELENIUM_DRIVER', 'PhantomJS')
+# Figure out which browser to run, defaulting to just PhantomJS
+browsers = os.environ.get('SELENIUM_DRIVER', 'PhantomJS')
+if ',' in browsers:
+    browsers = browsers.split(',')
+else:
+    browsers = [browsers]
+@pytest.yield_fixture(scope='session', params=browsers)
+def driver(request):
+    browser = request.param
     # Check to see if we're running on Travis. Explicitly check the value
     # of TRAVIS as tox sets it to an empty string.
     if os.environ.get('TRAVIS') == 'true' and browser != 'PhantomJS':
