@@ -33,7 +33,7 @@ def driver():
     browser = os.environ.get('SELENIUM_DRIVER', 'PhantomJS')
     # Check to see if we're running on Travis. Explicitly check the value
     # of TRAVIS as tox sets it to an empty string.
-    if os.environ.get('TRAVIS') == 'true':
+    if os.environ.get('TRAVIS') == 'true' and browser != 'PhantomJS':
         username = os.environ['SAUCE_USERNAME']
         access_key = os.environ['SAUCE_ACCESS_KEY']
         default_capabilities = getattr(webdriver.DesiredCapabilities,
