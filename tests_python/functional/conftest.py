@@ -10,9 +10,10 @@ from wsgiref import simple_server
 from httmock import HTTMock
 import pytest
 from selenium import webdriver
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.exceptions import WebDriverException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.utils import join_host_port
-from selenium.webdriver.common.action_chains import ActionChains
 
 
 # Mark all tests in this package as functional tests
@@ -59,7 +60,12 @@ def driver(request):
     # TODO: Add mobile testing as well
     driver.set_window_size(1024, 768)
     yield driver
-    driver.quit()
+    # I don't care about WebDriver exceptions when quitting. And we'll get an
+    # error as SauceLabs will auto-close the connection after 90s.
+    try:
+        driver.quit()
+    except WebDriverException:
+        pass
 
 
 @pytest.yield_fixture
