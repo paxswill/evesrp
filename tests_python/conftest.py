@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 import datetime as dt
-from os import environ as env
+import os
 
 import pytest
 from flask import redirect, url_for, request, render_template
@@ -25,12 +25,18 @@ def pytest_addoption(parser):
 
 
 def pytest_runtest_setup(item):
+    # browser-based tests will only run if the -F option is given, *or* if the
+    # SELENIUM_DRIVER environment variable is defined
     browser = item.get_marker('browser')
+    selenium_driver = os.environ.get('SELENIUM_DRIVER', None)
     run_functional = item.config.getoption('-F')
     if browser is None and run_functional:
         pytest.skip("Only running functional tests")
-    elif browser is not None and not run_functional:
-        pytest.skip("Not running functional tests")
+    elif browser is not None:
+        # Only skip browser tests if the flag is not given and SELENIUM_DRIVER
+        # is not defined.
+        if selenium_driver is None and not run_functional:
+            pytest.skip("Not running functional tests")
 
 
 # NullAuthForm and NullAuth define an AuthMethod that does no actual
@@ -84,7 +90,7 @@ def app_config():
     }
     # Default to an ephemeral SQLite DB for testing unless given another
     # database to connect to.
-    config['SQLALCHEMY_DATABASE_URI'] = env.get('DB', 'sqlite:///')
+    config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB', 'sqlite:///')
     auth_methods = [
             NullAuth(name='Null Auth 1'),
             NullAuth(name='Null Auth 2'),
