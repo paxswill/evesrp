@@ -1,7 +1,6 @@
 [run]
 branch = true
 source = evesrp
-parallel = true
 omit =
     evesrp/migrate/*
 
