@@ -27,7 +27,7 @@ test-python: translations javascript static
 # TODO: Split browser based testing into a different target
 	coverage erase
 	mkdir -p test-reports
-	rm -f test-reports/*.html
+	rm -rf test-reports/*
 	tox
 	coverage combine
 	coverage html -d coverage-report
