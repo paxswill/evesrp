@@ -10,8 +10,8 @@ from wsgiref import simple_server
 from httmock import HTTMock
 import pytest
 from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.exceptions import WebDriverException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.utils import join_host_port
 
