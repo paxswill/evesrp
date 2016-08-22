@@ -37,7 +37,7 @@ if ',' in browsers:
     browsers = browsers.split(',')
 else:
     browsers = [browsers]
-@pytest.yield_fixture(scope='session', params=browsers)
+@pytest.fixture(scope='session', params=browsers)
 def driver(request):
     browser = request.param
     # Check to see if we're running on Travis. Explicitly check the value
@@ -68,7 +68,7 @@ def driver(request):
         pass
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def app_server(evesrp_app, crest, zkillboard):
     # Use port 0 to get a port assigned to us by the OS
     server = simple_server.make_server('', 0, evesrp_app,
@@ -97,7 +97,7 @@ def server_address(app_server):
     return address
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def app_config(app_config):
     # If using an SQLite in-memory DB, change it to an actual file DB so it can
     # be shared between threads (I'm not going to try enforcing a recent SQLite
@@ -112,7 +112,7 @@ def app_config(app_config):
         os.remove(path)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def driver_login(user, driver, server_address):
     driver.get(server_address + '/login/')
     name = driver.find_element_by_id('null_auth_1-name')

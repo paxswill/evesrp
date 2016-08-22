@@ -104,7 +104,7 @@ def app_config():
     return config
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def evesrp_app(app_config):
     app = create_app(app_config)
     db.create_all(app=app)
@@ -116,7 +116,7 @@ def evesrp_app(app_config):
     db.drop_all(app=app)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def request_context(evesrp_app):
     request_ctx = evesrp_app.test_request_context()
     request_ctx.push()
