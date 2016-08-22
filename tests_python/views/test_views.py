@@ -13,12 +13,10 @@ def test_index_redirect(test_client):
     assert '/login/' in resp.headers['Location']
 
 
-@pytest.mark.parametrize('status', ActionType.statuses,
-                         ids=(lambda s: s.value))
-@pytest.mark.parametrize('permission', [PermissionType.submit,
+@pytest.mark.parametrize('status', ActionType.statuses)
+@pytest.mark.parametrize('permission', (PermissionType.submit,
                                         PermissionType.review,
-                                        PermissionType.pay],
-                         ids=(lambda p: p.value))
+                                        PermissionType.pay))
 @pytest.mark.parametrize('user_role', ['Normal'])
 def test_request_count(status, permission, user, user_login):
     """Test (indirectly) that the counts in the nav bar reflect the count of

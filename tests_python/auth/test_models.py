@@ -29,7 +29,7 @@ def make_division(evesrp_app):
     return _make_division
 
 
-@pytest.fixture(params=PermissionType.all, ids=(lambda p: p.value))
+@pytest.fixture(params=PermissionType.all)
 def permission(request):
     return request.param
 

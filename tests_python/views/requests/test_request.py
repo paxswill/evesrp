@@ -30,14 +30,13 @@ def other_division(evesrp_app):
 
 
 @pytest.fixture(params=(PermissionType.review, PermissionType.pay,
-                        PermissionType.submit), ids=(lambda p: p.value))
+                        PermissionType.submit))
 def permission(request):
     return request.param
 
 
 @pytest.fixture(params=(ActionType.approved, ActionType.paid,
-                        ActionType.rejected, ActionType.incomplete),
-                ids=(lambda s: s.value))
+                        ActionType.rejected, ActionType.incomplete))
 def status(request):
     return request.param
 
@@ -52,8 +51,7 @@ def test_basic_request_access(user, other_user, get_login, request_path):
 
 
 @pytest.mark.parametrize('permission', (PermissionType.review,
-                                        PermissionType.pay),
-                         ids=(lambda p: p.value))
+                                        PermissionType.pay))
 @pytest.mark.parametrize('division_name', ('Testing Division',
                                            'Other Division'))
 def test_permission_access(other_user, get_login, permission,
@@ -191,8 +189,7 @@ def test_void_modifier(user, other_user, get_login, srp_request, request_path,
 
 @pytest.mark.parametrize('new_division', (True, False),
                          ids=('New_Division', 'No_New_Division'))
-@pytest.mark.parametrize('status', ActionType.statuses,
-                         ids=(lambda s: s.value))
+@pytest.mark.parametrize('status', ActionType.statuses)
 def test_change_division(user, other_user, get_login, srp_request,
                          request_path, permission, status, new_division):
     # Set up the new division and permissions

@@ -13,7 +13,17 @@ from evesrp.models import Request, AbsoluteModifier
 from evesrp.auth import AuthMethod, PermissionType
 from evesrp.auth.models import User, Division, Permission, Pilot
 from evesrp.util import utc
+from evesrp.util.enum import EnumSymbol
 from . import mocks
+
+
+def pytest_make_parametrize_id(val):
+    """Hook that pretty-prints IDs for the enumerated types used as parameters
+    in fixtures.
+    """
+    if isinstance(val, EnumSymbol):
+        return val.name
+    return None
 
 
 # Local plugin that adds a command line option for running functional tests

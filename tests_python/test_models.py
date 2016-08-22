@@ -15,7 +15,7 @@ from evesrp.util import utc
 pytestmark = pytest.mark.usefixtures('request_context')
 
 
-@pytest.fixture(params=ActionType.statuses, ids=(lambda s: s.value))
+@pytest.fixture(params=ActionType.statuses)
 def request_status(request, srp_request, other_user):
     # Skip if the status already matches
     if request.param == srp_request.status:
@@ -92,7 +92,7 @@ class TestActionStatus(object):
     def test_default_status(self, srp_request):
         assert srp_request.status == ActionType.evaluating
 
-    @pytest.fixture(params=ActionType.statuses, ids=(lambda s: s.value))
+    @pytest.fixture(params=ActionType.statuses)
     def next_status(self, request):
         return request.param
 
