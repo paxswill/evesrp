@@ -9,10 +9,6 @@ addons:
 # See below why g++4.8 is required, graphviz is required for building the docs.
         - g++-4.8
         - graphviz
-    sauce_connect:
-        username: "paxswill"
-        access_key:
-            secure: "TCzTxalXay5EWRO/XhJdwjZvtqTfRADZGt55mNY+67IP5eZoSiJzOGf41/smYo+3HMBHvzq22mhYwDA2r04bDT2camNq/L67FhF6R2pfdtAhBFnpuuQPSw249v5xahRHYGJ1/lZWCai7PpbnGFMjMz7JqLqtKPasQgq9P1TDTLA="
 
 cache:
   pip: true
@@ -37,6 +33,8 @@ env:
     global:
         - POSTGRES_USER="postgres"
         - MYSQL_USER="root"
+        - secure: "C2mxf91tBu7PyGi7DFqJzmEpbtHcOOjCHCCpahSXQoieSCvfZrSagNnpaDXBmtucd8SWDlglXJZqXPDvGoWTPIzNRlKDTljSrgMrBznygSeZF2RVE7lkX7woGqYn4+9LapFQpRgGiERMRvdE3cxaiy8TkMulCL+2dzSNkgdX4NU="
+        - secure: "g31ZfiKl+sulMBV5BwozGw/fo0MGwE9fQMnnQmjIi40rIMby9DzmjSCeBj96vNmUEAFBt0cuG66R0vM4hko761I9CDR4ilj6S6+QeL5rMc2GGhytn/cGpKXHGZytq7V0aowWDxyScrFLyvdyOclFlnYScFhacH+kU+NlEzxtQ8Q="
 
 matrix:
     include:
@@ -92,6 +90,10 @@ install:
     - make build-deps
 
 script: TOXENV="$SRP_PYTHON-$SRP_DB" make travis
+
+# Just attempt to close a Sauce Connect tunnel all the time, it'll only succeed
+# if there's an actual tunnel.
+after_script: scripts/sauce_connect.sh stop
 
 after_success: make travis-success
 
