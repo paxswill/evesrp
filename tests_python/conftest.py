@@ -20,14 +20,14 @@ from . import mocks
 # only.
 
 def pytest_addoption(parser):
-    parser.addoption('-F', action='store_true',
-                     help="Run only functional tests.")
+    parser.addoption('--browser', action='store_true',
+                     help="Run only browser-based tests.")
 
 
 def pytest_runtest_setup(item):
-    # browser-based tests will only run if the -F option is given.
+    # browser-based tests will only run if the --browser option is given.
     browser = item.get_marker('browser')
-    run_functional = item.config.getoption('-F')
+    run_functional = item.config.getoption('--browser')
     if browser is None and run_functional:
         pytest.skip("Only running functional tests")
     elif browser is not None and not run_functional:
