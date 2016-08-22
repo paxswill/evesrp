@@ -41,25 +41,25 @@ env:
 matrix:
     include:
 # Standard support
-        - env: SRP_PYTHON="py27" SRP_DB="sqlite" SELENIUM_DRIVER="PhantomJS,Chrome,Firefox"
+        - env: SRP_PYTHON="py27" SRP_DB="sqlite"
           python: 2.7
         - env: SRP_PYTHON="py27" SRP_DB="psycopg2"
           python: 2.7
         - env: SRP_PYTHON="py27" SRP_DB="pymysql"
           python: 2.7
-        - env: SRP_PYTHON="py35" SRP_DB="sqlite" SELENIUM_DRIVER="PhantomJS,Chrome,Firefox"
+        - env: SRP_PYTHON="py35" SRP_DB="sqlite"
           python: 3.5
         - env: SRP_PYTHON="py35" SRP_DB="psycopg2"
           python: 3.5
         - env: SRP_PYTHON="py35" SRP_DB="pymysql"
           python: 3.5
+        - env: SRP_PYTHON="py27" SRP_DB="mysqldb"
+          python: 2.7
 # Extra support
         - env: SRP_PYTHON="py33" SRP_DB="sqlite"
           python: 3.3
         - env: SRP_PYTHON="py34" SRP_DB="sqlite"
           python: 3.4
-        - env: SRP_PYTHON="py27" SRP_DB="mysqldb"
-          python: 2.7
         - env: SRP_PYTHON="pypy" SRP_DB="sqlite"
           python: pypy
 # Disable PyPy3 until it supports Python 3.3
@@ -67,6 +67,10 @@ matrix:
 # Special test suites
         - env: TEST_SUITE="javascript"
         - env: TEST_SUITE="docs"
+        - env: TEST_SUITE="browser" SRP_PYTHON="py27"
+          python: 2.7
+        - env: TEST_SUITE="browser" SRP_PYTHON="py35"
+          python: 3.5
     allow_failures:
 # Pypy is weird and takes a long time to test
         - env: SRP_PYTHON="pypy"    SRP_DB="sqlite"
