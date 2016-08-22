@@ -25,18 +25,13 @@ def pytest_addoption(parser):
 
 
 def pytest_runtest_setup(item):
-    # browser-based tests will only run if the -F option is given, *or* if the
-    # SELENIUM_DRIVER environment variable is defined
+    # browser-based tests will only run if the -F option is given.
     browser = item.get_marker('browser')
-    selenium_driver = os.environ.get('SELENIUM_DRIVER', None)
     run_functional = item.config.getoption('-F')
     if browser is None and run_functional:
         pytest.skip("Only running functional tests")
-    elif browser is not None:
-        # Only skip browser tests if the flag is not given and SELENIUM_DRIVER
-        # is not defined.
-        if selenium_driver is None and not run_functional:
-            pytest.skip("Not running functional tests")
+    elif browser is not None and not run_functional:
+        pytest.skip("Not running functional tests")
 
 
 # NullAuthForm and NullAuth define an AuthMethod that does no actual
