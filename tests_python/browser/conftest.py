@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import os
 import socket
 from six.moves.socketserver import ThreadingMixIn
+from six.moves.http_client import HTTPException
 import threading
 import tempfile
 from wsgiref import simple_server
@@ -64,7 +65,7 @@ def driver(request):
     # error as SauceLabs will auto-close the connection after 90s.
     try:
         driver.quit()
-    except WebDriverException:
+    except (WebDriverException, HTTPException):
         pass
 
 
