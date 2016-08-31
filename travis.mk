@@ -28,9 +28,9 @@ else ifneq (,$(findstring browser,$(TEST_SUITE)))
 travis-setup: $(HOME)/phantomjs
 	pip install coveralls
 # Define TOXENV and SELENIUM_DRIVER for the test-python target
-test-python: TOXENV := $(SRP_PYTHON)-sqlite-browser
+test-python: export TOXENV := $(SRP_PYTHON)-sqlite-browser
 # TODO: Add a better way of specifying the capabilities to test.
-test-python: SELENIUM_DRIVER := "PhantomJS,Chrome,Firefox"
+test-python: export SELENIUM_DRIVER := "PhantomJS,Chrome,Firefox"
 travis: test-python
 travis-success:
 	coveralls
