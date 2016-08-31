@@ -3,26 +3,46 @@ import pytest
 from bs4 import BeautifulSoup
 
 
-class TestFileHashDisabled(object):
-
-    def _test_static_files(self, index_resp, client):
-        soup = BeautifulSoup(index_resp.get_data(as_text=True), 'html.parser')
-        # Check href for link elements
-        for link in soup.find_all('link'):
-            static_filepath = link['href']
-            if static_filepath[0] != '/':
-                continue
-            static_resp = client.get(static_filepath, follow_redirect=True)
-            assert static_resp.status_code == 200
-
-    def test_file_hash(self, test_client):
-        index_resp = test_client.get('/')
-        self._test_static_files(index_resp, test_client)
+def app_config_id(param):
+    test_id = ''
+    for key, value in param.items():
+        id_value = 'Enabled' if value else 'Disabled'
+        test_id += '{}{}'.format(key.capitalize(), id_value)
+    return test_id
 
 
-class TestFileHashEnabled(TestFileHashDisabled):
+@pytest.fixture(params=({'hash': False},
+                        {'hash': True, 'debug': True},
+                        {'hash': True, 'debug': False}), 
+                ids=app_config_id,
+                autouse=True)
+def app_config(app_config, request):
+    app_config['SRP_STATIC_FILE_HASH'] = request.param['hash']
+    if 'debug' in request.param:
+        app_config['DEBUG'] = request.param['debug']
+    return app_config
 
-    @pytest.fixture
-    def app_config(self, app_config):
-        app_config['SRP_STATIC_FILE_HASH'] = True
-        return app_config
+
+@pytest.fixture
+def css_path(test_client):
+    index_resp = test_client.get('/', follow_redirects=True)
+    soup = BeautifulSoup(index_resp.get_data(as_text=True), 'html.parser')
+    css_path = soup.find('link', rel='stylesheet')['href']
+    # Sanity check
+    assert 'css' in css_path
+    return css_path
+
+
+def test_css(test_client, css_path):
+    css_resp = test_client.get(css_path)
+    assert css_resp.status_code == 200
+
+
+def test_css_map(test_client, css_path):
+    map_resp = test_client.get(css_path + '.map')
+    assert map_resp.status_code == 200
+
+
+def test_not_found(test_client, css_path):
+    unknown_resp = test_client.get(css_path + '.bogus')
+    assert unknown_resp.status_code == 404
