@@ -49,7 +49,7 @@ def driver(request):
         default_capabilities = getattr(webdriver.DesiredCapabilities,
                                        browser.upper())
         capabilities = default_capabilities.copy()
-        capabilities['tunnel-identifier'] = os.environ['TRAVIS_JOB_NUMBER']
+        capabilities['tunnelIdentifier'] = os.environ['TRAVIS_JOB_NUMBER']
         capabilities['build'] = os.environ['TRAVIS_BUILD_NUMBER']
         capabilities['tags'] = ['CI']
         sauce_url = "{}:{}@localhost:4445".format( username, access_key)
