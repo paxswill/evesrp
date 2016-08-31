@@ -97,12 +97,12 @@ before_script:
     - source ./scripts/sauce_connect.sh
 # Always succeed. If it fails to set up the tunnel, the test suite will fall
 # back to testing with PhantomJS. This is expected to happen on pull requests.
-    - [ "x$TEST_SUITE" = "xbrowser" ] && travis_start_sauce_connect || true
+    - '[ "x$TEST_SUITE" = "xbrowser" ] && travis_start_sauce_connect || true'
 
 script: TOXENV="$SRP_PYTHON-$SRP_DB" make travis
 
 after_script:
-    - [ "x$TEST_SUITE" = "xbrowser" ] && travis_stop_sauce_connect
+    - '[ "x$TEST_SUITE" = "xbrowser" ] && travis_stop_sauce_connect'
 
 after_success: make travis-success
 
