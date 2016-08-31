@@ -20,7 +20,7 @@ clean::
 BROWSERIFY_OPTS := -t coffeeify -t hbsfy \
                    --extension=".coffee" \
                    --extension=".hbs" \
-				   --debug
+                   --debug
 BROWSERIFY ?= $(NODE_BIN)/browserify
 EXORCIST ?= $(NODE_BIN)/exorcist
 COFFEE_FILES := $(wildcard $(JS_DIR)/*.coffee)
