@@ -30,7 +30,7 @@ travis-setup: $(HOME)/phantomjs
 # Define TOXENV and SELENIUM_DRIVER for the test-python target
 test-python: export TOXENV := $(SRP_PYTHON)-sqlite-browser
 # TODO: Add a better way of specifying the capabilities to test.
-test-python: export SELENIUM_DRIVER := "PhantomJS,Chrome,Firefox"
+test-python: export SELENIUM_DRIVER := PhantomJS,Chrome,Firefox
 travis: test-python
 travis-success:
 	coveralls
