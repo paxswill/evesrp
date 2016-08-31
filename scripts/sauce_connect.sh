@@ -117,15 +117,3 @@ function travis_stop_sauce_connect() {
     kill -9 ${_SC_PID} &>/dev/null || true
   fi
 }
-
-if (( $# != 1 )) || [ "x${1}" != "xstop" -a "x${1}" != "xstart" ]; then
-    echo "Either 'start' or 'stop' must be given as the only argument."
-    exit 1
-else
-    case "${1}" in
-        start)
-            travis_start_sauce_connect;;
-        stop)
-            travis_stop_sauce_connect;;
-    esac
-fi

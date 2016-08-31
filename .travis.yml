@@ -89,11 +89,20 @@ install:
     - export CXX=g++-4.8
     - make build-deps
 
+# Sauce Connect setup must be done in .travis.yml as Make uses a fresh shell
+# for each command (line in the file). This means the environment variables
+# needed to find the tunnel are discarded. By doing them here, they are saved
+# in the single session used in Travis.
+before_script:
+    - source ./scripts/sauce_connect.sh
+# Always succeed. If it fails to set up the tunnel, the test suite will fall
+# back to testing with PhantomJS. This is expected to happen on pull requests.
+    - [ "x$TEST_SUITE" = "xbrowser" ] && travis_start_sauce_connect || true
+
 script: TOXENV="$SRP_PYTHON-$SRP_DB" make travis
 
-# Just attempt to close a Sauce Connect tunnel all the time, it'll only succeed
-# if there's an actual tunnel.
-after_script: scripts/sauce_connect.sh stop
+after_script:
+    - [ "x$TEST_SUITE" = "xbrowser" ] && travis_stop_sauce_connect
 
 after_success: make travis-success
 
