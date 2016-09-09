@@ -79,18 +79,28 @@ class RequestListing(View):
             if attr == 'details':
                 filters[attr].add(values)
             elif attr == 'page':
-                try:
-                    filters['page'] = int(values)
-                except TypeError:
+                def flash_page_num_warning(page_num):
                     # TRANS: Warning message shown if something other than a
                     # TRANS: single number was given as a page number (like a
                     # TRANS: letter, word, or multiple numbers).
                     flash(gettext(
                             u"Invalid value for page number: %(num)d.",
-                                num=values),
+                                num=page_num),
                             u'warning')
-                    current_app.logget.warn(
-                            "Invalid value of page number: {}".format(values))
+                    current_app.logger.warn(
+                            "Invalid value of page number: {}".format(
+                                page_num))
+                # Check for things that are not page numbers being given as a
+                # page number.
+                try:
+                    filters['page'] = int(values)
+                except TypeError:
+                    flash_page_num_warning(values)
+                # Flash a warning about using a 0 or negative page number, and
+                # clamp it to 1
+                if filters['page'] < 1:
+                    flash_page_num_warning(filters['page'])
+                    filters['page'] = 1
             elif attr == 'sort':
                 filters['sort'] = values.lower()
             elif attr == 'status':
@@ -317,6 +327,8 @@ class RequestListing(View):
             per_page = 15
         pager = requests.paginate(filter_map['page'], per_page=per_page,
                 error_out=False)
+        # Redirect to the last page if the request page is larger than the
+        # number of pages.
         if len(pager.items) == 0 and pager.page > 1:
             filter_map['page'] = pager.pages
             return redirect(url_for(request.endpoint,
