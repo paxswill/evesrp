@@ -4,6 +4,7 @@ import datetime as dt
 import os
 
 import pytest
+import six
 from flask import redirect, url_for, request, render_template
 from flask_wtf import Form
 from sqlalchemy.orm.exc import NoResultFound
@@ -22,7 +23,7 @@ def pytest_make_parametrize_id(val):
     in fixtures.
     """
     if isinstance(val, EnumSymbol):
-        return val.name
+        return str(val.name)
     return None
 
 
