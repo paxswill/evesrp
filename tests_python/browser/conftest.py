@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import os
+import re
 import socket
 from six.moves.socketserver import ThreadingMixIn
 from six.moves.http_client import HTTPException
@@ -32,10 +33,30 @@ class ThreadingWSGIServer(ThreadingMixIn, simple_server.WSGIServer):
     allow_reuse_address = True
 
 
+def parse_capabilities(capabilities_string):
+    browser, raw_capabilities = capabilities_string.split(',')
+    requested_capabilities = {}
+    for cap in raw_capabilities:
+        key, value = cap.split('=')
+        requested_capabilities[key] = value
+    default_capabilities = getattr(webdriver.DesiredCapabilities,
+                                   browser.upper())
+    capabilities = default_capabilities.copy()
+    # Massage some special key/values
+    if 'platform' in requested_capabilities:
+        platform = requested_capabilities['platform']
+        match = re.match(r'Win(\d+)', platform)
+        if match is not None:
+            platform = 'Windows {}'.format(match.group(1))
+        requested_capabilities['platform'] = platform
+    capabilities.update(requested_capabilities)
+    return capabilities
+
+
 # Figure out which browser to run, defaulting to just PhantomJS
 browsers = os.environ.get('SELENIUM_DRIVER', 'PhantomJS')
-if ',' in browsers:
-    browsers = browsers.split(',')
+if ';' in browsers:
+    browsers = browsers.split(';')
 else:
     browsers = [browsers]
 @pytest.fixture(scope='session', params=browsers)
@@ -48,7 +69,7 @@ def driver(request):
         access_key = os.environ['SAUCE_ACCESS_KEY']
         default_capabilities = getattr(webdriver.DesiredCapabilities,
                                        browser.upper())
-        capabilities = default_capabilities.copy()
+        capabilities = parse_capabilities(browser)
         capabilities['tunnelIdentifier'] = os.environ['TRAVIS_JOB_NUMBER']
         capabilities['build'] = os.environ['TRAVIS_BUILD_NUMBER']
         capabilities['tags'] = ['CI']
