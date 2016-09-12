@@ -3,7 +3,7 @@ include variables.mk
 
 .PHONY: all clean deep-clean doc-clean build-deps test test-python \
 	test-javascript docs travis-setup travis travis-success sdist upload \
-	javascript translations static
+	javascript translations static install-coveralls
 
 all:: docs javascript translations static
 
@@ -11,7 +11,7 @@ distclean:: clean doc-clean
 	rm -rf node_modules
 
 build-deps: node_modules
-	pip install tox babel coverage jinja2
+	pip install -U tox babel coverage jinja2
 	npm install
 
 sdist: javascript translations static setup.py

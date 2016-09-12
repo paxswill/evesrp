@@ -6,6 +6,9 @@ $(HOME)/phantomjs:
 	tar -xjf phantomjs-2.0.0-ubuntu-12.04.tar.bz2
 	mv phantomjs $(HOME)/phantomjs
 
+install-coveralls:
+	pip install -U coveralls
+
 
 # Depending on the value of TEST_SUITE, the travis-setup, travis and
 # travis-success targets are defined differently.
@@ -25,8 +28,7 @@ travis-success:
 
 # Travis browser-based testing:
 else ifneq (,$(findstring browser,$(TEST_SUITE)))
-travis-setup: $(HOME)/phantomjs
-	pip install coveralls
+travis-setup: $(HOME)/phantomjs install-coveralls
 # Define TOXENV and SELENIUM_DRIVER for the test-python target
 test-python: export TOXENV := $(SRP_PYTHON)-sqlite-browser
 # TODO: Add a better way of specifying the capabilities to test.
@@ -44,8 +46,7 @@ travis-success:
 
 # Travis Python testing:
 else
-travis-setup:
-	pip install coveralls
+travis-setup: install-coveralls
 travis: test-python
 travis-success:
 	coveralls
