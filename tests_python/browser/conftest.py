@@ -58,7 +58,7 @@ else:
     browsers = [browsers]
 @pytest.fixture(scope='session', params=browsers)
 def driver(request):
-    capabilities = parse_capabilities(browser)
+    capabilities = parse_capabilities(request.param)
     # Check to see if we're running on Travis. Explicitly check the value
     # of TRAVIS as tox sets it to an empty string.
     if os.environ.get('TRAVIS') == 'true' and \
