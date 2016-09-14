@@ -61,15 +61,13 @@ else:
     browsers = [browsers]
 @pytest.fixture(scope='session', params=browsers)
 def driver(request):
-    browser = request.param
+    capabilities = parse_capabilities(browser)
     # Check to see if we're running on Travis. Explicitly check the value
     # of TRAVIS as tox sets it to an empty string.
-    if os.environ.get('TRAVIS') == 'true' and browser != 'PhantomJS':
+    if os.environ.get('TRAVIS') == 'true' and \
+            capabilities['browser'] != 'PhantomJS':
         username = os.environ['SAUCE_USERNAME']
         access_key = os.environ['SAUCE_ACCESS_KEY']
-        default_capabilities = getattr(webdriver.DesiredCapabilities,
-                                       browser.upper())
-        capabilities = parse_capabilities(browser)
         capabilities['tunnelIdentifier'] = os.environ['TRAVIS_JOB_NUMBER']
         capabilities['build'] = os.environ['TRAVIS_BUILD_NUMBER']
         capabilities['tags'] = ['CI']
