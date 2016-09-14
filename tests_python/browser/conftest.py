@@ -35,10 +35,7 @@ class ThreadingWSGIServer(ThreadingMixIn, simple_server.WSGIServer):
 
 def parse_capabilities(capabilities_string):
     browser, raw_capabilities = capabilities_string.split(',')
-    requested_capabilities = {}
-    for cap in raw_capabilities:
-        key, value = cap.split('=')
-        requested_capabilities[key] = value
+    requested_capabilities = dict([c.split('=') for cap in raw_capabilities])
     default_capabilities = getattr(webdriver.DesiredCapabilities,
                                    browser.upper())
     capabilities = default_capabilities.copy()
