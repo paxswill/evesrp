@@ -172,6 +172,13 @@
       Raven.config("{{ config['SENTRY_DSN_PUBLIC'] }}", {
         release: "{{ app_version }}",
       }).install();
+      {% if current_user.is_authenticated %}
+      Raven.setUserContext({
+        name: "{{ current_user.name }}",
+        id: {{ current_user.id }},
+        authmethod: "{{ current_user.authmethod }}"
+      });
+      {% endif %}
     </script>
     {% endif %}
     <!-- scriptRoot is the root of this application, wherever it it -->
