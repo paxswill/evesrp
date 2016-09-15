@@ -34,8 +34,11 @@ class ThreadingWSGIServer(ThreadingMixIn, simple_server.WSGIServer):
 
 
 def parse_capabilities(capabilities_string):
-    browser, raw_capabilities = capabilities_string.split(',')
-    requested_capabilities = dict([c.split('=') for cap in raw_capabilities])
+    if ',' in capabilities_string:
+        browser, raw_capabilities = capabilities_string.split(',')
+    else:
+        browser, raw_capabilities = capabilities_string, ''
+    requested_capabilities = dict([cap.split('=') for cap in raw_capabilities])
     default_capabilities = getattr(webdriver.DesiredCapabilities,
                                    browser.upper())
     capabilities = default_capabilities.copy()
@@ -51,7 +54,7 @@ def parse_capabilities(capabilities_string):
 
 
 # Figure out which browser to run, defaulting to just PhantomJS
-browsers = os.environ.get('SELENIUM_DRIVER', 'PhantomJS')
+browsers = os.environ.get('BROWSERS', 'PhantomJS')
 if ';' in browsers:
     browsers = browsers.split(';')
 else:
@@ -59,21 +62,46 @@ else:
 @pytest.fixture(scope='session', params=browsers)
 def driver(request):
     capabilities = parse_capabilities(request.param)
-    # Check to see if we're running on Travis. Explicitly check the value
-    # of TRAVIS as tox sets it to an empty string.
-    if os.environ.get('TRAVIS') == 'true' and \
-            capabilities['browser'] != 'PhantomJS':
-        username = os.environ['SAUCE_USERNAME']
-        access_key = os.environ['SAUCE_ACCESS_KEY']
+    # tox sets passed variables to an empty string instead of not setting them
+    if os.environ.get('WEBDRIVER_URL') != '':
+        # Use a local WebDriver Remote is available
+        webdriver_url = os.environ.get('WEBDRIVER_URL')
+    else:
+        webdriver_url = None
+    # Configure Travis-based environments
+    if os.environ.get('TRAVIS') == 'true':
+        # Add some metadata to the tunnel
         capabilities['tunnelIdentifier'] = os.environ['TRAVIS_JOB_NUMBER']
         capabilities['build'] = os.environ['TRAVIS_BUILD_NUMBER']
         capabilities['tags'] = ['CI']
-        sauce_url = "{}:{}@localhost:4445".format( username, access_key)
-        command_url = "http://{}/wd/hub".format(sauce_url)
+        # Create the URL to use Sauce Connect
+        username = os.environ['SAUCE_USERNAME']
+        access_key = os.environ['SAUCE_ACCESS_KEY']
+        sauce_url = "{}:{}@localhost:4445".format(username, access_key)
+        webdriver_url = "http://{}/wd/hub".format(sauce_url)
+    # If we have a Remote WebDriver, use it unless we're using PhantomJS. In
+    # that case just use a local PhantomJS driver.
+    if webdriver_url is not None and \
+            capabilities['browserName'] != 'phantomjs':
         driver = webdriver.Remote(desired_capabilities=capabilities,
                                       command_executor=command_url)
     else:
-        driver = getattr(webdriver, browser)()
+        # There are just enough inconsistencies in spacing/capitalization to
+        # make doing this manually a an esier way.
+        local_drivers = {
+            'chrome': webdriver.Chrome,
+            'edge': webdriver.Edge,
+            'internet explorer': webdriver.Ie,
+            'firefox': webdriver.Firefox,
+            'opera': webdriver.Opera,
+            'phantomjs': webdriver.PhantomJS,
+            'safari': webdriver.Safari,
+        }
+        DriverClass = local_drivers[capabilities['browserName']]
+        try:
+            driver = DriverClass()
+        except WebDriverException as e:
+            pytest.skip("Unable to launch local WebDriver {}".format(e))
     # TODO: Add mobile testing as well
     driver.set_window_size(1024, 768)
     yield driver

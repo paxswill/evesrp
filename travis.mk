@@ -32,13 +32,13 @@ travis-setup: $(HOME)/phantomjs install-coveralls
 # Define TOXENV and SELENIUM_DRIVER for the test-python target
 test-python: export TOXENV := $(SRP_PYTHON)-sqlite-browser
 # TODO: Add a better way of specifying the capabilities to test.
-test-python: export SELENIUM_DRIVER := PhantomJS;\
-                                       Chrome,platform=Win10;\
-                                       Chrome,platform=Win8;\
-                                       Edge,platform=Win10;\
-                                       InternetExplorer,platform=Win10;\
-                                       InternetExplorer,platform=Win8.1;\
-                                       Firefox
+test-python: export BROWSERS := PhantomJS;\
+                                Chrome,platform=Win10;\
+                                Chrome,platform=Win8;\
+                                Edge,platform=Win10;\
+                                InternetExplorer,platform=Win10;\
+                                InternetExplorer,platform=Win8.1;\
+                                Firefox
 travis: test-python
 travis-success:
 	coveralls
