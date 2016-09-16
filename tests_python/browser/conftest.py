@@ -35,7 +35,12 @@ class ThreadingWSGIServer(ThreadingMixIn, simple_server.WSGIServer):
 
 def parse_capabilities(capabilities_string):
     if ',' in capabilities_string:
-        browser, raw_capabilities = capabilities_string.split(',')
+        # If I could drop support for Python2, I could use:
+        # browser, *raw_capabilities = capabilities_string.split(',')
+        # But I am not dropping Python2 (yet), so we have this little mess for
+        # the time being.
+        split_caps = capabilities_string.split(',')
+        browser, raw_capabilities = split_caps[0], split_caps[1:]
     else:
         browser, raw_capabilities = capabilities_string, ''
     requested_capabilities = dict([cap.split('=') for cap in raw_capabilities])
@@ -87,7 +92,7 @@ def driver(request):
                                       command_executor=command_url)
     else:
         # There are just enough inconsistencies in spacing/capitalization to
-        # make doing this manually a an esier way.
+        # make doing this manually the easier way.
         local_drivers = {
             'chrome': webdriver.Chrome,
             'edge': webdriver.Edge,
