@@ -43,10 +43,6 @@ def parse_capabilities(capabilities_string):
         browser, raw_capabilities = split_caps[0], split_caps[1:]
     else:
         browser, raw_capabilities = capabilities_string, ''
-    # Remove any extraneous whitespace (like from a multiline definition in a
-    # Makefile *ahem*).
-    browser = browser.strip()
-    raw_capabilities = map((lambda x: x.strip()), raw_capabilities)
     # transform the raw key-value strings into a dict
     requested_capabilities = dict([cap.split('=') for cap in raw_capabilities])
     default_capabilities = getattr(webdriver.DesiredCapabilities,
@@ -69,6 +65,8 @@ if ';' in browsers:
     browsers = browsers.split(';')
     # Filter out empty entries
     browsers = filter(len, browsers)
+    # Strip out whitespace
+    browsers = map(lambda x: x.strip(), browsers)
 else:
     browsers = [browsers]
 @pytest.fixture(scope='session', params=browsers)
