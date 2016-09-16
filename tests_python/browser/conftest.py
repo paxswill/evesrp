@@ -94,7 +94,7 @@ def driver(request):
     if webdriver_url is not None and \
             capabilities['browserName'] != 'phantomjs':
         driver = webdriver.Remote(desired_capabilities=capabilities,
-                                      command_executor=command_url)
+                                      command_executor=webdriver_url)
     else:
         # There are just enough inconsistencies in spacing/capitalization to
         # make doing this manually the easier way.
