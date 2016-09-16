@@ -67,6 +67,8 @@ def parse_capabilities(capabilities_string):
 browsers = os.environ.get('BROWSERS', 'PhantomJS')
 if ';' in browsers:
     browsers = browsers.split(';')
+    # Filter out empty entries
+    browsers = filter(len, browsers)
 else:
     browsers = [browsers]
 @pytest.fixture(scope='session', params=browsers)
