@@ -38,6 +38,11 @@ env:
 
 matrix:
     include:
+# Browser tests go first, as they take the longest
+        - env: TEST_SUITE="browser" SRP_PYTHON="py27"
+          python: 2.7
+        - env: TEST_SUITE="browser" SRP_PYTHON="py35"
+          python: 3.5
 # Standard support
         - env: SRP_PYTHON="py27" SRP_DB="sqlite"
           python: 2.7
@@ -65,10 +70,6 @@ matrix:
 # Special test suites
         - env: TEST_SUITE="javascript"
         - env: TEST_SUITE="docs"
-        - env: TEST_SUITE="browser" SRP_PYTHON="py27"
-          python: 2.7
-        - env: TEST_SUITE="browser" SRP_PYTHON="py35"
-          python: 3.5
     allow_failures:
 # Pypy is weird and takes a long time to test
         - env: SRP_PYTHON="pypy"    SRP_DB="sqlite"
