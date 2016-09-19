@@ -43,6 +43,8 @@ def session_id_for_node(node_or_nodeid):
 
 
 def pytest_runtest_logreport(report):
+    if 'browser' not in report.keywords:
+        return
     if SauceClient is None:
         return
     sauce_username = os.environ.get('SAUCE_USERNAME', '')
