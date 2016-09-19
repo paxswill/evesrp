@@ -42,22 +42,12 @@ def session_id_for_node(node_or_nodeid):
     return session_id
 
 
-def pytest_runtest_logreport(report):
-    if 'browser' not in report.keywords:
-        return
-    if SauceClient is None:
-        return
-    sauce_username = os.environ.get('SAUCE_USERNAME', '')
-    sauce_access_key = os.environ.get('SAUCE_ACCESS_KEY', '')
-    if sauce_username != '' and sauce_access_key != '':
-        sauce_client = SauceClient(sauce_username, sauce_access_key)
-        session_id = session_id_for_node(report.nodeid)
-        # Ignoring the 'skipped' outcome, leaving those as the indetermined
-        # outcome.
-        if report.outcome == 'passed':
-            sauce_client.jobs.update_job(session_id, passed=True)
-        elif report.outcome == 'failed':
-            sauce_client.jobs.update_job(session_id, passed=False)
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    # Yanked from the py.test docs for how to get test results intoa fixture
+    outcome = yield
+    report = outcome.get_result()
+    setattr(item, 'rep_{}'.format(report.when), report)
 
 
 class ThreadingWSGIServer(ThreadingMixIn, simple_server.WSGIServer):
@@ -168,6 +158,21 @@ def web_session(web_driver, capabilities, request):
     capabilities['build'] = session_id_for_node(request.node)
     web_driver.start_session(capabilities)
     yield web_driver
+    if SauceClient is not None:
+        sauce_username = os.environ.get('SAUCE_USERNAME', '')
+        sauce_access_key = os.environ.get('SAUCE_ACCESS_KEY', '')
+        if not request.node.rep_call.skipped and \
+                sauce_username != '' and sauce_access_key != '':
+            sauce_client = SauceClient(sauce_username, sauce_access_key)
+            session_id = driver.session_id
+            # Ignoring the 'skipped' outcome, leaving those as the undetermined
+            # outcome.
+            for phase in ('rep_setup', 'rep_call', 'rep_teardown'):
+                report = getattr(request.node, phase)
+                if report.passed:
+                    sauce_client.jobs.update_job(session_id, passed=True)
+                elif report.failed:
+                    sauce_client.jobs.update_job(session_id, passed=False)
 
 
 @pytest.fixture
