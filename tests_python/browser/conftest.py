@@ -32,14 +32,13 @@ def pytest_collection_modifyitems(items):
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
-    # Yanked from the py.test docs for how to get test results intoa fixture
+    # Yanked from the py.test docs for how to get test results into a fixture
     outcome = yield
     report = outcome.get_result()
     setattr(item, 'rep_{}'.format(report.when), report)
 
 
 class ThreadingWSGIServer(ThreadingMixIn, simple_server.WSGIServer):
-    
     # So we can use addresses accidentally left in use (like by a badly closing
     # test run).
     allow_reuse_address = True
@@ -84,25 +83,29 @@ else:
 @pytest.fixture(scope='session', params=browsers)
 def capabilities(request):
     capabilities = parse_capabilities(request.param)
-    if os.environ.get('TRAVIS') == 'true':
-        # Add some metadata to the tunnel
-        capabilities['build'] = os.environ['TRAVIS_BUILD_NUMBER']
-        capabilities['tunnelIdentifier'] = os.environ['TRAVIS_JOB_NUMBER']
-        capabilities['tags'] = ['CI']
+    if os.environ.get('SAUCE_USERNAME', '') != '' and \
+            os.environ.get('SAUCE_ACCESS_KEY', '') != '':
+        # Add special metadata if running on Travis
+        if os.environ.get('TRAVIS') == 'true':
+            capabilities['build'] = os.environ['TRAVIS_BUILD_NUMBER']
+            capabilities['tunnelIdentifier'] = os.environ['TRAVIS_JOB_NUMBER']
+            capabilities['tags'] = ['CI']
     return capabilities
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='function')
 def web_driver(request, capabilities):
+    capabilities = capabilities.copy()
+    capabilities['name'] = request.node.nodeid
     # tox sets passed variables to an empty string instead of not setting them
     if os.environ.get('WEBDRIVER_URL') != '':
         # Use a local WebDriver Remote is available
         webdriver_url = os.environ.get('WEBDRIVER_URL')
     else:
         webdriver_url = None
-    # Configure Travis-based environments
-    if os.environ.get('TRAVIS') == 'true':
-        # Create the URL to use Sauce Connect
+    # Create the URL to use Sauce Connect
+    if os.environ.get('SAUCE_USERNAME', '') != '' and \
+            os.environ.get('SAUCE_ACCESS_KEY', '') != '':
         username = os.environ['SAUCE_USERNAME']
         access_key = os.environ['SAUCE_ACCESS_KEY']
         sauce_url = "{}:{}@localhost:4445".format(username, access_key)
@@ -130,6 +133,8 @@ def web_driver(request, capabilities):
             driver = DriverClass()
         except WebDriverException as e:
             pytest.skip("Unable to launch local WebDriver {}".format(e))
+    # TODO: Add mobile testing as well
+    driver.set_window_size(1024, 768)
     yield driver
     # I don't care about WebDriver exceptions when quitting. And we'll get an
     # error as SauceLabs will auto-close the connection after 90s.
@@ -141,24 +146,22 @@ def web_driver(request, capabilities):
 
 @pytest.fixture(scope='function')
 def web_session(web_driver, capabilities, request):
-    capabilities = capabilities.copy()
-    capabilities['name'] = request.node.nodeid
-    web_driver.close()
-    web_driver.start_session(capabilities)
-    # TODO: Add mobile testing as well
-    web_driver.set_window_size(1024, 768)
     yield web_driver
+    # Report test results to Sauce Labs if we're running with Sauce Connect
     if SauceClient is not None:
         sauce_username = os.environ.get('SAUCE_USERNAME', '')
         sauce_access_key = os.environ.get('SAUCE_ACCESS_KEY', '')
         if not request.node.rep_call.skipped and \
                 sauce_username != '' and sauce_access_key != '':
             sauce_client = SauceClient(sauce_username, sauce_access_key)
-            session_id = driver.session_id
+            session_id = web_driver.session_id
             # Ignoring the 'skipped' outcome, leaving those as the undetermined
             # outcome.
             for phase in ('rep_setup', 'rep_call', 'rep_teardown'):
-                report = getattr(request.node, phase)
+                try:
+                    report = getattr(request.node, phase)
+                except AttributeError:
+                    continue
                 if report.passed:
                     sauce_client.jobs.update_job(session_id, passed=True)
                 elif report.failed:
