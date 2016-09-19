@@ -143,6 +143,7 @@ def web_driver(request, capabilities):
 def web_session(web_driver, capabilities, request):
     capabilities = capabilities.copy()
     capabilities['name'] = request.node.nodeid
+    web_driver.close()
     web_driver.start_session(capabilities)
     # TODO: Add mobile testing as well
     web_driver.set_window_size(1024, 768)
