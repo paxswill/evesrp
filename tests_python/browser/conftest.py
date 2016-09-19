@@ -55,9 +55,9 @@ def pytest_runtest_logreport(report):
         # Ignoring the 'skipped' outcome, leaving those as the indetermined
         # outcome.
         if report.outcome == 'passed':
-            sauce_client.update_job(session_id, passed=True)
+            sauce_client.jobs.update_job(session_id, passed=True)
         elif report.outcome == 'failed':
-            sauce_client.update_job(session_id, passed=False)
+            sauce_client.jobs.update_job(session_id, passed=False)
 
 
 class ThreadingWSGIServer(ThreadingMixIn, simple_server.WSGIServer):
