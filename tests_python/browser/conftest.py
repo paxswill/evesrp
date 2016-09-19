@@ -16,6 +16,10 @@ from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.utils import join_host_port
+try:
+    from sauceclient import SauceClient
+except ImportError:
+    SauceClient = None
 
 
 # Mark all tests in this package as functional tests
@@ -24,6 +28,34 @@ def pytest_collection_modifyitems(items):
         if item.get_marker('browser') is None:
             if item.fspath is not None and 'browser' in str(item.fspath):
                 item.add_marker(pytest.mark.browser)
+
+
+def session_id_for_node(node_or_nodeid):
+    try:
+        nodeid = node_or_nodeid.nodeid
+    except AttributeError:
+        nodeid = node_or_nodeid
+    session_id = nodeid
+    # Prepend a build tag while on Travis
+    if os.environ.get('TRAVIS') == 'true':
+        session_id = os.environ['TRAVIS_BUILD_NUMBER'] + session_id
+    return session_id
+
+
+def pytest_runtest_logreport(report):
+    if SauceClient is None:
+        return
+    sauce_username = os.environ.get('SAUCE_USERNAME', '')
+    sauce_access_key = os.environ.get('SAUCE_ACCESS_KEY', '')
+    if sauce_username != '' and sauce_access_key != '':
+        sauce_client = SauceClient(sauce_username, sauce_access_key)
+        session_id = session_id_for_node(report.nodeid)
+        # Ignoring the 'skipped' outcome, leaving those as the indetermined
+        # outcome.
+        if report.outcome == 'passed':
+            sauce_client.update_job(session_id, passed=True)
+        elif report.outcome == 'failed':
+            sauce_client.update_job(session_id, passed=False)
 
 
 class ThreadingWSGIServer(ThreadingMixIn, simple_server.WSGIServer):
@@ -70,8 +102,17 @@ if ';' in browsers:
 else:
     browsers = [browsers]
 @pytest.fixture(scope='session', params=browsers)
-def driver(request):
+def capabilities(request):
     capabilities = parse_capabilities(request.param)
+    if os.environ.get('TRAVIS') == 'true':
+        # Add some metadata to the tunnel
+        capabilities['tunnelIdentifier'] = os.environ['TRAVIS_JOB_NUMBER']
+        capabilities['tags'] = ['CI']
+    return capabilities
+
+
+@pytest.fixture(scope='session')
+def web_driver(request, capabilities):
     # tox sets passed variables to an empty string instead of not setting them
     if os.environ.get('WEBDRIVER_URL') != '':
         # Use a local WebDriver Remote is available
@@ -80,10 +121,6 @@ def driver(request):
         webdriver_url = None
     # Configure Travis-based environments
     if os.environ.get('TRAVIS') == 'true':
-        # Add some metadata to the tunnel
-        capabilities['tunnelIdentifier'] = os.environ['TRAVIS_JOB_NUMBER']
-        capabilities['build'] = os.environ['TRAVIS_BUILD_NUMBER']
-        capabilities['tags'] = ['CI']
         # Create the URL to use Sauce Connect
         username = os.environ['SAUCE_USERNAME']
         access_key = os.environ['SAUCE_ACCESS_KEY']
@@ -121,6 +158,14 @@ def driver(request):
         driver.quit()
     except (WebDriverException, HTTPException):
         pass
+
+
+@pytest.fixture(scope='function')
+def web_session(web_driver, capabilities, request):
+    capabilities = capabilities.copy()
+    capabilities['build'] = session_id_for_node(request.node)
+    web_driver.start_session(capabilities)
+    yield web_driver
 
 
 @pytest.fixture
@@ -168,15 +213,15 @@ def app_config(app_config):
 
 
 @pytest.fixture
-def driver_login(user, driver, server_address):
-    driver.get(server_address + '/login/')
-    name = driver.find_element_by_id('null_auth_1-name')
+def driver_login(user, web_session, server_address):
+    web_session.get(server_address + '/login/')
+    name = web_session.find_element_by_id('null_auth_1-name')
     name.send_keys(user.name)
     name.send_keys(Keys.RETURN)
     yield
     # Logout just to keep things clean
-    chain = ActionChains(driver)
-    right_nav = driver.find_element_by_id('right-nav')
+    chain = ActionChains(web_session)
+    right_nav = web_session.find_element_by_id('right-nav')
     dropdown = right_nav.find_element_by_class_name('dropdown')
     chain.move_to_element(dropdown)
     # Calling click here to make it visible, acting like a real user
@@ -185,4 +230,4 @@ def driver_login(user, driver, server_address):
     chain.move_to_element(logout_link)
     chain.click(logout_link)
     chain.perform()
-    driver.delete_all_cookies()
+    web_session.delete_all_cookies()

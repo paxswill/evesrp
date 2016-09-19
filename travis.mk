@@ -29,6 +29,7 @@ travis-success:
 # Travis browser-based testing:
 else ifneq (,$(findstring browser,$(TEST_SUITE)))
 travis-setup: $(HOME)/phantomjs install-coveralls
+	pip install -U sauceclient
 # Define TOXENV and SELENIUM_DRIVER for the test-python target
 test-python: export TOXENV := $(SRP_PYTHON)-sqlite-browser
 # TODO: Add a better way of specifying the capabilities to test.
