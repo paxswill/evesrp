@@ -130,8 +130,6 @@ def web_driver(request, capabilities):
             driver = DriverClass()
         except WebDriverException as e:
             pytest.skip("Unable to launch local WebDriver {}".format(e))
-    # TODO: Add mobile testing as well
-    driver.set_window_size(1024, 768)
     yield driver
     # I don't care about WebDriver exceptions when quitting. And we'll get an
     # error as SauceLabs will auto-close the connection after 90s.
@@ -146,6 +144,8 @@ def web_session(web_driver, capabilities, request):
     capabilities = capabilities.copy()
     capabilities['name'] = request.node.nodeid
     web_driver.start_session(capabilities)
+    # TODO: Add mobile testing as well
+    web_driver.set_window_size(1024, 768)
     yield web_driver
     if SauceClient is not None:
         sauce_username = os.environ.get('SAUCE_USERNAME', '')
