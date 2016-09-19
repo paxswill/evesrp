@@ -30,18 +30,6 @@ def pytest_collection_modifyitems(items):
                 item.add_marker(pytest.mark.browser)
 
 
-def session_id_for_node(node_or_nodeid):
-    try:
-        nodeid = node_or_nodeid.nodeid
-    except AttributeError:
-        nodeid = node_or_nodeid
-    session_id = nodeid
-    # Prepend a build tag while on Travis
-    if os.environ.get('TRAVIS') == 'true':
-        session_id = os.environ['TRAVIS_BUILD_NUMBER'] + session_id
-    return session_id
-
-
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     # Yanked from the py.test docs for how to get test results intoa fixture
@@ -98,6 +86,7 @@ def capabilities(request):
     capabilities = parse_capabilities(request.param)
     if os.environ.get('TRAVIS') == 'true':
         # Add some metadata to the tunnel
+        capabilities['build'] = os.environ['TRAVIS_BUILD_NUMBER']
         capabilities['tunnelIdentifier'] = os.environ['TRAVIS_JOB_NUMBER']
         capabilities['tags'] = ['CI']
     return capabilities
@@ -155,7 +144,7 @@ def web_driver(request, capabilities):
 @pytest.fixture(scope='function')
 def web_session(web_driver, capabilities, request):
     capabilities = capabilities.copy()
-    capabilities['build'] = session_id_for_node(request.node)
+    capabilities['name'] = request.node.nodeid
     web_driver.start_session(capabilities)
     yield web_driver
     if SauceClient is not None:
