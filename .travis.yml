@@ -35,7 +35,7 @@ env:
         - MYSQL_USER="root"
         - secure: "C2mxf91tBu7PyGi7DFqJzmEpbtHcOOjCHCCpahSXQoieSCvfZrSagNnpaDXBmtucd8SWDlglXJZqXPDvGoWTPIzNRlKDTljSrgMrBznygSeZF2RVE7lkX7woGqYn4+9LapFQpRgGiERMRvdE3cxaiy8TkMulCL+2dzSNkgdX4NU="
         - secure: "g31ZfiKl+sulMBV5BwozGw/fo0MGwE9fQMnnQmjIi40rIMby9DzmjSCeBj96vNmUEAFBt0cuG66R0vM4hko761I9CDR4ilj6S6+QeL5rMc2GGhytn/cGpKXHGZytq7V0aowWDxyScrFLyvdyOclFlnYScFhacH+kU+NlEzxtQ8Q="
-        - secure: "hqUxsCXNO6HAkr9fur8PKCjqpfowCFq2Zow2Sj75Bdsz6dU87xdHRUeRhrPTSunyyhaecsMjeIfQTqyn2DMxE9+NAI2Y/JaUhOryCG67bc/su6K9zokaIRTsQA/9UNihDwbLSFte9TVQOLstGYupOg8l6Zurdc3FUGnm8fRpxA8="
+        - secure: "CW33ZUg85nUu/y4US3jb1MzAOTfG8kucvU8c2ylHjhJ5hNXDv+A05R/KFoCvDwf6VQB/mXkzaJROkqj3jI57TSpIFUzIt8LtWz6zeeNjg2Y1DqwmWXgi3EtVUv9RS1Dkji/Nf7MPzxE/O5Im3suP7o0ThD9y6bU2eCpB2DUGU+8="
 
 matrix:
     include:
