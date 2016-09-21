@@ -253,7 +253,7 @@ function filter_table(elem) {
     not_found_message.hidden = !all_rows_hidden;
 }
 </script>
-    <p>Report generated on 19-Sep-2016 at 09:28:40</p>
+    <p>Report generated on 21-Sep-2016 at 14:25:35</p>
     <h2>Environment</h2>
     <table id="environment">
       <tr>
@@ -263,8 +263,8 @@ function filter_table(elem) {
         <td>Python</td>
         <td>2.7.12</td></tr></table>
     <h2>Summary</h2>
-    <p>0 tests ran in 34356.90 seconds. </p>
-    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="passed">0 passed</span>, <input checked="true" class="filter" data-test-result="skipped" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="skipped">125 skipped</span>, <input checked="true" class="filter" data-test-result="failed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="failed">0 failed</span>, <input checked="true" class="filter" data-test-result="error" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="error">1 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
+    <p>18 tests ran in 59.85 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="passed">18 passed</span>, <input checked="true" class="filter" data-test-result="skipped" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="skipped">248 skipped</span>, <input checked="true" class="filter" data-test-result="failed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="failed">0 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
     <h2>Results</h2>
     <table id="results-table">
       <thead id="results-table-head">
@@ -275,15 +275,6 @@ function filter_table(elem) {
           <th>Links</th></tr>
         <tr hidden="true" id="not-found-message">
           <th colspan="5">No results found. Try to check the filters</th></tr></thead>
-      <tbody class="error results-table-row">
-        <tr>
-          <td class="col-result">Error</td>
-          <td class="col-name">tests_python/browser/test_login.py::test_login_button[Chrome]::setup</td>
-          <td class="col-duration">1.89</td>
-          <td class="col-links"></td></tr>
-        <tr>
-          <td class="extra" colspan="5">
-            <div class="log">web_driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="ed3e104e03d72ae6129632b3100a87a8")&gt;<br/>capabilities = {'browserName': 'chrome', 'javascriptEnabled': True, 'name': 'tests_python/browser/test_login.py::test_login_button[Chrome]', 'platform': 'ANY', ...}<br/>request = &lt;SubRequest 'web_session' for &lt;Function 'test_login_button[Chrome]'&gt;&gt;<br/><br/>    @pytest.fixture(scope='function')<br/>    def web_session(web_driver, capabilities, request):<br/>        capabilities = capabilities.copy()<br/>        capabilities['name'] = request.node.nodeid<br/>        web_driver.quit()<br/>&gt;       web_driver.start_session(capabilities)<br/><br/>tests_python/browser/conftest.py:147: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/>.tox/py27-sqlite-browser/lib/python2.7/site-packages/selenium/webdriver/remote/webdriver.py:177: in start_session<br/>    response = self.execute(Command.NEW_SESSION, capabilities)<br/>.tox/py27-sqlite-browser/lib/python2.7/site-packages/selenium/webdriver/remote/webdriver.py:234: in execute<br/>    response = self.command_executor.execute(driver_command, params)<br/>.tox/py27-sqlite-browser/lib/python2.7/site-packages/selenium/webdriver/remote/remote_connection.py:401: in execute<br/>    return self._request(command_info[0], url, body=data)<br/>.tox/py27-sqlite-browser/lib/python2.7/site-packages/selenium/webdriver/remote/remote_connection.py:432: in _request<br/>    self._conn.request(method, parsed_url.path, body, headers)<br/>/usr/local/Cellar/python/2.7.12/Frameworks/Python.framework/Versions/2.7/lib/python2.7/httplib.py:1057: in request<br/>    self._send_request(method, url, body, headers)<br/>/usr/local/Cellar/python/2.7.12/Frameworks/Python.framework/Versions/2.7/lib/python2.7/httplib.py:1097: in _send_request<br/>    self.endheaders(body)<br/>/usr/local/Cellar/python/2.7.12/Frameworks/Python.framework/Versions/2.7/lib/python2.7/httplib.py:1053: in endheaders<br/>    self._send_output(message_body)<br/>/usr/local/Cellar/python/2.7.12/Frameworks/Python.framework/Versions/2.7/lib/python2.7/httplib.py:897: in _send_output<br/>    self.send(msg)<br/>/usr/local/Cellar/python/2.7.12/Frameworks/Python.framework/Versions/2.7/lib/python2.7/httplib.py:859: in send<br/>    self.connect()<br/>/usr/local/Cellar/python/2.7.12/Frameworks/Python.framework/Versions/2.7/lib/python2.7/httplib.py:836: in connect<br/>    self.timeout, self.source_address)<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>address = ('127.0.0.1', '55982'), timeout = &lt;object object at 0x104040130&gt;<br/>source_address = None<br/><br/>    def create_connection(address, timeout=_GLOBAL_DEFAULT_TIMEOUT,<br/>                          source_address=None):<br/>        """Connect to *address* and return the socket object.<br/>    <br/>        Convenience function.  Connect to *address* (a 2-tuple ``(host,<br/>        port)``) and return the socket object.  Passing the optional<br/>        *timeout* parameter will set the timeout on the socket instance<br/>        before attempting to connect.  If no *timeout* is supplied, the<br/>        global default timeout setting returned by :func:`getdefaulttimeout`<br/>        is used.  If *source_address* is set it must be a tuple of (host, port)<br/>        for the socket to bind as a source address before making the connection.<br/>        A host of '' or port 0 tells the OS to use the default.<br/>        """<br/>    <br/>        host, port = address<br/>        err = None<br/>        for res in getaddrinfo(host, port, 0, SOCK_STREAM):<br/>            af, socktype, proto, canonname, sa = res<br/>            sock = None<br/>            try:<br/>                sock = socket(af, socktype, proto)<br/>                if timeout is not _GLOBAL_DEFAULT_TIMEOUT:<br/>                    sock.settimeout(timeout)<br/>                if source_address:<br/>                    sock.bind(source_address)<br/>                sock.connect(sa)<br/>                return sock<br/>    <br/>            except error as _:<br/>                err = _<br/>                if sock is not None:<br/>                    sock.close()<br/>    <br/>        if err is not None:<br/>&gt;           raise err<br/><span class="error">E           error: [Errno 61] Connection refused</span><br/><br/>/usr/local/Cellar/python/2.7.12/Frameworks/Python.framework/Versions/2.7/lib/python2.7/socket.py:575: error<br/></div></td></tr></tbody>
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
@@ -296,7 +287,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_file_content_hashes.py::test_css[HashEnabledDebugEnabled]::setup</td>
+          <td class="col-name">tests_python/test_file_content_hashes.py::test_css[DebugEnabledHashEnabled]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -305,7 +296,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_file_content_hashes.py::test_css[HashEnabledDebugDisabled]::setup</td>
+          <td class="col-name">tests_python/test_file_content_hashes.py::test_css[DebugDisabledHashEnabled]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -323,7 +314,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_file_content_hashes.py::test_css_map[HashEnabledDebugEnabled]::setup</td>
+          <td class="col-name">tests_python/test_file_content_hashes.py::test_css_map[DebugEnabledHashEnabled]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -332,7 +323,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_file_content_hashes.py::test_css_map[HashEnabledDebugDisabled]::setup</td>
+          <td class="col-name">tests_python/test_file_content_hashes.py::test_css_map[DebugDisabledHashEnabled]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -350,7 +341,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_file_content_hashes.py::test_not_found[HashEnabledDebugEnabled]::setup</td>
+          <td class="col-name">tests_python/test_file_content_hashes.py::test_not_found[DebugEnabledHashEnabled]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -359,7 +350,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_file_content_hashes.py::test_not_found[HashEnabledDebugDisabled]::setup</td>
+          <td class="col-name">tests_python/test_file_content_hashes.py::test_not_found[DebugDisabledHashEnabled]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -539,7 +530,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_add_modifier[user-incomplete-Normal]::setup</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_add_modifier[user-evaluating-Normal]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -548,7 +539,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_add_modifier[user-evaluating-Normal]::setup</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_add_modifier[user-incomplete-Normal]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -584,7 +575,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_add_modifier[other_user-incomplete-Normal]::setup</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_add_modifier[other_user-evaluating-Normal]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -593,7 +584,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_add_modifier[other_user-evaluating-Normal]::setup</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_add_modifier[other_user-incomplete-Normal]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -629,7 +620,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_void_modifier[user-incomplete-Normal]::setup</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_void_modifier[user-evaluating-Normal]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -638,7 +629,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_void_modifier[user-evaluating-Normal]::setup</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_void_modifier[user-incomplete-Normal]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -674,7 +665,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_void_modifier[other_user-incomplete-Normal]::setup</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_void_modifier[other_user-evaluating-Normal]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -683,7 +674,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_void_modifier[other_user-evaluating-Normal]::setup</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_void_modifier[other_user-incomplete-Normal]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -737,7 +728,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[rejected-incomplete-Normal]::setup</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[rejected-evaluating-Normal]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -746,7 +737,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[rejected-evaluating-Normal]::setup</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[rejected-incomplete-Normal]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -782,15 +773,6 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[approved-incomplete-Normal]::setup</td>
-          <td class="col-duration">0.00</td>
-          <td class="col-links"></td></tr>
-        <tr>
-          <td class="extra" colspan="5">
-            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
-      <tbody class="skipped results-table-row">
-        <tr>
-          <td class="col-result">Skipped</td>
           <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[approved-evaluating-Normal]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
@@ -800,52 +782,16 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[approved-incomplete-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
           <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[approved-paid-Normal]::setup</td>
-          <td class="col-duration">0.00</td>
-          <td class="col-links"></td></tr>
-        <tr>
-          <td class="extra" colspan="5">
-            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
-      <tbody class="skipped results-table-row">
-        <tr>
-          <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[incomplete-rejected-Normal]::setup</td>
-          <td class="col-duration">0.00</td>
-          <td class="col-links"></td></tr>
-        <tr>
-          <td class="extra" colspan="5">
-            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
-      <tbody class="skipped results-table-row">
-        <tr>
-          <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[incomplete-approved-Normal]::setup</td>
-          <td class="col-duration">0.00</td>
-          <td class="col-links"></td></tr>
-        <tr>
-          <td class="extra" colspan="5">
-            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
-      <tbody class="skipped results-table-row">
-        <tr>
-          <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[incomplete-incomplete-Normal]::setup</td>
-          <td class="col-duration">0.00</td>
-          <td class="col-links"></td></tr>
-        <tr>
-          <td class="extra" colspan="5">
-            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
-      <tbody class="skipped results-table-row">
-        <tr>
-          <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[incomplete-evaluating-Normal]::setup</td>
-          <td class="col-duration">0.00</td>
-          <td class="col-links"></td></tr>
-        <tr>
-          <td class="extra" colspan="5">
-            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
-      <tbody class="skipped results-table-row">
-        <tr>
-          <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[incomplete-paid-Normal]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -872,15 +818,6 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[evaluating-incomplete-Normal]::setup</td>
-          <td class="col-duration">0.00</td>
-          <td class="col-links"></td></tr>
-        <tr>
-          <td class="extra" colspan="5">
-            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
-      <tbody class="skipped results-table-row">
-        <tr>
-          <td class="col-result">Skipped</td>
           <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[evaluating-evaluating-Normal]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
@@ -890,7 +827,61 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[evaluating-incomplete-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
           <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[evaluating-paid-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[incomplete-rejected-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[incomplete-approved-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[incomplete-evaluating-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[incomplete-incomplete-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[incomplete-paid-Normal]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -917,7 +908,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[paid-incomplete-Normal]::setup</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[paid-evaluating-Normal]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -926,7 +917,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[paid-evaluating-Normal]::setup</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[paid-incomplete-Normal]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -1106,7 +1097,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_permission[review-Normal]::setup</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_permission[pay-Normal]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -1115,7 +1106,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_permission[review-Admin]::setup</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_permission[pay-Admin]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -1178,7 +1169,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_permission[pay-Normal]::setup</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_permission[review-Normal]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -1187,7 +1178,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_permission[pay-Admin]::setup</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_permission[review-Admin]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -1196,7 +1187,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_division_permission[review-Normal]::setup</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_division_permission[pay-Normal]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -1205,7 +1196,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_division_permission[review-Admin]::setup</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_division_permission[pay-Admin]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -1268,7 +1259,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_division_permission[pay-Normal]::setup</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_division_permission[review-Normal]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -1277,7 +1268,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_division_permission[pay-Admin]::setup</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_division_permission[review-Admin]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -1286,7 +1277,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_group_permission[review-Normal]::setup</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_group_permission[pay-Normal]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -1295,7 +1286,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_group_permission[review-Admin]::setup</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_group_permission[pay-Admin]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -1358,7 +1349,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_group_permission[pay-Normal]::setup</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_group_permission[review-Normal]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -1367,7 +1358,7 @@ function filter_table(elem) {
       <tbody class="skipped results-table-row">
         <tr>
           <td class="col-result">Skipped</td>
-          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_group_permission[pay-Admin]::setup</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_group_permission[review-Admin]::setup</td>
           <td class="col-duration">0.00</td>
           <td class="col-links"></td></tr>
         <tr>
@@ -1408,4 +1399,1433 @@ function filter_table(elem) {
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="5">
-            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody></table></body></html>
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/util/test_classproperty.py::TestClassProperty::()::test_class_prop::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/util/test_classproperty.py::TestClassProperty::()::test_class_instance::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/util/test_datetime.py::TestUTC::()::test_offset::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/util/test_datetime.py::TestUTC::()::test_dst::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/util/test_datetime.py::TestUTC::()::test_tzname::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/util/test_datetime.py::TestParseDate::()::test_simple_year::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/util/test_datetime.py::TestParseDate::()::test_end_year::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/util/test_datetime.py::TestParseDate::()::test_start::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/util/test_datetime.py::TestParseDate::()::test_non_leap_february::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/util/test_datetime.py::TestParseDate::()::test_leap_february::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/util/test_datetime.py::TestParseDate::()::test_hour_range::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/util/test_datetime.py::TestParseDate::()::test_year_explicit_range::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/util/test_datetime.py::TestParseDate::()::test_month_start_day_end::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/util/test_decimal.py::TestPrettyDecimal::()::test_integer::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/util/test_decimal.py::TestPrettyDecimal::()::test_two_decimal_places::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/util/test_decimal.py::TestPrettyDecimal::()::test_three_decimal_places::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_divisions.py::test_add_division[Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_divisions.py::test_add_division[Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_divisions.py::test_list_divisions[Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_divisions.py::test_list_divisions[Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_divisions.py::TestDivisionDetails::()::test_add_entity_by_id[Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_divisions.py::TestDivisionDetails::()::test_add_entity_by_id[Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_divisions.py::TestDivisionDetails::()::test_add_entity_by_name[Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_divisions.py::TestDivisionDetails::()::test_add_entity_by_name[Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_divisions.py::TestDivisionDetails::()::test_set_url_transformer[Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_divisions.py::TestDivisionDetails::()::test_set_url_transformer[Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_divisions.py::TestDivisionDetails::()::test_unset_url_transformer[Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_divisions.py::TestDivisionDetails::()::test_unset_url_transformer[Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_login.py::test_authmethod_trampoline_views::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_login.py::test_login[Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_login.py::test_login[Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_login.py::test_logout[Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_login.py::test_logout[Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_login.py::TestSingleTabs::()::test_single_auth_method::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_login.py::test_multiple_auth_methods::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_views.py::test_index_redirect::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_views.py::test_request_count[Normal-submit-rejected]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_views.py::test_request_count[Normal-submit-approved]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_views.py::test_request_count[Normal-submit-evaluating]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_views.py::test_request_count[Normal-submit-incomplete]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_views.py::test_request_count[Normal-submit-paid]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_views.py::test_request_count[Normal-review-rejected]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_views.py::test_request_count[Normal-review-approved]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_views.py::test_request_count[Normal-review-evaluating]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_views.py::test_request_count[Normal-review-incomplete]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_views.py::test_request_count[Normal-review-paid]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_views.py::test_request_count[Normal-pay-rejected]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_views.py::test_request_count[Normal-pay-approved]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_views.py::test_request_count[Normal-pay-evaluating]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_views.py::test_request_count[Normal-pay-incomplete]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/test_views.py::test_request_count[Normal-pay-paid]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_filters.py::TestFilters::()::test_empty_filter[Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_filters.py::TestFilters::()::test_single_filter[test_info0-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_filters.py::TestFilters::()::test_single_filter[test_info1-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_filters.py::TestFilters::()::test_single_filter[test_info2-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_filters.py::TestFilters::()::test_single_filter[test_info3-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_filters.py::TestFilters::()::test_single_filter[test_info4-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_filters.py::TestFilters::()::test_single_filter[test_info5-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_filters.py::TestFilters::()::test_single_filter[test_info6-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_filters.py::TestFilters::()::test_single_filter[test_info7-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_filters.py::TestFilters::()::test_single_filter[test_info8-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_filters.py::TestFilters::()::test_multiple_filters[Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_lists.py::TestTableRequestLists::test_complete::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_lists.py::TestTableRequestLists::test_pending::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_lists.py::TestTableRequestLists::test_personal::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_lists.py::TestPayoutList::test_payout::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_basic_request_access[Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_permission_access[Testing Division-review-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_permission_access[Testing Division-pay-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_permission_access[Other Division-review-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_permission_access[Other Division-pay-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_set_payout[review-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_set_payout[pay-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_set_payout[submit-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_set_payout_invalid_state[approved-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_set_payout_invalid_state[paid-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_set_payout_invalid_state[rejected-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_set_payout_invalid_state[incomplete-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_add_modifier[review-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_add_modifier[pay-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_add_modifier[submit-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_add_modifier_invalid_state[approved-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_add_modifier_invalid_state[paid-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_add_modifier_invalid_state[rejected-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_add_modifier_invalid_state[incomplete-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_void_modifier[review-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_void_modifier[pay-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_void_modifier[submit-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[review-rejected-New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[review-rejected-No_New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[review-approved-New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[review-approved-No_New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[review-evaluating-New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[review-evaluating-No_New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[review-incomplete-New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[review-incomplete-No_New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[review-paid-New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[review-paid-No_New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[pay-rejected-New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[pay-rejected-No_New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[pay-approved-New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[pay-approved-No_New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[pay-evaluating-New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[pay-evaluating-No_New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[pay-incomplete-New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[pay-incomplete-No_New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[pay-paid-New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[pay-paid-No_New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[submit-rejected-New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[submit-rejected-No_New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[submit-approved-New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[submit-approved-No_New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[submit-evaluating-New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[submit-evaluating-No_New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[submit-incomplete-New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[submit-incomplete-No_New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[submit-paid-New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_request.py::test_change_division[submit-paid-No_New_Division-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_submit.py::TestSubmitRequest::test_division_listing::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_submit.py::TestSubmitRequest::test_killmail_validation::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_submit.py::TestSubmitRequest::test_submit_divisions::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_submit.py::TestSubmitRequest::test_submit_killmail::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/views/requests/test_submit.py::TestSubmitRequest::test_submit_non_personal_killmail::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests_python/browser/test_login.py::test_login_button[PhantomJS]</td>
+          <td class="col-duration">0.03</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">---------------------------- Captured stderr setup -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:24:39] &quot;GET /login/ HTTP/1.1&quot; 200 4563
+127.0.0.1 - - [21/Sep/2016 14:24:39] &quot;GET /static/css/evesrp.css HTTP/1.1&quot; 200 210727
+127.0.0.1 - - [21/Sep/2016 14:24:39] &quot;GET /static/js/formatters.min.js HTTP/1.1&quot; 200 6256
+127.0.0.1 - - [21/Sep/2016 14:24:39] &quot;GET /static/js/evesrp.min.js HTTP/1.1&quot; 200 339037
+</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests_python/browser/test_login.py::test_ui_elements_presence[PhantomJS]</td>
+          <td class="col-duration">0.06</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">---------------------------- Captured stderr setup -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:24:41] &quot;GET /login/ HTTP/1.1&quot; 200 4563
+127.0.0.1 - - [21/Sep/2016 14:24:41] &quot;GET /static/js/formatters.min.js HTTP/1.1&quot; 200 6256
+127.0.0.1 - - [21/Sep/2016 14:24:41] &quot;GET /static/css/evesrp.css HTTP/1.1&quot; 200 210727
+127.0.0.1 - - [21/Sep/2016 14:24:41] &quot;GET /static/js/evesrp.min.js HTTP/1.1&quot; 200 339037
+</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests_python/browser/test_login.py::test_login_button_click[PhantomJS]</td>
+          <td class="col-duration">0.50</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">---------------------------- Captured stderr setup -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:24:43] &quot;GET /login/ HTTP/1.1&quot; 200 4563
+127.0.0.1 - - [21/Sep/2016 14:24:43] &quot;GET /static/js/formatters.min.js HTTP/1.1&quot; 200 6256
+127.0.0.1 - - [21/Sep/2016 14:24:43] &quot;GET /static/css/evesrp.css HTTP/1.1&quot; 200 210727
+127.0.0.1 - - [21/Sep/2016 14:24:43] &quot;GET /static/js/evesrp.min.js HTTP/1.1&quot; 200 339037
+----------------------------- Captured stderr call -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:24:43] &quot;POST /login/ HTTP/1.1&quot; 302 209
+127.0.0.1 - - [21/Sep/2016 14:24:43] &quot;GET / HTTP/1.1&quot; 302 243
+/Users/paxswill/Development/Eve/eve-srp/.tox/py27-sqlite-browser/lib/python2.7/site-packages/sqlalchemy/sql/sqltypes.py:562: SAWarning: Dialect sqlite+pysqlite does *not* support Decimal objects natively, and SQLAlchemy must convert from floating point - rounding errors and other issues may occur. Please consider storing Decimal numbers as strings or integers on this platform for lossless storage.
+  &apos;storage.&apos; % (dialect.name, dialect.driver))
+127.0.0.1 - - [21/Sep/2016 14:24:43] &quot;GET /request/personal/ HTTP/1.1&quot; 200 4011
+</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests_python/browser/test_login.py::test_login_return[PhantomJS]</td>
+          <td class="col-duration">0.45</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">---------------------------- Captured stderr setup -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:24:45] &quot;GET /login/ HTTP/1.1&quot; 200 4563
+127.0.0.1 - - [21/Sep/2016 14:24:45] &quot;GET /static/js/formatters.min.js HTTP/1.1&quot; 200 6256
+127.0.0.1 - - [21/Sep/2016 14:24:45] &quot;GET /static/css/evesrp.css HTTP/1.1&quot; 200 210727
+127.0.0.1 - - [21/Sep/2016 14:24:45] &quot;GET /static/js/evesrp.min.js HTTP/1.1&quot; 200 339037
+----------------------------- Captured stderr call -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:24:45] &quot;POST /login/ HTTP/1.1&quot; 302 209
+127.0.0.1 - - [21/Sep/2016 14:24:45] &quot;GET / HTTP/1.1&quot; 302 243
+127.0.0.1 - - [21/Sep/2016 14:24:45] &quot;GET /request/personal/ HTTP/1.1&quot; 200 4011
+</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests_python/browser/test_submit.py::test_division_dropdown[Normal-PhantomJS]</td>
+          <td class="col-duration">0.31</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">---------------------------- Captured stderr setup -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:24:48] &quot;GET /login/ HTTP/1.1&quot; 200 4563
+127.0.0.1 - - [21/Sep/2016 14:24:48] &quot;GET /static/js/formatters.min.js HTTP/1.1&quot; 200 6256
+127.0.0.1 - - [21/Sep/2016 14:24:48] &quot;GET /static/css/evesrp.css HTTP/1.1&quot; 200 210727
+127.0.0.1 - - [21/Sep/2016 14:24:48] &quot;GET /static/js/evesrp.min.js HTTP/1.1&quot; 200 339037
+127.0.0.1 - - [21/Sep/2016 14:24:48] &quot;POST /login/ HTTP/1.1&quot; 302 209
+127.0.0.1 - - [21/Sep/2016 14:24:48] &quot;GET / HTTP/1.1&quot; 302 243
+127.0.0.1 - - [21/Sep/2016 14:24:48] &quot;GET /request/personal/ HTTP/1.1&quot; 200 4068
+----------------------------- Captured stderr call -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:24:49] &quot;GET /request/add/ HTTP/1.1&quot; 200 5024
+</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests_python/browser/test_submit.py::test_division_dropdown[Admin-PhantomJS]</td>
+          <td class="col-duration">0.31</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">---------------------------- Captured stderr setup -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:24:50] &quot;GET /login/ HTTP/1.1&quot; 200 4562
+127.0.0.1 - - [21/Sep/2016 14:24:50] &quot;GET /static/js/formatters.min.js HTTP/1.1&quot; 200 6256
+127.0.0.1 - - [21/Sep/2016 14:24:50] &quot;GET /static/css/evesrp.css HTTP/1.1&quot; 200 210727
+127.0.0.1 - - [21/Sep/2016 14:24:50] &quot;GET /static/js/evesrp.min.js HTTP/1.1&quot; 200 339037
+127.0.0.1 - - [21/Sep/2016 14:24:51] &quot;POST /login/ HTTP/1.1&quot; 302 209
+127.0.0.1 - - [21/Sep/2016 14:24:51] &quot;GET / HTTP/1.1&quot; 302 243
+127.0.0.1 - - [21/Sep/2016 14:24:51] &quot;GET /request/personal/ HTTP/1.1&quot; 200 4184
+----------------------------- Captured stderr call -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:24:51] &quot;GET /request/add/ HTTP/1.1&quot; 200 5159
+</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests_python/browser/test_submit.py::test_submit[Normal-PhantomJS-zKillboard-NoDetails]</td>
+          <td class="col-duration">1.05</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">---------------------------- Captured stderr setup -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:24:54] &quot;GET /login/ HTTP/1.1&quot; 200 4563
+127.0.0.1 - - [21/Sep/2016 14:24:54] &quot;GET /static/js/formatters.min.js HTTP/1.1&quot; 200 6256
+127.0.0.1 - - [21/Sep/2016 14:24:54] &quot;GET /static/css/evesrp.css HTTP/1.1&quot; 200 210727
+127.0.0.1 - - [21/Sep/2016 14:24:54] &quot;GET /static/js/evesrp.min.js HTTP/1.1&quot; 200 339037
+127.0.0.1 - - [21/Sep/2016 14:24:54] &quot;POST /login/ HTTP/1.1&quot; 302 209
+127.0.0.1 - - [21/Sep/2016 14:24:54] &quot;GET / HTTP/1.1&quot; 302 243
+127.0.0.1 - - [21/Sep/2016 14:24:54] &quot;GET /request/personal/ HTTP/1.1&quot; 200 4067
+----------------------------- Captured stderr call -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:24:54] &quot;GET /request/add/ HTTP/1.1&quot; 200 5024
+127.0.0.1 - - [21/Sep/2016 14:24:55] &quot;POST /request/add/ HTTP/1.1&quot; 200 5190
+127.0.0.1 - - [21/Sep/2016 14:24:55] &quot;GET /static/fonts/fontawesome-webfont.woff?v=4.6.1 HTTP/1.1&quot; 200 89076
+</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests_python/browser/test_submit.py::test_submit[Normal-PhantomJS-zKillboard-Details]</td>
+          <td class="col-duration">1.05</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">---------------------------- Captured stderr setup -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:24:57] &quot;GET /login/ HTTP/1.1&quot; 200 4563
+127.0.0.1 - - [21/Sep/2016 14:24:57] &quot;GET /static/js/formatters.min.js HTTP/1.1&quot; 200 6256
+127.0.0.1 - - [21/Sep/2016 14:24:57] &quot;GET /static/css/evesrp.css HTTP/1.1&quot; 200 210727
+127.0.0.1 - - [21/Sep/2016 14:24:57] &quot;GET /static/js/evesrp.min.js HTTP/1.1&quot; 200 339037
+127.0.0.1 - - [21/Sep/2016 14:24:57] &quot;POST /login/ HTTP/1.1&quot; 302 209
+127.0.0.1 - - [21/Sep/2016 14:24:57] &quot;GET / HTTP/1.1&quot; 302 243
+127.0.0.1 - - [21/Sep/2016 14:24:57] &quot;GET /request/personal/ HTTP/1.1&quot; 200 4068
+----------------------------- Captured stderr call -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:24:58] &quot;GET /request/add/ HTTP/1.1&quot; 200 5024
+127.0.0.1 - - [21/Sep/2016 14:24:58] &quot;POST /request/add/ HTTP/1.1&quot; 302 243
+127.0.0.1 - - [21/Sep/2016 14:24:58] &quot;GET /request/30290604/ HTTP/1.1&quot; 200 7371
+</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests_python/browser/test_submit.py::test_submit[Normal-PhantomJS-CREST-NoDetails]</td>
+          <td class="col-duration">1.10</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">---------------------------- Captured stderr setup -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:25:00] &quot;GET /login/ HTTP/1.1&quot; 200 4563
+127.0.0.1 - - [21/Sep/2016 14:25:00] &quot;GET /static/js/formatters.min.js HTTP/1.1&quot; 200 6256
+127.0.0.1 - - [21/Sep/2016 14:25:00] &quot;GET /static/css/evesrp.css HTTP/1.1&quot; 200 210727
+127.0.0.1 - - [21/Sep/2016 14:25:00] &quot;GET /static/js/evesrp.min.js HTTP/1.1&quot; 200 339037
+127.0.0.1 - - [21/Sep/2016 14:25:00] &quot;POST /login/ HTTP/1.1&quot; 302 209
+127.0.0.1 - - [21/Sep/2016 14:25:00] &quot;GET / HTTP/1.1&quot; 302 243
+127.0.0.1 - - [21/Sep/2016 14:25:00] &quot;GET /request/personal/ HTTP/1.1&quot; 200 4068
+----------------------------- Captured stderr call -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:25:01] &quot;GET /request/add/ HTTP/1.1&quot; 200 5024
+127.0.0.1 - - [21/Sep/2016 14:25:01] &quot;POST /request/add/ HTTP/1.1&quot; 200 5243
+127.0.0.1 - - [21/Sep/2016 14:25:01] &quot;GET /static/fonts/fontawesome-webfont.woff?v=4.6.1 HTTP/1.1&quot; 200 89076
+</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests_python/browser/test_submit.py::test_submit[Normal-PhantomJS-CREST-Details]</td>
+          <td class="col-duration">1.08</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">---------------------------- Captured stderr setup -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:25:03] &quot;GET /login/ HTTP/1.1&quot; 200 4563
+127.0.0.1 - - [21/Sep/2016 14:25:03] &quot;GET /static/js/formatters.min.js HTTP/1.1&quot; 200 6256
+127.0.0.1 - - [21/Sep/2016 14:25:03] &quot;GET /static/css/evesrp.css HTTP/1.1&quot; 200 210727
+127.0.0.1 - - [21/Sep/2016 14:25:03] &quot;GET /static/js/evesrp.min.js HTTP/1.1&quot; 200 339037
+127.0.0.1 - - [21/Sep/2016 14:25:03] &quot;POST /login/ HTTP/1.1&quot; 302 209
+127.0.0.1 - - [21/Sep/2016 14:25:03] &quot;GET / HTTP/1.1&quot; 302 243
+127.0.0.1 - - [21/Sep/2016 14:25:04] &quot;GET /request/personal/ HTTP/1.1&quot; 200 4068
+----------------------------- Captured stderr call -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:25:04] &quot;GET /request/add/ HTTP/1.1&quot; 200 5024
+127.0.0.1 - - [21/Sep/2016 14:25:04] &quot;POST /request/add/ HTTP/1.1&quot; 302 243
+127.0.0.1 - - [21/Sep/2016 14:25:05] &quot;GET /request/30290604/ HTTP/1.1&quot; 200 7400
+</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests_python/browser/test_submit.py::test_submit[Normal-PhantomJS-Invalid-NoDetails]</td>
+          <td class="col-duration">0.89</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">---------------------------- Captured stderr setup -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:25:06] &quot;GET /login/ HTTP/1.1&quot; 200 4563
+127.0.0.1 - - [21/Sep/2016 14:25:06] &quot;GET /static/js/formatters.min.js HTTP/1.1&quot; 200 6256
+127.0.0.1 - - [21/Sep/2016 14:25:06] &quot;GET /static/css/evesrp.css HTTP/1.1&quot; 200 210727
+127.0.0.1 - - [21/Sep/2016 14:25:06] &quot;GET /static/js/evesrp.min.js HTTP/1.1&quot; 200 339037
+127.0.0.1 - - [21/Sep/2016 14:25:07] &quot;POST /login/ HTTP/1.1&quot; 302 209
+127.0.0.1 - - [21/Sep/2016 14:25:07] &quot;GET / HTTP/1.1&quot; 302 243
+127.0.0.1 - - [21/Sep/2016 14:25:07] &quot;GET /request/personal/ HTTP/1.1&quot; 200 4068
+----------------------------- Captured stderr call -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:25:07] &quot;GET /request/add/ HTTP/1.1&quot; 200 5024
+127.0.0.1 - - [21/Sep/2016 14:25:07] &quot;POST /request/add/ HTTP/1.1&quot; 200 5416
+127.0.0.1 - - [21/Sep/2016 14:25:08] &quot;GET /static/fonts/fontawesome-webfont.woff?v=4.6.1 HTTP/1.1&quot; 200 89076
+</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests_python/browser/test_submit.py::test_submit[Normal-PhantomJS-Invalid-Details]</td>
+          <td class="col-duration">0.92</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">---------------------------- Captured stderr setup -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:25:11] &quot;GET /login/ HTTP/1.1&quot; 200 4563
+127.0.0.1 - - [21/Sep/2016 14:25:11] &quot;GET /static/js/formatters.min.js HTTP/1.1&quot; 200 6256
+127.0.0.1 - - [21/Sep/2016 14:25:11] &quot;GET /static/css/evesrp.css HTTP/1.1&quot; 200 210727
+127.0.0.1 - - [21/Sep/2016 14:25:11] &quot;GET /static/js/evesrp.min.js HTTP/1.1&quot; 200 339037
+127.0.0.1 - - [21/Sep/2016 14:25:11] &quot;POST /login/ HTTP/1.1&quot; 302 209
+127.0.0.1 - - [21/Sep/2016 14:25:11] &quot;GET / HTTP/1.1&quot; 302 243
+127.0.0.1 - - [21/Sep/2016 14:25:11] &quot;GET /request/personal/ HTTP/1.1&quot; 200 4068
+----------------------------- Captured stderr call -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:25:11] &quot;GET /request/add/ HTTP/1.1&quot; 200 5024
+127.0.0.1 - - [21/Sep/2016 14:25:12] &quot;POST /request/add/ HTTP/1.1&quot; 200 5298
+127.0.0.1 - - [21/Sep/2016 14:25:12] &quot;GET /static/fonts/fontawesome-webfont.woff?v=4.6.1 HTTP/1.1&quot; 200 89076
+</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests_python/browser/test_submit.py::test_submit[Admin-PhantomJS-zKillboard-NoDetails]</td>
+          <td class="col-duration">0.94</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">---------------------------- Captured stderr setup -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:25:14] &quot;GET /login/ HTTP/1.1&quot; 200 4562
+127.0.0.1 - - [21/Sep/2016 14:25:14] &quot;GET /static/js/formatters.min.js HTTP/1.1&quot; 200 6256
+127.0.0.1 - - [21/Sep/2016 14:25:14] &quot;GET /static/css/evesrp.css HTTP/1.1&quot; 200 210727
+127.0.0.1 - - [21/Sep/2016 14:25:14] &quot;GET /static/js/evesrp.min.js HTTP/1.1&quot; 200 339037
+127.0.0.1 - - [21/Sep/2016 14:25:14] &quot;POST /login/ HTTP/1.1&quot; 302 209
+127.0.0.1 - - [21/Sep/2016 14:25:14] &quot;GET / HTTP/1.1&quot; 302 243
+127.0.0.1 - - [21/Sep/2016 14:25:14] &quot;GET /request/personal/ HTTP/1.1&quot; 200 4184
+----------------------------- Captured stderr call -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:25:14] &quot;GET /request/add/ HTTP/1.1&quot; 200 5159
+127.0.0.1 - - [21/Sep/2016 14:25:15] &quot;POST /request/add/ HTTP/1.1&quot; 200 5334
+127.0.0.1 - - [21/Sep/2016 14:25:15] &quot;GET /static/fonts/fontawesome-webfont.woff?v=4.6.1 HTTP/1.1&quot; 200 89076
+</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests_python/browser/test_submit.py::test_submit[Admin-PhantomJS-zKillboard-Details]</td>
+          <td class="col-duration">1.08</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">---------------------------- Captured stderr setup -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:25:17] &quot;GET /login/ HTTP/1.1&quot; 200 4563
+127.0.0.1 - - [21/Sep/2016 14:25:17] &quot;GET /static/js/formatters.min.js HTTP/1.1&quot; 200 6256
+127.0.0.1 - - [21/Sep/2016 14:25:17] &quot;GET /static/css/evesrp.css HTTP/1.1&quot; 200 210727
+127.0.0.1 - - [21/Sep/2016 14:25:17] &quot;GET /static/js/evesrp.min.js HTTP/1.1&quot; 200 339037
+127.0.0.1 - - [21/Sep/2016 14:25:17] &quot;POST /login/ HTTP/1.1&quot; 302 209
+127.0.0.1 - - [21/Sep/2016 14:25:17] &quot;GET / HTTP/1.1&quot; 302 243
+127.0.0.1 - - [21/Sep/2016 14:25:17] &quot;GET /request/personal/ HTTP/1.1&quot; 200 4184
+----------------------------- Captured stderr call -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:25:18] &quot;GET /request/add/ HTTP/1.1&quot; 200 5159
+127.0.0.1 - - [21/Sep/2016 14:25:18] &quot;POST /request/add/ HTTP/1.1&quot; 302 243
+127.0.0.1 - - [21/Sep/2016 14:25:18] &quot;GET /request/30290604/ HTTP/1.1&quot; 200 7488
+</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests_python/browser/test_submit.py::test_submit[Admin-PhantomJS-CREST-NoDetails]</td>
+          <td class="col-duration">0.97</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">---------------------------- Captured stderr setup -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:25:21] &quot;GET /login/ HTTP/1.1&quot; 200 4562
+127.0.0.1 - - [21/Sep/2016 14:25:21] &quot;GET /static/js/formatters.min.js HTTP/1.1&quot; 200 6256
+127.0.0.1 - - [21/Sep/2016 14:25:21] &quot;GET /static/css/evesrp.css HTTP/1.1&quot; 200 210727
+127.0.0.1 - - [21/Sep/2016 14:25:21] &quot;GET /static/js/evesrp.min.js HTTP/1.1&quot; 200 339037
+127.0.0.1 - - [21/Sep/2016 14:25:21] &quot;POST /login/ HTTP/1.1&quot; 302 209
+127.0.0.1 - - [21/Sep/2016 14:25:21] &quot;GET / HTTP/1.1&quot; 302 243
+127.0.0.1 - - [21/Sep/2016 14:25:21] &quot;GET /request/personal/ HTTP/1.1&quot; 200 4184
+----------------------------- Captured stderr call -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:25:22] &quot;GET /request/add/ HTTP/1.1&quot; 200 5159
+127.0.0.1 - - [21/Sep/2016 14:25:22] &quot;POST /request/add/ HTTP/1.1&quot; 200 5387
+127.0.0.1 - - [21/Sep/2016 14:25:22] &quot;GET /static/fonts/fontawesome-webfont.woff?v=4.6.1 HTTP/1.1&quot; 200 89076
+</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests_python/browser/test_submit.py::test_submit[Admin-PhantomJS-CREST-Details]</td>
+          <td class="col-duration">1.11</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">---------------------------- Captured stderr setup -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:25:24] &quot;GET /login/ HTTP/1.1&quot; 200 4563
+127.0.0.1 - - [21/Sep/2016 14:25:24] &quot;GET /static/js/formatters.min.js HTTP/1.1&quot; 200 6256
+127.0.0.1 - - [21/Sep/2016 14:25:24] &quot;GET /static/css/evesrp.css HTTP/1.1&quot; 200 210727
+127.0.0.1 - - [21/Sep/2016 14:25:24] &quot;GET /static/js/evesrp.min.js HTTP/1.1&quot; 200 339037
+127.0.0.1 - - [21/Sep/2016 14:25:24] &quot;POST /login/ HTTP/1.1&quot; 302 209
+127.0.0.1 - - [21/Sep/2016 14:25:24] &quot;GET / HTTP/1.1&quot; 302 243
+127.0.0.1 - - [21/Sep/2016 14:25:25] &quot;GET /request/personal/ HTTP/1.1&quot; 200 4184
+----------------------------- Captured stderr call -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:25:25] &quot;GET /request/add/ HTTP/1.1&quot; 200 5159
+127.0.0.1 - - [21/Sep/2016 14:25:25] &quot;POST /request/add/ HTTP/1.1&quot; 302 243
+127.0.0.1 - - [21/Sep/2016 14:25:26] &quot;GET /request/30290604/ HTTP/1.1&quot; 200 7517
+</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests_python/browser/test_submit.py::test_submit[Admin-PhantomJS-Invalid-NoDetails]</td>
+          <td class="col-duration">0.98</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">---------------------------- Captured stderr setup -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:25:27] &quot;GET /login/ HTTP/1.1&quot; 200 4563
+127.0.0.1 - - [21/Sep/2016 14:25:27] &quot;GET /static/js/formatters.min.js HTTP/1.1&quot; 200 6256
+127.0.0.1 - - [21/Sep/2016 14:25:27] &quot;GET /static/css/evesrp.css HTTP/1.1&quot; 200 210727
+127.0.0.1 - - [21/Sep/2016 14:25:27] &quot;GET /static/js/evesrp.min.js HTTP/1.1&quot; 200 339037
+127.0.0.1 - - [21/Sep/2016 14:25:27] &quot;POST /login/ HTTP/1.1&quot; 302 209
+127.0.0.1 - - [21/Sep/2016 14:25:28] &quot;GET / HTTP/1.1&quot; 302 243
+127.0.0.1 - - [21/Sep/2016 14:25:28] &quot;GET /request/personal/ HTTP/1.1&quot; 200 4183
+----------------------------- Captured stderr call -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:25:28] &quot;GET /request/add/ HTTP/1.1&quot; 200 5159
+127.0.0.1 - - [21/Sep/2016 14:25:28] &quot;POST /request/add/ HTTP/1.1&quot; 200 5560
+127.0.0.1 - - [21/Sep/2016 14:25:29] &quot;GET /static/fonts/fontawesome-webfont.woff?v=4.6.1 HTTP/1.1&quot; 200 89076
+</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests_python/browser/test_submit.py::test_submit[Admin-PhantomJS-Invalid-Details]</td>
+          <td class="col-duration">0.99</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">---------------------------- Captured stderr setup -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:25:30] &quot;GET /login/ HTTP/1.1&quot; 200 4562
+127.0.0.1 - - [21/Sep/2016 14:25:30] &quot;GET /static/js/formatters.min.js HTTP/1.1&quot; 200 6256
+127.0.0.1 - - [21/Sep/2016 14:25:30] &quot;GET /static/css/evesrp.css HTTP/1.1&quot; 200 210727
+127.0.0.1 - - [21/Sep/2016 14:25:30] &quot;GET /static/js/evesrp.min.js HTTP/1.1&quot; 200 339037
+127.0.0.1 - - [21/Sep/2016 14:25:31] &quot;POST /login/ HTTP/1.1&quot; 302 209
+127.0.0.1 - - [21/Sep/2016 14:25:31] &quot;GET / HTTP/1.1&quot; 302 243
+127.0.0.1 - - [21/Sep/2016 14:25:31] &quot;GET /request/personal/ HTTP/1.1&quot; 200 4184
+----------------------------- Captured stderr call -----------------------------<br/>127.0.0.1 - - [21/Sep/2016 14:25:31] &quot;GET /request/add/ HTTP/1.1&quot; 200 5159
+127.0.0.1 - - [21/Sep/2016 14:25:32] &quot;POST /request/add/ HTTP/1.1&quot; 200 5443
+127.0.0.1 - - [21/Sep/2016 14:25:32] &quot;GET /static/fonts/fontawesome-webfont.woff?v=4.6.1 HTTP/1.1&quot; 200 89076
+</div></td></tr></tbody></table></body></html>
