@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Test Report</title>
+    <link href="assets/style.css" rel="stylesheet" type="text/css"/></head>
+  <body>
+    <script>/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+function toArray(iter) {
+    if (iter === null) {
+        return null;
+    }
+    return Array.prototype.slice.call(iter);
+}
+
+function find(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return elem.querySelector(selector);
+}
+
+function find_all(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return toArray(elem.querySelectorAll(selector));
+}
+
+function sort_column(elem) {
+    toggle_sort_states(elem);
+    var colIndex = toArray(elem.parentNode.childNodes).indexOf(elem);
+    var key;
+    if (elem.classList.contains('numeric')) {
+        key = key_num;
+    } else if (elem.classList.contains('result')) {
+        key = key_result;
+    } else {
+        key = key_alpha;
+    }
+    sort_table(elem, key(colIndex));
+}
+
+function show_all_extras() {
+    find_all('.col-result').forEach(show_extras);
+}
+
+function hide_all_extras() {
+    find_all('.col-result').forEach(hide_extras);
+}
+
+function show_extras(colresult_elem) {
+    var extras = colresult_elem.parentNode.nextElementSibling;
+    var expandcollapse = colresult_elem.firstElementChild;
+    extras.classList.remove("collapsed");
+    expandcollapse.classList.remove("expander");
+    expandcollapse.classList.add("collapser");
+}
+
+function hide_extras(colresult_elem) {
+    var extras = colresult_elem.parentNode.nextElementSibling;
+    var expandcollapse = colresult_elem.firstElementChild;
+    extras.classList.add("collapsed");
+    expandcollapse.classList.remove("collapser");
+    expandcollapse.classList.add("expander");
+}
+
+function show_filters() {
+    var filter_items = document.getElementsByClassName('filter');
+    for (var i = 0; i < filter_items.length; i++)
+        filter_items[i].hidden = false;
+}
+
+function add_collapse() {
+    // Add links for show/hide all
+    var resulttable = find('table#results-table');
+    var showhideall = document.createElement("p");
+    showhideall.innerHTML = '<a href="javascript:show_all_extras()">Show all details</a> / ' +
+                            '<a href="javascript:hide_all_extras()">Hide all details</a>';
+    resulttable.parentElement.insertBefore(showhideall, resulttable);
+
+    // Add show/hide link to each result
+    find_all('.col-result').forEach(function(elem) {
+        var extras = elem.parentNode.nextElementSibling;
+        var expandcollapse = document.createElement("span");
+        if (elem.innerHTML === 'Passed') {
+            extras.classList.add("collapsed");
+            expandcollapse.classList.add("expander");
+        } else {
+            expandcollapse.classList.add("collapser");
+        }
+        elem.appendChild(expandcollapse);
+
+        elem.addEventListener("click", function(event) {
+            if (event.currentTarget.parentNode.nextElementSibling.classList.contains("collapsed")) {
+                show_extras(event.currentTarget);
+            } else {
+                hide_extras(event.currentTarget);
+            }
+        });
+    })
+}
+addEventListener("DOMContentLoaded", function() {
+    reset_sort_headers();
+
+    add_collapse();
+
+    show_filters();
+
+    toggle_sort_states(find('.initial-sort'));
+
+    find_all('.col-links a.image').forEach(function(elem) {
+        elem.addEventListener("click",
+                              function(event) {
+                                  var node = elem;
+                                  while (node && !node.classList.contains('results-table-row')) {
+                                      node = node.parentNode;
+                                  }
+                                  if (node != null) {
+                                      if (node.nextSibling &&
+                                          node.nextSibling.classList.contains("extra")) {
+                                          var href = find('.image img', node.nextSibling).src;
+                                          window.open(href);
+                                      }
+                                  }
+                                  event.preventDefault();
+                              }, false)
+    });
+
+    find_all('.image a').forEach(function(elem) {
+        elem.addEventListener("click",
+                              function(event) {
+                                  window.open(find('img', elem).getAttribute('src'));
+                                  event.preventDefault();
+                              }, false)
+    });
+
+    find_all('.sortable').forEach(function(elem) {
+        elem.addEventListener("click",
+                              function(event) {
+                                  sort_column(elem);
+                              }, false)
+    });
+
+});
+
+function sort_table(clicked, key_func) {
+    var rows = find_all('.results-table-row');
+    var reversed = !clicked.classList.contains('asc');
+    var sorted_rows = sort(rows, key_func, reversed);
+    /* Whole table is removed here because browsers acts much slower
+     * when appending existing elements.
+     */
+    var thead = document.getElementById("results-table-head");
+    document.getElementById('results-table').remove();
+    var parent = document.createElement("table");
+    parent.id = "results-table";
+    parent.appendChild(thead);
+    sorted_rows.forEach(function(elem) {
+        parent.appendChild(elem);
+    });
+    document.getElementsByTagName("BODY")[0].appendChild(parent);
+}
+
+function sort(items, key_func, reversed) {
+    var sort_array = items.map(function(item, i) {
+        return [key_func(item), i];
+    });
+    var multiplier = reversed ? -1 : 1;
+
+    sort_array.sort(function(a, b) {
+        var key_a = a[0];
+        var key_b = b[0];
+        return multiplier * (key_a >= key_b ? 1 : -1);
+    });
+
+    return sort_array.map(function(item) {
+        var index = item[1];
+        return items[index];
+    });
+}
+
+function key_alpha(col_index) {
+    return function(elem) {
+        return elem.childNodes[1].childNodes[col_index].firstChild.data.toLowerCase();
+    };
+}
+
+function key_num(col_index) {
+    return function(elem) {
+        return parseFloat(elem.childNodes[1].childNodes[col_index].firstChild.data);
+    };
+}
+
+function key_result(col_index) {
+    return function(elem) {
+        var strings = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed',
+                       'Skipped', 'Passed'];
+        return strings.indexOf(elem.childNodes[1].childNodes[col_index].firstChild.data);
+    };
+}
+
+function reset_sort_headers() {
+    find_all('.sort-icon').forEach(function(elem) {
+        elem.parentNode.removeChild(elem);
+    });
+    find_all('.sortable').forEach(function(elem) {
+        var icon = document.createElement("div");
+        icon.className = "sort-icon";
+        icon.textContent = "vvv";
+        elem.insertBefore(icon, elem.firstChild);
+        elem.classList.remove("desc", "active");
+        elem.classList.add("asc", "inactive");
+    });
+}
+
+function toggle_sort_states(elem) {
+    //if active, toggle between asc and desc
+    if (elem.classList.contains('active')) {
+        elem.classList.toggle('asc');
+        elem.classList.toggle('desc');
+    }
+
+    //if inactive, reset all other functions and add ascending active
+    if (elem.classList.contains('inactive')) {
+        reset_sort_headers();
+        elem.classList.remove('inactive');
+        elem.classList.add('active');
+    }
+}
+
+function is_all_rows_hidden(value) {
+  return value.hidden == false;
+}
+
+function filter_table(elem) {
+    var outcome_att = "data-test-result";
+    var outcome = elem.getAttribute(outcome_att);
+    class_outcome = outcome + " results-table-row";
+    var outcome_rows = document.getElementsByClassName(class_outcome);
+
+    for(var i = 0; i < outcome_rows.length; i++){
+        outcome_rows[i].hidden = !elem.checked;
+    }
+
+    var rows = find_all('.results-table-row').filter(is_all_rows_hidden);
+    var all_rows_hidden = rows.length == 0 ? true : false;
+    var not_found_message = document.getElementById("not-found-message");
+    not_found_message.hidden = !all_rows_hidden;
+}
+</script>
+    <p>Report generated on 19-Sep-2016 at 09:28:40</p>
+    <h2>Environment</h2>
+    <table id="environment">
+      <tr>
+        <td>Platform</td>
+        <td>Darwin-16.0.0-x86_64-i386-64bit</td></tr>
+      <tr>
+        <td>Python</td>
+        <td>2.7.12</td></tr></table>
+    <h2>Summary</h2>
+    <p>0 tests ran in 34356.90 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="passed">0 passed</span>, <input checked="true" class="filter" data-test-result="skipped" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="skipped">125 skipped</span>, <input checked="true" class="filter" data-test-result="failed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="failed">0 failed</span>, <input checked="true" class="filter" data-test-result="error" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="error">1 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
+    <h2>Results</h2>
+    <table id="results-table">
+      <thead id="results-table-head">
+        <tr>
+          <th class="sortable result initial-sort" col="result">Result</th>
+          <th class="sortable" col="name">Test</th>
+          <th class="sortable numeric" col="duration">Duration</th>
+          <th>Links</th></tr>
+        <tr hidden="true" id="not-found-message">
+          <th colspan="5">No results found. Try to check the filters</th></tr></thead>
+      <tbody class="error results-table-row">
+        <tr>
+          <td class="col-result">Error</td>
+          <td class="col-name">tests_python/browser/test_login.py::test_login_button[Chrome]::setup</td>
+          <td class="col-duration">1.89</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">web_driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session="ed3e104e03d72ae6129632b3100a87a8")&gt;<br/>capabilities = {'browserName': 'chrome', 'javascriptEnabled': True, 'name': 'tests_python/browser/test_login.py::test_login_button[Chrome]', 'platform': 'ANY', ...}<br/>request = &lt;SubRequest 'web_session' for &lt;Function 'test_login_button[Chrome]'&gt;&gt;<br/><br/>    @pytest.fixture(scope='function')<br/>    def web_session(web_driver, capabilities, request):<br/>        capabilities = capabilities.copy()<br/>        capabilities['name'] = request.node.nodeid<br/>        web_driver.quit()<br/>&gt;       web_driver.start_session(capabilities)<br/><br/>tests_python/browser/conftest.py:147: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/>.tox/py27-sqlite-browser/lib/python2.7/site-packages/selenium/webdriver/remote/webdriver.py:177: in start_session<br/>    response = self.execute(Command.NEW_SESSION, capabilities)<br/>.tox/py27-sqlite-browser/lib/python2.7/site-packages/selenium/webdriver/remote/webdriver.py:234: in execute<br/>    response = self.command_executor.execute(driver_command, params)<br/>.tox/py27-sqlite-browser/lib/python2.7/site-packages/selenium/webdriver/remote/remote_connection.py:401: in execute<br/>    return self._request(command_info[0], url, body=data)<br/>.tox/py27-sqlite-browser/lib/python2.7/site-packages/selenium/webdriver/remote/remote_connection.py:432: in _request<br/>    self._conn.request(method, parsed_url.path, body, headers)<br/>/usr/local/Cellar/python/2.7.12/Frameworks/Python.framework/Versions/2.7/lib/python2.7/httplib.py:1057: in request<br/>    self._send_request(method, url, body, headers)<br/>/usr/local/Cellar/python/2.7.12/Frameworks/Python.framework/Versions/2.7/lib/python2.7/httplib.py:1097: in _send_request<br/>    self.endheaders(body)<br/>/usr/local/Cellar/python/2.7.12/Frameworks/Python.framework/Versions/2.7/lib/python2.7/httplib.py:1053: in endheaders<br/>    self._send_output(message_body)<br/>/usr/local/Cellar/python/2.7.12/Frameworks/Python.framework/Versions/2.7/lib/python2.7/httplib.py:897: in _send_output<br/>    self.send(msg)<br/>/usr/local/Cellar/python/2.7.12/Frameworks/Python.framework/Versions/2.7/lib/python2.7/httplib.py:859: in send<br/>    self.connect()<br/>/usr/local/Cellar/python/2.7.12/Frameworks/Python.framework/Versions/2.7/lib/python2.7/httplib.py:836: in connect<br/>    self.timeout, self.source_address)<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>address = ('127.0.0.1', '55982'), timeout = &lt;object object at 0x104040130&gt;<br/>source_address = None<br/><br/>    def create_connection(address, timeout=_GLOBAL_DEFAULT_TIMEOUT,<br/>                          source_address=None):<br/>        """Connect to *address* and return the socket object.<br/>    <br/>        Convenience function.  Connect to *address* (a 2-tuple ``(host,<br/>        port)``) and return the socket object.  Passing the optional<br/>        *timeout* parameter will set the timeout on the socket instance<br/>        before attempting to connect.  If no *timeout* is supplied, the<br/>        global default timeout setting returned by :func:`getdefaulttimeout`<br/>        is used.  If *source_address* is set it must be a tuple of (host, port)<br/>        for the socket to bind as a source address before making the connection.<br/>        A host of '' or port 0 tells the OS to use the default.<br/>        """<br/>    <br/>        host, port = address<br/>        err = None<br/>        for res in getaddrinfo(host, port, 0, SOCK_STREAM):<br/>            af, socktype, proto, canonname, sa = res<br/>            sock = None<br/>            try:<br/>                sock = socket(af, socktype, proto)<br/>                if timeout is not _GLOBAL_DEFAULT_TIMEOUT:<br/>                    sock.settimeout(timeout)<br/>                if source_address:<br/>                    sock.bind(source_address)<br/>                sock.connect(sa)<br/>                return sock<br/>    <br/>            except error as _:<br/>                err = _<br/>                if sock is not None:<br/>                    sock.close()<br/>    <br/>        if err is not None:<br/>&gt;           raise err<br/><span class="error">E           error: [Errno 61] Connection refused</span><br/><br/>/usr/local/Cellar/python/2.7.12/Frameworks/Python.framework/Versions/2.7/lib/python2.7/socket.py:575: error<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_file_content_hashes.py::test_css[HashDisabled]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_file_content_hashes.py::test_css[HashEnabledDebugEnabled]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_file_content_hashes.py::test_css[HashEnabledDebugDisabled]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_file_content_hashes.py::test_css_map[HashDisabled]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_file_content_hashes.py::test_css_map[HashEnabledDebugEnabled]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_file_content_hashes.py::test_css_map[HashEnabledDebugDisabled]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_file_content_hashes.py::test_not_found[HashDisabled]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_file_content_hashes.py::test_not_found[HashEnabledDebugEnabled]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_file_content_hashes.py::test_not_found[HashEnabledDebugDisabled]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_killmail.py::TestKillmail::test_default_values::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_killmail.py::TestKillmail::test_hidden_data::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_killmail.py::TestKillmail::test_keyword_arguments::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_killmail.py::TestNameMixin::test_devoter_id::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_killmail.py::TestLocationMixin::()::test_system::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_killmail.py::TestLocationMixin::()::test_constellation::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_killmail.py::TestLocationMixin::()::test_region::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_killmail.py::TestRequestsMixin::test_default_creation::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_killmail.py::TestRequestsMixin::test_provided_session::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_killmail.py::TestZKillmail::()::test_fw_killmail::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_killmail.py::TestZKillmail::()::test_no_alliance_killmail::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_killmail.py::TestZKillmail::()::test_invalid_zkb_url::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_killmail.py::TestZKillmail::()::test_invalid_zkb_response::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_killmail.py::TestZKillmail::()::test_invalid_kill_ids::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_killmail.py::TestCRESTmail::()::test_crest_killmails::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_killmail.py::TestCRESTmail::()::test_invalid_crest_url::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_killmail.py::TestCRESTmail::()::test_invalid_crest_response::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_add_modifier[user-rejected-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_add_modifier[user-approved-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_add_modifier[user-incomplete-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_add_modifier[user-evaluating-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_add_modifier[user-paid-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_add_modifier[other_user-rejected-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_add_modifier[other_user-approved-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_add_modifier[other_user-incomplete-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_add_modifier[other_user-evaluating-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_add_modifier[other_user-paid-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_void_modifier[user-rejected-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_void_modifier[user-approved-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_void_modifier[user-incomplete-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_void_modifier[user-evaluating-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_void_modifier[user-paid-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_void_modifier[other_user-rejected-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_void_modifier[other_user-approved-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_void_modifier[other_user-incomplete-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_void_modifier[other_user-evaluating-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_void_modifier[other_user-paid-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestModifiers::()::test_evalutaion_order[Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_default_status[Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[rejected-rejected-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[rejected-approved-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[rejected-incomplete-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[rejected-evaluating-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[rejected-paid-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[approved-rejected-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[approved-approved-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[approved-incomplete-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[approved-evaluating-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[approved-paid-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[incomplete-rejected-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[incomplete-approved-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[incomplete-incomplete-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[incomplete-evaluating-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[incomplete-paid-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[evaluating-rejected-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[evaluating-approved-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[evaluating-incomplete-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[evaluating-evaluating-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[evaluating-paid-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[paid-rejected-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[paid-approved-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[paid-incomplete-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[paid-evaluating-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestActionStatus::()::test_state_machine[paid-paid-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestDelete::()::test_delete_action[Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestDelete::()::test_delete_modifier[Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_models.py::TestDelete::()::test_delete_request[Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_ships.py::test_known_ship_type::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_ships.py::test_unknown_ship_type::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_ships.py::test_invalid_id::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_sourcemaps.py::test_source_map_contents[js/evesrp.min.js]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_sourcemaps.py::test_source_map_contents[js/formatters.min.js]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_sourcemaps.py::test_source_map_contents[css/evesrp.min.css]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_systems.py::test_system_name::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_systems.py::test_constellation_name::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_systems.py::test_region_name::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_systems.py::test_systems_constellations::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_systems.py::test_constellations_regions::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_transformers.py::TestTransformer::()::test_equality::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/test_transformers.py::TestTransformer::()::test_transform::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestGroups::()::test_group_membership[Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestGroups::()::test_group_membership[Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_permission[review-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_permission[review-Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_permission[audit-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_permission[audit-Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_permission[submit-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_permission[submit-Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_permission[admin-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_permission[admin-Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_permission[pay-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_permission[pay-Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_division_permission[review-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_division_permission[review-Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_division_permission[audit-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_division_permission[audit-Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_division_permission[submit-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_division_permission[submit-Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_division_permission[admin-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_division_permission[admin-Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_division_permission[pay-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_user_division_permission[pay-Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_group_permission[review-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_group_permission[review-Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_group_permission[audit-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_group_permission[audit-Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_group_permission[submit-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_group_permission[submit-Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_group_permission[admin-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_group_permission[admin-Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_group_permission[pay-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestPermissions::()::test_group_permission[pay-Admin]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestDelete::()::test_delete_api_key[Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestDelete::()::test_delete_note[Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestDelete::()::test_delete_permission[review-Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody>
+      <tbody class="skipped results-table-row">
+        <tr>
+          <td class="col-result">Skipped</td>
+          <td class="col-name">tests_python/auth/test_models.py::TestDelete::()::test_delete_division[Normal]::setup</td>
+          <td class="col-duration">0.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">('/Users/paxswill/Development/Eve/eve-srp/tests_python/conftest.py', 43, u'Skipped: Only running functional tests')<br/></div></td></tr></tbody></table></body></html>
