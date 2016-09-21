@@ -15,10 +15,13 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 	git commit -m "Travis job ${TRAVIS_JOB_NUMBER} test results"
 
 	printf "Attempting to push to GitHub..."
-	local GIT_URL="https://${GH_TOKEN}@github.com/paxswill/evesrp.git"
-	while ! git push -q "${GIT_URL}" gh-pages >/dev/null 2>&1; do
+	GIT_URL="https://${GH_TOKEN}@github.com/paxswill/evesrp.git"
+	COUNT=0
+	while ! git push -q "${GIT_URL}" gh-pages >/dev/null 2>&1 && \
+			[ $COUNT -lt 10 ]; do
 		printf "rebasing..."
 		git pull -r origin gh-pages
+		COUNT=`expr $COUNT + 1`
 	done
 	printf "done!\n"
 fi
