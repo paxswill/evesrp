@@ -35,6 +35,7 @@ env:
         - MYSQL_USER="root"
         - secure: "C2mxf91tBu7PyGi7DFqJzmEpbtHcOOjCHCCpahSXQoieSCvfZrSagNnpaDXBmtucd8SWDlglXJZqXPDvGoWTPIzNRlKDTljSrgMrBznygSeZF2RVE7lkX7woGqYn4+9LapFQpRgGiERMRvdE3cxaiy8TkMulCL+2dzSNkgdX4NU="
         - secure: "g31ZfiKl+sulMBV5BwozGw/fo0MGwE9fQMnnQmjIi40rIMby9DzmjSCeBj96vNmUEAFBt0cuG66R0vM4hko761I9CDR4ilj6S6+QeL5rMc2GGhytn/cGpKXHGZytq7V0aowWDxyScrFLyvdyOclFlnYScFhacH+kU+NlEzxtQ8Q="
+        - secure: "hqUxsCXNO6HAkr9fur8PKCjqpfowCFq2Zow2Sj75Bdsz6dU87xdHRUeRhrPTSunyyhaecsMjeIfQTqyn2DMxE9+NAI2Y/JaUhOryCG67bc/su6K9zokaIRTsQA/9UNihDwbLSFte9TVQOLstGYupOg8l6Zurdc3FUGnm8fRpxA8="
 
 matrix:
     include:
@@ -105,7 +106,12 @@ script: TOXENV="$SRP_PYTHON-$SRP_DB" make travis
 after_script:
     - '[ "x$TEST_SUITE" = "xbrowser" ] && travis_stop_sauce_connect'
 
-after_success: make travis-success
+after_success:
+    - make travis-success
+    - make upload-reports
+
+after_failure:
+    - make upload-reports
 
 before_cache:
 # Remove our files from the caches

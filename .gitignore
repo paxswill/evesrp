@@ -14,3 +14,4 @@ browserify.mk
 dist
 .tox
 .cache
+gh-pages

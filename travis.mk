@@ -9,6 +9,38 @@ $(HOME)/phantomjs:
 install-coveralls:
 	pip install -U coveralls
 
+# Targets used for uploading test reports
+gh-pages:
+	git clone \
+		--quiet \
+		--branch=gh-pages \
+		"https://${GH_TOKEN}@github.com/paxswill/evesrp.git" \
+		gh-pages >/dev/null 2>&1
+
+BUILD_REPORT_DIR := gh-pages/test_reports/$(TRAVIS_BUILD_NUMBER)
+$(BUILD_REPORT_DIR): gh-pages
+	mkdir -p "$@"
+
+# Copy over the styles for Pytest reports
+$(BUILD_REPORT_DIR)/assets: $(BUILD_REPORT_DIR)
+	mkdir -p "$@"
+
+$(BUILD_REPORT_DIR)/assets/style.css: $(BUILD_REPORT_DIR)/assets
+	cp -f test-reports/assets/style.css "$@"
+
+TEST_REPORTS := $(notdir $(wildcard test-reports/*.html))
+BUILD_REPORTS := $(addprefix $(BUILD_REPORT_DIR)/, $(TEST_REPORTS))
+$(BUILD_REPORTS): $(BUILD_REPORT_DIR)
+$(BUILD_REPORTS): $(BUILD_REPORT_DIR)/%.html: test-reports/%.html
+	cp -f "$<" "$@"
+
+.PHONY: upload-reports
+upload-reports: $(BUILD_REPORTS) $(BUILD_REPORT_DIR)/assets/style.css
+	scripts/upload_reports.sh
+
+clean::
+	rm -rf gh-pages
+
 
 # Depending on the value of TEST_SUITE, the travis-setup, travis and
 # travis-success targets are defined differently.
