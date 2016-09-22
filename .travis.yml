@@ -98,6 +98,7 @@ before_script:
     # Decrypt the deploy key used to publish test reports and add it to
     # ssh-agent.
     - openssl aes-256-cbc -K $encrypted_20e576b606a4_key -iv $encrypted_20e576b606a4_iv -in deploy_key.enc -out deploy_key -d
+    - eval $(ssh-agent -s)
     - ssh-add deploy_key
     - source ./scripts/sauce_connect.sh
 # Always succeed. If it fails to set up the tunnel, the test suite will fall
