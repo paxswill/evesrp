@@ -20,7 +20,7 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 	while ! git push -q "${GIT_URL}" gh-pages >/dev/null 2>&1 && \
 			[ $COUNT -lt 10 ]; do
 		printf "rebasing..."
-		git pull -r origin gh-pages
+		git pull -rq origin gh-pages >/dev/null 2>&1
 		COUNT=`expr $COUNT + 1`
 	done
 	printf "done!\n"
