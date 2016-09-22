@@ -110,7 +110,7 @@ after_script:
 
 after_success:
     - make travis-success
-    - make upload-reports
+    - '[ $"TRAVIS_PULL_REQUEST" = "false" ] && make upload-reports'
 
 after_failure:
     - '[ $"TRAVIS_PULL_REQUEST" = "false" ] && make upload-reports'
