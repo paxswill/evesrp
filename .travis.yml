@@ -110,10 +110,10 @@ after_script:
 
 after_success:
     - make travis-success
-    - '[ $"TRAVIS_PULL_REQUEST" = "false" ] && make upload-reports'
+    - '[ "$TRAVIS_PULL_REQUEST" = "false" ] && make upload-reports'
 
 after_failure:
-    - '[ $"TRAVIS_PULL_REQUEST" = "false" ] && make upload-reports'
+    - '[ "$TRAVIS_PULL_REQUEST" = "false" ] && make upload-reports'
 
 before_cache:
 # Remove our files from the caches
