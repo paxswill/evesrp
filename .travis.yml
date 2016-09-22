@@ -95,11 +95,9 @@ install:
 # needed to find the tunnel are discarded. By doing them here, they are saved
 # in the single session used in Travis.
 before_script:
-    # Decrypt the deploy key used to publish test reports and add it to
-    # ssh-agent.
-    - [ "$TRAVIS_PULL_REQUEST" = "false" ] && openssl aes-256-cbc -K $encrypted_20e576b606a4_key -iv $encrypted_20e576b606a4_iv -in deploy_key.enc -out deploy_key -d
+# Start the SSH agent and import its variables into the current shell. This is
+# used later if we're publishing test reports.
     - [ "$TRAVIS_PULL_REQUEST" = "false" ] && eval $(ssh-agent -s)
-    - [ "$TRAVIS_PULL_REQUEST" = "false" ] && ssh-add deploy_key
     - source ./scripts/sauce_connect.sh
 # Always succeed. If it fails to set up the tunnel, the test suite will fall
 # back to testing with PhantomJS. This is expected to happen on pull requests.
@@ -115,7 +113,7 @@ after_success:
     - make upload-reports
 
 after_failure:
-    - make upload-reports
+    - [ $"TRAVIS_PULL_REQUEST" = "false" ] && make upload-reports
 
 before_cache:
 # Remove our files from the caches

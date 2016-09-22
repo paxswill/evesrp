@@ -10,7 +10,20 @@ install-coveralls:
 	pip install -U coveralls
 
 # Targets used for uploading test reports
-gh-pages:
+
+deploy_key: deploy_key.enc
+	openssl \
+		aes-256-cbc \
+		-K $encrypted_20e576b606a4_key \
+		-iv $encrypted_20e576b606a4_iv \
+		-in deploy_key.enc \
+		-out deploy_key \
+		-d
+# SSH refuses to load a key readable by someone other than the owner
+	chmod 0400 deploy_key
+	ssh-add deploy_key
+
+gh-pages: deploy_key
 	git clone \
 		--quiet \
 		--branch=gh-pages \
