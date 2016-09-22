@@ -35,7 +35,6 @@ env:
         - MYSQL_USER="root"
         - secure: "C2mxf91tBu7PyGi7DFqJzmEpbtHcOOjCHCCpahSXQoieSCvfZrSagNnpaDXBmtucd8SWDlglXJZqXPDvGoWTPIzNRlKDTljSrgMrBznygSeZF2RVE7lkX7woGqYn4+9LapFQpRgGiERMRvdE3cxaiy8TkMulCL+2dzSNkgdX4NU="
         - secure: "g31ZfiKl+sulMBV5BwozGw/fo0MGwE9fQMnnQmjIi40rIMby9DzmjSCeBj96vNmUEAFBt0cuG66R0vM4hko761I9CDR4ilj6S6+QeL5rMc2GGhytn/cGpKXHGZytq7V0aowWDxyScrFLyvdyOclFlnYScFhacH+kU+NlEzxtQ8Q="
-        - secure: "CW33ZUg85nUu/y4US3jb1MzAOTfG8kucvU8c2ylHjhJ5hNXDv+A05R/KFoCvDwf6VQB/mXkzaJROkqj3jI57TSpIFUzIt8LtWz6zeeNjg2Y1DqwmWXgi3EtVUv9RS1Dkji/Nf7MPzxE/O5Im3suP7o0ThD9y6bU2eCpB2DUGU+8="
 
 matrix:
     include:
@@ -96,6 +95,10 @@ install:
 # needed to find the tunnel are discarded. By doing them here, they are saved
 # in the single session used in Travis.
 before_script:
+    # Decrypt the deploy key used to publish test reports and add it to
+    # ssh-agent.
+    - openssl aes-256-cbc -K $encrypted_20e576b606a4_key -iv $encrypted_20e576b606a4_iv -in deploy_key.enc -out deploy_key -d
+    - ssh-add deploy_key
     - source ./scripts/sauce_connect.sh
 # Always succeed. If it fails to set up the tunnel, the test suite will fall
 # back to testing with PhantomJS. This is expected to happen on pull requests.

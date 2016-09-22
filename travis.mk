@@ -14,7 +14,7 @@ gh-pages:
 	git clone \
 		--quiet \
 		--branch=gh-pages \
-		"https://github.com/paxswill/evesrp.git" \
+		"git@github.com:paxswill/evesrp.git" \
 		gh-pages
 
 BUILD_REPORT_DIR := gh-pages/test_reports/$(TRAVIS_BUILD_NUMBER)
