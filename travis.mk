@@ -12,7 +12,8 @@ install-coveralls:
 # Targets used for uploading test reports
 
 deploy_key: deploy_key.enc
-	openssl \
+	@printf "Decrypting deploy key\n"
+	@openssl \
 		aes-256-cbc \
 		-K $(encrypted_20e576b606a4_key) \
 		-iv $(encrypted_20e576b606a4_iv) \
