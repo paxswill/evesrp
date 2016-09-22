@@ -14,8 +14,8 @@ install-coveralls:
 deploy_key: deploy_key.enc
 	openssl \
 		aes-256-cbc \
-		-K $encrypted_20e576b606a4_key \
-		-iv $encrypted_20e576b606a4_iv \
+		-K $(encrypted_20e576b606a4_key) \
+		-iv $(encrypted_20e576b606a4_iv) \
 		-in deploy_key.enc \
 		-out deploy_key \
 		-d
