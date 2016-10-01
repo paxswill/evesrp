@@ -39,6 +39,20 @@ $(BUILD_REPORT_DIR): gh-pages
 $(BUILD_REPORT_DIR)/assets: $(BUILD_REPORT_DIR)
 	mkdir -p "$@"
 
+# Create an index page for the test run
+REPORTS := $(shell tox -l)
+REPORTS += docs
+$(BUILD_REPORT_DIR)/index.html:
+	scripts/create_indices.py \
+		$(BUILD_REPORT_DIR) \
+		$(REPORTS)
+
+# Update the overall index page for test results
+gh-pages/test_reports/index.html: $(BUILD_REPORT_DIR)/index.html
+	scripts/create_indices.py \
+		gh-pages/test_reports \
+		"$(filter-out %.html, $(notdir $(wildcard gh-pages/test_reports/*)))"
+
 $(BUILD_REPORT_DIR)/assets/style.css: $(BUILD_REPORT_DIR)/assets
 	cp -f test-reports/assets/style.css "$@"
 
@@ -49,6 +63,7 @@ $(BUILD_REPORTS): $(BUILD_REPORT_DIR)/%.html: test-reports/%.html
 	cp -f "$<" "$@"
 
 .PHONY: upload-reports
+#upload-reports: gh-pages/test_reports/index.html
 upload-reports: $(BUILD_REPORTS) $(BUILD_REPORT_DIR)/assets/style.css
 	scripts/upload_reports.sh
 
