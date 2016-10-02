@@ -13,8 +13,8 @@ install-coveralls:
 
 deploy_key: deploy_key.enc
 	@printf "Decrypting deploy key\n"
-	# The '@' is VERY important here. Without is Make will echo the command to
-	# stdout, revealing the encryption keys.
+# The '@' is VERY important here. Without is Make will echo the command to
+# stdout, revealing the encryption keys.
 	@openssl \
 		aes-256-cbc \
 		-K $(encrypted_20e576b606a4_key) \
