@@ -13,6 +13,8 @@ install-coveralls:
 
 deploy_key: deploy_key.enc
 	@printf "Decrypting deploy key\n"
+	# The '@' is VERY important here. Without is Make will echo the command to
+	# stdout, revealing the encryption keys.
 	@openssl \
 		aes-256-cbc \
 		-K $(encrypted_20e576b606a4_key) \
@@ -60,9 +62,13 @@ gh-pages/test_reports/index.html: $(BUILD_REPORT_DIR)/index.html
 		gh-pages/test_reports \
 		$(TEST_DIRS)
 
+# TEST_REPORTS is a list of each .html file that needs to be copied
 TEST_REPORTS := $(notdir $(wildcard test-reports/*.html))
+# BUILD_REPORTS is a list of what files should exist (the targets)
 BUILD_REPORTS := $(addprefix $(BUILD_REPORT_DIR)/, $(TEST_REPORTS))
 $(BUILD_REPORTS): $(BUILD_REPORT_DIR)
+# This specifies a static pattern rule for copying the test reports to the
+# build report directory.
 $(BUILD_REPORTS): $(BUILD_REPORT_DIR)/%.html: test-reports/%.html
 	cp -f "$<" "$@"
 
