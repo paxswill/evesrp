@@ -58,6 +58,10 @@ $(BUILD_REPORT_DIR)/index.html:
 # Update the overall index page for test results
 TEST_DIRS := $(subst index.html,,$(notdir $(wildcard gh-pages/test_reports/*)))
 gh-pages/test_reports/index.html: $(BUILD_REPORT_DIR)/index.html
+	@printf "Test dirs: %s\n" "$(wildcard gh-pages/test_reports/*)"
+	@printf "Notdir: %s\n" "$(notdir $(wildcard gh-pages/test_reports/*))"
+	@printf "Filtered: %s\n" "$(TEST_DIRS)"
+	ls -R gh-pages
 	scripts/create_indices.py \
 		gh-pages/test_reports \
 		$(TEST_DIRS)
