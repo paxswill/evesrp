@@ -27,7 +27,7 @@ deploy_key: deploy_key.enc
 	ssh-add deploy_key
 
 # Only require deploy_key to be decrypted if we're running on Travis
-ifdef $(TRAVIS)
+ifeq ($(TRAVIS), true)
 gh-pages: deploy_key
 endif
 gh-pages:
