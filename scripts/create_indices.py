@@ -1,6 +1,8 @@
 #!/usr/bin/env python
+from __future__ import print_function
 from jinja2 import Template
 import os
+import sys
 
 
 index_template_str = """
@@ -12,7 +14,7 @@ index_template_str = """
   <body>
     <ul>
     {%- for page in pages %}
-      <li><a href="{{ page + ".html" }}">{{ page }}</a></li>
+    <li><a href="{{ page }}">{{ page.rsplit('.', 1)[0] }}</a></li>
     {% endfor -%}
     </ul>
   </body>
@@ -22,13 +24,18 @@ index_template_str = """
 index_template = Template(index_template_str, autoescape=True)
 
 
-def create_index(path):
-    """Create an index page for the given directory.
+def main(out_dir, filenames):
+    with open(os.path.join(out_dir, 'index.html'), 'w') as f:
+        if not filenames[0].endswith('.html'):
+            filenames = map(lambda f: os.path.join(f, 'index.html'), filenames)
+        index_page = index_template.render(pages=filenames)
+        f.write(index_page)
 
-    For each sub-directory, a link to that sub directory's index page will be
-    used as the link target. For each normal file, a link to that file will be
-    used.
 
-    Returns a string of the index page.
-    """
-    pass
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print("More than two arguments required.\n"
+              "Usage: {} out_directory linked_file1 [linked_fileN]".format(
+                  sys.argv[0]))
+        sys.exit(1)
+    main(sys.argv[1], sys.argv[2:])
