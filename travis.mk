@@ -24,7 +24,11 @@ deploy_key: deploy_key.enc
 	chmod 0400 deploy_key
 	ssh-add deploy_key
 
+# Only require deploy_key to be decrypted if we're running on Travis
+ifdef $(TRAVIS)
 gh-pages: deploy_key
+endif
+gh-pages:
 	git clone \
 		--quiet \
 		--branch=gh-pages \
