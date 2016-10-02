@@ -33,7 +33,7 @@ def main(out_dir, filenames):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 3:
         print("More than two arguments required.\n"
               "Usage: {} out_directory linked_file1 [linked_fileN]".format(
                   sys.argv[0]))
