@@ -56,7 +56,7 @@ $(BUILD_REPORT_DIR)/index.html:
 		$(addsuffix .html, $(REPORTS))
 
 # Update the overall index page for test results
-TEST_DIRS := $(filter-out %.html, $(notdir $(wildcard gh-pages/test_reports/*)))
+TEST_DIRS := $(subst index.html,,$(notdir $(wildcard gh-pages/test_reports/*)))
 gh-pages/test_reports/index.html: $(BUILD_REPORT_DIR)/index.html
 	scripts/create_indices.py \
 		gh-pages/test_reports \
