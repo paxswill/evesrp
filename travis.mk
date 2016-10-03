@@ -61,9 +61,9 @@ $(BUILD_REPORT_DIR)/index.html:
 # supports), and throws warnings if they appear after a primary (BSD doesn't
 # care).
 TEST_DIRS := $(shell find gh-pages/test_reports -mindepth 1 -maxdepth 1 -type d)
-TEST_DIRS := $(notdir $(TEST_DIRS))
 gh-pages/test_reports/index.html: $(BUILD_REPORT_DIR)/index.html
-	@printf "Filtered: %s\n" "$(TEST_DIRS)"
+	@printf "Unfiltered: %s\n" "$(TEST_DIRS)"
+	@printf "Filtered: %s\n" "$(notdir $(TEST_DIRS))"
 	ls -R gh-pages
 	scripts/create_indices.py \
 		gh-pages/test_reports \
