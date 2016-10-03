@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import os
+import platform
 import re
 import socket
 from six.moves.socketserver import ThreadingMixIn
@@ -96,7 +97,11 @@ def capabilities(request):
 @pytest.fixture(scope='function')
 def web_driver(request, capabilities):
     capabilities = capabilities.copy()
-    capabilities['name'] = request.node.nodeid
+    capabilities['name'] = "{}-{}: {}".format(
+        platform.python_implementation(),
+        platform.python_version(),
+        request.node.nodeid
+    )
     # tox sets passed variables to an empty string instead of not setting them
     if os.environ.get('WEBDRIVER_URL') != '':
         # Use a local WebDriver Remote is available
