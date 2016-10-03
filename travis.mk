@@ -60,14 +60,17 @@ $(BUILD_REPORT_DIR)/index.html:
 # operator. GNU find uses -mindepth and -maxdepth (which BSD find also
 # supports), and throws warnings if they appear after a primary (BSD doesn't
 # care).
-TEST_DIRS := $(shell find gh-pages/test_reports -mindepth 1 -maxdepth 1 -type d)
+# Also note that this is a recursively defined variable. THis is needed as
+# gh-pages is checked out after this Makefile is read, so find won't be able to
+# find anything in a non-existant directory.
+TEST_DIRS = $(shell find gh-pages/test_reports -mindepth 1 -maxdepth 1 -type d)
 gh-pages/test_reports/index.html: $(BUILD_REPORT_DIR)/index.html
 	@printf "Unfiltered: %s\n" "$(TEST_DIRS)"
 	@printf "Filtered: %s\n" "$(notdir $(TEST_DIRS))"
 	ls -R gh-pages
 	scripts/create_indices.py \
 		gh-pages/test_reports \
-		$(TEST_DIRS)
+		$(notdir $(TEST_DIRS))
 
 # TEST_REPORTS is a list of each .html file that needs to be copied
 TEST_REPORTS := $(notdir $(wildcard test-reports/*.html))
