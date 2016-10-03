@@ -56,10 +56,13 @@ $(BUILD_REPORT_DIR)/index.html:
 		$(addsuffix .html, $(REPORTS))
 
 # Update the overall index page for test results
-TEST_DIRS := $(subst index.html,,$(notdir $(wildcard gh-pages/test_reports/*)))
+# If we could rely on only running BSD find, we could just use the -depth
+# operator. GNU find uses -mindepth and -maxdepth (which BSD find also
+# supports), and throws warnings if they appear after a primary (BSD doesn't
+# care).
+TEST_DIRS := $(shell find gh-pages/test_reports -mindepth 1 -maxdepth 1 -type d)
+TEST_DIRS := $(notdir $(TEST_DIRS))
 gh-pages/test_reports/index.html: $(BUILD_REPORT_DIR)/index.html
-	@printf "Test dirs: %s\n" "$(wildcard gh-pages/test_reports/*)"
-	@printf "Notdir: %s\n" "$(notdir $(wildcard gh-pages/test_reports/*))"
 	@printf "Filtered: %s\n" "$(TEST_DIRS)"
 	ls -R gh-pages
 	scripts/create_indices.py \
