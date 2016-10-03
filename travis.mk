@@ -65,9 +65,6 @@ $(BUILD_REPORT_DIR)/index.html:
 # find anything in a non-existant directory.
 TEST_DIRS = $(shell find gh-pages/test_reports -mindepth 1 -maxdepth 1 -type d)
 gh-pages/test_reports/index.html: $(BUILD_REPORT_DIR)/index.html
-	@printf "Unfiltered: %s\n" "$(TEST_DIRS)"
-	@printf "Filtered: %s\n" "$(notdir $(TEST_DIRS))"
-	ls -R gh-pages
 	scripts/create_indices.py \
 		gh-pages/test_reports \
 		$(notdir $(TEST_DIRS))
