@@ -21,6 +21,7 @@ try:
     from sauceclient import SauceClient
 except ImportError:
     SauceClient = None
+import werkzeug.debug
 
 
 # Mark all tests in this package as functional tests
@@ -178,7 +179,10 @@ def web_session(web_driver, capabilities, request):
 @pytest.fixture
 def app_server(evesrp_app, crest, zkillboard):
     # Use port 0 to get a port assigned to us by the OS
-    server = simple_server.make_server('', 0, evesrp_app,
+    debugged_app = werkzeug.debug.DebuggedApplication(evesrp_app,
+                                                      evalex=True,
+                                                      pin_security=False)
+    server = simple_server.make_server('', 0, debugged_app,
                                        server_class=ThreadingWSGIServer)
     server_thread = threading.Thread(target=server.serve_forever)
     server_thread.start()
