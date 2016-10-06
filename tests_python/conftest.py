@@ -238,3 +238,12 @@ def srp_request(user, other_user):
     AbsoluteModifier(srp_request, other_user, 'Absolute Fixture Modifier', 10)
     db.session.commit()
     return srp_request
+
+
+# Just a way to test success and failure of permissions
+@pytest.fixture(params=[True, False], ids=['user', 'other_user'])
+def a_user(request, user, other_user):
+    if request.param:
+        return user
+    else:
+        return other_user

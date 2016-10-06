@@ -28,15 +28,6 @@ def request_status(request, srp_request, other_user):
     return request.param
 
 
-# Just a way to test success and failure of permissions
-@pytest.fixture(params=[True, False], ids=['user', 'other_user'])
-def a_user(request, user, other_user):
-    if request.param:
-        return user
-    else:
-        return other_user
-
-
 @pytest.mark.parametrize('user_role', ['Normal'])
 class TestModifiers(object):
 
