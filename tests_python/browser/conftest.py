@@ -141,6 +141,8 @@ def web_driver(request, capabilities):
             pytest.skip("Unable to launch local WebDriver {}".format(e))
     # TODO: Add mobile testing as well
     driver.set_window_size(1024, 768)
+    # Add implicit wait to account for slight delays
+    driver.implicitly_wait(0.25)
     yield driver
     # I don't care about WebDriver exceptions when quitting. And we'll get an
     # error as SauceLabs will auto-close the connection after 90s.
