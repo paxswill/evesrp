@@ -159,23 +159,34 @@ def web_session(web_driver, capabilities, request):
     if SauceClient is not None:
         sauce_username = os.environ.get('SAUCE_USERNAME', '')
         sauce_access_key = os.environ.get('SAUCE_ACCESS_KEY', '')
-        if not request.node.rep_call.skipped and \
-                sauce_username != '' and \
-                sauce_access_key != '' and \
-                capabilities['browser'] != 'phantomjs':
+        using_sauce = sauce_username != '' and \
+            sauce_access_key != '' and \
+            capabilities['browser'] != 'phantomjs'
+        # Get the status of a test
+        call_report = getattr(request.node, 'rep_call', None)
+        if call_report is not None:
+            skipped = call_report.skipped
+        else:
+            skipped = False
+        # passed being None will leave the test in the undetermined state.
+        passed = None
+        for phase in ('rep_setup', 'rep_call', 'rep_teardown'):
+            try:
+                report = getattr(request.node, phase)
+            except AttributeError:
+                passed = False
+                break
+            # If we've already failed, don't bother checking further.
+            if report.passed:
+                passed = True
+            elif report.failed:
+                passed = False
+                break
+        if using_sauce and not skipped:
             sauce_client = SauceClient(sauce_username, sauce_access_key)
             session_id = web_driver.session_id
-            # Ignoring the 'skipped' outcome, leaving those as the undetermined
-            # outcome.
-            for phase in ('rep_setup', 'rep_call', 'rep_teardown'):
-                try:
-                    report = getattr(request.node, phase)
-                except AttributeError:
-                    continue
-                if report.passed:
-                    sauce_client.jobs.update_job(session_id, passed=True)
-                elif report.failed:
-                    sauce_client.jobs.update_job(session_id, passed=False)
+            if passed is not None:
+                sauce_client.jobs.update_job(session_id, passed)
 
 
 @pytest.fixture
