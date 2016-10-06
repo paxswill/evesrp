@@ -9,6 +9,29 @@ from evesrp.auth.models import Pilot, Division, Permission
 from ...util_tests import TestLogin
 
 
+def test_empty_personal_listing(srp_request, a_user, user, other_user,
+                                get_login):
+    assert Request.query.count() == 1
+    if a_user == user:
+        assert len(a_user.requests) == 1
+    else:
+        assert len(a_user.requests) == 0
+    with get_login(a_user) as client:
+        resp = client.get('/request/personal/')
+        if a_user == user:
+            assert str(srp_request.id) in resp.get_data(as_text=True)
+        else:
+            assert 'You do not have permission' in resp.get_data(as_text=True)
+        # Move the request to other_user
+        other_user.requests.append(srp_request)
+        db.session.commit()
+        resp = client.get('/request/personal/')
+        if a_user == user:
+            assert 'You have not submitted' in resp.get_data(as_text=True)
+        else:
+            assert str(srp_request.id) in resp.get_data(as_text=True)
+
+
 class TestRequestList(TestLogin):
 
     sample_request_data = {

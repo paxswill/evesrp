@@ -232,6 +232,7 @@ def srp_request(user, other_user):
     Pilot(user, 'eLusi0n', mock_killmail['pilot_id'])
     srp_request = Request(user, 'Original details', division,
                           mock_killmail.items())
+    Permission(division, PermissionType.submit, user)
     Permission(division, PermissionType.review, other_user)
     Permission(division, PermissionType.pay, other_user)
     # Modifier used by some tests.
