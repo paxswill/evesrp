@@ -157,7 +157,9 @@ def web_session(web_driver, capabilities, request):
         sauce_username = os.environ.get('SAUCE_USERNAME', '')
         sauce_access_key = os.environ.get('SAUCE_ACCESS_KEY', '')
         if not request.node.rep_call.skipped and \
-                sauce_username != '' and sauce_access_key != '':
+                sauce_username != '' and \
+                sauce_access_key != '' and \
+                capabilities['browser'] != 'phantomjs':
             sauce_client = SauceClient(sauce_username, sauce_access_key)
             session_id = web_driver.session_id
             # Ignoring the 'skipped' outcome, leaving those as the undetermined
