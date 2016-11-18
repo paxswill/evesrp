@@ -195,7 +195,9 @@ def app_server(evesrp_app, crest, zkillboard):
     debugged_app = werkzeug.debug.DebuggedApplication(evesrp_app,
                                                       evalex=True,
                                                       pin_security=False)
-    server = simple_server.make_server('', 0, debugged_app,
+    host = os.environ.get('APP_SERVER_HOST', '')
+    port = os.environ.get('APP_SERVER_PORT', 0)
+    server = simple_server.make_server(host, port, debugged_app,
                                        server_class=ThreadingWSGIServer)
     server_thread = threading.Thread(target=server.serve_forever)
     server_thread.start()
