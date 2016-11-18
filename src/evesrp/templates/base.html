@@ -45,11 +45,11 @@
             {% if current_user.is_authenticated %}
             {% if current_user.has_permission((PermissionType.review, PermissionType.audit)) %}
             {# TRANS: This is in the navigation bar at the top, and is a link to a list of request that are waiting to be evaluated. #}
-            {{ macros.navbar_button(gettext('Pending'), 'requests.list_pending_requests', request_count(PermissionType.review), id='badge-pending')|indent(12)|safe }}
+            {{ macros.navbar_button(gettext('Pending'), 'requests.list_pending_requests', request_count(PermissionType.review), id='pending')|indent(12)|safe }}
             {% endif %}
             {% if current_user.has_permission(PermissionType.pay) %}
             {# TRANS: This is in the navigation bar at the top, and is a link to a list of requests ready to pay out. #}
-            {{ macros.navbar_button(gettext('Pay Outs'), 'requests.list_approved_requests', request_count(PermissionType.pay), id='badge-payouts')|indent(12)|safe }}
+            {{ macros.navbar_button(gettext('Pay Outs'), 'requests.list_approved_requests', request_count(PermissionType.pay), id='payouts')|indent(12)|safe }}
             {% endif %}
             {% if current_user.has_permission(PermissionType.elevated) %}
             {# TRANS: This is in the navigation bar at the top, and is a link to a list of request that have been either rejected or been paid. #}
@@ -66,7 +66,7 @@
             {% else %}
             {% if current_user.has_permission(PermissionType.submit) %}
             {# TRANS: This is a link in the navigation bar to the page for submitting a request. #}
-            {{ macros.navbar_button(gettext('Submit'), 'requests.submit_request')|indent(12)|safe }}
+            {{ macros.navbar_button(gettext('Submit'), 'requests.submit_request', id='submit')|indent(12)|safe }}
             {% endif %}
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">

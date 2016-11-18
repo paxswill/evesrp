@@ -21,7 +21,7 @@ def add_permissions(user, request_context):
 
 
 def test_division_dropdown(web_session, driver_login, user):
-    submit_button = web_session.find_element_by_partial_link_text('Submit')
+    submit_button = web_session.find_element_by_id('navbar-button-submit')
     submit_button.click()
     division_select = web_session.find_element_by_id('division')
     division_options = division_select.find_elements_by_tag_name('option')
@@ -45,7 +45,7 @@ def test_submit(web_session, driver_login, user, details, killmail_url):
     Pilot(user, 'CCP Foxfour', 92168909)
     db.session.commit()
     # Go to the submit page (we're logged in by the driver_login fixture)
-    web_session.find_element_by_partial_link_text('Submit').click()
+    web_session.find_element_by_id('navbar-button-submit').click()
     submit_url = web_session.current_url
     url_field = web_session.find_element_by_id('url')
     url_field.send_keys(killmail_url)

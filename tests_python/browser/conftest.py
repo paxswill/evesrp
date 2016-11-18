@@ -243,7 +243,8 @@ def driver_login(user, web_session, server_address):
     web_session.get(server_address + '/login/')
     name = web_session.find_element_by_id('null_auth_1-name')
     name.send_keys(user.name)
-    name.send_keys(Keys.RETURN)
+    submit_button = web_session.find_element_by_id('null_auth_1-submit')
+    submit_button.click()
     yield
     # Logout just to keep things clean
     chain = ActionChains(web_session)

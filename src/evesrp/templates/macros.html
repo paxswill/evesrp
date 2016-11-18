@@ -78,10 +78,10 @@
 {% if view %}
 {% with url = url_for(view) %}
 <li{{ ' class="active"'|safe if url == request.path }}>
-  <a href="{{ url }}">
+  <a href="{{ url }}"{{ (' id="navbar-button-' ~ id ~ '"')|safe if id != None }}>
     {{ text }}
     {% if count != None %}
-    <span class="badge hidden-sm"{{ (' id="' ~ id ~ '"')|safe if id != None }}>{{ count|numberfmt if count != 0 }}</span>
+    <span class="badge hidden-sm"{{ (' id="badge-' ~ id ~ '"')|safe if id != None }}>{{ count|numberfmt if count != 0 }}</span>
     {% endif %}
   </a>
 </li>
