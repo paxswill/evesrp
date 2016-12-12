@@ -185,14 +185,112 @@ def test_request_actions(srp_request):
     assert srp_request.get_actions(store) == mock_actions
 
 
+@pytest.mark.parametrize('status', models.ActionType.statuses)
+def test_request_class_possible_actions(status):
+    expected_actions = {
+        models.ActionType.evaluating: {
+            models.ActionType.incomplete,
+            models.ActionType.rejected,
+            models.ActionType.approved,
+            models.ActionType.evaluating,
+            models.ActionType.comment,
+        },
+        models.ActionType.incomplete: {
+            models.ActionType.rejected,
+            models.ActionType.evaluating,
+            models.ActionType.comment,
+        },
+        models.ActionType.rejected: {
+            models.ActionType.evaluating,
+            models.ActionType.comment,
+        },
+        models.ActionType.approved: {
+            models.ActionType.evaluating,
+            models.ActionType.paid,
+            models.ActionType.comment,
+        },
+        models.ActionType.paid: {
+            models.ActionType.approved,
+            models.ActionType.evaluating,
+            models.ActionType.comment,
+        },
+    }
+    assert models.Request.possible_actions(status) == expected_actions[status]
+
+
+@pytest.fixture
+def action_store():
+    store = mock.Mock()
+    store.add_action.return_value = 37
+    return store
+
+
+@pytest.mark.parametrize('starting_status', models.ActionType.statuses)
+@pytest.mark.parametrize('new_action', models.ActionType)
+def test_request_add_action(srp_request, starting_status, new_action,
+                            action_store):
+    srp_request.status = starting_status
+    if new_action not in models.Request.possible_actions(starting_status):
+        with pytest.raises(models.RequestStatusError):
+            srp_request.add_action(action_store, new_action, user_id=1)
+    else:
+        action = srp_request.add_action(action_store, new_action, user_id=1)
+        action_store.add_action.assert_called_with(action)
+        action_store.save_request.assert_called_with(srp_request)
+        assert action is not None
+        assert action.id_ == 37
+        if new_action != models.ActionType.comment:
+            assert srp_request.status == new_action
+        else:
+            assert srp_request.status == starting_status
+        assert action.user_id == 1
+        assert action.request_id == srp_request.id_
+
+
+@pytest.mark.parametrize('starting_status', models.ActionType.statuses)
+def test_change_details(srp_request, starting_status, action_store):
+    old_details = u"Some details."
+    new_details = u"Some better details."
+    srp_request.status = starting_status
+    assert srp_request.details == old_details
+    user = mock.Mock(id_=4)
+    now = dt.datetime.utcnow()
+    if starting_status not in models.ActionType.updateable:
+        with pytest.raises(models.RequestStatusError):
+            new_action = srp_request.change_details(action_store, new_details,
+                                                    user=user, timestamp=now)
+        assert srp_request.details == old_details
+        assert srp_request.status == starting_status
+    else:
+        new_action = srp_request.change_details(action_store, new_details,
+                                                user=user, timestamp=now)
+        action_store.add_action.assert_called_with(new_action)
+        # Asserting that save_request was called twice in a row, once in
+        # add_action(), once in change_details()
+        action_store.save_request.assert_has_calls(
+            [mock.call(srp_request), mock.call(srp_request)])
+        assert new_action is not None
+        assert new_action.id_ == 37
+        assert new_action.type_ == models.ActionType.evaluating
+        assert new_action.user_id == user.id_
+        assert new_action.contents == old_details
+        assert new_action.timestamp == now
+        assert srp_request.status == models.ActionType.evaluating
+        assert srp_request.details == new_details
+
+
 @pytest.fixture
 def mock_modifiers():
     MT = models.ModifierType
     mock_modifiers = [
-        mock.Mock(type_=MT.absolute, value=Decimal(1000000), is_void=True),
-        mock.Mock(type_=MT.relative, value=Decimal("0.25"), is_void=True),
-        mock.Mock(type_=MT.absolute, value=Decimal(3000000), is_void=False),
-        mock.Mock(type_=MT.relative, value=Decimal("0.1"), is_void=False),
+        mock.Mock(id_=0, type_=MT.absolute, value=Decimal(1000000),
+                  is_void=True),
+        mock.Mock(id_=1, type_=MT.relative, value=Decimal("0.25"),
+                  is_void=True),
+        mock.Mock(id_=2, type_=MT.absolute, value=Decimal(3000000),
+                  is_void=False),
+        mock.Mock(id_=3, type_=MT.relative, value=Decimal("0.1"),
+                  is_void=False),
     ]
     return mock_modifiers
 
@@ -208,6 +306,8 @@ def mock_modifiers_store(mock_modifiers):
             filtered_list = filter(lambda m: m.type_ == type_, filtered_list)
         return list(filtered_list)
     store.get_modifiers.side_effect = modifiers_filtering
+    store.get_modifier.side_effect = \
+        lambda modifier_id: mock_modifiers[modifier_id]
     return store
 
 
@@ -242,6 +342,72 @@ def test_request_modifiers(srp_request, void, type_, mock_modifiers,
     assert srp_request.get_modifiers(mock_modifiers_store,
                                      void=void, type_=type_) == \
         expected_modifiers[(void, type_)]
+
+
+@pytest.mark.parametrize('status', models.ActionType.statuses)
+def test_request_add_modifier(srp_request, status, mock_modifiers,
+                              mock_modifiers_store):
+    assert srp_request.current_payout(mock_modifiers_store) == \
+        Decimal(30800000)
+    mock_modifiers_store.add_modifier.return_value = 32
+    srp_request.status = status
+    if status != models.ActionType.evaluating:
+        with pytest.raises(models.RequestStatusError):
+            modifier = srp_request.add_modifier(mock_modifiers_store,
+                                                models.ModifierType.absolute,
+                                                Decimal(3500000),
+                                                note=u'Just because.',
+                                                user_id=8)
+        assert srp_request.current_payout(mock_modifiers_store) == \
+            Decimal(30800000)
+        mock_modifiers_store.add_modifier.assert_not_called()
+        mock_modifiers_store.save_request.assert_not_called()
+    else:
+        # Little bit of trickery to make current_payout work like it's supposed
+        # to
+        mock_modifiers.append(mock.Mock(value=Decimal(3500000),
+                                        type_=models.ModifierType.absolute,
+                                        is_void=False))
+        modifier = srp_request.add_modifier(mock_modifiers_store,
+                                            models.ModifierType.absolute,
+                                            Decimal(3500000),
+                                            note=u'Just because.',
+                                            user_id=8)
+        mock_modifiers_store.add_modifier.assert_called_with(modifier)
+        mock_modifiers_store.save_request.assert_called_with(srp_request)
+        assert modifier is not None
+        assert modifier.id_ == 32
+        assert modifier.request_id == srp_request.id_
+        assert modifier.type_ == models.ModifierType.absolute
+        assert modifier.value == Decimal(3500000)
+        assert modifier.note == u'Just because.'
+        assert modifier.user_id == 8
+        assert srp_request.payout == Decimal(34650000)
+
+
+@pytest.mark.parametrize('status', models.ActionType.statuses)
+def test_request_void_modifier(srp_request, status, mock_modifiers,
+                               mock_modifiers_store):
+    assert srp_request.current_payout(mock_modifiers_store) == \
+        Decimal(30800000)
+    srp_request.status = status
+    mock_modifiers[3].is_void = True
+    if status != models.ActionType.evaluating:
+        with pytest.raises(models.RequestStatusError):
+            modifier = srp_request.void_modifier(mock_modifiers_store,
+                                                 modifier_id=3,
+                                                 user_id=6)
+    else:
+        modifier = srp_request.void_modifier(mock_modifiers_store,
+                                             modifier_id=3,
+                                             user_id=6)
+        assert modifier == mock_modifiers[3]
+        mock_modifiers_store.save_modifier.assert_called_with(modifier)
+        mock_modifiers_store.save_request.assert_called_with(srp_request)
+        mock_modifiers_store.get_modifier.assert_called_with(modifier_id=3)
+        assert srp_request.payout == Decimal(28000000)
+        assert modifier.void_user_id == 6
+        assert modifier.void_timestamp is not None
 
 
 def test_request_division(srp_request):

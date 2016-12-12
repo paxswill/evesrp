@@ -79,18 +79,31 @@ class ActionType(enum.Enum):
 
     comment = 6
 
+    # TODO: split details changes out from evaluating
+
     @classproperty
     def finalized(cls):
         return frozenset((cls.paid, cls.rejected))
 
     @classproperty
+    def updateable(cls):
+        """Status where the request details can be updated."""
+        return frozenset((cls.incomplete, cls.evaluating))
+
+    @classproperty
     def pending(cls):
         return frozenset((cls.evaluating, cls.approved, cls.incomplete))
 
-    @classmethod
+    @classproperty
     def statuses(cls):
         return frozenset((cls.evaluating, cls.approved, cls.paid, cls.rejected,
                           cls.incomplete))
+
+
+class RequestStatusError(ValueError):
+    """Error raised when the :py:class:`request <Request>` is in the wrong
+    state to make a modification."""
+    pass
 
 
 class Request(util.IdEquality):
@@ -130,6 +143,68 @@ class Request(util.IdEquality):
     def get_actions(self, store):
         return store.get_actions(request_id=self.id_)
 
+    state_rules = {
+        ActionType.evaluating: frozenset((
+            ActionType.evaluating,
+            ActionType.incomplete,
+            ActionType.rejected,
+            ActionType.approved,
+            ActionType.comment,
+        )),
+        ActionType.incomplete: frozenset((
+            ActionType.rejected,
+            ActionType.evaluating,
+            ActionType.comment,
+        )),
+        ActionType.rejected: frozenset((
+            ActionType.evaluating,
+            ActionType.comment,
+        )),
+        ActionType.approved: frozenset((
+            ActionType.evaluating,
+            ActionType.paid,
+            ActionType.comment,
+        )),
+        ActionType.paid: frozenset((
+            ActionType.approved,
+            ActionType.evaluating,
+            ActionType.comment,
+        )),
+    }
+
+    @classmethod
+    def possible_actions(cls, status):
+        return cls.state_rules[status]
+
+    def add_action(self, store, type_, timestamp=None, contents='', **kwargs):
+        if type_ not in self.possible_actions(self.status):
+            raise RequestStatusError(u"It is not possible for request {} to "
+                                     u"change status to {} from {}.".format(
+                                         self.id_, type_, self.status))
+        user_id = util.id_from_kwargs('user', kwargs)
+        action = Action(None, type_, timestamp=timestamp, contents=contents,
+                        user_id=user_id, request_id=self.id_)
+        action.id_ = store.add_action(action)
+        if action.type_ != ActionType.comment:
+            self.status = action.type_
+        store.save_request(self)
+        return action
+
+    def change_details(self, store, new_details, timestamp=None, **kwargs):
+        if self.status not in ActionType.updateable:
+            raise RequestStatusError(u"Details can only be changed for "
+                                     u"requests in evaluating or incomplete "
+                                     u"states (Request #{} is {}).".format(
+                                         self.id_, self.status))
+        new_action = self.add_action(store,
+                                     ActionType.evaluating,
+                                     timestamp=timestamp,
+                                     contents=self.details,
+                                     request_id=self.id_, **kwargs)
+        self.details = new_details
+        store.save_request(self)
+        return new_action
+
     def get_modifiers(self, store, void=None, type_=None):
         get_kwargs = {'request_id': self.id_}
         if void is not None:
@@ -137,6 +212,39 @@ class Request(util.IdEquality):
         if type_ is not None:
             get_kwargs['type_'] = type_
         return store.get_modifiers(**get_kwargs)
+
+    def add_modifier(self, store, type_, value, note=u'', timestamp=None,
+                     **kwargs):
+        if self.status != ActionType.evaluating:
+            raise RequestStatusError(u"Request {} must be in the evaluating "
+                                     u"state to add change its modifiers (it "
+                                     u"is currently {}).".format(
+                                         self.id_, self.status))
+        modifier = Modifier(None, type_, value, note=note, timestamp=timestamp,
+                            request_id=self.id_, **kwargs)
+        modifier_id = store.add_modifier(modifier)
+        modifier.id_ = modifier_id
+        self.payout = self.current_payout(store)
+        store.save_request(self)
+        return modifier
+
+    def void_modifier(self, store, timestamp=None, **kwargs):
+        if self.status != ActionType.evaluating:
+            raise RequestStatusError(u"Request {} must be in the evaluating "
+                                     u"state to add change its modifiers (it "
+                                     u"is currently {}).".format(
+                                         self.id_, self.status))
+        modifier_id = util.id_from_kwargs('modifier', kwargs)
+        user_id = util.id_from_kwargs('user', kwargs)
+        if timestamp is None:
+            timestamp = dt.datetime.utcnow()
+        modifier = store.get_modifier(modifier_id=modifier_id)
+        modifier.void_user_id = user_id
+        modifier.void_timestamp = timestamp
+        store.save_modifier(modifier)
+        self.payout = self.current_payout(store)
+        store.save_request(self)
+        return modifier
 
     def get_division(self, store):
         return store.get_division(division_id=self.division_id)
