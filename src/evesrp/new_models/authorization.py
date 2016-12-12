@@ -44,6 +44,14 @@ class Group(Entity):
     def get_users(self, store):
         return store.get_users(group_id=self.id_)
 
+    def add_user(self, store, **kwargs):
+        user_id = util.id_from_kwargs('user', kwargs)
+        store.associate_user_group(user_id=user_id, group_id=self.id_)
+
+    def remove_user(self, store, **kwargs):
+        user_id = util.id_from_kwargs('user', kwargs)
+        store.disassociate_user_group(user_id=user_id, group_id=self.id_)
+
 
 class Division(util.IdEquality):
 
@@ -54,6 +62,30 @@ class Division(util.IdEquality):
     @classmethod
     def from_dict(cls, entity_dict):
         return cls(entity_dict[u'name'], entity_dict[u'id'])
+
+    def add_permission(self, store, type_, **kwargs):
+        permission = Permission(division_id=self.id_, type_=type_, **kwargs)
+        store.add_permission(permission)
+        return permission
+
+    def remove_permission(self, store, **kwargs):
+        permission_id = util.id_from_kwargs('permission', kwargs)
+        store.remove_permission(permission_id=permission_id)
+
+    def set_name(self, store, new_name):
+        self.name = new_name
+        store.save_division(self)
+
+    def get_permissions(self, store, type_=None, types=None):
+        get_kwargs = {'division_id': self.id_}
+        if 'type_' is not None and types is not None:
+            raise ValueError(u"Only one of type_ or types is allowed to be "
+                             u"specified.")
+        if type_ is not None:
+            get_kwargs['types'] = (type_,)
+        if types is not None:
+            get_kwargs['types'] = types
+        return store.get_permissions(**get_kwargs)
 
 
 # Enum functional API instead of class-based API

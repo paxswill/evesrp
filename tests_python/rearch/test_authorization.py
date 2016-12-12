@@ -97,19 +97,41 @@ def test_user_notes():
     assert user.get_notes(store) == notes
 
 
-def test_group_get_users():
+@pytest.fixture
+def group():
+    return authz.Group("Group 1", 1)
+
+
+def test_group_get_users(group):
     users = [
         authz.User("User 2", 2),
         authz.User("User 4", 4),
     ]
     store = mock.Mock()
     store.get_users.return_value = users
-    group = authz.Group("Group 1", 1)
     assert group.get_users(store) == users
 
 
-def test_division_init():
-    division = authz.Division("A Division", 98765)
+def test_group_add_user(group):
+    store = mock.Mock()
+    group.add_user(store, user_id=17)
+    store.associate_user_group.assert_called_with(user_id=17,
+                                                  group_id=group.id_)
+
+
+def test_group_remove_user(group):
+    store = mock.Mock()
+    group.remove_user(store, user_id=17)
+    store.disassociate_user_group.assert_called_with(user_id=17,
+                                                     group_id=group.id_)
+
+
+@pytest.fixture
+def division():
+    return authz.Division("A Division", 98765)
+
+
+def test_division_init(division):
     assert division.name == "A Division"
     assert division.id_ == 98765
 
@@ -122,6 +144,43 @@ def test_division_dict():
     division = authz.Division.from_dict(division_dict)
     assert division.name == "A Division"
     assert division.id_ == 98765
+
+
+def test_division_add_permission(division):
+    store = mock.Mock()
+    permission = division.add_permission(store, entity_id=13,
+                                         type_=authz.PermissionType.submit)
+    assert permission is not None
+    store.add_permission.assert_called_with(permission)
+
+
+def test_division_remove_permission(division):
+    store = mock.Mock()
+    division.remove_permission(store, permission_id=21)
+    store.remove_permission.assert_called_with(permission_id=21)
+
+
+def test_division_change_name(division):
+    store = mock.Mock()
+    assert division.name == "A Division"
+    division.set_name(store, "A New Name")
+    assert division.name == "A New Name"
+    store.save_division.assert_called_with(division)
+
+
+def test_division_get_permissions(division):
+    store = mock.Mock()
+    mock_permissions = [mock.Mock(id_=1), mock.Mock(id_=2)]
+    store.get_permissions.side_effect = mock_permissions
+    permissions = division.get_permissions(store)
+    assert permissions == mock_permissions[0]
+    store.get_permissions.assert_called_with(division_id=division.id_)
+    permissions = division.get_permissions(store, authz.PermissionType.submit)
+    assert permissions == mock_permissions[1]
+    store.get_permissions.assert_called_with(division_id=division.id_,
+                                             types=(
+                                                 authz.PermissionType.submit,
+                                             ))
 
 
 def test_permission_init_objects():
