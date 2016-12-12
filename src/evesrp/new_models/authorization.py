@@ -2,21 +2,10 @@ import datetime as dt
 import enum
 import json
 
-import iso8601
-import six
+from . import util
 
 
-class IdEquality(object):
-
-    def __hash__(self):
-        return hash(self.id_) ^ hash(self.__class__.__name__)
-
-    def __eq__(self, other):
-        # Simplistic, not checking types here.
-        return self.id_ == other.id_
-
-
-class Entity(IdEquality):
+class Entity(util.IdEquality):
 
     def __init__(self, name, id_):
         self.name = name
@@ -56,7 +45,7 @@ class Group(Entity):
         return store.get_users(group_id=self.id_)
 
 
-class Division(IdEquality):
+class Division(util.IdEquality):
 
     def __init__(self, name, id_):
         self.name = name
@@ -71,22 +60,11 @@ class Division(IdEquality):
 PermissionType = enum.Enum('PermissionType', 'submit review pay admin audit')
 
 
-def id_from_kwargs(arg_name, kwargs):
-    id_name = arg_name + '_id'
-    if arg_name not in kwargs and id_name not in kwargs:
-        raise ValueError(u"Neither '{}' nor '{}' have been supplied.".format(
-            arg_name, id_name))
-    elif arg_name in kwargs:
-        return kwargs[arg_name].id_
-    else:
-        return kwargs[id_name]
-
-
-class Permission(IdEquality):
+class Permission(util.IdEquality):
 
     def __init__(self, **kwargs):
-        self.entity_id = id_from_kwargs('entity', kwargs)
-        self.division_id = id_from_kwargs('division', kwargs)
+        self.entity_id = util.id_from_kwargs('entity', kwargs)
+        self.division_id = util.id_from_kwargs('division', kwargs)
         if 'type_' not in kwargs:
             raise ValueError(u"Permission type required.")
         self.type_ = kwargs['type_']
@@ -101,11 +79,11 @@ class Permission(IdEquality):
         return (self.division_id, self.type_)
 
 
-class Note(IdEquality):
+class Note(util.IdEquality):
 
     def __init__(self, contents, id_, timestamp=None, **kwargs):
-        self.subject_id = id_from_kwargs('subject', kwargs)
-        self.submitter_id = id_from_kwargs('submitter', kwargs)
+        self.subject_id = util.id_from_kwargs('subject', kwargs)
+        self.submitter_id = util.id_from_kwargs('submitter', kwargs)
         self.id_ = id_
         self.contents = contents
         if timestamp is None:
@@ -115,12 +93,9 @@ class Note(IdEquality):
 
     @classmethod
     def from_dict(cls, note_dict):
-        timestamp = note_dict[u'timestamp']
-        if isinstance(timestamp, six.string_types):
-            timestamp = iso8601.parse_date(timestamp)
         note = cls(contents=note_dict[u'contents'],
                    id_=note_dict[u'id'],
-                   timestamp=timestamp,
+                   timestamp=util.parse_timestamp(note_dict['timestamp']),
                    submitter_id=note_dict[u'submitter_id'],
                    subject_id=note_dict[u'subject_id'])
         return note

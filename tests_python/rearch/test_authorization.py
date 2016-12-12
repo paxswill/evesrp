@@ -4,21 +4,8 @@ try:
 except ImportError:
     import mock
 import pytest
-
 from evesrp.util import utc
 from evesrp.new_models import authorization as authz
-
-
-def test_id_equality_eq():
-    user = authz.User("User 1", 1)
-    group = authz.Group("Group 1", 1)
-    assert user == group
-
-
-def test_id_equality_hash():
-    user = authz.User("User 1", 1)
-    group = authz.Group("Group 1", 1)
-    assert hash(user) != hash(group)
 
 
 def test_entity_init():
@@ -197,16 +184,12 @@ def test_note_init(timestamp):
         assert note.timestamp == timestamp
 
 
-@pytest.mark.parametrize('timestamp', [
-    dt.datetime(2016, 12, 10, tzinfo=utc),
-    '2016-12-10T00:00:00'
-])
-def test_note_dict(timestamp):
+def test_note_dict():
     contents = "Lorem Ipsum blah blah blah"
     note_dict = {
         "id": 11,
         "contents": contents,
-        "timestamp": timestamp,
+        "timestamp": dt.datetime(2016, 12, 10, tzinfo=utc),
         "submitter_id": 22,
         "subject_id": 33,
     }
@@ -215,5 +198,4 @@ def test_note_dict(timestamp):
     assert note.submitter_id == 22
     assert note.subject_id == 33
     assert note.contents == contents
-    # Need to specify a timezone as iso8601 defautls to UTC
     assert note.timestamp == dt.datetime(2016, 12, 10, tzinfo=utc)
