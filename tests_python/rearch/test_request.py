@@ -134,7 +134,8 @@ def nullable_timestamp(request):
 # py.test
 @pytest.fixture
 def srp_request(killmail, nullable_timestamp):
-    request = models.Request(25, killmail=killmail, division_id=1,
+    request = models.Request(25, u"Some details.",
+                             killmail=killmail, division_id=1,
                              timestamp=nullable_timestamp,
                              base_payout=25000000)
     return request
@@ -142,6 +143,7 @@ def srp_request(killmail, nullable_timestamp):
 
 def test_request_init(srp_request, nullable_timestamp, killmail):
     assert srp_request.id_ == 25
+    assert srp_request.details == 'Some details.'
     assert srp_request.killmail_id == killmail.id_
     assert srp_request.division_id == 1
     if nullable_timestamp is None:
@@ -156,6 +158,7 @@ def test_request_init(srp_request, nullable_timestamp, killmail):
 def test_request_dict():
     request_dict = {
         "id": 27,
+        "details": u"Gimme money please.",
         "killmail_id": 56474105,
         "division_id": 2,
         "timestamp": dt.datetime(2016, 12, 11),
@@ -166,6 +169,7 @@ def test_request_dict():
     }
     srp_request = models.Request.from_dict(request_dict)
     assert srp_request.id_ == 27
+    assert srp_request.details == u"Gimme money please."
     assert srp_request.killmail_id ==56474105
     assert srp_request.division_id == 2
     assert srp_request.timestamp == dt.datetime(2016, 12, 11)
@@ -344,6 +348,7 @@ def test_action_dict():
 @pytest.fixture
 def modifier(nullable_timestamp):
     modifier = models.Modifier(5, models.ModifierType.relative, 0.1,
+                               u'Because I said so.',
                                timestamp=nullable_timestamp,
                                request_id=7, user_id=1)
     return modifier
@@ -353,6 +358,7 @@ def test_modifier_init(modifier, nullable_timestamp):
     assert modifier.id_ == 5
     assert modifier.type_ == models.ModifierType.relative
     assert modifier.value == Decimal(0.1)
+    assert modifier.note == u'Because I said so.'
     if nullable_timestamp is None:
         assert modifier.timestamp != nullable_timestamp
     else:
@@ -370,6 +376,7 @@ def test_modifier_dict(voided):
         "type": "relative",
         # value is a string, to preserve precision
         "value": "0.25",
+        "note": u"Just a note.",
         "user_id": 1,
         "request_id": 7,
         "timestamp": dt.datetime(2016, 12, 11, 12),
@@ -385,6 +392,7 @@ def test_modifier_dict(voided):
     assert modifier.id_ == modifier_dict['id']
     assert modifier.type_ == models.ModifierType.relative
     assert modifier.value == Decimal(modifier_dict['value'])
+    assert modifier.note == modifier_dict['note']
     assert modifier.user_id == modifier_dict['user_id']
     assert modifier.request_id == modifier_dict['request_id']
     assert modifier.timestamp == modifier_dict['timestamp']

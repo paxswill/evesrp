@@ -95,9 +95,10 @@ class ActionType(enum.Enum):
 
 class Request(util.IdEquality):
 
-    def __init__(self, id_, timestamp=None, base_payout=0,
+    def __init__(self, id_, details='', timestamp=None, base_payout=0,
                  status=ActionType.evaluating, payout=None, **kwargs):
         self.id_ = id_
+        self.details = details
         self.killmail_id = util.id_from_kwargs('killmail', kwargs)
         self.division_id = util.id_from_kwargs('division', kwargs)
         # Default to the current time if no timestamp is given
@@ -118,6 +119,7 @@ class Request(util.IdEquality):
     @classmethod
     def from_dict(cls, request_dict):
         return cls(request_dict['id'],
+                   request_dict['details'],
                    killmail_id=request_dict['killmail_id'],
                    division_id=request_dict['division_id'],
                    payout=Decimal(request_dict['payout']),
@@ -198,12 +200,13 @@ class ModifierType(enum.Enum):
 
 class Modifier(util.IdEquality):
 
-    def __init__(self, id_, type_, value, timestamp=None, **kwargs):
+    def __init__(self, id_, type_, value, note=u'', timestamp=None, **kwargs):
         self.id_ = id_
         self.type_ = type_
         if not isinstance(value, Decimal):
             value = Decimal(value)
         self.value = value
+        self.note = note
         self.user_id = util.id_from_kwargs('user', kwargs)
         self.request_id = util.id_from_kwargs('request', kwargs)
         # Default to the current time if no timestamp is given
@@ -218,6 +221,7 @@ class Modifier(util.IdEquality):
         modifier = cls(modifier_dict['id'],
                        ModifierType[modifier_dict['type']],
                        Decimal(modifier_dict['value']),
+                       note=modifier_dict.get('note', ''),
                        timestamp=util.parse_timestamp(
                            modifier_dict['timestamp']),
                        user_id=modifier_dict['user_id'],
