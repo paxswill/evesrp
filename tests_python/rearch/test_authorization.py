@@ -42,6 +42,26 @@ def test_entity_permissions():
     assert entity.get_permissions(store) == permission_tuples
 
 
+@pytest.mark.parametrize('is_admin', [True, False])
+def test_user_init(is_admin):
+    user = authz.User('A User', 1, is_admin)
+    assert user.name == 'A User'
+    assert user.id_ == 1
+    assert user.admin == is_admin
+
+
+def test_user_dict():
+    user_dict = {
+        'name': 'Another User',
+        'id': 73,
+        'admin': True,
+    }
+    user = authz.User.from_dict(user_dict)
+    assert user.name == 'Another User'
+    assert user.id_ == 73
+    assert user.admin == True
+
+
 def test_user_get_groups():
     groups = [
         authz.Group("Group 1", 1),

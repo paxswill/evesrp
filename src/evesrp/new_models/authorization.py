@@ -24,6 +24,15 @@ class Entity(util.IdEquality):
 
 class User(Entity):
 
+    def __init__(self, name, id_, admin=False):
+        super(User, self).__init__(name, id_)
+        self.admin = admin
+
+    @classmethod
+    def from_dict(cls, user_dict):
+        return cls(user_dict['name'], user_dict['id'],
+                   user_dict.get('admin', False))
+
     def get_groups(self, store):
         return store.get_groups(user_id=self.id_)
 
