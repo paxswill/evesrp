@@ -3,6 +3,7 @@ import enum
 import json
 
 from . import util
+from ..util import classproperty
 
 
 class Entity(util.IdEquality):
@@ -88,8 +89,29 @@ class Division(util.IdEquality):
         return store.get_permissions(**get_kwargs)
 
 
-# Enum functional API instead of class-based API
-PermissionType = enum.Enum('PermissionType', 'submit review pay admin audit')
+class PermissionType(enum.Enum):
+
+    submit = u'submit'
+
+    review = u'review'
+
+    pay = u'pay'
+
+    admin = u'admin'
+
+    audit = u'audit'
+
+    @classproperty
+    def elevated(cls):
+        return frozenset((cls.review, cls.pay, cls.admin, cls.audit))
+
+    @classproperty
+    def all(cls):
+        return frozenset((cls.submit,
+                          cls.review,
+                          cls.pay,
+                          cls.admin,
+                          cls.audit))
 
 
 class Permission(util.IdEquality):
