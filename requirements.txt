@@ -1,4 +1,4 @@
-.[BraveCore,OAuth,Sentry]
+-e .[BraveCore,OAuth,Sentry]
 
 coverage==4.0.3
 coveralls==1.1
