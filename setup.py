@@ -68,6 +68,7 @@ setup(
         'six == 1.7.3',
         'iso8601 >= 0.1.5',
         'beautifulsoup4 >= 4.4.1',
+        'speaklater ~= 1.3',
     ],
     test_suite='tests_python',
     tests_require=test_requirements,
