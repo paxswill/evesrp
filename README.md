@@ -21,8 +21,8 @@ interface. To install all development dependencies at once you can use the
 
     make build-deps
 
-This will install all of the Python and Javascript dependencies needed for
-developing EVE-SRP.
+This will install the minimum dependencies needed to build the app and to run
+its tests in tox.
 After you've installed the dependencies, you'll need to generate the CSS and
 Javascript sources.
 
@@ -32,6 +32,14 @@ If the Javascript minimization is causing a problem, you can disable it by
 defining the `DEBUG` variable for make.
 
     DEBUG="true" make all
+
+
+### Running outside of tox
+
+If you want to run the app outside of tox, You can install all of the python
+dependencies with
+
+    pip install -r ./requirements.txt
 
 To run the development server, you can use the included `evesrp` command line
 utility. I recommend installing the project in editable mode to get access to
