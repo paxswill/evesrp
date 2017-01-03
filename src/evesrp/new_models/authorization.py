@@ -39,6 +39,8 @@ class User(Entity):
     def get_permissions(self, store):
         # Get permissions granted to this user in particular first
         permissions = super(User, self).get_permissions(store)
+        # Add the pseudo-permission for our user ID
+        permissions.add(('user_id', self.id_))
         # ...then for all of the groups we are a member of
         group_permissions = {p for g in self.get_groups(store)
                              for p in g.get_permissions(store)}

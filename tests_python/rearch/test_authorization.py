@@ -92,17 +92,18 @@ def test_user_permissions():
         authz.Group("Group 2", 2),
     ]
     def get_permissions(entity_id):
-        if entity_id == 1:
+        if entity_id == 9:
             return user1_perms
         if entity_id == 2:
             return group2_perms
     store.get_permissions.side_effect = get_permissions
-    user = authz.User("User 1", 1)
+    user = authz.User("User 9", 9)
     union_permissions = {
         (PT.submit, 1),
         (PT.review, 2),
         (PT.submit, 2),
         (PT.pay, 3),
+        ('user_id', 9),
     }
     assert user.get_permissions(store) == union_permissions
 
