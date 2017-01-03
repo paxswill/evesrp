@@ -139,7 +139,8 @@ class Permission(util.IdEquality):
                    division_id=permission_dict[u'division_id'])
 
     def to_tuple(self):
-        return (self.division_id, self.type_)
+        #return (self.division_id, self.type_)
+        return (self.type_, self.division_id)
 
 
 class Note(util.IdEquality):

@@ -35,9 +35,9 @@ def test_entity_permissions():
     store.get_permissions.return_value = entity_perms
     entity = authz.Entity("An Entity", 1)
     permission_tuples = {
-        (1, PT.submit),
-        (1, PT.pay),
-        (3, PT.submit),
+        (PT.submit, 1),
+        (PT.pay, 1),
+        (PT.submit, 3),
     }
     assert entity.get_permissions(store) == permission_tuples
 
@@ -99,10 +99,10 @@ def test_user_permissions():
     store.get_permissions.side_effect = get_permissions
     user = authz.User("User 1", 1)
     union_permissions = {
-        (1, PT.submit),
-        (2, PT.review),
-        (2, PT.submit),
-        (3, PT.pay),
+        (PT.submit, 1),
+        (PT.review, 2),
+        (PT.submit, 2),
+        (PT.pay, 3),
     }
     assert user.get_permissions(store) == union_permissions
 
@@ -236,12 +236,12 @@ def test_permission_dict():
 def test_permission_tuples():
     permission = authz.Permission(entity_id=1, division_id=2,
                                   type_=authz.PermissionType.review)
-    assert permission.to_tuple() == (2, authz.PermissionType.review)
+    assert permission.to_tuple() == (authz.PermissionType.review, 2)
 
 
 @pytest.mark.parametrize('timestamp', [
     dt.datetime(2016, 12, 10),
-    None,
+    None,1, 
 ])
 def test_note_init(timestamp):
     contents = u"A note about something."
