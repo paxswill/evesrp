@@ -26,7 +26,7 @@ class RequestSubmissionActivity(object):
             error_message = (u"User {} does not have permission to submit to "
                              u"Division {}.").format(self.user.id_,
                                                      division.id_)
-            raise errors.InsuffcientPermissionsError(error_message)
+            raise errors.InsufficientPermissionsError(error_message)
         if isinstance(killmail, six.integer_types):
             killmail = self.store.get_killmail(killmail_id=killmail)
         request = models.Request(None, details, killmail_id=killmail.id_,
