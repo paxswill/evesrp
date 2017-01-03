@@ -4,7 +4,7 @@ except ImportError:
     import mock
 import pytest
 
-from evesrp.users import request
+from evesrp.users import request, errors
 from evesrp import new_models as models
 
 
@@ -91,9 +91,41 @@ def test_submitter_submit(use_division_id, use_killmail_id, submit_user,
         submit_store.get_killmail.assert_called_with(killmail_id=killmail.id_)
 
 
-def test_request_init():
-    pass
+@pytest.fixture
+def request_store(srp_request, killmail):
+    store = mock.Mock()
+    store.get_request.return_value = srp_request
+    store.get_killmail.return_value = killmail
+    return store
 
+
+@pytest.fixture(params=models.PermissionType)
+def permission(request):
+    return request.param
+
+
+@pytest.mark.parametrize('user_id', (1, 2))
+def test_request_init(permission, request_store, srp_request, user_id):
+    user = mock.Mock(id_=user_id)
+    user.get_permissions.return_value = {
+        # Using division #1
+        (permission, 1),
+        ('user_id', user_id),
+    }
+    PT = models.PermissionType
+    # User ID 1 is the owner, user ID 2 is someone else
+    if permission in PT.elevated or \
+            (permission == PT.submit and \
+             request_store.get_killmail(request_store).user_id == user.id_):
+        activity = request.RequestActivity(request_store, user,
+                                           request=srp_request.id_)
+        assert activity is not None
+        assert activity.store == request_store
+        assert activity.user == user
+    else:
+        with pytest.raises(errors.InsufficientPermissionsError):
+            activity = request.RequestActivity(request_store, user,
+                                               request=srp_request.id_)
 
 def test_add_comment():
     pass

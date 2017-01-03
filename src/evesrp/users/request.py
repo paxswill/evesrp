@@ -38,7 +38,23 @@ class RequestSubmissionActivity(object):
 class RequestActivity(object):
 
     def __init__(self, store, user, request):
-        pass
+        self.store = store
+        if isinstance(user, six.integer_types):
+            user = self.store.get_user(user_id=user)
+        self.user = user
+        if isinstance(request, six.integer_types):
+            request = self.store.get_request(request_id=request)
+        self.request = request
+        # Check permissions now
+        # Create the permission tuples that will allow access to this request
+        allowed_permissions = {(pt, self.request.division_id) for pt in \
+                               models.PermissionType.elevated}
+        submitter_id = self.request.get_killmail(self.store).user_id
+        allowed_permissions.add(('user_id', submitter_id))
+        if allowed_permissions.isdisjoint(user.get_permissions(self.store)):
+            error_message = u"User {} does not have access to request #{}."\
+                .format(self.user.id_, self.request.id_)
+            raise errors.InsufficientPermissionsError(error_message)
 
     def _add_action(self, type_, comment=u''):
         pass
