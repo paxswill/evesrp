@@ -91,6 +91,33 @@ def test_submitter_submit(use_division_id, use_killmail_id, submit_user,
         submit_store.get_killmail.assert_called_with(killmail_id=killmail.id_)
 
 
+OWNER_ID = 23
+DIVISION_ID = 49
+
+
+@pytest.fixture
+def killmail(killmail_data):
+    killmail_splat = dict(killmail_data)
+    killmail_splat = dict(killmail_data)
+    killmail_splat['id_'] = killmail_data['id']
+    killmail_splat['user_id'] = OWNER_ID
+    killmail = mock.create_autospec(models.Killmail, **killmail_splat)
+    return killmail
+
+
+@pytest.fixture
+def srp_request(killmail):
+    request_splat = {
+        'id_': 74,
+        'details': "Some details about a loss.",
+        'killmail_id': killmail.user_id,
+        'division_id': DIVISION_ID,
+    }
+    srp_request = mock.create_autospec(models.Request, **request_splat)
+    srp_request.get_killmail.return_value = killmail
+    return srp_request
+
+
 @pytest.fixture
 def request_store(srp_request, killmail):
     store = mock.Mock()
@@ -104,16 +131,17 @@ def permission(request):
     return request.param
 
 
-@pytest.mark.parametrize('user_id', (1, 2))
+# TODO: Add test for a user having that permission in another division
+@pytest.mark.parametrize('user_id', (OWNER_ID, 2))
 def test_request_init(permission, request_store, srp_request, user_id):
     user = mock.Mock(id_=user_id)
     user.get_permissions.return_value = {
         # Using division #1
-        (permission, 1),
+        (permission, DIVISION_ID),
         ('user_id', user_id),
     }
     PT = models.PermissionType
-    # User ID 1 is the owner, user ID 2 is someone else
+    # User ID $OWNER_ID is the owner, user ID 2 is someone else
     if permission in PT.elevated or \
             (permission == PT.submit and \
              request_store.get_killmail(request_store).user_id == user.id_):
@@ -127,5 +155,181 @@ def test_request_init(permission, request_store, srp_request, user_id):
             activity = request.RequestActivity(request_store, user,
                                                request=srp_request.id_)
 
-def test_add_comment():
-    pass
+
+@pytest.fixture
+def allowed_permissions(srp_request):
+    allowed = {(pt, srp_request.division_id) for pt in
+               models.PermissionType.elevated}
+    allowed.add(('user_id', 1))
+    return allowed
+
+
+@pytest.fixture(params=(
+    (models.PermissionType.review, DIVISION_ID),
+    (models.PermissionType.admin, DIVISION_ID),
+    (models.PermissionType.audit, DIVISION_ID),
+    (models.PermissionType.pay, DIVISION_ID),
+    ('user_id', OWNER_ID),
+))
+def permission_tuple(request):
+    return request.param
+
+
+@pytest.fixture
+def permission_user(permission_tuple):
+    if permission_tuple[0] == 'user_id':
+        user = mock.Mock(id_=OWNER_ID)
+        user.get_permissions.return_value = {
+            permission_tuple,
+        }
+    else:
+        user = mock.Mock(id_=22)
+        user.get_permissions.return_value = {
+            permission_tuple,
+            ('user_id', 22),
+        }
+    return user
+
+
+def test_add_comment(request_store, srp_request, permission_tuple,
+                     permission_user):
+    activity = request.RequestActivity(request_store, permission_user,
+                                       srp_request)
+    # Out of the elevated privileges, only auditors are unable to comment.
+    comment_text = "Oh, hey. A comment."
+    if permission_tuple[0] == models.PermissionType.audit:
+        with pytest.raises(errors.InsufficientPermissionsError):
+            activity.comment(comment_text)
+    else:
+        action = activity.comment(comment_text)
+        action_type = models.ActionType.comment
+        srp_request.add_action.assert_called_once_with(request_store,
+                                                       action_type,
+                                                       contents=comment_text,
+                                                       user=permission_user)
+
+
+@pytest.mark.parametrize('starting_status', (
+    models.ActionType.evaluating,
+    models.ActionType.paid,
+))
+def test_mark_approved(request_store, srp_request, permission_tuple,
+                       permission_user, starting_status):
+    activity = request.RequestActivity(request_store, permission_user,
+                                       srp_request)
+    srp_request.status = starting_status
+    comment_text = "A comment about an approval."
+    # Only Reviewers and Admins can approve if the request is from evaluating
+    if starting_status == models.ActionType.evaluating:
+        allowed_permissions = (models.PermissionType.review,
+                               models.PermissionType.admin)
+    # If the request is coming from a paid state, only admins and payers can do
+    # that.
+    else:
+        allowed_permissions = (models.PermissionType.pay,
+                               models.PermissionType.admin)
+    if permission_tuple[0] not in allowed_permissions:
+        with pytest.raises(errors.InsufficientPermissionsError):
+            activity.approve(comment_text)
+    else:
+        action = activity.approve(comment_text)
+        action_type = models.ActionType.approved
+        srp_request.add_action.assert_called_once_with(request_store,
+                                                       action_type,
+                                                       contents=comment_text,
+                                                       user=permission_user)
+
+
+def test_mark_incomplete(request_store, srp_request, permission_tuple,
+                         permission_user):
+    activity = request.RequestActivity(request_store, permission_user,
+                                       srp_request)
+    # Only reviewers and admins can incomplete
+    comment_text = "This request is bad. Think about what you did."
+    allowed_permissions = (models.PermissionType.review,
+                           models.PermissionType.admin)
+    if permission_tuple[0] not in allowed_permissions:
+        with pytest.raises(errors.InsufficientPermissionsError):
+            activity.incomplete(comment_text)
+    else:
+        action = activity.incomplete(comment_text)
+        action_type = models.ActionType.incomplete
+        srp_request.add_action.assert_called_once_with(request_store,
+                                                       action_type,
+                                                       contents=comment_text,
+                                                       user=permission_user)
+
+
+@pytest.mark.parametrize('starting_status', (
+    models.ActionType.approved,
+    models.ActionType.rejected,
+    models.ActionType.incomplete,
+    models.ActionType.paid,
+))
+def test_mark_evaluating(request_store, srp_request, permission_tuple,
+                         permission_user, starting_status):
+    activity = request.RequestActivity(request_store, permission_user,
+                                       srp_request)
+    srp_request.status = starting_status
+    comment_text = "On second thought, let's think about this some more."
+    # Reviewers (and Admins) are able to send a Request back to evaluating from
+    # any state except for from paid. Only Payers (and Admins) are able to do
+    # that. In addition, the submitter can set a request back to evaluating
+    # from the incomplete state by editing the details but that is tested
+    # elsewhere.
+    if starting_status == models.ActionType.paid:
+        allowed_permissions = (models.PermissionType.pay,
+                               models.PermissionType.admin)
+    else:
+        allowed_permissions = (models.PermissionType.review,
+                               models.PermissionType.admin)
+    if permission_tuple[0] not in allowed_permissions:
+        with pytest.raises(errors.InsufficientPermissionsError):
+            activity.evaluate(comment_text)
+    else:
+        action = activity.evaluate(comment_text)
+        action_type = models.ActionType.evaluating
+        srp_request.add_action.assert_called_once_with(request_store,
+                                                       action_type,
+                                                       contents=comment_text,
+                                                       user=permission_user)
+
+
+def test_mark_paid(request_store, srp_request, permission_tuple,
+                   permission_user):
+    activity = request.RequestActivity(request_store, permission_user,
+                                       srp_request)
+    # Only Payers (and Admins) can mark a request as paid.
+    comment_text = "Done and done."
+    allowed_permissions = (models.PermissionType.pay,
+                           models.PermissionType.admin)
+    if permission_tuple[0] not in allowed_permissions:
+        with pytest.raises(errors.InsufficientPermissionsError):
+            activity.pay(comment_text)
+    else:
+        action = activity.pay(comment_text)
+        action_type = models.ActionType.paid
+        srp_request.add_action.assert_called_once_with(request_store,
+                                                       action_type,
+                                                       contents=comment_text,
+                                                       user=permission_user)
+
+
+def test_mark_rejected(request_store, srp_request, permission_tuple,
+                       permission_user):
+    activity = request.RequestActivity(request_store, permission_user,
+                                       srp_request)
+    # Only Reviewers (and Admins, as usual) can reject requests.
+    comment_text = "No ISK for you!"
+    allowed_permissions = (models.PermissionType.review,
+                           models.PermissionType.admin)
+    if permission_tuple[0] not in allowed_permissions:
+        with pytest.raises(errors.InsufficientPermissionsError):
+            activity.reject(comment_text)
+    else:
+        action = activity.reject(comment_text)
+        action_type = models.ActionType.rejected
+        srp_request.add_action.assert_called_once_with(request_store,
+                                                       action_type,
+                                                       contents=comment_text,
+                                                       user=permission_user)

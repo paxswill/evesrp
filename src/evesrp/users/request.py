@@ -49,33 +49,93 @@ class RequestActivity(object):
         # Create the permission tuples that will allow access to this request
         allowed_permissions = {(pt, self.request.division_id) for pt in \
                                models.PermissionType.elevated}
-        submitter_id = self.request.get_killmail(self.store).user_id
-        allowed_permissions.add(('user_id', submitter_id))
+        allowed_permissions.add(('user_id', self._submitter_id))
         if allowed_permissions.isdisjoint(user.get_permissions(self.store)):
             error_message = u"User {} does not have access to request #{}."\
                 .format(self.user.id_, self.request.id_)
             raise errors.InsufficientPermissionsError(error_message)
 
-    def _add_action(self, type_, comment=u''):
-        pass
+    def _add_action(self, type_, allowed_permissions, error_message,
+                    comment=u''):
+        if allowed_permissions.isdisjoint(
+                self.user.get_permissions(self.store)):
+            raise errors.InsufficientPermissionsError(error_message)
+        else:
+            return self.request.add_action(self.store,
+                                           type_,
+                                           contents=comment,
+                                           user=self.user)
+
+    @property
+    def _submitter_id(self):
+        return self.request.get_killmail(self.store).user_id
 
     def comment(self, comment=u''):
-        pass
+        PT = models.PermissionType
+        allowed_permissions = {(p, self.request.division_id) for p in
+                               (PT.review, PT.pay, PT.admin)}
+        allowed_permissions.add(('user_id', self._submitter_id))
+        error_message = (u"User {} does not have permission to comment on "
+                         u"request #{}.").format(self.user.id_,
+                                                 self.request.id_)
+        return self._add_action(models.ActionType.comment, allowed_permissions,
+                                error_message, comment)
 
     def approve(self, comment=u''):
-        pass
+        PT = models.PermissionType
+        if self.request.status == models.ActionType.paid:
+            allowed_permissions = {(p, self.request.division_id) for p in
+                                   (PT.pay, PT.admin)}
+        else:
+            allowed_permissions = {(p, self.request.division_id) for p in
+                                   (PT.review, PT.admin)}
+        error_message = (u"User {} does not have permission to approve request"
+                         u" #{}.").format(self.user.id_, self.request.id_)
+        return self._add_action(models.ActionType.approved, allowed_permissions,
+                                error_message, comment)
 
     def incomplete(self, comment=u''):
-        pass
+        PT = models.PermissionType
+        allowed_permissions = {(p, self.request.division_id) for p in
+                               (PT.review, PT.admin)}
+        error_message = (u"User {} does not have permission to mark "
+                         u"request #{} as incomplete.").format(self.user.id_,
+                                                               self.request.id_)
+        return self._add_action(models.ActionType.incomplete,
+                                allowed_permissions, error_message, comment)
 
     def evaluate(self, comment=u''):
-        pass
+        PT = models.PermissionType
+        if self.request.status == models.ActionType.paid:
+            allowed_permissions = {(p, self.request.division_id) for p in
+                                   (PT.pay, PT.admin)}
+        else:
+            allowed_permissions = {(p, self.request.division_id) for p in
+                                   (PT.review, PT.admin)}
+        error_message = (u"User {} does not have permission to mark request"
+                         u" #{} as evaluating.").format(self.user.id_,
+                                                        self.request.id_)
+        return self._add_action(models.ActionType.evaluating,
+                                allowed_permissions, error_message, comment)
 
     def pay(self, comment=u''):
-        pass
+        PT = models.PermissionType
+        allowed_permissions = {(p, self.request.division_id) for p in
+                               (PT.pay, PT.admin)}
+        error_message = (u"User {} does not have permission to mark "
+                         u"request #{} as paid.").format(self.user.id_,
+                                                         self.request.id_)
+        return self._add_action(models.ActionType.paid, allowed_permissions,
+                                error_message, comment)
 
     def reject(self, comment=u''):
-        pass
+        PT = models.PermissionType
+        allowed_permissions = {(p, self.request.division_id) for p in
+                               (PT.review, PT.admin)}
+        error_message = (u"User {} does not have permission to reject request "
+                         u" #{}.").format(self.user.id_, self.request.id_)
+        return self._add_action(models.ActionType.rejected, allowed_permissions,
+                                error_message, comment)
 
     def _add_modifier(self, value, type_, comment=u''):
         pass
