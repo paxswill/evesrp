@@ -333,3 +333,63 @@ def test_mark_rejected(request_store, srp_request, permission_tuple,
                                                        action_type,
                                                        contents=comment_text,
                                                        user=permission_user)
+
+
+@pytest.mark.parametrize('modifier_type', models.ModifierType)
+def test_add_modifier(request_store, srp_request, permission_tuple,
+                      permission_user, modifier_type):
+    activity = request.RequestActivity(request_store, permission_user,
+                                       srp_request)
+    if modifier_type == models.ModifierType.relative:
+        add_modifier = activity.add_relative_modifier
+    elif modifier_type == models.ModifierType.absolute:
+        add_modifier = activity.add_absolute_modifier
+    # Only reviewers and admins are able to add modifiers
+    allowed_permissions = (models.PermissionType.review,
+                           models.PermissionType.admin)
+    if permission_tuple[0] not in allowed_permissions:
+        with pytest.raises(errors.InsufficientPermissionsError):
+            add_modifier(mock.sentinel.modifier_value,
+                         mock.sentinel.modifier_note)
+    else:
+        add_modifier(mock.sentinel.modifier_value, mock.sentinel.modifier_note)
+        modifier_mock = srp_request.add_modifier
+        modifier_mock.assert_called_once_with(request_store,
+                                              models.ModifierType.relative,
+                                              mock.sentinel.modifier_value,
+                                              note=mock.sentinel.modifier_note,
+                                              user=permission_user)
+
+
+def test_void_modifier(request_store, srp_request, permission_tuple,
+                       permission_user, modifier_type):
+    activity = request.RequestActivity(request_store, permission_user,
+                                       srp_request)
+    modifier = mock.sentinel.modifier
+    allowed_permissions = (models.PermissionType.review,
+                           models.PermissionType.admin)
+    if permission_tuple[0] not in allowed_permissions:
+        with pytest.raises(errors.InsufficientPermissionsError):
+            activity.void_modifier(modifier)
+    else:
+        activity.void_modifier(modifier)
+        srp_request.void_modifier.assert_called_once_with(request_store,
+                                                          mock.ANY,
+                                                          modifier=modifier,
+                                                          user=permission_user)
+
+
+def test_edit_details(request_store, srp_request, permission_tuple,
+                      permission_user, modifier_type):
+    activity = request.RequestActivity(request_store, permission_user,
+                                       srp_request)
+    new_details = mock.sentinel.new_details
+    allowed_permissions = (('user_id', OWNER_ID),)
+    if permission_tuple not in allowed_permissions:
+        with pytest.raises(errors.InsufficientPermissionsError):
+            activity.edit_details(new_details)
+    else:
+        activity.edit_details(new_details)
+        srp_request.change_details.assert_called_once_with(request_store,
+                                                           new_details,
+                                                           user=permission_user)
