@@ -418,6 +418,25 @@ def test_request_current_payout(srp_request, mock_modifiers,
         expected_results[added_modifier]
 
 
+@pytest.mark.parametrize('status', models.ActionType.statuses)
+@pytest.mark.parametrize('new_payout', (1000000, Decimal(5000000)))
+def test_set_request_base_payout(srp_request, status, new_payout):
+    srp_request.status = status
+    # Replace srp_request.current_payout with a Mock
+    srp_request.current_payout = mock.Mock()
+    srp_request.current_payout.return_value = mock.sentinel.new_current_payout
+    store = mock.Mock()
+    if status == models.ActionType.evaluating:
+        assert srp_request.payout == Decimal(25000000)
+        srp_request.set_base_payout(store, new_payout)
+        srp_request.current_payout.assert_called_once_with(store)
+        assert srp_request.payout == mock.sentinel.new_current_payout
+        store.save_request.assert_called_once_with(srp_request)
+    else:
+        with pytest.raises(models.RequestStatusError):
+            srp_request.set_base_payout(store, new_payout)
+
+
 def test_action_init(nullable_timestamp):
     if nullable_timestamp is None:
         before = dt.datetime.utcnow()

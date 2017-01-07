@@ -275,6 +275,16 @@ class Request(util.IdEquality):
         relative = sum([m.value for m in relative_modifiers])
         return (self.base_payout + absolute) * (Decimal(1) + relative)
 
+    def set_base_payout(self, store, new_payout):
+        if self.status != ActionType.evaluating:
+            raise RequestStatusError(u"Request {} must be in the evaluating "
+                                     u"state to change its base "
+                                     u"payout.".format(self.id_))
+        if not isinstance(new_payout, Decimal):
+            new_payout = Decimal(new_payout)
+        self.payout = self.current_payout(store)
+        store.save_request(self)
+
 
 class Action(util.IdEquality):
 
