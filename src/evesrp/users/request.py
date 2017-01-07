@@ -158,7 +158,18 @@ class RequestActivity(object):
         return self._add_modifier(value, models.ModifierType.absolute, note)
 
     def void_modifier(self, modifier):
-        pass
+        PT = models.PermissionType
+        allowed_permissions = {(p, self.request.division_id) for p in
+                               (PT.review, PT.admin)}
+        if allowed_permissions.isdisjoint(
+                self.user.get_permissions(self.store)):
+            error_message = (u"User {} does not have permission to void "
+                             u"modifiers to request #{}.").format(
+                                 self.user.id_, self.request.id_)
+            raise errors.InsufficientPermissionsError(error_message)
+        else:
+            self.request.void_modifier(self.store, modifier=modifier,
+                                       user=self.user)
 
     def set_details(self, new_details):
         submitter_permission = ('user_id', self._submitter_id)

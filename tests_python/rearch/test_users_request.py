@@ -374,7 +374,6 @@ def test_void_modifier(request_store, srp_request, permission_tuple,
     else:
         activity.void_modifier(modifier)
         srp_request.void_modifier.assert_called_once_with(request_store,
-                                                          mock.ANY,
                                                           modifier=modifier,
                                                           user=permission_user)
 
