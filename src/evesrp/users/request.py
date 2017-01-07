@@ -160,7 +160,7 @@ class RequestActivity(object):
     def void_modifier(self, modifier):
         pass
 
-    def edit_details(self, new_details):
+    def set_details(self, new_details):
         pass
 
     def set_payout(self, new_payout):

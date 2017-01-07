@@ -193,7 +193,7 @@ def test_request_add_action(srp_request, starting_status, new_action,
 
 
 @pytest.mark.parametrize('starting_status', models.ActionType.statuses)
-def test_change_details(srp_request, starting_status, action_store):
+def test_set_details(srp_request, starting_status, action_store):
     old_details = u"Some details."
     new_details = u"Some better details."
     srp_request.status = starting_status
@@ -202,13 +202,13 @@ def test_change_details(srp_request, starting_status, action_store):
     now = dt.datetime.utcnow()
     if starting_status not in models.ActionType.updateable:
         with pytest.raises(models.RequestStatusError):
-            new_action = srp_request.change_details(action_store, new_details,
-                                                    user=user, timestamp=now)
+            new_action = srp_request.set_details(action_store, new_details,
+                                                 user=user, timestamp=now)
         assert srp_request.details == old_details
         assert srp_request.status == starting_status
     else:
-        new_action = srp_request.change_details(action_store, new_details,
-                                                user=user, timestamp=now)
+        new_action = srp_request.set_details(action_store, new_details,
+                                             user=user, timestamp=now)
         action_store.add_action.assert_called_with(new_action)
         # Asserting that save_request was called twice in a row, once in
         # add_action(), once in change_details()

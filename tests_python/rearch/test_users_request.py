@@ -379,7 +379,7 @@ def test_void_modifier(request_store, srp_request, permission_tuple,
                                                           user=permission_user)
 
 
-def test_edit_details(request_store, srp_request, permission_tuple,
+def test_set_details(request_store, srp_request, permission_tuple,
                       permission_user):
     activity = request.RequestActivity(request_store, permission_user,
                                        srp_request)
@@ -387,12 +387,12 @@ def test_edit_details(request_store, srp_request, permission_tuple,
     allowed_permissions = (('user_id', OWNER_ID),)
     if permission_tuple not in allowed_permissions:
         with pytest.raises(errors.InsufficientPermissionsError):
-            activity.edit_details(new_details)
+            activity.set_details(new_details)
     else:
-        activity.edit_details(new_details)
-        srp_request.change_details.assert_called_once_with(request_store,
-                                                           new_details,
-                                                           user=permission_user)
+        activity.set_details(new_details)
+        srp_request.set_details.assert_called_once_with(request_store,
+                                                        new_details,
+                                                        user=permission_user)
 
 
 def test_set_payout(request_store, srp_request, permission_tuple,

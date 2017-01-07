@@ -190,7 +190,7 @@ class Request(util.IdEquality):
         store.save_request(self)
         return action
 
-    def change_details(self, store, new_details, timestamp=None, **kwargs):
+    def set_details(self, store, new_details, timestamp=None, **kwargs):
         if self.status not in ActionType.updateable:
             raise RequestStatusError(u"Details can only be changed for "
                                      u"requests in evaluating or incomplete "
