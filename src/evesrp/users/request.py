@@ -161,7 +161,14 @@ class RequestActivity(object):
         pass
 
     def set_details(self, new_details):
-        pass
+        submitter_permission = ('user_id', self._submitter_id)
+        if submitter_permission not in self.user.get_permissions(self.store):
+            error_message = (u"Only the submitter is able to change the "
+                             u"details of a request.")
+            raise errors.InsufficientPermissionsError(error_message)
+        else:
+            self.request.set_details(self.store, new_details, user=self.user)
+
 
     def set_payout(self, new_payout):
         PT = models.PermissionType
