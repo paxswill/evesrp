@@ -355,7 +355,7 @@ def test_add_modifier(request_store, srp_request, permission_tuple,
         add_modifier(mock.sentinel.modifier_value, mock.sentinel.modifier_note)
         modifier_mock = srp_request.add_modifier
         modifier_mock.assert_called_once_with(request_store,
-                                              models.ModifierType.relative,
+                                              modifier_type,
                                               mock.sentinel.modifier_value,
                                               note=mock.sentinel.modifier_note,
                                               user=permission_user)

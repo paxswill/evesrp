@@ -137,14 +137,25 @@ class RequestActivity(object):
         return self._add_action(models.ActionType.rejected, allowed_permissions,
                                 error_message, comment)
 
-    def _add_modifier(self, value, type_, comment=u''):
-        pass
+    def _add_modifier(self, value, type_, note=u''):
+        PT = models.PermissionType
+        allowed_permissions = {(p, self.request.division_id) for p in
+                               (PT.review, PT.admin)}
+        if allowed_permissions.isdisjoint(
+                self.user.get_permissions(self.store)):
+            error_message = (u"User {} does not have permission to add "
+                             u"modifiers to request #{}.").format(
+                                 self.user.id_, self.request.id_)
+            raise errors.InsufficientPermissionsError(error_message)
+        else:
+            return self.request.add_modifier(self.store, type_, value,
+                                             note=note, user=self.user)
 
-    def add_relative_modifier(self, value, comment=u''):
-        pass
+    def add_relative_modifier(self, value, note=u''):
+        return self._add_modifier(value, models.ModifierType.relative, note)
 
-    def add_absolute_modifier(self, value, comment=u''):
-        pass
+    def add_absolute_modifier(self, value, note=u''):
+        return self._add_modifier(value, models.ModifierType.absolute, note)
 
     def void_modifier(self, modifier):
         pass
