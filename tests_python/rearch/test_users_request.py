@@ -362,7 +362,7 @@ def test_add_modifier(request_store, srp_request, permission_tuple,
 
 
 def test_void_modifier(request_store, srp_request, permission_tuple,
-                       permission_user, modifier_type):
+                       permission_user):
     activity = request.RequestActivity(request_store, permission_user,
                                        srp_request)
     modifier = mock.sentinel.modifier
@@ -380,7 +380,7 @@ def test_void_modifier(request_store, srp_request, permission_tuple,
 
 
 def test_edit_details(request_store, srp_request, permission_tuple,
-                      permission_user, modifier_type):
+                      permission_user):
     activity = request.RequestActivity(request_store, permission_user,
                                        srp_request)
     new_details = mock.sentinel.new_details
