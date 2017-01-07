@@ -153,4 +153,14 @@ class RequestActivity(object):
         pass
 
     def set_payout(self, new_payout):
-        pass
+        PT = models.PermissionType
+        allowed_permissions = {(p, self.request.division_id) for p in
+                               (PT.review, PT.admin)}
+        if allowed_permissions.isdisjoint(
+                self.user.get_permissions(self.store)):
+            error_message = (u"User {} does not have permission to set the "
+                             u"payout for request #{}.").format(
+                                 self.user.id_, self.request.id_)
+            raise errors.InsufficientPermissionsError(error_message)
+        else:
+            self.request.set_base_payout(self.store, new_payout)

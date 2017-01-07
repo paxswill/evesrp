@@ -393,3 +393,19 @@ def test_edit_details(request_store, srp_request, permission_tuple,
         srp_request.change_details.assert_called_once_with(request_store,
                                                            new_details,
                                                            user=permission_user)
+
+
+def test_set_payout(request_store, srp_request, permission_tuple,
+                    permission_user):
+    activity = request.RequestActivity(request_store, permission_user,
+                                       srp_request)
+    new_payout = mock.sentinel.new_payout
+    allowed_permissions = (models.PermissionType.review,
+                           models.PermissionType.admin)
+    if permission_tuple[0] not in allowed_permissions:
+        with pytest.raises(errors.InsufficientPermissionsError):
+            activity.set_payout(new_payout)
+    else:
+        activity.set_payout(new_payout)
+        srp_request.set_base_payout.assert_called_once_with(request_store,
+                                                            new_payout)
