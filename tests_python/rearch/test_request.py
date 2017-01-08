@@ -330,31 +330,6 @@ def test_request_add_modifier(srp_request, status, mock_modifiers,
         assert srp_request.payout == Decimal(34650000)
 
 
-@pytest.mark.parametrize('status', models.ActionType.statuses)
-def test_request_void_modifier(srp_request, status, mock_modifiers,
-                               mock_modifiers_store):
-    assert srp_request.current_payout(mock_modifiers_store) == \
-        Decimal(30800000)
-    srp_request.status = status
-    mock_modifiers[3].is_void = True
-    if status != models.ActionType.evaluating:
-        with pytest.raises(models.RequestStatusError):
-            modifier = srp_request.void_modifier(mock_modifiers_store,
-                                                 modifier_id=3,
-                                                 user_id=6)
-    else:
-        modifier = srp_request.void_modifier(mock_modifiers_store,
-                                             modifier_id=3,
-                                             user_id=6)
-        assert modifier == mock_modifiers[3]
-        mock_modifiers_store.save_modifier.assert_called_with(modifier)
-        mock_modifiers_store.save_request.assert_called_with(srp_request)
-        mock_modifiers_store.get_modifier.assert_called_with(modifier_id=3)
-        assert srp_request.payout == Decimal(28000000)
-        assert modifier.void_user_id == 6
-        assert modifier.void_timestamp is not None
-
-
 def test_request_division(srp_request):
     division = mock.Mock()
     division.name = "Testing Division"
@@ -539,9 +514,23 @@ def test_modifier_is_void(modifier):
     assert modifier.is_void
 
 
-def test_modifier_void(modifier):
+@pytest.mark.parametrize('status', models.ActionType.statuses)
+def test_modifier_void(modifier, status):
     assert not modifier.is_void
-    modifier.void(user_id=1, timestamp=dt.datetime(2016, 12, 1))
-    assert modifier.is_void
-    assert modifier.void_user_id == 1
-    assert modifier.void_timestamp == dt.datetime(2016, 12, 1)
+    store = mock.Mock()
+    srp_request = mock.Mock()
+    store.get_request.return_value = srp_request
+    srp_request.current_payout.return_value = mock.sentinel.current_payout
+    srp_request.status = status
+    if status == models.ActionType.evaluating:
+        modifier.void(store, user_id=1, timestamp=dt.datetime(2016, 12, 1))
+        assert modifier.is_void
+        assert modifier.void_user_id == 1
+        assert modifier.void_timestamp == dt.datetime(2016, 12, 1)
+        store.get_request.assert_called_once_with(request_id=modifier.request_id)
+        store.save_modifier.assert_called_once_with(modifier)
+        assert srp_request.payout == mock.sentinel.current_payout
+        store.save_request.assert_called_once_with(srp_request)
+    else:
+        with pytest.raises(models.RequestStatusError):
+            modifier.void(store, user_id=1, timestamp=dt.datetime(2016, 12, 1))

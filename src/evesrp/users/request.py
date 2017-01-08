@@ -168,8 +168,7 @@ class RequestActivity(object):
                                  self.user.id_, self.request.id_)
             raise errors.InsufficientPermissionsError(error_message)
         else:
-            self.request.void_modifier(self.store, modifier=modifier,
-                                       user=self.user)
+            modifier.void(self.store, user=self.user)
 
     def set_details(self, new_details):
         submitter_permission = ('user_id', self._submitter_id)

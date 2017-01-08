@@ -365,7 +365,7 @@ def test_void_modifier(request_store, srp_request, permission_tuple,
                        permission_user):
     activity = request.RequestActivity(request_store, permission_user,
                                        srp_request)
-    modifier = mock.sentinel.modifier
+    modifier = mock.create_autospec(models.Modifier)
     allowed_permissions = (models.PermissionType.review,
                            models.PermissionType.admin)
     if permission_tuple[0] not in allowed_permissions:
@@ -373,9 +373,8 @@ def test_void_modifier(request_store, srp_request, permission_tuple,
             activity.void_modifier(modifier)
     else:
         activity.void_modifier(modifier)
-        srp_request.void_modifier.assert_called_once_with(request_store,
-                                                          modifier=modifier,
-                                                          user=permission_user)
+        modifier.void.assert_called_once_with(request_store,
+                                              user=permission_user)
 
 
 def test_set_details(request_store, srp_request, permission_tuple,

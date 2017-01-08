@@ -228,24 +228,6 @@ class Request(util.IdEquality):
         store.save_request(self)
         return modifier
 
-    def void_modifier(self, store, timestamp=None, **kwargs):
-        if self.status != ActionType.evaluating:
-            raise RequestStatusError(u"Request {} must be in the evaluating "
-                                     u"state to add change its modifiers (it "
-                                     u"is currently {}).".format(
-                                         self.id_, self.status))
-        modifier_id = util.id_from_kwargs('modifier', kwargs)
-        user_id = util.id_from_kwargs('user', kwargs)
-        if timestamp is None:
-            timestamp = dt.datetime.utcnow()
-        modifier = store.get_modifier(modifier_id=modifier_id)
-        modifier.void_user_id = user_id
-        modifier.void_timestamp = timestamp
-        store.save_modifier(modifier)
-        self.payout = self.current_payout(store)
-        store.save_request(self)
-        return modifier
-
     def get_division(self, store):
         return store.get_division(division_id=self.division_id)
 
@@ -346,10 +328,10 @@ class Modifier(util.IdEquality):
                        request_id=modifier_dict['request_id'])
         # 'void' should be present, but just in case, let's get() it to swallow
         # KeyErrors
-        if modifier_dict.get('void') is not None:
-            modifier.void(user_id=modifier_dict['void']['user_id'],
-                          timestamp=util.parse_timestamp(
-                              modifier_dict['void']['timestamp']))
+        voided = modifier_dict.get('void')
+        if voided is not None:
+            modifier.void_user_id = voided['user_id']
+            modifier.void_timestamp = util.parse_timestamp(voided['timestamp'])
         return modifier
 
     @property
@@ -357,8 +339,18 @@ class Modifier(util.IdEquality):
         return self.void_timestamp is not None and \
                self.void_user_id is not None
 
-    def void(self, timestamp=None, **kwargs):
+    def void(self, store, timestamp=None, **kwargs):
+        srp_request = store.get_request(request_id=self.request_id)
+        if srp_request.status != ActionType.evaluating:
+            raise RequestStatusError(u"Request {} must be in the evaluating "
+                                     u"state to add change its modifiers (it "
+                                     u"is currently {}).".format(
+                                         srp_request.id_, srp_request.status))
         self.void_user_id = util.id_from_kwargs('user', kwargs)
         if timestamp is None:
             timestamp = dt.datetime.utcnow()
         self.void_timestamp = timestamp
+        store.save_modifier(self)
+        # Recalculate the payout and save it
+        srp_request.payout = srp_request.current_payout(store)
+        store.save_request(srp_request)
