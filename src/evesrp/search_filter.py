@@ -84,6 +84,18 @@ class Filter(object):
                 del work_filter._filters[key]
         return work_filter
 
+    def merge(self, other_filter):
+        # if other_filter is None or empty, this is a noop
+        if other_filter is None or len(other_filter) == 0:
+            return self
+        if self._immutable:
+            work_filter = self.__class__(filter_source=self)
+        else:
+            work_filter = self
+        for key, values in other_filter:
+            work_filter._filters[key].update(values)
+        return work_filter
+
     _int_keys = {'division', 'user'}
 
     _ccp_keys = {'type', 'pilot', 'region', 'constellation', 'system'}

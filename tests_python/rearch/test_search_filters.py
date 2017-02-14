@@ -90,6 +90,20 @@ def test_filter_repr():
     assert repr(f) == "Filter({'division': {2}})"
 
 
+def test_filter_merge():
+    starting_filter = sfilter.Filter().add(division=1)
+    assert starting_filter['division'] == {1,}
+    other_filter = sfilter.Filter().add(division=2).add(pilot=u'Paxswill')
+    assert other_filter['division'] == {2,}
+    assert other_filter['pilot'] == {u'Paxswill',}
+    merged_filter = starting_filter.merge(other_filter)
+    expected_filter = sfilter.Filter().\
+        add(pilot=u'Paxswill').\
+        add(division=1).\
+        add(division=2)
+    assert merged_filter == expected_filter
+
+
 string_or_id_values = {
     'type': (u'Erebus', u'Ragnarok', 671, u'Megathron',),
     # "Numbers" is my favorite test case.
