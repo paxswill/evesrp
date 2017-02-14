@@ -108,6 +108,11 @@ class RequestStatusError(ValueError):
 
 class Request(util.IdEquality):
 
+    # If you're adding a column/data field for Requests, make sure to update
+    # Request.__init__ and Request.from_dict in addition to
+    # BrowseActivity.columns.setter so you can get it out from searches. You
+    # should also update test cases as well of course.
+
     def __init__(self, id_, details='', timestamp=None, base_payout=0,
                  status=ActionType.evaluating, payout=None, **kwargs):
         self.id_ = id_
