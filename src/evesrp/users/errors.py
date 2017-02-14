@@ -9,3 +9,9 @@ class InsufficientPermissionsError(ValueError):
 
 class AdminPermissionError(InsufficientPermissionsError):
     pass
+
+
+class InvalidFieldsError(ValueError):
+
+    def __init__(self, *fields):
+        self.fields = fields

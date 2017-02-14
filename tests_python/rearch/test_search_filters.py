@@ -280,33 +280,3 @@ class TestRemovePredicates(object):
         with pytest.raises(sfilter.InvalidFilterKeyError) as excinfo:
             sfilter.Filter().add(foo='bar')
         assert excinfo.value.key == 'foo'
-
-
-def test_personal_filter():
-    user = mock.Mock(id_=2)
-    personal_filter = sfilter.Filter.personal_filter(user)
-    target_filters = {
-        'user': frozenset((2,)),
-    }
-
-
-@pytest.mark.parametrize('division_ids', (
-    (1,),
-    (2, 3),
-))
-@pytest.mark.parametrize('filter_type', ('reviewer', 'payer'))
-def test_reviewer_filter(division_ids, filter_type):
-    divisions = (mock.Mock(id_=d_id) for d_id in division_ids)
-    filter_class_method = getattr(sfilter.Filter, filter_type + '_filter')
-    filter_ = filter_class_method(divisions)
-    if filter_type == 'reviewer':
-        status_filter = frozenset((models.ActionType.evaluating,
-                                   models.ActionType.incomplete,
-                                   models.ActionType.approved))
-    elif filter_type == 'payer':
-        status_filter = frozenset((models.ActionType.approved,))
-    target_filters = {
-        'status': status_filter,
-        'division': frozenset(division_ids),
-    }
-    assert dict(filter_) == target_filters

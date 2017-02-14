@@ -1,0 +1,154 @@
+try:
+    from unittest import mock
+except ImportError:
+    import mock
+import pytest
+from evesrp import search_filter as sfilter
+from evesrp import users
+from evesrp import new_models as models
+import evesrp.users.browse
+
+
+def _mock_store_get_requests(*args, **kwargs):
+    pass
+
+
+def _mock_store_get_killmails(*args, **kwargs):
+    pass
+
+
+def _mock_get_sparse(*args, **kwargs):
+    pass
+
+
+@pytest.fixture
+def browse_store():
+    store = mock.Mock()
+    return store
+
+
+@pytest.fixture(params=(True, False), ids=('no_filter', 'with_filter'))
+def add_filter(request):
+    return request.param
+
+
+@pytest.fixture(params=(None, 'pilot', 'character'))
+def field_name(request):
+    return request.param
+
+
+@pytest.fixture(params=(True, False), ids=('admin', 'not_admin'))
+def is_admin(request):
+    return request.param
+
+
+@pytest.fixture(params=(True, False), ids=('reviewer', 'not_reviewer'))
+def is_reviewer(request):
+    return request.param
+
+
+@pytest.fixture(params=(True, False), ids=('payer', 'not_payer'))
+def is_payer(request):
+    return request.param
+
+
+@pytest.fixture
+def user(is_admin, is_reviewer, is_payer):
+    user = mock.Mock(id_=2, admin=is_admin)
+    permissions = []
+    if is_reviewer:
+        permissions.extend((
+            (100, models.PermissionType.review),
+            (200, models.PermissionType.review),))
+    if is_payer:
+        permissions.extend((
+            (200, models.PermissionType.pay),
+            (300, models.PermissionType.pay),))
+    user.get_permissions.return_value = permissions
+    return user
+
+
+@pytest.fixture(params=(
+    'list_personal',
+    'list_review',
+    'list_pay',
+    'list_all'
+))
+def browse_method(request):
+    return request.param
+
+
+@pytest.fixture
+def expected_filter(user, browse_method, add_filter, is_admin, is_reviewer,
+                    is_payer):
+    expected_filter = sfilter.Filter()
+    if browse_method == 'list_personal':
+        expected_filter = expected_filter.add(user=user.id_)
+    elif browse_method == 'list_review':
+        expected_filter = expected_filter.\
+            add(status=models.ActionType.evaluating).\
+            add(status=models.ActionType.incomplete).\
+            add(status=models.ActionType.approved)
+        if is_reviewer:
+            expected_filter = expected_filter.\
+                add(division=100).\
+                add(division=200)
+    elif browse_method == 'list_pay':
+        expected_filter = expected_filter.\
+            add(status=models.ActionType.approved)
+        if is_payer:
+            expected_filter = expected_filter.\
+                add(division=200).\
+                add(division=300)
+    elif browse_method == 'list_all':
+        if not is_admin:
+            if is_reviewer:
+                expected_filter = expected_filter.\
+                    add(division=100).\
+                    add(division=200)
+            if is_payer:
+                expected_filter = expected_filter.\
+                    add(division=200).\
+                    add(division=300)
+    if add_filter:
+        expected_filter = expected_filter.add(pilot=u'Paxswill')
+    return expected_filter
+
+
+def test_browse_list(browse_store, add_filter, field_name, user,
+                       browse_method, expected_filter):
+    browser = users.browse.BrowseActivity(browse_store, user)
+    # Set up the browse store mock
+    mock_requests = [
+        mock.Mock(killmail_id=10),
+        mock.Mock(killmail_id=20),
+        mock.Mock(killmail_id=30),
+    ]
+    browse_store.get_requests.return_value = mock_requests
+    browse_store.get_killmails.return_value = mock.sentinel.browse_killmails
+    browse_store.get_sparse.return_value = mock.sentinel.sparse_results
+    kwargs = {}
+    list_method = getattr(browser, browse_method)
+    if field_name is not None:
+        kwargs['fields'] = set((field_name,))
+    if add_filter:
+        filters = sfilter.Filter().add(pilot=u'Paxswill')
+        kwargs['filters'] = filters
+    if field_name == 'character':
+        with pytest.raises(users.InvalidFieldsError):
+            results = list_method(**kwargs)
+    else:
+        results = list_method(**kwargs)
+        if field_name is None:
+            browse_store.get_requests.assert_called_once_with(
+                filters=expected_filter)
+            browse_store.get_killmails.assert_called_once_with(
+                killmail_ids={10, 20, 30})
+            assert results == {
+                'requests': mock_requests,
+                'killmails': mock.sentinel.browse_killmails,
+            }
+        elif field_name == 'pilot':
+            browse_store.get_sparse.assert_called_once_with(
+                filters=expected_filter, fields=set(('pilot',)))
+            assert results == mock.sentinel.sparse_results

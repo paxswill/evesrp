@@ -182,28 +182,3 @@ class Filter(object):
             else:
                 raise InvalidFilterKeyError(key)
 
-    @classmethod
-    def personal_filter(cls, user):
-        filter_ = cls(filter_immutable=False)
-        filter_.add(user=user.id_)
-        filter_._immutable = True
-        return filter_
-
-    @classmethod
-    def reviewer_filter(cls, divisions):
-        filter_ = cls(filter_immutable=False)
-        for division in divisions:
-            filter_.add(division=division.id_)
-        for status in models.ActionType.pending:
-            filter_.add(status=status)
-        filter_._immutable = True
-        return filter_
-
-    @classmethod
-    def payer_filter(cls, divisions):
-        filter_ = cls(filter_immutable=False)
-        for division in divisions:
-            filter_.add(division=division.id_)
-        filter_.add(status=models.ActionType.approved)
-        filter_._immutable = True
-        return filter_
