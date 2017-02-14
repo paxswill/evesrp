@@ -57,6 +57,39 @@ def test_filter_iter():
     assert len(keys) == 0
 
 
+def test_filter_contains():
+    test_filter = sfilter.Filter()
+    assert len(test_filter) == 0
+    test_filter = test_filter.add(division=1)
+    assert len(test_filter) == 1
+    # Adding another item to an existing field does not change the length
+    test_filter = test_filter.add(division=2)
+    assert len(test_filter) == 1
+
+
+def test_filter_getitem():
+    f = sfilter.Filter()
+    assert f['division'] == set()
+    with pytest.raises(KeyError):
+        f['character']
+    assert isinstance(f['division'], frozenset)
+    f = f.add(division=5)
+    assert f['division'] == {5,}
+
+
+def test_filter_equals():
+    assert sfilter.Filter() == sfilter.Filter()
+    assert sfilter.Filter().add(division=2) == sfilter.Filter().add(division=2)
+    assert sfilter.Filter().add(division=2) != sfilter.Filter().add(division=0)
+
+
+def test_filter_repr():
+    f = sfilter.Filter()
+    assert repr(f) == "Filter({})"
+    f = f.add(division=2)
+    assert repr(f) == "Filter({'division': {2}})"
+
+
 string_or_id_values = {
     'type': (u'Erebus', u'Ragnarok', 671, u'Megathron',),
     # "Numbers" is my favorite test case.
