@@ -36,7 +36,7 @@ class BrowseActivity(object):
         # otherwise, return a collection of dicts, with the keys being the
         # field names.
         if fields is None:
-            requests = self.store.get_requests(filters=filters)
+            requests = self.store.filter_requests(filters=filters)
             killmail_ids = {r.killmail_id for r in requests}
             killmails = self.store.get_killmails(killmail_ids=killmail_ids)
             return {
@@ -48,7 +48,7 @@ class BrowseActivity(object):
             if not self._valid_fields.issuperset(field_set):
                 invalid_fields = field_set.difference(self._valid_fields)
                 raise errors.InvalidFieldsError(*invalid_fields)
-            return self.store.get_sparse(filters=filters, fields=field_set)
+            return self.store.filter_sparse(filters=filters, fields=field_set)
 
     def list_personal(self, filters=None, fields=None):
         personal_filter = search_filter.Filter().add(user=self.user.id_)
@@ -88,8 +88,6 @@ class BrowseActivity(object):
             # All filter is still constrained by permissions
             all_filter = self._create_permission_filter(
                 models.PermissionType.elevated)
-            # Union personal filter and elevated filter
-            self.store.run_search(filters)
         else:
             # Global admin users aren't filtered
             all_filter = search_filter.Filter()

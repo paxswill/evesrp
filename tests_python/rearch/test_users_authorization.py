@@ -7,23 +7,27 @@ import pytest
 from evesrp.users import authorization as authz
 from evesrp.users import errors
 from evesrp import new_models as models
+from evesrp import storage
 
 
-def test_permissions_admin_init():
-    store = mock.Mock()
+@pytest.fixture
+def store():
+    return mock.create_autospec(storage.BaseStore, instance=True)
+
+
+def test_permissions_admin_init(store):
     user = mock.Mock()
     permissions_admin = authz.PermissionsAdmin(store, user)
     assert permissions_admin.store == store
     assert permissions_admin.user == user
 
 
-@pytest.fixture(params=[True, False])
+@pytest.fixture(params=[True, False], ids=('is_admin', 'is_not_admin'))
 def is_admin(request):
     return request.param
 
 
-def test_division_create(is_admin):
-    store = mock.Mock()
+def test_division_create(store, is_admin):
     store.add_division.return_value = 23
     user = mock.Mock(admin=is_admin)
     permissions_admin = authz.PermissionsAdmin(store, user)
@@ -39,8 +43,7 @@ def test_division_create(is_admin):
 
 
 @pytest.mark.parametrize('admin_permission', [True, False])
-def test_division_admin_init(is_admin, admin_permission):
-    store = mock.Mock()
+def test_division_admin_init(store, is_admin, admin_permission):
     user = mock.Mock(admin=is_admin, id_=1)
     division = models.Division('A Division', 1)
     if admin_permission:
@@ -61,8 +64,7 @@ def test_division_admin_init(is_admin, admin_permission):
             authz.DivisionAdmin(store, user, division)
 
 
-def test_division_admin_list():
-    store = mock.Mock()
+def test_division_admin_list(store):
     user = mock.Mock(admin=True, id_=1)
     division = models.Division('A Division', 31)
     division_admin = authz.DivisionAdmin(store, user, division)

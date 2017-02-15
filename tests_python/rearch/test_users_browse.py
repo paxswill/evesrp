@@ -4,26 +4,14 @@ except ImportError:
     import mock
 import pytest
 from evesrp import search_filter as sfilter
-from evesrp import users
+from evesrp import users, storage
 from evesrp import new_models as models
 import evesrp.users.browse
 
 
-def _mock_store_get_requests(*args, **kwargs):
-    pass
-
-
-def _mock_store_get_killmails(*args, **kwargs):
-    pass
-
-
-def _mock_get_sparse(*args, **kwargs):
-    pass
-
-
 @pytest.fixture
 def browse_store():
-    store = mock.Mock()
+    store = mock.create_autospec(storage.BaseStore, instance=True)
     return store
 
 
@@ -124,9 +112,9 @@ def test_browse_list(browse_store, add_filter, field_name, user,
         mock.Mock(killmail_id=20),
         mock.Mock(killmail_id=30),
     ]
-    browse_store.get_requests.return_value = mock_requests
+    browse_store.filter_requests.return_value = mock_requests
     browse_store.get_killmails.return_value = mock.sentinel.browse_killmails
-    browse_store.get_sparse.return_value = mock.sentinel.sparse_results
+    browse_store.filter_sparse.return_value = mock.sentinel.sparse_results
     kwargs = {}
     list_method = getattr(browser, browse_method)
     if field_name is not None:
@@ -140,7 +128,7 @@ def test_browse_list(browse_store, add_filter, field_name, user,
     else:
         results = list_method(**kwargs)
         if field_name is None:
-            browse_store.get_requests.assert_called_once_with(
+            browse_store.filter_requests.assert_called_once_with(
                 filters=expected_filter)
             browse_store.get_killmails.assert_called_once_with(
                 killmail_ids={10, 20, 30})
@@ -149,6 +137,6 @@ def test_browse_list(browse_store, add_filter, field_name, user,
                 'killmails': mock.sentinel.browse_killmails,
             }
         elif field_name == 'pilot':
-            browse_store.get_sparse.assert_called_once_with(
+            browse_store.filter_sparse.assert_called_once_with(
                 filters=expected_filter, fields=set(('pilot',)))
             assert results == mock.sentinel.sparse_results

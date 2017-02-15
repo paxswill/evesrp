@@ -6,7 +6,13 @@ except ImportError:
     import mock
 import pytest
 
+from evesrp import storage
 from evesrp.new_models import request as models
+
+
+@pytest.fixture
+def store():
+    return mock.create_autospec(storage.BaseStore, instance=True)
 
 
 def test_pilot_init(paxswill_pilot):
@@ -28,8 +34,7 @@ def test_pilot_dict():
     assert pilot.user_id == 1
 
 
-def test_pilot_get_user(paxswill_pilot, paxswill_user):
-    store = mock.Mock()
+def test_pilot_get_user(store, paxswill_pilot, paxswill_user):
     store.get_user.return_value = paxswill_user
     assert paxswill_pilot.get_user(store) == paxswill_user
 
@@ -58,24 +63,19 @@ def test_killmail_dict(killmail_data):
     assert_killmail(killmail, killmail_data, 1)
 
 
-def test_killmail_user(killmail, paxswill_user):
-    store = mock.Mock()
+def test_killmail_user(store, killmail, paxswill_user):
     store.get_user.return_value = paxswill_user
     assert killmail.get_user(store) == paxswill_user
 
 
-def test_killmail_pilot(killmail, paxswill_pilot):
-    store = mock.Mock()
+def test_killmail_pilot(store, killmail, paxswill_pilot):
     store.get_pilot.return_value = paxswill_pilot
     assert killmail.get_pilot(store) == paxswill_pilot
 
 
-def test_killmail_requests(killmail):
-    requests = [
-    ]
-    store = mock.Mock()
-    store.get_requests.return_value = requests
-    assert killmail.get_requests(store) == requests
+def test_killmail_requests(store, killmail):
+    store.get_requests.return_value = mock.sentinel.killmail_requests
+    assert killmail.get_requests(store) == mock.sentinel.killmail_requests
 
 
 @pytest.fixture
@@ -123,9 +123,8 @@ def test_request_dict():
     assert srp_request.payout == Decimal(42000000)
 
 
-def test_request_actions(srp_request):
+def test_request_actions(store, srp_request):
     mock_actions = [1, 2, 3, 4]
-    store = mock.Mock()
     store.get_actions.return_value = mock_actions
     assert srp_request.get_actions(store) == mock_actions
 
@@ -164,8 +163,7 @@ def test_request_class_possible_actions(status):
 
 
 @pytest.fixture
-def action_store():
-    store = mock.Mock()
+def action_store(store):
     store.add_action.return_value = 37
     return store
 
@@ -241,8 +239,7 @@ def mock_modifiers():
 
 
 @pytest.fixture
-def mock_modifiers_store(mock_modifiers):
-    store = mock.Mock()
+def mock_modifiers_store(store, mock_modifiers):
     def modifiers_filtering(request_id, void=None, type_=None):
         filtered_list = mock_modifiers
         if void is not None:
@@ -330,11 +327,10 @@ def test_request_add_modifier(srp_request, status, mock_modifiers,
         assert srp_request.payout == Decimal(34650000)
 
 
-def test_request_division(srp_request):
+def test_request_division(store, srp_request):
     division = mock.Mock()
     division.name = "Testing Division"
     division.id = 1
-    store = mock.Mock()
     store.get_division.return_value = division
     assert srp_request.get_division(store) == division
 
