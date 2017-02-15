@@ -59,8 +59,13 @@ class Filter(object):
         return self._filters == other._filters
 
     def __repr__(self):
-        filters_repr = dict.__repr__(self._filters)
-        return "Filter({})".format(filters_repr)
+        def set_repr(a_set):
+            return "{{{}}}".format(", ".join(map(repr, a_set)))
+        def dict_repr(a_dict):
+            items = ["'{}': {}".format(key, set_repr(value)) for key, value in
+                     six.iteritems(a_dict)]
+            return "{{{}}}".format(", ".join(items))
+        return "Filter({})".format(dict_repr(self._filters))
 
     def add(self, **kwargs):
         # Copy ourselves if we're immutable
