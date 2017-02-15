@@ -302,8 +302,8 @@ def test_request_add_modifier(srp_request, status, mock_modifiers,
                                                 user_id=8)
         assert srp_request.current_payout(mock_modifiers_store) == \
             Decimal(30800000)
-        mock_modifiers_store.add_modifier.assert_not_called()
-        mock_modifiers_store.save_request.assert_not_called()
+        assert not mock_modifiers_store.add_modifier.called
+        assert not mock_modifiers_store.save_request.called
     else:
         # Little bit of trickery to make current_payout work like it's supposed
         # to
