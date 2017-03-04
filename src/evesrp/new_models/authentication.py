@@ -10,13 +10,13 @@ class AuthenticatedUser(util.IdEquality):
     def __init__(self, provider_key, extra_data=None, **kwargs):
         self.user_id = util.id_from_kwargs('user', kwargs)
         if 'provider' not in kwargs and \
-                'provider_guid' not in kwargs:
-            raise ValueError(u"Neither 'provider' nor 'provider_guid' have "
+                'provider_uuid' not in kwargs:
+            raise ValueError(u"Neither 'provider' nor 'provider_uuid' have "
                              u"been supplied.")
         elif 'provider' in kwargs:
-            self.provider_guid = kwargs['provider'].guid
+            self.provider_uuid = kwargs['provider'].uuid
         else:
-            self.provider_guid = kwargs['provider_guid']
+            self.provider_uuid = kwargs['provider_uuid']
         if extra_data is None:
             extra_data = {}
         self.extra_data = extra_data
@@ -25,7 +25,7 @@ class AuthenticatedUser(util.IdEquality):
     @classmethod
     def from_dict(cls, user_dict):
         return cls(user_id=user_dict['user_id'],
-                   provider_guid=user_dict['provider_guid'],
+                   provider_uuid=user_dict['provider_uuid'],
                    provider_key=user_dict['provider_key'],
                    extra_data=user_dict['extra_data'])
 
@@ -36,7 +36,7 @@ class AuthenticatedUser(util.IdEquality):
             raise AttributeError
 
     def __setattr__(self, name, value):
-        if name in {'user_id', 'provider_guid', 'provider_key', 'extra_data'}:
+        if name in {'user_id', 'provider_uuid', 'provider_key', 'extra_data'}:
             super(AuthenticatedUser, self).__setattr__(name, value)
         else:
             if self.extra_data is None:
