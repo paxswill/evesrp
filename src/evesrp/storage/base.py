@@ -4,6 +4,26 @@ from evesrp import search_filter as sfilter
 
 class BaseStore(object):
 
+    ### Authentication ###
+
+    def get_authn_user(self, provider_uuid, provider_key):
+        raise NotImplementedError
+
+    def add_authn_user(self, user_id, provider_uuid, provider_key, **kwargs):
+        raise NotImplementedError
+
+    def save_authn_user(self, authn_user):
+        raise NotImplementedError
+
+    def get_authn_group(self, provider_uuid, provider_key):
+        raise NotImplementedError
+
+    def add_authn_group(self, group_id, provider_uuid, provider_key, **kwargs):
+        raise NotImplementedError
+
+    def save_authn_group(self, authn_group):
+        raise NotImplementedError
+
     ### Divisions ###
 
     def get_division(self, division_id):
@@ -38,7 +58,16 @@ class BaseStore(object):
     def get_user(self, user_id):
         raise NotImplementedError
 
+    def add_user(self, name, is_admin=False):
+        raise NotImplementedError
+
     def get_users(self, group_id):
+        raise NotImplementedError
+
+    def get_group(self, group_id):
+        raise NotImplementedError
+
+    def add_group(self, name):
         raise NotImplementedError
 
     def get_groups(self, user_id):

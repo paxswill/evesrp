@@ -9,9 +9,12 @@ from evesrp import search_filter as sfilter
 
 
 not_implemented = [
+    'get_authn_user', 'add_authn_user', 'save_authn_user',
+    'get_authn_group', 'add_authn_group', 'save_authn_user',
     'get_division', 'get_divisions', 'add_division', 'save_division',
     'get_permission', 'get_permissions', 'add_permission', 'remove_permission',
-    'get_user', 'get_users', 'get_groups', 'associate_user_group',
+    'get_user', 'add_user', 'get_users', 
+    'get_group', 'add_group', 'get_groups', 'associate_user_group',
     'disassociate_user_group',
     'get_killmail', 'get_killmails',
     'get_request', 'get_requests', 'add_request', 'save_request',
