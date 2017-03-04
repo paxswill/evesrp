@@ -6,8 +6,9 @@ import pytest
 from evesrp.new_models import authentication as authn
 
 
-@pytest.fixture(params=(True, False), ids=('use_user_object', 'use_user_id'))
-def use_user_obj(request):
+@pytest.fixture(params=(True, False),
+                ids=('use_entity_object', 'use_entity_id'))
+def use_entity_obj(request):
     return request.param
 
 
@@ -17,7 +18,12 @@ def use_provider_obj(request):
     return request.param
 
 
-def test_auth_user_init(use_user_obj, use_provider_obj):
+@pytest.fixture(params=('user', 'group'))
+def auth_entity(request):
+    return request.param
+
+
+def test_auth_entity_init(auth_entity, use_entity_obj, use_provider_obj):
     kwargs = {
         'provider_key': mock.sentinel.provider_key,
         'extra_data': mock.sentinel.extra_data,
@@ -26,36 +32,37 @@ def test_auth_user_init(use_user_obj, use_provider_obj):
         kwargs['provider'] = mock.Mock(uuid=mock.sentinel.provider_uuid)
     else:
         kwargs['provider_uuid'] = mock.sentinel.provider_uuid
-    if use_user_obj:
-        kwargs['user'] = mock.Mock(id_=mock.sentinel.user_id)
+    if auth_entity == 'user':
+        AuthenticatedEntity = authn.AuthenticatedUser
+    elif auth_entity == 'group':
+        AuthenticatedEntity = authn.AuthenticatedGroup
+    if use_entity_obj:
+        kwargs[auth_entity] = mock.Mock(id_=mock.sentinel.entity_id)
     else:
-        kwargs['user_id'] = mock.sentinel.user_id
-    auth_user = authn.AuthenticatedUser(**kwargs)
-    assert auth_user.provider_key == mock.sentinel.provider_key
-    assert auth_user.user_id == mock.sentinel.user_id
-    assert auth_user.provider_uuid == mock.sentinel.provider_uuid
-    assert auth_user.extra_data == mock.sentinel.extra_data
+        kwargs[auth_entity + '_id'] = mock.sentinel.entity_id
+    entity = AuthenticatedEntity(**kwargs)
+    assert entity.provider_key == mock.sentinel.provider_key
+    assert entity.provider_uuid == mock.sentinel.provider_uuid
+    assert entity.extra_data == mock.sentinel.extra_data
+    assert getattr(entity, auth_entity + '_id')== mock.sentinel.entity_id
 
 
-@pytest.mark.parametrize('with_extra', (True, False),
-                         ids=('with_extra', 'no_extra'))
-def test_auth_user_from_dict(with_extra):
-    auth_user_data = {
-        'user_id': mock.sentinel.user_id,
+def test_auth_user_from_dict(auth_entity):
+    auth_entity_data = {
+        (auth_entity + '_id'): mock.sentinel.entity_id,
         'provider_key': mock.sentinel.provider_key,
         'provider_uuid': mock.sentinel.provider_uuid,
-        'extra_data': {},
+        'extra_data': mock.sentinel.extra_data,
     }
-    if with_extra:
-        auth_user_data['extra_data'] = mock.sentinel.extra_data
-    auth_user = authn.AuthenticatedUser.from_dict(auth_user_data)
-    assert auth_user.provider_key == mock.sentinel.provider_key
-    assert auth_user.user_id == mock.sentinel.user_id
-    assert auth_user.provider_uuid == mock.sentinel.provider_uuid
-    if with_extra:
-        assert auth_user.extra_data == mock.sentinel.extra_data
-    else:
-        assert auth_user.extra_data == {}
+    if auth_entity == 'user':
+        AuthenticatedEntity = authn.AuthenticatedUser
+    elif auth_entity == 'group':
+        AuthenticatedEntity = authn.AuthenticatedGroup
+    entity = AuthenticatedEntity.from_dict(auth_entity_data)
+    assert entity.provider_key == mock.sentinel.provider_key
+    assert entity.provider_uuid == mock.sentinel.provider_uuid
+    assert entity.extra_data == mock.sentinel.extra_data
+    assert getattr(entity, auth_entity + '_id') == mock.sentinel.entity_id
 
 
 def test_set_extra_data():

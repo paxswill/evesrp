@@ -3,12 +3,11 @@ import json
 from . import util
 
 
-class AuthenticatedUser(util.IdEquality):
+class _AbstractAuthenticated(object):
 
     # If I ever end up dropping support for Py2, these arguments will become
     # by keyword only
     def __init__(self, provider_key, extra_data=None, **kwargs):
-        self.user_id = util.id_from_kwargs('user', kwargs)
         if 'provider' not in kwargs and \
                 'provider_uuid' not in kwargs:
             raise ValueError(u"Neither 'provider' nor 'provider_uuid' have "
@@ -20,14 +19,23 @@ class AuthenticatedUser(util.IdEquality):
         if extra_data is None:
             extra_data = {}
         self.extra_data = extra_data
+        """
+        Things to cram inside extra_data:
+
+            * OAuth refresh keys and expiration times
+            * Whether a group is a special admin 'virtual' group (one created
+              so you can refer to just the admins of a group as defined by some
+              authentication backends like TEST Auth).
+            * EveSSO's AccountCharacterHash
+
+        Basically, if it's only relevant to a AuthenticationProvider, then it
+        goes in extra_data.
+        """
         self.provider_key = provider_key
 
-    @classmethod
-    def from_dict(cls, user_dict):
-        return cls(user_id=user_dict['user_id'],
-                   provider_uuid=user_dict['provider_uuid'],
-                   provider_key=user_dict['provider_key'],
-                   extra_data=user_dict['extra_data'])
+    @property
+    def _normal_attrs(self):
+        return {'provider_uuid', 'provider_key', 'extra_data'}
 
     def __getattr__(self, name):
         try:
@@ -36,8 +44,8 @@ class AuthenticatedUser(util.IdEquality):
             raise AttributeError
 
     def __setattr__(self, name, value):
-        if name in {'user_id', 'provider_uuid', 'provider_key', 'extra_data'}:
-            super(AuthenticatedUser, self).__setattr__(name, value)
+        if name in self._normal_attrs:
+            super(_AbstractAuthenticated, self).__setattr__(name, value)
         else:
             if self.extra_data is None:
                 self.extra_data = {}
@@ -48,3 +56,47 @@ class AuthenticatedUser(util.IdEquality):
             del self.extra_data[name]
         except KeyError:
             raise AttributeError
+
+    def __hash__(self):
+        return hash(self.provider_uuid) ^ hash(self.provider_key)
+
+    def __eq__(self, other):
+        return self.provider_uuid == other.provider_uuid and \
+               self.provider_key == other.provider_key
+
+
+class AuthenticatedUser(_AbstractAuthenticated):
+
+    def __init__(self, **kwargs):
+        self.user_id = util.id_from_kwargs('user', kwargs)
+        super(AuthenticatedUser, self).__init__(**kwargs)
+
+    @classmethod
+    def from_dict(cls, user_dict):
+        return cls(user_id=user_dict['user_id'],
+                   provider_uuid=user_dict['provider_uuid'],
+                   provider_key=user_dict['provider_key'],
+                   extra_data=user_dict['extra_data'])
+
+    @property
+    def _normal_attrs(self):
+        super_attrs = super(AuthenticatedUser, self)._normal_attrs
+        return super_attrs.union({'user_id', })
+
+class AuthenticatedGroup(_AbstractAuthenticated):
+
+    def __init__(self, **kwargs):
+        self.group_id = util.id_from_kwargs('group', kwargs)
+        super(AuthenticatedGroup, self).__init__(**kwargs)
+
+    @classmethod
+    def from_dict(cls, group_dict):
+        return cls(group_id=group_dict['group_id'],
+                   provider_uuid=group_dict['provider_uuid'],
+                   provider_key=group_dict['provider_key'],
+                   extra_data=group_dict['extra_data'])
+
+    @property
+    def _normal_attrs(self):
+        super_attrs = super(AuthenticatedGroup, self)._normal_attrs
+        return super_attrs.union({'group_id', })
