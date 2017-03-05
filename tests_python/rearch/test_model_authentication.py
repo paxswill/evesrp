@@ -23,10 +23,13 @@ def auth_entity(request):
     return request.param
 
 
-def test_auth_entity_init(auth_entity, use_entity_obj, use_provider_obj):
+@pytest.mark.parametrize('extra_kwargs', (True, False),
+                         ids=('add_extra_kwargs', 'no_kwargs'))
+def test_auth_entity_init(auth_entity, use_entity_obj, use_provider_obj,
+                          extra_kwargs):
     kwargs = {
         'provider_key': mock.sentinel.provider_key,
-        'extra_data': mock.sentinel.extra_data,
+        'extra_data': {'test_extra': mock.sentinel.test_extra},
     }
     if use_provider_obj:
         kwargs['provider'] = mock.Mock(uuid=mock.sentinel.provider_uuid)
@@ -40,11 +43,21 @@ def test_auth_entity_init(auth_entity, use_entity_obj, use_provider_obj):
         kwargs[auth_entity] = mock.Mock(id_=mock.sentinel.entity_id)
     else:
         kwargs[auth_entity + '_id'] = mock.sentinel.entity_id
+    if extra_kwargs:
+        kwargs['test_extra_two'] = mock.sentinel.test_extra_two
     entity = AuthenticatedEntity(**kwargs)
     assert entity.provider_key == mock.sentinel.provider_key
     assert entity.provider_uuid == mock.sentinel.provider_uuid
-    assert entity.extra_data == mock.sentinel.extra_data
     assert getattr(entity, auth_entity + '_id')== mock.sentinel.entity_id
+    if extra_kwargs:
+        assert entity.extra_data == {
+            'test_extra': mock.sentinel.test_extra,
+            'test_extra_two': mock.sentinel.test_extra_two,
+        }
+    else:
+        assert entity.extra_data == {
+            'test_extra': mock.sentinel.test_extra,
+        }
 
 
 def test_auth_user_from_dict(auth_entity):
@@ -52,7 +65,7 @@ def test_auth_user_from_dict(auth_entity):
         (auth_entity + '_id'): mock.sentinel.entity_id,
         'provider_key': mock.sentinel.provider_key,
         'provider_uuid': mock.sentinel.provider_uuid,
-        'extra_data': mock.sentinel.extra_data,
+        'extra_data': {'test_extra': mock.sentinel.test_extra},
     }
     if auth_entity == 'user':
         AuthenticatedEntity = authn.AuthenticatedUser
@@ -61,7 +74,7 @@ def test_auth_user_from_dict(auth_entity):
     entity = AuthenticatedEntity.from_dict(auth_entity_data)
     assert entity.provider_key == mock.sentinel.provider_key
     assert entity.provider_uuid == mock.sentinel.provider_uuid
-    assert entity.extra_data == mock.sentinel.extra_data
+    assert entity.extra_data == {'test_extra': mock.sentinel.test_extra}
     assert getattr(entity, auth_entity + '_id') == mock.sentinel.entity_id
 
 

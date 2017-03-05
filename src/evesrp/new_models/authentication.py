@@ -1,5 +1,3 @@
-import json
-
 from . import util
 
 
@@ -13,12 +11,10 @@ class _AbstractAuthenticated(object):
             raise ValueError(u"Neither 'provider' nor 'provider_uuid' have "
                              u"been supplied.")
         elif 'provider' in kwargs:
-            self.provider_uuid = kwargs['provider'].uuid
+            self.provider_uuid = kwargs.pop('provider').uuid
         else:
-            self.provider_uuid = kwargs['provider_uuid']
-        if extra_data is None:
-            extra_data = {}
-        self.extra_data = extra_data
+            self.provider_uuid = kwargs.pop('provider_uuid')
+        self.provider_key = provider_key
         """
         Things to cram inside extra_data:
 
@@ -31,7 +27,13 @@ class _AbstractAuthenticated(object):
         Basically, if it's only relevant to a AuthenticationProvider, then it
         goes in extra_data.
         """
-        self.provider_key = provider_key
+        if extra_data is None:
+            extra_data = {}
+        self.extra_data = extra_data
+        for attr in self._normal_attrs:
+            kwargs.pop(attr, None)
+        self.extra_data.update(kwargs)
+
 
     @property
     def _normal_attrs(self):
@@ -69,6 +71,8 @@ class AuthenticatedUser(_AbstractAuthenticated):
 
     def __init__(self, **kwargs):
         self.user_id = util.id_from_kwargs('user', kwargs)
+        kwargs.pop('user', None)
+        kwargs.pop('user_id', None)
         super(AuthenticatedUser, self).__init__(**kwargs)
 
     @classmethod
@@ -87,6 +91,8 @@ class AuthenticatedGroup(_AbstractAuthenticated):
 
     def __init__(self, **kwargs):
         self.group_id = util.id_from_kwargs('group', kwargs)
+        kwargs.pop('group', None)
+        kwargs.pop('group_id', None)
         super(AuthenticatedGroup, self).__init__(**kwargs)
 
     @classmethod
