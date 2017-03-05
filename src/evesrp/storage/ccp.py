@@ -66,18 +66,36 @@ class CcpStore(object):
             character_id=ccp_id)
         return request.result()['name']
 
-    def get_corporation_id(self, name):
+    def get_corporation_id(self, corporation_name=None, character_name=None,
+                           character_id=None):
         # Note, ESI only returns active corporations (at least as of
         # 2017-02-15), so we don't have to deal with duplicates.
-        return self._single_search('corporation', name)
+        if corporation_name is not None:
+            return self._single_search('corporation', corporation_name)
+        if character_name is not None:
+            character_id = self.get_character_id(character_name)
+        if character_id is not None:
+            character_info = self.client.Character.get_characters_character_id(
+                character_id=character_id).result()
+            return character_info[u'corporation_id']
+        raise ValueError
 
     def get_corporation_name(self, ccp_id):
         request = self.client.Corporation.get_corporations_corporation_id(
             corporation_id=ccp_id)
         return request.result()['corporation_name']
 
-    def get_alliance_id(self, name):
-        return self._single_search('alliance', name)
+    def get_alliance_id(self, alliance_name=None, corporation_name=None,
+                        corporation_id=None):
+        if alliance_name is not None:
+            return self._single_search('alliance', alliance_name)
+        if corporation_name is not None and corporation_id is None:
+            corporation_id = self.get_corporation_id(corporation_name)
+        if corporation_id is not None:
+            corp_info = self.client.Corporation.get_corporations_corporation_id(
+                corporation_id=corporation_id).result()
+            return corp_info['alliance_id']
+        raise ValueError
 
     def get_alliance_name(self, ccp_id):
         request = self.client.Alliance.get_alliances_names(

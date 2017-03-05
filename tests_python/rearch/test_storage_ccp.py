@@ -99,17 +99,19 @@ class TestSimpleCcpStore(object):
     def test_character_name(self, ccp_store, name, id_):
         assert ccp_store.get_character_name(id_) == name
 
-    @pytest.mark.parametrize('name,id_', (
+    @pytest.mark.parametrize('get_args,id_', (
         # Player corporation
-        ('Dreddit', 1018389948),
+        ({'corporation_name': 'Dreddit'}, 1018389948),
+        ({'character_name': 'Paxswill'}, 1018389948),
+        ({'character_id': 570140137}, 1018389948),
         # NPC corp
-        ('State War Academy', 1000167),
+        ({'corporation_name': 'State War Academy'}, 1000167),
         # TODO: Add test case for closed corporations
         # Need to find a closed corporation to test agains. Maybe make one
         # myself just for testing...).
     ))
-    def test_corporation_id(self, ccp_store, name, id_):
-        assert ccp_store.get_corporation_id(name) == id_
+    def test_corporation_id(self, ccp_store, get_args, id_):
+        assert ccp_store.get_corporation_id(**get_args) == id_
 
     @pytest.mark.parametrize('name,id_', (
         # Player corporation
@@ -120,9 +122,14 @@ class TestSimpleCcpStore(object):
     def test_corporation_name(self, ccp_store, name, id_):
         assert ccp_store.get_corporation_name(id_) == name
 
-    def test_alliance_id(self, ccp_store):
-        assert ccp_store.get_alliance_id('Test Alliance Please Ignore') == \
-            498125261
+    @pytest.mark.parametrize('get_args,id_',(
+        ({'alliance_name': 'Test Alliance Please Ignore'}, 498125261),
+        ({'corporation_name': 'C C P'}, 434243723),
+        ({'corporation_id': 109299958}, 434243723),
+    ))
+    def test_alliance_id(self, get_args, id_, ccp_store):
+
+        assert ccp_store.get_alliance_id(**get_args) == id_
 
     def test_alliance_name(self, ccp_store):
         assert ccp_store.get_alliance_name(498125261) == \
