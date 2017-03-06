@@ -76,9 +76,8 @@ class Division(util.IdEquality):
         return cls(entity_dict[u'name'], entity_dict[u'id'])
 
     def add_permission(self, store, type_, **kwargs):
-        permission = Permission(division_id=self.id_, type_=type_, **kwargs)
-        store.add_permission(permission)
-        return permission
+        entity_id = util.id_from_kwargs('entity', kwargs)
+        return store.add_permission(self.id_, entity_id, type_)
 
     def remove_permission(self, store, **kwargs):
         permission_id = util.id_from_kwargs('permission', kwargs)

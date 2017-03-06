@@ -14,14 +14,15 @@ not_implemented = [
     'get_division', 'get_divisions', 'add_division', 'save_division',
     'get_permission', 'get_permissions', 'add_permission', 'remove_permission',
     'get_user', 'add_user', 'get_users', 
-    'get_group', 'add_group', 'get_groups', 'associate_user_group',
-    'disassociate_user_group',
-    'get_killmail', 'get_killmails',
+    'get_group', 'add_group', 'get_groups',
+    'associate_user_group', 'disassociate_user_group',
+    'get_killmail', 'get_killmails', 'add_killmail',
     'get_request', 'get_requests', 'add_request', 'save_request',
     'get_action', 'get_actions', 'add_action',
-    'get_modifier', 'get_modifiers', 'add_modifier', 'save_modifier',
+    'get_modifier', 'get_modifiers', 'add_modifier', 'void_modifier',
     'filter_requests',
-    'get_pilot', 'get_notes',
+    'get_character', 'add_character', 'save_character',
+    'get_notes', 'add_note',
 ]
 
 

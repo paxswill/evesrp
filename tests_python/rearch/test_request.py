@@ -41,7 +41,7 @@ def test_pilot_get_user(store, paxswill_pilot, paxswill_user):
 
 def assert_killmail(killmail, killmail_data, user_id):
     assert killmail.id_ == killmail_data['id']
-    assert killmail.pilot_id == killmail_data['pilot_id']
+    assert killmail.character_id == killmail_data['character_id']
     assert killmail.corporation_id == killmail_data['corporation_id']
     assert killmail.alliance_id == killmail_data['alliance_id']
     assert killmail.system_id == killmail_data['system_id']
@@ -68,9 +68,9 @@ def test_killmail_user(store, killmail, paxswill_user):
     assert killmail.get_user(store) == paxswill_user
 
 
-def test_killmail_pilot(store, killmail, paxswill_pilot):
-    store.get_pilot.return_value = paxswill_pilot
-    assert killmail.get_pilot(store) == paxswill_pilot
+def test_killmail_character(store, killmail, paxswill_pilot):
+    store.get_character.return_value = paxswill_pilot
+    assert killmail.get_character(store) == paxswill_pilot
 
 
 def test_killmail_requests(store, killmail):
@@ -164,7 +164,7 @@ def test_request_class_possible_actions(status):
 
 @pytest.fixture
 def action_store(store):
-    store.add_action.return_value = 37
+    store.add_action.return_value = mock.Mock(id_=mock.sentinel.action_id)
     return store
 
 
@@ -173,21 +173,21 @@ def action_store(store):
 def test_request_add_action(srp_request, starting_status, new_action,
                             action_store):
     srp_request.status = starting_status
+    action_store.add_action.return_value.type_ = new_action
     if new_action not in models.Request.possible_actions(starting_status):
         with pytest.raises(models.RequestStatusError):
             srp_request.add_action(action_store, new_action, user_id=1)
     else:
-        action = srp_request.add_action(action_store, new_action, user_id=1)
-        action_store.add_action.assert_called_with(action)
+        action = srp_request.add_action(action_store, new_action,
+                                        user_id=mock.sentinel.action_user_id)
+        action_store.add_action.assert_called_once_with(
+            srp_request.id_, new_action, mock.sentinel.action_user_id, u'')
         action_store.save_request.assert_called_with(srp_request)
-        assert action is not None
-        assert action.id_ == 37
+        assert action.id_ == mock.sentinel.action_id
         if new_action != models.ActionType.comment:
             assert srp_request.status == new_action
         else:
             assert srp_request.status == starting_status
-        assert action.user_id == 1
-        assert action.request_id == srp_request.id_
 
 
 @pytest.mark.parametrize('starting_status', models.ActionType.statuses)
@@ -197,28 +197,22 @@ def test_set_details(srp_request, starting_status, action_store):
     srp_request.status = starting_status
     assert srp_request.details == old_details
     user = mock.Mock(id_=4)
-    now = dt.datetime.utcnow()
     if starting_status not in models.ActionType.updateable:
         with pytest.raises(models.RequestStatusError):
             new_action = srp_request.set_details(action_store, new_details,
-                                                 user=user, timestamp=now)
+                                                 user=user)
         assert srp_request.details == old_details
         assert srp_request.status == starting_status
     else:
         new_action = srp_request.set_details(action_store, new_details,
-                                             user=user, timestamp=now)
-        action_store.add_action.assert_called_with(new_action)
+                                             user=user)
+        action_store.add_action.assert_called_once_with(srp_request.id_,
+            models.ActionType.evaluating, user.id_, old_details)
         # Asserting that save_request was called twice in a row, once in
         # add_action(), once in change_details()
         action_store.save_request.assert_has_calls(
             [mock.call(srp_request), mock.call(srp_request)])
         assert new_action is not None
-        assert new_action.id_ == 37
-        assert new_action.type_ == models.ActionType.evaluating
-        assert new_action.user_id == user.id_
-        assert new_action.contents == old_details
-        assert new_action.timestamp == now
-        assert srp_request.status == models.ActionType.evaluating
         assert srp_request.details == new_details
 
 
@@ -291,7 +285,7 @@ def test_request_add_modifier(srp_request, status, mock_modifiers,
                               mock_modifiers_store):
     assert srp_request.current_payout(mock_modifiers_store) == \
         Decimal(30800000)
-    mock_modifiers_store.add_modifier.return_value = 32
+    mock_modifiers_store.add_modifier.return_value = mock.sentinel.modifier
     srp_request.status = status
     if status != models.ActionType.evaluating:
         with pytest.raises(models.RequestStatusError):
@@ -314,16 +308,12 @@ def test_request_add_modifier(srp_request, status, mock_modifiers,
                                             models.ModifierType.absolute,
                                             Decimal(3500000),
                                             note=u'Just because.',
-                                            user_id=8)
-        mock_modifiers_store.add_modifier.assert_called_with(modifier)
+                                            user_id=mock.sentinel.user_id)
+        mock_modifiers_store.add_modifier.assert_called_once_with(
+            srp_request.id_, mock.sentinel.user_id,
+            models.ModifierType.absolute, Decimal(3500000), u'Just because.')
         mock_modifiers_store.save_request.assert_called_with(srp_request)
-        assert modifier is not None
-        assert modifier.id_ == 32
-        assert modifier.request_id == srp_request.id_
-        assert modifier.type_ == models.ModifierType.absolute
-        assert modifier.value == Decimal(3500000)
-        assert modifier.note == u'Just because.'
-        assert modifier.user_id == 8
+        assert modifier == mock.sentinel.modifier
         assert srp_request.payout == Decimal(34650000)
 
 
@@ -516,15 +506,16 @@ def test_modifier_void(modifier, status):
     store = mock.Mock()
     srp_request = mock.Mock()
     store.get_request.return_value = srp_request
+    store.void_modifier.return_value = mock.sentinel.modifier_void_timestamp
     srp_request.current_payout.return_value = mock.sentinel.current_payout
     srp_request.status = status
     if status == models.ActionType.evaluating:
-        modifier.void(store, user_id=1, timestamp=dt.datetime(2016, 12, 1))
+        modifier.void(store, user_id=1)
         assert modifier.is_void
         assert modifier.void_user_id == 1
-        assert modifier.void_timestamp == dt.datetime(2016, 12, 1)
+        assert modifier.void_timestamp == mock.sentinel.modifier_void_timestamp
         store.get_request.assert_called_once_with(request_id=modifier.request_id)
-        store.save_modifier.assert_called_once_with(modifier)
+        store.void_modifier.assert_called_once_with(modifier.id_, 1)
         assert srp_request.payout == mock.sentinel.current_payout
         store.save_request.assert_called_once_with(srp_request)
     else:

@@ -14,9 +14,7 @@ class PermissionsAdmin(object):
             raise errors.AdminPermissionError(u"User '{}' has insufficient "
                                               u"permissions to create "
                                               u"divisions.".format(self.user))
-        division = models.Division(division_name, None)
-        division.id_ = self.store.add_division(division)
-        return division
+        return self.store.add_division(division_name)
 
 
 class DivisionAdmin(object):

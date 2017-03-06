@@ -28,15 +28,16 @@ def is_admin(request):
 
 
 def test_division_create(store, is_admin):
-    store.add_division.return_value = 23
+    store.add_division.return_value = models.Division('A Division Name',
+                                                      mock.sentinel.division_id)
     user = mock.Mock(admin=is_admin)
     permissions_admin = authz.PermissionsAdmin(store, user)
     if is_admin:
         division = permissions_admin.create_division('A Division Name')
         assert division is not None
         assert division.name == 'A Division Name'
-        assert division.id_ == 23
-        store.add_division.assert_called_with(division)
+        assert division.id_ == mock.sentinel.division_id
+        store.add_division.assert_called_with('A Division Name')
     else:
         with pytest.raises(errors.AdminPermissionError):
             permissions_admin.create_division('Non-Admin Division')

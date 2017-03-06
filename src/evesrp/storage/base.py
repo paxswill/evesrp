@@ -9,7 +9,8 @@ class BaseStore(object):
     def get_authn_user(self, provider_uuid, provider_key):
         raise NotImplementedError
 
-    def add_authn_user(self, user_id, provider_uuid, provider_key, **kwargs):
+    def add_authn_user(self, user_id, provider_uuid, provider_key,
+                       extra_data=None, **kwargs):
         raise NotImplementedError
 
     def save_authn_user(self, authn_user):
@@ -18,7 +19,8 @@ class BaseStore(object):
     def get_authn_group(self, provider_uuid, provider_key):
         raise NotImplementedError
 
-    def add_authn_group(self, group_id, provider_uuid, provider_key, **kwargs):
+    def add_authn_group(self, group_id, provider_uuid, provider_key,
+                        extra_data=None, **kwargs):
         raise NotImplementedError
 
     def save_authn_group(self, authn_group):
@@ -32,11 +34,18 @@ class BaseStore(object):
     def get_divisions(self, division_ids):
         raise NotImplementedError
 
-    def add_division(self, division):
+    def add_division(self, name):
         raise NotImplementedError
 
     def save_division(self, division):
         raise NotImplementedError
+
+    # Removing Divisions is not supported.
+    # Being able to remove Divisions would also entail removing all Requests to
+    # that Division, and all Actions and Modifiers for those Requests, and if
+    # that's the last Request for a Killmail, removing that Killmail. You'd
+    # also lose all records from that division, which is kinda the goal of this
+    # application (keeping records).
 
     ### Permissions ###
 
@@ -47,10 +56,21 @@ class BaseStore(object):
         # entity_id, division_id, types, type_
         raise NotImplementedError
 
-    def add_permission(self, permission):
+    def add_permission(self, division_id, entity_id, type_):
         raise NotImplementedError
 
-    def remove_permission(self, permission_id):
+    def remove_permission(self, *args, **kwargs):
+        """Remove a Permission from storage.
+        There are two modes of operation for this method:
+            remove_permission(permission_id)
+        or
+            remove_permission(division_id, entity_id, type_)
+
+        Because the combination of division, entity and permission type must be
+        unique, you can refer to a permission either by it's ID or the tuple of
+        those values. For the second mode of operation, keyword or positional
+        arguments are allowed.
+        """
         raise NotImplementedError
 
     ### Users and Groups ###
@@ -58,19 +78,19 @@ class BaseStore(object):
     def get_user(self, user_id):
         raise NotImplementedError
 
-    def add_user(self, name, is_admin=False):
+    def get_users(self, group_id):
         raise NotImplementedError
 
-    def get_users(self, group_id):
+    def add_user(self, name, is_admin=False):
         raise NotImplementedError
 
     def get_group(self, group_id):
         raise NotImplementedError
 
-    def add_group(self, name):
+    def get_groups(self, user_id):
         raise NotImplementedError
 
-    def get_groups(self, user_id):
+    def add_group(self, name):
         raise NotImplementedError
 
     def associate_user_group(self, user_id, group_id):
@@ -87,6 +107,32 @@ class BaseStore(object):
     def get_killmails(self, killmail_ids):
         raise NotImplementedError
 
+    def add_killmail(self, **kwargs):
+        """Create a record for a killmail.
+
+        :param int id_: The CCP ID for the killmail.
+        :param int user_id: The internal ID for the user owning the character
+            on this killmail.
+        :param int character_id: The CCP (and internal) ID for the
+            :py:class:`~.Character` on this killmail belongs to (the victim in
+            other words).
+        :param int corporation_id: The CCP ID for the corporation the victim
+            belonged to at the time of the loss.
+        :param alliance_id: The CCP ID the victim's corporation was in at the
+            time of the loss. May be `None` if they were not in an alliance.
+        :type alliance_id: int or None
+        :param int system_id: The CCP ID for the solar system the loss took
+            place in.
+        :param int constellation_id: The CCP ID of the constellation the loss
+            took place in.
+        :param int region_id: The CCP ID of the region the loss took place in.
+        :param datetime timestamp: The date and time the loss happened.
+        :rtype: :py:class:`~.request.Killmail`
+        """
+        raise NotImplementedError
+
+    # Again, same reasons for not implementing Killmail removal as Division
+
     ### Requests ###
 
     def get_request(self):
@@ -95,7 +141,7 @@ class BaseStore(object):
     def get_requests(self, killmail_id):
         raise NotImplementedError
 
-    def add_request(self, request):
+    def add_request(self, killmail_id, division_id, details=u''):
         raise NotImplementedError
 
     def save_request(self, request):
@@ -109,8 +155,11 @@ class BaseStore(object):
     def get_actions(self, request_id):
         raise NotImplementedError
 
-    def add_action(self, action):
+    def add_action(self, request_id, type_, user_id, contents=u''):
         raise NotImplementedError
+
+    # Modification of existing Actions is not something that should be
+    # happening, so it's not implemented.
 
     ### Request Modifiers ###
 
@@ -121,10 +170,20 @@ class BaseStore(object):
         # request_id, void, type_
         raise NotImplementedError
 
-    def add_modifier(self, modifier):
+    def add_modifier(self, request_id, user_id, type_, value, note=u''):
         raise NotImplementedError
 
-    def save_modifier(self, modifier):
+    def void_modifier(self, modifier_id, user_id):
+        """
+        :param int modifier_id: The ID of the modifier to void.
+        :param int user_id: The ID of the :py:class:`~.User` voiding this
+            :py:class:`~.Modifier`.
+        :return: The timestamp the :py:class:`~.Modifier` was voided.
+        :rtype: :py:class:`datetime.datetime`
+        """
+        # In contrast to Actions, Modifiers are changed after creation, but
+        # only in a specific manner: they are only voided (and unable to be
+        # un-voided).
         raise NotImplementedError
 
     ### Filtering ###
@@ -252,8 +311,20 @@ class BaseStore(object):
 
     ### Misc ###
 
-    def get_pilot(self, pilot_id):
+    def get_character(self, character_id):
+        raise NotImplementedError
+
+    def add_character(self, user_id, character_id, character_name):
+        raise NotImplementedError
+
+    def save_character(self, character):
+        # Characters can have their name changed by CCP (if it's found to be
+        # offensive for example) and their owning character can be updated as
+        # well (character transfers).
         raise NotImplementedError
 
     def get_notes(self, subject_id):
+        raise NotImplementedError
+
+    def add_note(self, subject_id, submitter_id, contents):
         raise NotImplementedError

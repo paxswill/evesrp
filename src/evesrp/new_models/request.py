@@ -28,7 +28,7 @@ class Killmail(util.IdEquality):
     def __init__(self, id_, **kwargs):
         self.id_ = id_
         self.user_id = util.id_from_kwargs('user', kwargs)
-        self.pilot_id = kwargs['pilot_id']
+        self.character_id = kwargs['character_id']
         self.corporation_id = kwargs['corporation_id']
         # Alliance is optional, as corps aren't required to be in an alliance.
         # dict.get returns None if the key doesn't exist.
@@ -43,7 +43,7 @@ class Killmail(util.IdEquality):
     def from_dict(cls, killmail_dict):
         return cls(killmail_dict['id'],
                    user_id=killmail_dict['user_id'],
-                   pilot_id=killmail_dict['pilot_id'],
+                   character_id=killmail_dict['character_id'],
                    corporation_id=killmail_dict['corporation_id'],
                    # Again, using dict.get to allow for null alliances
                    alliance_id=killmail_dict.get('alliance_id'),
@@ -58,8 +58,8 @@ class Killmail(util.IdEquality):
     def get_user(self, store):
         return store.get_user(user_id=self.user_id)
 
-    def get_pilot(self, store):
-        return store.get_pilot(pilot_id=self.pilot_id)
+    def get_character(self, store):
+        return store.get_character(character_id=self.character_id)
 
     def get_requests(self, store):
         return store.get_requests(killmail_id=self.id_)
@@ -181,21 +181,19 @@ class Request(util.IdEquality):
     def possible_actions(cls, status):
         return cls.state_rules[status]
 
-    def add_action(self, store, type_, timestamp=None, contents='', **kwargs):
+    def add_action(self, store, type_, contents='', **kwargs):
         if type_ not in self.possible_actions(self.status):
             raise RequestStatusError(u"It is not possible for request {} to "
                                      u"change status to {} from {}.".format(
                                          self.id_, type_, self.status))
         user_id = util.id_from_kwargs('user', kwargs)
-        action = Action(None, type_, timestamp=timestamp, contents=contents,
-                        user_id=user_id, request_id=self.id_)
-        action.id_ = store.add_action(action)
+        action = store.add_action(self.id_, type_, user_id, contents)
         if action.type_ != ActionType.comment:
             self.status = action.type_
         store.save_request(self)
         return action
 
-    def set_details(self, store, new_details, timestamp=None, **kwargs):
+    def set_details(self, store, new_details, **kwargs):
         if self.status not in ActionType.updateable:
             raise RequestStatusError(u"Details can only be changed for "
                                      u"requests in evaluating or incomplete "
@@ -203,7 +201,6 @@ class Request(util.IdEquality):
                                          self.id_, self.status))
         new_action = self.add_action(store,
                                      ActionType.evaluating,
-                                     timestamp=timestamp,
                                      contents=self.details,
                                      request_id=self.id_, **kwargs)
         self.details = new_details
@@ -218,17 +215,14 @@ class Request(util.IdEquality):
             get_kwargs['type_'] = type_
         return store.get_modifiers(**get_kwargs)
 
-    def add_modifier(self, store, type_, value, note=u'', timestamp=None,
-                     **kwargs):
+    def add_modifier(self, store, type_, value, note=u'', **kwargs):
         if self.status != ActionType.evaluating:
             raise RequestStatusError(u"Request {} must be in the evaluating "
                                      u"state to add change its modifiers (it "
                                      u"is currently {}).".format(
                                          self.id_, self.status))
-        modifier = Modifier(None, type_, value, note=note, timestamp=timestamp,
-                            request_id=self.id_, **kwargs)
-        modifier_id = store.add_modifier(modifier)
-        modifier.id_ = modifier_id
+        user_id = util.id_from_kwargs('user', kwargs)
+        modifier = store.add_modifier(self.id_, user_id, type_, value, note)
         self.payout = self.current_payout(store)
         store.save_request(self)
         return modifier
@@ -344,18 +338,15 @@ class Modifier(util.IdEquality):
         return self.void_timestamp is not None and \
                self.void_user_id is not None
 
-    def void(self, store, timestamp=None, **kwargs):
+    def void(self, store, **kwargs):
         srp_request = store.get_request(request_id=self.request_id)
         if srp_request.status != ActionType.evaluating:
             raise RequestStatusError(u"Request {} must be in the evaluating "
-                                     u"state to add change its modifiers (it "
+                                     u"state to change its modifiers (it "
                                      u"is currently {}).".format(
                                          srp_request.id_, srp_request.status))
         self.void_user_id = util.id_from_kwargs('user', kwargs)
-        if timestamp is None:
-            timestamp = dt.datetime.utcnow()
-        self.void_timestamp = timestamp
-        store.save_modifier(self)
+        self.void_timestamp = store.void_modifier(self.id_, self.void_user_id)
         # Recalculate the payout and save it
         srp_request.payout = srp_request.current_payout(store)
         store.save_request(srp_request)

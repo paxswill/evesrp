@@ -26,7 +26,7 @@ def paxswill_user():
 def killmail_data():
     return {
         'id': 56474105,
-        'pilot_id': 570140137,
+        'character_id': 570140137,
         'system_id': 30001445,
         'constellation_id': 20000212,
         'region_id': 10000016,
