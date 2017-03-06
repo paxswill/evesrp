@@ -10,7 +10,7 @@ from evesrp import new_models as models
 
 @pytest.fixture
 def paxswill_pilot():
-    pilot = models.Pilot("Paxswill", 570140137, user_id=1)
+    pilot = models.Character("Paxswill", 570140137, user_id=1)
     return pilot
 
 

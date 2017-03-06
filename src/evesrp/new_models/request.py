@@ -6,7 +6,7 @@ from . import util
 from ..util import classproperty
 
 
-class Pilot(util.IdEquality):
+class Character(util.IdEquality):
 
     def __init__(self, name, id_, **kwargs):
         self.name = name

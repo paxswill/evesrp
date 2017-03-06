@@ -28,7 +28,7 @@ def test_pilot_dict():
         "id": 570140137,
         "user_id": 1,
     }
-    pilot = models.Pilot.from_dict(pilot_dict)
+    pilot = models.Character.from_dict(pilot_dict)
     assert pilot.name == "Paxswill"
     assert pilot.id_ == 570140137
     assert pilot.user_id == 1
