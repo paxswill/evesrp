@@ -16,6 +16,13 @@ def ccp_store():
     # /may/ experience downtime as their service does. It also will expose any
     # problems due to updating APIs.
     store = storage.CcpStore()
+    # Instrument/replace _esi_request to check for warning headers
+    original_esi_request = store._esi_request
+    def warning_esi_request(*args, **kwargs):
+        result = original_esi_request(*args, **kwargs)
+        assert u'warning' not in result
+        return result
+    store._esi_request = warning_esi_request
     return store
 
 
@@ -57,22 +64,23 @@ def caching_store(_caching_store):
 class TestSimpleCcpStore(object):
 
     def test_region_id(self, ccp_store):
-        assert ccp_store.get_region_id('The Forge') == 10000002
+        assert ccp_store.get_region_id('The Forge')[u'result'] == 10000002
 
     def test_region_name(self, ccp_store):
-        assert ccp_store.get_region_name(10000002) == 'The Forge'
+        assert ccp_store.get_region_name(10000002)[u'result'] == 'The Forge'
 
     def test_constellation_id(self, ccp_store):
-        assert ccp_store.get_constellation_id('Kimotoro') == 20000020
+        assert ccp_store.get_constellation_id('Kimotoro')[u'result'] == 20000020
 
     def test_constellation_name(self, ccp_store):
-        assert ccp_store.get_constellation_name(20000020) == 'Kimotoro'
+        assert ccp_store.get_constellation_name(20000020)[u'result'] == \
+            'Kimotoro'
 
     def test_system_id(self, ccp_store):
-        assert ccp_store.get_system_id('Jita') == 30000142
+        assert ccp_store.get_system_id('Jita')[u'result'] == 30000142
 
     def test_system_name(self, ccp_store):
-        assert ccp_store.get_system_name(30000142) == 'Jita'
+        assert ccp_store.get_system_name(30000142)[u'result'] == 'Jita'
 
     @pytest.mark.parametrize('name,id_', (
         # Normal 2010 vintage character
@@ -86,7 +94,7 @@ class TestSimpleCcpStore(object):
         ('Cpt Hector', 2112390815),
     ))
     def test_character_id(self, ccp_store, name, id_):
-        assert ccp_store.get_character_id(name) == id_
+        assert ccp_store.get_character_id(name)[u'result'] == id_
 
     @pytest.mark.parametrize('name,id_', (
         # Normal 2010 vintage character
@@ -97,7 +105,7 @@ class TestSimpleCcpStore(object):
         ('Cpt Hector', 2112390815),
     ))
     def test_character_name(self, ccp_store, name, id_):
-        assert ccp_store.get_character_name(id_) == name
+        assert ccp_store.get_character_name(id_)[u'result'] == name
 
     @pytest.mark.parametrize('get_args,id_', (
         # Player corporation
@@ -111,7 +119,7 @@ class TestSimpleCcpStore(object):
         # myself just for testing...).
     ))
     def test_corporation_id(self, ccp_store, get_args, id_):
-        assert ccp_store.get_corporation_id(**get_args) == id_
+        assert ccp_store.get_corporation_id(**get_args)[u'result'] == id_
 
     @pytest.mark.parametrize('name,id_', (
         # Player corporation
@@ -120,7 +128,7 @@ class TestSimpleCcpStore(object):
         ('State War Academy', 1000167),
     ))
     def test_corporation_name(self, ccp_store, name, id_):
-        assert ccp_store.get_corporation_name(id_) == name
+        assert ccp_store.get_corporation_name(id_)[u'result'] == name
 
     @pytest.mark.parametrize('get_args,id_',(
         ({'alliance_name': 'Test Alliance Please Ignore'}, 498125261),
@@ -129,19 +137,19 @@ class TestSimpleCcpStore(object):
     ))
     def test_alliance_id(self, get_args, id_, ccp_store):
 
-        assert ccp_store.get_alliance_id(**get_args) == id_
+        assert ccp_store.get_alliance_id(**get_args)[u'result'] == id_
 
     def test_alliance_name(self, ccp_store):
-        assert ccp_store.get_alliance_name(498125261) == \
+        assert ccp_store.get_alliance_name(498125261)[u'result'] == \
             'Test Alliance Please Ignore'
 
     def get_type_id(self, ccp_store):
         # Test the Cruor specifically, as there are two types for the single
         # name
-        assert ccp_store.get_type_id('Cruor') == 17926
+        assert ccp_store.get_type_id('Cruor')[u'result'] == 17926
 
     def get_type_name(self, ccp_store):
-        assert ccp_store.get_type_name(17926) == 'Cruor'
+        assert ccp_store.get_type_name(17926)[u'result'] == 'Cruor'
 
 
 class TestCachedCcpStore(object):
@@ -150,46 +158,48 @@ class TestCachedCcpStore(object):
         if not hit_cache:
             monkeypatch.delitem(static_data.region_names, 10000002)
             assert 10000002 not in static_data.region_names
-        assert caching_store.get_region_id('The Forge') == 10000002
+        assert caching_store.get_region_id('The Forge')[u'result'] == 10000002
 
     def test_region_name(self, caching_store, hit_cache, monkeypatch):
         if not hit_cache:
             monkeypatch.delitem(static_data.region_names, 10000002)
             assert 10000002 not in static_data.region_names
-        assert caching_store.get_region_name(10000002) == 'The Forge'
+        assert caching_store.get_region_name(10000002)[u'result'] == 'The Forge'
 
     def test_constellation_id(self, caching_store, hit_cache, monkeypatch):
         if not hit_cache:
             monkeypatch.delitem(static_data.constellation_names, 20000020)
             assert 20000020 not in static_data.constellation_names
-        assert caching_store.get_constellation_id('Kimotoro') == 20000020
+        assert caching_store.get_constellation_id('Kimotoro')[u'result'] == \
+            20000020
 
     def test_constellation_name(self, caching_store, hit_cache, monkeypatch):
         if not hit_cache:
             monkeypatch.delitem(static_data.constellation_names, 20000020)
             assert 20000020 not in static_data.constellation_names
-        assert caching_store.get_constellation_name(20000020) == 'Kimotoro'
+        assert caching_store.get_constellation_name(20000020)[u'result'] == \
+            'Kimotoro'
 
     def test_system_id(self, caching_store, hit_cache, monkeypatch):
         if not hit_cache:
             monkeypatch.delitem(static_data.system_names, 30000142)
             assert 30000142 not in static_data.system_names
-        assert caching_store.get_system_id('Jita') == 30000142
+        assert caching_store.get_system_id('Jita')[u'result'] == 30000142
 
     def test_system_name(self, caching_store, hit_cache, monkeypatch):
         if not hit_cache:
             monkeypatch.delitem(static_data.system_names, 30000142)
             assert 30000142 not in static_data.system_names
-        assert caching_store.get_system_name(30000142) == 'Jita'
+        assert caching_store.get_system_name(30000142)[u'result'] == 'Jita'
 
     def test_type_id(self, caching_store, hit_cache, monkeypatch):
         if not hit_cache:
             monkeypatch.delitem(static_data.ships, 11567)
             assert 11567 not in static_data.ships
-        assert caching_store.get_type_id('Avatar') == 11567
+        assert caching_store.get_type_id('Avatar')[u'result'] == 11567
 
     def test_type_name(self, caching_store, hit_cache, monkeypatch):
         if not hit_cache:
             monkeypatch.delitem(static_data.ships, 11567)
             assert 11567 not in static_data.ships
-        assert caching_store.get_type_name(11567) == 'Avatar'
+        assert caching_store.get_type_name(11567)[u'result'] == 'Avatar'

@@ -1,6 +1,0 @@
-These files are imported just to add the requests based client from the full
-bravado package. If bravado eventually splits the external dependencies out so
-we don't need to install all of twisted just for it, we can remove this
-vendor'd directory. These fiels are current as of 2017-02-15, commit
-3997bca944cc0e780d7583f3fe740b7159404353
-
