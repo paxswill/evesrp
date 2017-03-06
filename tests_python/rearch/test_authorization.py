@@ -168,10 +168,12 @@ def test_division_dict():
 
 
 def test_division_add_permission(store, division):
+    store.add_permission.return_value = mock.sentinel.added_permission
     permission = division.add_permission(store, entity_id=13,
                                          type_=models.PermissionType.submit)
-    assert permission is not None
-    store.add_permission.assert_called_with(permission)
+    assert permission == mock.sentinel.added_permission
+    store.add_permission.assert_called_once_with(division.id_, 13,
+                                                 models.PermissionType.submit)
 
 
 def test_division_remove_permission(store, division):

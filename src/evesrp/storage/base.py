@@ -62,7 +62,7 @@ class BaseStore(object):
     def remove_permission(self, *args, **kwargs):
         """Remove a Permission from storage.
         There are two modes of operation for this method:
-            remove_permission(permission_id)
+            remove_permission(permission)
         or
             remove_permission(division_id, entity_id, type_)
 

@@ -124,7 +124,7 @@ class PermissionType(enum.Enum):
                           cls.audit))
 
 
-class Permission(util.IdEquality):
+class Permission(object):
 
     def __init__(self, **kwargs):
         self.entity_id = util.id_from_kwargs('entity', kwargs)
@@ -142,6 +142,14 @@ class Permission(util.IdEquality):
     def to_tuple(self):
         #return (self.division_id, self.type_)
         return (self.type_, self.division_id)
+
+    def __eq__(self, other):
+        return self.entity_id == other.entity_id and \
+            self.division_id == other.division_id and \
+            self.type_ == other.type_
+
+    def __hash__(self):
+        return hash(self.entity_id) ^ hash(self.division_id) ^ hash(self.type_)
 
 
 class Note(util.IdEquality):
