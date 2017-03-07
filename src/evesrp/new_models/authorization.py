@@ -21,6 +21,10 @@ class Entity(util.IdEquality):
                  store.get_permissions(entity_id=self.id_)}
         return perms
 
+    def __repr__(self):
+        return "{self.__class__.__name__}({name}, {self.id_})".format(
+            self=self, name=repr(self.name))
+
 
 class User(Entity):
 
@@ -49,6 +53,10 @@ class User(Entity):
 
     def get_notes(self, store):
         return store.get_notes(subject_id=self.id_)
+
+    def __repr__(self):
+        return ("{self.__class__.__name__}({name}, {self.id_}, "
+                "{self.admin})").format(self=self, name=repr(self.name))
 
 
 class Group(Entity):
@@ -150,6 +158,10 @@ class Permission(object):
 
     def __hash__(self):
         return hash(self.entity_id) ^ hash(self.division_id) ^ hash(self.type_)
+
+    def __repr__(self):
+        return ("Permission({self.division_id}, {self.entity_id}, "
+                "{self.type_})").format(self=self)
 
 
 class Note(util.IdEquality):
