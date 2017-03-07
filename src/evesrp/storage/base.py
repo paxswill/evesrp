@@ -102,7 +102,7 @@ class BaseStore(object):
         raise NotImplementedError
 
     def get_killmails(self, killmail_ids):
-        raise NotImplementedError
+        return {self.get_killmail(kid) for kid in killmail_ids}
 
     def add_killmail(self, **kwargs):
         """Create a record for a killmail.

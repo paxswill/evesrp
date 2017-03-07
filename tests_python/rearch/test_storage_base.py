@@ -16,7 +16,7 @@ not_implemented = [
     'get_user', 'add_user', 'get_users', 
     'get_group', 'add_group', 'get_groups',
     'associate_user_group', 'disassociate_user_group',
-    'get_killmail', 'get_killmails', 'add_killmail',
+    'get_killmail', 'add_killmail',
     'get_request', 'get_requests', 'add_request', 'save_request',
     'get_action', 'get_actions', 'add_action',
     'get_modifier', 'get_modifiers', 'add_modifier', 'void_modifier',
@@ -36,6 +36,16 @@ def test_not_implemented(method_name):
         # This silliness with the range splat is just to fill in required
         # arguments.
         method(*range(arg_count))
+
+
+def test_get_killmails():
+    store = storage.BaseStore()
+    store.get_killmail = mock.Mock()
+    store.get_killmail.side_effect = lambda kid: getattr(mock.sentinel,
+                                                         "killmail_" +
+                                                         str(kid))
+    assert {getattr(mock.sentinel, "killmail_" + str(i)) for i in range(4)} == \
+        store.get_killmails(range(4))
 
 
 @pytest.fixture
