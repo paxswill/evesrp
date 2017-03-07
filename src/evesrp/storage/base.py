@@ -49,9 +49,6 @@ class BaseStore(object):
 
     ### Permissions ###
 
-    def get_permission(self):
-        raise NotImplementedError
-
     def get_permissions(self, **kwargs):
         # entity_id, division_id, types, type_
         raise NotImplementedError
