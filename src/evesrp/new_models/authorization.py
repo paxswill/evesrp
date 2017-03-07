@@ -134,12 +134,16 @@ class PermissionType(enum.Enum):
 
 class Permission(object):
 
-    def __init__(self, **kwargs):
-        self.entity_id = util.id_from_kwargs('entity', kwargs)
-        self.division_id = util.id_from_kwargs('division', kwargs)
-        if 'type_' not in kwargs:
+    def __init__(self, division_id=None, entity_id=None, type_=None, **kwargs):
+        if division_id is None:
+            division_id = kwargs['division'].id_
+        self.division_id = division_id
+        if entity_id is None:
+            entity_id = kwargs['entity'].id_
+        self.entity_id = entity_id
+        if 'type_' is None:
             raise ValueError(u"Permission type required.")
-        self.type_ = kwargs['type_']
+        self.type_ = type_
 
     @classmethod
     def from_dict(cls, permission_dict):
