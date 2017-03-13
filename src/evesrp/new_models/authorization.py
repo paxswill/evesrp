@@ -106,6 +106,10 @@ class Division(util.IdEquality):
             get_kwargs['types'] = types
         return store.get_permissions(**get_kwargs)
 
+    def __repr__(self):
+        return "{self.__class__.__name__}({name}, {self.id_})".format(
+            self=self, name=repr(self.name))
+
 
 class PermissionType(enum.Enum):
 
