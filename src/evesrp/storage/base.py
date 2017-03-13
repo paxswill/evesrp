@@ -31,7 +31,7 @@ class BaseStore(object):
     def get_division(self, division_id):
         raise NotImplementedError
 
-    def get_divisions(self, division_ids):
+    def get_divisions(self, division_ids=None):
         raise NotImplementedError
 
     def add_division(self, name):
