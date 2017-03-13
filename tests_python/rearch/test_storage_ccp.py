@@ -293,9 +293,12 @@ class TestSimpleCcpStore(object):
             kwarg_type = key[:-5]
             # Find the identity for this argument
             for identity_key, identity_dict in six.iteritems(identities):
-                identity = identity_dict[kwarg_type]
-                if identity is not None and identity[u'name'] == value:
-                    return identity_dict[identity_type]
+                try:
+                    identity = identity_dict[kwarg_type]
+                    if identity is not None and identity[u'name'] == value:
+                        return identity_dict[identity_type]
+                except KeyError:
+                    pass
         raise Exception("Something's wrong in expected_identity, you should "
                         "never reach here.")
 
