@@ -37,6 +37,12 @@ class _AbstractAuthenticated(object):
 
     @property
     def _normal_attrs(self):
+        """Provides a list of attribute names that should not be treated as
+        extra data.
+
+        Subclasses must implement if they use additional attributes they don't
+        want shoved in extra_data.
+        """
         return {'provider_uuid', 'provider_key', 'extra_data'}
 
     def __getattr__(self, name):

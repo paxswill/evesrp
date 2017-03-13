@@ -306,7 +306,7 @@ class BaseStore(object):
         for request in full_requests:
             yield self._format_sparse(request, **format_kwargs)
 
-    ### Misc ###
+    ### Characters ###
 
     def get_character(self, character_id):
         raise NotImplementedError
@@ -319,6 +319,8 @@ class BaseStore(object):
         # offensive for example) and their owning character can be updated as
         # well (character transfers).
         raise NotImplementedError
+
+    ### User Notes ###
 
     def get_notes(self, subject_id):
         raise NotImplementedError
