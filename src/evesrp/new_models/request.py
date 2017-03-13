@@ -38,6 +38,7 @@ class Killmail(util.IdEquality):
         self.region_id = kwargs['region_id']
         self.type_id = kwargs['type_id']
         self.timestamp = kwargs['timestamp']
+        self.url = kwargs['url']
 
     @classmethod
     def from_dict(cls, killmail_dict):
@@ -53,7 +54,8 @@ class Killmail(util.IdEquality):
                    type_id=killmail_dict['type_id'],
                    # Allow either an ISO8601 date and time string, or a Python
                    # datetime object
-                   timestamp=util.parse_timestamp(killmail_dict['timestamp']))
+                   timestamp=util.parse_timestamp(killmail_dict['timestamp']),
+                   url=killmail_dict['url'])
 
     def get_user(self, store):
         return store.get_user(user_id=self.user_id)

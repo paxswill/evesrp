@@ -34,6 +34,7 @@ def killmail_data():
         'alliance_id': 498125261,
         'type_id': 11202,
         'timestamp': dt.datetime(2016, 10, 7, 15, 22, 56),
+        'url': 'https://zkillboard.com/kill/56474105/',
     }
 
 

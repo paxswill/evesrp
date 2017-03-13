@@ -49,6 +49,7 @@ def assert_killmail(killmail, killmail_data, user_id):
     assert killmail.region_id == killmail_data['region_id']
     assert killmail.type_id == killmail_data['type_id']
     assert killmail.timestamp == killmail_data['timestamp']
+    assert killmail.url == killmail_data['url']
     assert killmail.user_id == user_id
 
 
