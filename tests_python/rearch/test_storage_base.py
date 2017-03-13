@@ -23,6 +23,9 @@ not_implemented = [
     'filter_requests',
     'get_character', 'add_character', 'save_character',
     'get_notes', 'add_note',
+    'get_region', 'get_constellation', 'get_system',
+    'get_alliance', 'get_corporation', 'get_character',
+    'get_type',
 ]
 
 

@@ -325,3 +325,32 @@ class BaseStore(object):
 
     def add_note(self, subject_id, submitter_id, contents):
         raise NotImplementedError
+
+    ### CCP Lookups ###
+
+    def get_region(self, region_name=None, region_id=None,
+                   constellation_name=None, constellation_id=None,
+                   system_name=None, system_id=None):
+        raise NotImplementedError
+
+    def get_constellation(self, constellation_name=None, constellation_id=None,
+                          system_name=None, system_id=None):
+        raise NotImplementedError
+
+    def get_system(self, system_name=None, system_id=None):
+        raise NotImplementedError
+
+    def get_alliance(self, alliance_name=None, alliance_id=None,
+                     corporation_name=None, corporation_id=None,
+                     character_name=None, character_id=None):
+        raise NotImplementedError
+
+    def get_corporation(self, corporation_name=None, corporation_id=None,
+                        character_name=None, character_id=None):
+        raise NotImplementedError
+
+    def get_character(self, character_name=None, character_id=None):
+        raise NotImplementedError
+
+    def get_type(self, type_name=None, type_id=None):
+        raise NotImplementedError
