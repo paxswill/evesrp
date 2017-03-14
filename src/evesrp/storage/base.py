@@ -109,7 +109,7 @@ class BaseStore(object):
 
         :param int id_: The CCP ID for the killmail.
         :param int user_id: The internal ID for the user owning the character
-            on this killmail.
+            on this killmail at the time of first submission.
         :param int character_id: The CCP (and internal) ID for the
             :py:class:`~.Character` on this killmail belongs to (the victim in
             other words).
@@ -124,7 +124,6 @@ class BaseStore(object):
             took place in.
         :param int region_id: The CCP ID of the region the loss took place in.
         :param datetime timestamp: The date and time the loss happened.
-        :rtype: :py:class:`~.request.Killmail`
         """
         raise NotImplementedError
 
@@ -132,7 +131,17 @@ class BaseStore(object):
 
     ### Requests ###
 
-    def get_request(self):
+    def get_request(self, request_id=None, killmail_id=None, division_id=None):
+        """Retrieve a request for SRP.
+
+        Either `request_id` or both `killmail_id` and `division_id` must be
+        given.
+        :param int request_id: The ID number for the request.
+        :param int killmail_id: The ID for the killmail associated with a
+            request.
+        :param int division_id: The ID of the division associated with a
+            request.
+        """
         raise NotImplementedError
 
     def get_requests(self, killmail_id):
@@ -146,7 +155,7 @@ class BaseStore(object):
 
     ### Request Actions ###
 
-    def get_action(self):
+    def get_action(self, action_id):
         raise NotImplementedError
 
     def get_actions(self, request_id):
@@ -163,8 +172,16 @@ class BaseStore(object):
     def get_modifier(self, modifier_id):
         raise NotImplementedError
 
-    def get_modifiers(self, **kwargs):
-        # request_id, void, type_
+    def get_modifiers(self, request_id, void=None, type_=None):
+        """Get modifers for a request.
+        :param int request_id: The ID number of the request.
+        :param void: If `True`, only return voided modifiers. For `False`, only
+            return unvoided modifiers. If `None`, returns all modifiers,
+            regardless of status.
+        :type void: bool or None
+        :param type_: If given, returns only modifiers of that type.
+        :type type_: :py:class:`~.ModifierType` or None
+        """
         raise NotImplementedError
 
     def add_modifier(self, request_id, user_id, type_, value, note=u''):
