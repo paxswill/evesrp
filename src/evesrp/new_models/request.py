@@ -247,13 +247,13 @@ class Request(util.IdEquality):
         # (base_payout + sum(absolute)) * (1 + sum(relative))
         # absolute being all non-void absolute modifiers' values and relative
         # the same for relative modifiers
-        absolute_modifiers = self.get_modifiers(store,void=False,
+        absolute_modifiers = self.get_modifiers(store, void=False,
                                                 type_=ModifierType.absolute)
         # When an empty iterable is given to sum(), it returns 0, which is an
         # exact value (an int) for Decimal, so no need to worry about
         # inaccuracies there.
         absolute = sum([m.value for m in absolute_modifiers])
-        relative_modifiers = self.get_modifiers(store,void=False,
+        relative_modifiers = self.get_modifiers(store, void=False,
                                                 type_=ModifierType.relative)
         relative = sum([m.value for m in relative_modifiers])
         return (self.base_payout + absolute) * (Decimal(1) + relative)
