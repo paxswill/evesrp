@@ -361,7 +361,7 @@ class CcpStore(object):
                 alliance_id=char_resp[u'result'][u'alliance_id'])
             return self._merge_sub_result(alliance_resp, char_resp)
         elif character_name is not None:
-            char_resp = self.get_character(character_name=character_name)
+            char_resp = self.get_ccp_character(character_name=character_name)
             if char_resp[u'result'] is None:
                 return char_resp
             alliance_resp = self.get_alliance(
@@ -396,7 +396,7 @@ class CcpStore(object):
             corp_resp = self.get_corporation(corporation_id=corp_id)
             return self._merge_sub_result(corp_resp, char_resp)
         elif character_name is not None:
-            char_resp = self.get_character(character_name=character_name)
+            char_resp = self.get_ccp_character(character_name=character_name)
             if char_resp[u'result'] is None:
                 return char_resp
             corp_resp = self.get_corporation(
@@ -406,7 +406,7 @@ class CcpStore(object):
             raise ValueError("Need at least a corporation's or "
                              "character's name or id to look up.")
 
-    def get_character(self, character_name=None, character_id=None):
+    def get_ccp_character(self, character_name=None, character_id=None):
         if character_id is not None:
             resp = self._base_character(character_id)
             if resp[u'http_code'] == 200:

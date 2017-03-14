@@ -304,7 +304,10 @@ class TestSimpleCcpStore(object):
 
     def test_identity(self, ccp_store, identity_kwargs, identity_type,
                       expected_identity):
-        get_identity = getattr(ccp_store, 'get_' + identity_type)
+        if identity_type == 'character':
+            get_identity = ccp_store.get_ccp_character
+        else:
+            get_identity = getattr(ccp_store, 'get_' + identity_type)
         result = get_identity(**identity_kwargs)
         assert result[u'result'] == expected_identity
 
@@ -330,7 +333,10 @@ class TestSimpleCcpStore(object):
             pytest.skip("keyword argument {} not supported for "
                         "get_{}".format(key, identity_type))
         # Actual test
-        get_identity = getattr(ccp_store, 'get_' + identity_type)
+        if identity_type == 'character':
+            get_identity = ccp_store.get_ccp_character
+        else:
+            get_identity = getattr(ccp_store, 'get_' + identity_type)
         resp = get_identity(**negative_kwargs)
         assert resp[u'result'] is None
         assert unicode(negative_kwargs[key]) in resp[u'errors'][0]

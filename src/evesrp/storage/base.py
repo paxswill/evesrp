@@ -368,7 +368,7 @@ class BaseStore(object):
                         character_name=None, character_id=None):
         raise NotImplementedError
 
-    def get_character(self, character_name=None, character_id=None):
+    def get_ccp_character(self, character_name=None, character_id=None):
         raise NotImplementedError
 
     def get_type(self, type_name=None, type_id=None):
