@@ -3,8 +3,10 @@ import datetime as dt
 import decimal
 import itertools
 import copy
+
 import six
 import iso8601
+
 import evesrp
 from evesrp import new_models as models
 
@@ -109,7 +111,7 @@ class Filter(object):
 
     _decimal_keys = {'payout', 'base_payout'}
 
-    _text_keys = {'details',}
+    _text_keys = {'details', }
 
     _all_keys = frozenset(itertools.chain(_int_keys, _ccp_keys,
                                             _timestamp_keys, _decimal_keys,
