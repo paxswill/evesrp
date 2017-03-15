@@ -289,8 +289,11 @@ class Action(util.IdEquality):
 
     @classmethod
     def from_dict(cls, action_dict):
+        type_ = action_dict['type']
+        if isinstance(type_, six.string_types):
+            type_ = ActionType[type_]
         return cls(action_dict['id'],
-                   ActionType[action_dict['type']],
+                   type_,
                    timestamp=util.parse_timestamp(action_dict['timestamp']),
                    contents=action_dict['contents'],
                    user_id=action_dict['user_id'],
