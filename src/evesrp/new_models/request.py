@@ -327,8 +327,11 @@ class Modifier(util.IdEquality):
 
     @classmethod
     def from_dict(cls, modifier_dict):
+        type_ = modifier_dict['type']
+        if isinstance(type_, six.string_types):
+            type_ = ModifierType[type_]
         modifier = cls(modifier_dict['id'],
-                       ModifierType[modifier_dict['type']],
+                       type_,
                        Decimal(modifier_dict['value']),
                        note=modifier_dict.get('note', ''),
                        timestamp=util.parse_timestamp(
