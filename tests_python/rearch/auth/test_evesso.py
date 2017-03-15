@@ -1,4 +1,3 @@
-import itertools
 try:
     from unittest import mock
 except ImportError:
@@ -118,7 +117,9 @@ def test_get_groups(context, store, existing_groups):
         assert store.add_authn_group.call_count == 2
         store.add_group.assert_any_call('Dreddit')
         store.add_authn_group.assert_any_call(group_id=mock.ANY,
-            provider_uuid=mock.ANY, provider_key='1018389948')
+                                              provider_uuid=mock.ANY,
+                                              provider_key='1018389948')
         store.add_group.assert_any_call('Test Alliance Please Ignore')
         store.add_authn_group.assert_any_call(group_id=mock.ANY,
-            provider_uuid=mock.ANY, provider_key='498125261')
+                                              provider_uuid=mock.ANY,
+                                              provider_key='498125261')

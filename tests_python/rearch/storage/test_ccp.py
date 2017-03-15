@@ -1,9 +1,3 @@
-import types
-try:
-    from unittest import mock
-except ImportError:
-    import mock
-
 import pytest
 import requests
 import six
@@ -34,6 +28,7 @@ def ccp_store(requests_session):
     store = storage.CcpStore(requests_session=requests_session)
     # Instrument/replace _esi_request to check for warning headers
     original_esi_request = store._esi_request
+
     def warning_esi_request(*args, **kwargs):
         result = original_esi_request(*args, **kwargs)
         assert u'warning' not in result
@@ -135,10 +130,10 @@ class TestSimpleCcpStore(object):
             # Skip early
             if location_type == 'constellation' and 'region' in key:
                 pytest.skip("region_* kwargs not valid for get_constellation")
-            elif location_type == 'system' and ('region' in key or \
+            elif location_type == 'system' and ('region' in key or
                                                 'constellation' in key):
-                pytest.skip("region_* and constellation_* kwargs not valid for "
-                            "get_system")
+                pytest.skip("region_* and constellation_* kwargs not valid for"
+                            " get_system")
         except IndexError:
             # Don't skip the empty kwargs case
             pass
@@ -164,7 +159,7 @@ class TestSimpleCcpStore(object):
         # Skip early
         if location_type == 'constellation' and 'region' in key:
             pytest.skip("region_* kwargs not valid for get_constellation")
-        elif location_type == 'system' and ('region' in key or \
+        elif location_type == 'system' and ('region' in key or
                                             'constellation' in key):
             pytest.skip("region_* and constellation_* kwargs not valid for "
                         "get_system")
@@ -178,15 +173,15 @@ class TestSimpleCcpStore(object):
         return request.param
 
     @pytest.fixture(params=(
-        {'character_id': 570140137}, 
-        {'character_id': 95189399}, 
-        {'character_id': 2112390815}, 
-        {'corporation_id': 1018389948}, 
-        {'corporation_id': 1000167}, 
-        {'corporation_id': 1000166}, 
-        {'corporation_id': 109299958}, 
-        {'alliance_id': 434243723}, 
-        {'alliance_id': 498125261}, 
+        {'character_id': 570140137},
+        {'character_id': 95189399},
+        {'character_id': 2112390815},
+        {'corporation_id': 1018389948},
+        {'corporation_id': 1000167},
+        {'corporation_id': 1000166},
+        {'corporation_id': 109299958},
+        {'alliance_id': 434243723},
+        {'alliance_id': 498125261},
         {'character_name': u'Paxswill'},
         {'character_name': u'Iusia'},
         {'character_name': u'Cpt Hector'},
@@ -282,7 +277,7 @@ class TestSimpleCcpStore(object):
         }
         # Skip invalid tests
         if (identity_type == 'corporation' and 'alliance' in key) or \
-                (identity_type == 'character' and \
+                (identity_type == 'character' and
                  ('alliance' in key or 'corporation' in key)):
             pytest.skip("keyword argument {} not supported for "
                         "get_{}".format(key, identity_type))
@@ -311,7 +306,6 @@ class TestSimpleCcpStore(object):
         result = get_identity(**identity_kwargs)
         assert result[u'result'] == expected_identity
 
-
     @pytest.mark.parametrize('negative_kwargs', (
         {'alliance_id': 0},
         {'corporation_id': 0},
@@ -328,7 +322,7 @@ class TestSimpleCcpStore(object):
         # Skip invalid combos
         key = list(negative_kwargs.keys())[0]
         if (identity_type == 'corporation' and 'alliance' in key) or \
-                (identity_type == 'character' and \
+                (identity_type == 'character' and
                  ('alliance' in key or 'corporation' in key)):
             pytest.skip("keyword argument {} not supported for "
                         "get_{}".format(key, identity_type))
@@ -370,10 +364,10 @@ class TestCachedCcpStore(object):
             # Skip early
             if location_type == 'constellation' and 'region' in key:
                 pytest.skip("region_* kwargs not valid for get_constellation")
-            elif location_type == 'system' and ('region' in key or \
+            elif location_type == 'system' and ('region' in key or
                                                 'constellation' in key):
-                pytest.skip("region_* and constellation_* kwargs not valid for "
-                            "get_system")
+                pytest.skip("region_* and constellation_* kwargs not valid for"
+                            " get_system")
             if not hit_cache:
                 if location_type == 'region' and key.startswith(
                         'constellation'):

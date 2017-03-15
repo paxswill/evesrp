@@ -34,7 +34,6 @@ class _AbstractAuthenticated(object):
             kwargs.pop(attr, None)
         self.extra_data.update(kwargs)
 
-
     @property
     def _normal_attrs(self):
         """Provides a list of attribute names that should not be treated as
@@ -70,7 +69,7 @@ class _AbstractAuthenticated(object):
 
     def __eq__(self, other):
         return self.provider_uuid == other.provider_uuid and \
-               self.provider_key == other.provider_key
+            self.provider_key == other.provider_key
 
 
 class AuthenticatedUser(_AbstractAuthenticated):
@@ -92,6 +91,7 @@ class AuthenticatedUser(_AbstractAuthenticated):
     def _normal_attrs(self):
         super_attrs = super(AuthenticatedUser, self)._normal_attrs
         return super_attrs.union({'user_id', })
+
 
 class AuthenticatedGroup(_AbstractAuthenticated):
 

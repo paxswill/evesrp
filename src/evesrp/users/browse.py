@@ -13,8 +13,8 @@ class BrowseActivity(object):
         self.user = user
 
     _valid_fields = frozenset((
-        'killmail_id', # aka Killmail.id_
-        'kill_timestamp', # aka Killmail.timestamp
+        'killmail_id',  # aka Killmail.id_
+        'kill_timestamp',  # aka Killmail.timestamp
         # All of these are combo types, with an ID and name being returned
         'type',
         'pilot',
@@ -24,8 +24,8 @@ class BrowseActivity(object):
         'constellation',
         'region',
         'details',
-        'division', # Combo of division.id_ and division.name
-        'submit_timestamp', # aka Request.timestamp
+        'division',  # Combo of division.id_ and division.name
+        'submit_timestamp',  # aka Request.timestamp
         'status',
         'payout',
         'base_payout',
@@ -60,7 +60,7 @@ class BrowseActivity(object):
         try:
             len(permissions)
         except TypeError:
-            permissions = {permissions,}
+            permissions = {permissions, }
         user_permissions = self.user.get_permissions(self.store)
         division_ids = [perm[0] for perm in user_permissions if perm[1] in
                         permissions]

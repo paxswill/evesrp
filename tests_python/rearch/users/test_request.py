@@ -143,7 +143,7 @@ def test_request_init(permission, request_store, srp_request, user_id):
     PT = models.PermissionType
     # User ID $OWNER_ID is the owner, user ID 2 is someone else
     if permission in PT.elevated or \
-            (permission == PT.submit and \
+            (permission == PT.submit and
              request_store.get_killmail(request_store).user_id == user.id_):
         activity = request.RequestActivity(request_store, user,
                                            request=srp_request.id_)
@@ -201,7 +201,7 @@ def test_add_comment(request_store, srp_request, permission_tuple,
         with pytest.raises(errors.InsufficientPermissionsError):
             activity.comment(comment_text)
     else:
-        action = activity.comment(comment_text)
+        activity.comment(comment_text)
         action_type = models.ActionType.comment
         srp_request.add_action.assert_called_once_with(request_store,
                                                        action_type,
@@ -232,7 +232,7 @@ def test_mark_approved(request_store, srp_request, permission_tuple,
         with pytest.raises(errors.InsufficientPermissionsError):
             activity.approve(comment_text)
     else:
-        action = activity.approve(comment_text)
+        activity.approve(comment_text)
         action_type = models.ActionType.approved
         srp_request.add_action.assert_called_once_with(request_store,
                                                        action_type,
@@ -252,7 +252,7 @@ def test_mark_incomplete(request_store, srp_request, permission_tuple,
         with pytest.raises(errors.InsufficientPermissionsError):
             activity.incomplete(comment_text)
     else:
-        action = activity.incomplete(comment_text)
+        activity.incomplete(comment_text)
         action_type = models.ActionType.incomplete
         srp_request.add_action.assert_called_once_with(request_store,
                                                        action_type,
@@ -287,7 +287,7 @@ def test_mark_evaluating(request_store, srp_request, permission_tuple,
         with pytest.raises(errors.InsufficientPermissionsError):
             activity.evaluate(comment_text)
     else:
-        action = activity.evaluate(comment_text)
+        activity.evaluate(comment_text)
         action_type = models.ActionType.evaluating
         srp_request.add_action.assert_called_once_with(request_store,
                                                        action_type,
@@ -307,7 +307,7 @@ def test_mark_paid(request_store, srp_request, permission_tuple,
         with pytest.raises(errors.InsufficientPermissionsError):
             activity.pay(comment_text)
     else:
-        action = activity.pay(comment_text)
+        activity.pay(comment_text)
         action_type = models.ActionType.paid
         srp_request.add_action.assert_called_once_with(request_store,
                                                        action_type,
@@ -327,7 +327,7 @@ def test_mark_rejected(request_store, srp_request, permission_tuple,
         with pytest.raises(errors.InsufficientPermissionsError):
             activity.reject(comment_text)
     else:
-        action = activity.reject(comment_text)
+        activity.reject(comment_text)
         action_type = models.ActionType.rejected
         srp_request.add_action.assert_called_once_with(request_store,
                                                        action_type,
@@ -378,7 +378,7 @@ def test_void_modifier(request_store, srp_request, permission_tuple,
 
 
 def test_set_details(request_store, srp_request, permission_tuple,
-                      permission_user):
+                     permission_user):
     activity = request.RequestActivity(request_store, permission_user,
                                        srp_request)
     new_details = mock.sentinel.new_details

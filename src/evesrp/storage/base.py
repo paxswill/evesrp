@@ -1,10 +1,9 @@
 import six
-from evesrp import search_filter as sfilter
 
 
 class BaseStore(object):
 
-    ### Authentication ###
+    # Authentication
 
     def get_authn_user(self, provider_uuid, provider_key):
         raise NotImplementedError
@@ -26,7 +25,7 @@ class BaseStore(object):
     def save_authn_group(self, authn_group):
         raise NotImplementedError
 
-    ### Divisions ###
+    # Divisions
 
     def get_division(self, division_id):
         raise NotImplementedError
@@ -47,7 +46,7 @@ class BaseStore(object):
     # also lose all records from that division, which is kinda the goal of this
     # application (keeping records).
 
-    ### Permissions ###
+    # Permissions
 
     def get_permissions(self, **kwargs):
         # entity_id, division_id, types, type_
@@ -70,7 +69,7 @@ class BaseStore(object):
         """
         raise NotImplementedError
 
-    ### Users and Groups ###
+    # Users and Groups
 
     def get_user(self, user_id):
         raise NotImplementedError
@@ -96,7 +95,7 @@ class BaseStore(object):
     def disassociate_user_group(self, user_id, group_id):
         raise NotImplementedError
 
-    ### Killmails ###
+    # Killmails
 
     def get_killmail(self, killmail_id):
         raise NotImplementedError
@@ -129,7 +128,7 @@ class BaseStore(object):
 
     # Again, same reasons for not implementing Killmail removal as Division
 
-    ### Requests ###
+    # Requests
 
     def get_request(self, request_id=None, killmail_id=None, division_id=None):
         """Retrieve a request for SRP.
@@ -153,7 +152,7 @@ class BaseStore(object):
     def save_request(self, request):
         raise NotImplementedError
 
-    ### Request Actions ###
+    # Request Actions
 
     def get_action(self, action_id):
         raise NotImplementedError
@@ -167,7 +166,7 @@ class BaseStore(object):
     # Modification of existing Actions is not something that should be
     # happening, so it's not implemented.
 
-    ### Request Modifiers ###
+    # Request Modifiers
 
     def get_modifier(self, modifier_id):
         raise NotImplementedError
@@ -200,7 +199,7 @@ class BaseStore(object):
         # un-voided).
         raise NotImplementedError
 
-    ### Filtering ###
+    # Filtering
 
     def filter_requests(self, filters):
         raise NotImplementedError
@@ -279,6 +278,7 @@ class BaseStore(object):
         # Construct the sparse request dictionary
         sparse_request = {}
         # A helper function to look up values from the appropriate object
+
         def lookup_field(field_name):
             # the timestamp fields are named the same on their objects
             if field_name.endswith('_timestamp'):
@@ -319,11 +319,12 @@ class BaseStore(object):
         if not self._killmail_fields.isdisjoint(fields):
             killmail_ids = {r['killmail_id'] for r in full_requests}
             full_killmails = self.get_killmails(killmail_ids=killmail_ids)
-            format_kwargs['killmails'] = {km['id']: km for km in full_killmails}
+            format_kwargs['killmails'] = {km['id']: km for km in 
+                                          full_killmails}
         for request in full_requests:
             yield self._format_sparse(request, **format_kwargs)
 
-    ### Characters ###
+    # Characters
 
     def get_character(self, character_id):
         raise NotImplementedError
@@ -337,7 +338,7 @@ class BaseStore(object):
         # well (character transfers).
         raise NotImplementedError
 
-    ### User Notes ###
+    # User Notes
 
     def get_notes(self, subject_id):
         raise NotImplementedError
@@ -345,7 +346,7 @@ class BaseStore(object):
     def add_note(self, subject_id, submitter_id, contents):
         raise NotImplementedError
 
-    ### CCP Lookups ###
+    # CCP Lookups
 
     def get_region(self, region_name=None, region_id=None,
                    constellation_name=None, constellation_id=None,

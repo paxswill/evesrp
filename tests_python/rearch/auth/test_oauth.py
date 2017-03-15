@@ -194,14 +194,15 @@ def test_oauth_context_redirect(patch_oauth, provider):
         mock.sentinel.external_url,
         mock.sentinel.state,
     )
-    ctx = provider.create_context(redirect_uri=mock.sentinel.redirect_uri)
+    redirect_uri = mock.sentinel.redirect_uri
+    ctx = provider.create_context(redirect_uri=redirect_uri)
     assert ctx == {
         'action': 'redirect',
         'url': mock.sentinel.external_url,
         'state': mock.sentinel.state,
     }
     patch_oauth.assert_called_once_with(mock.sentinel.client_id,
-                                        redirect_uri=mock.sentinel.redirect_uri,
+                                        redirect_uri=redirect_uri,
                                         scope=None)
 
 

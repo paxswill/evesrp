@@ -1,9 +1,7 @@
 from __future__ import absolute_import
-import datetime as dt
 
 from oauthlib.oauth2 import OAuth2Error
 
-from evesrp import new_models as models
 from evesrp.new_auth.oauth import OAuthProvider
 
 
@@ -39,7 +37,8 @@ class EveSsoProvider(OAuthProvider):
             }
         except KeyError:
             return {
-                'error': "Error in receiving EVE SSO response: {}".format(resp),
+                'error': "Error in receiving EVE SSO response: {}".format(
+                    resp),
             }
 
     def get_user(self, context, current_user=None):

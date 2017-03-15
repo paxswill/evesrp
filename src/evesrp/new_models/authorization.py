@@ -1,6 +1,5 @@
 import datetime as dt
 import enum
-import json
 
 from . import util
 from ..util import classproperty
@@ -156,7 +155,6 @@ class Permission(object):
                    division_id=permission_dict[u'division_id'])
 
     def to_tuple(self):
-        #return (self.division_id, self.type_)
         return (self.type_, self.division_id)
 
     def __eq__(self, other):

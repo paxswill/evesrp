@@ -19,7 +19,7 @@ def immutable(request):
 
 def test_filter_init(immutable):
     default_filter = sfilter.Filter()
-    assert default_filter._immutable == True
+    assert default_filter._immutable
     assert default_filter._filters == {}
     immutability_filter = sfilter.Filter(filter_immutable=immutable)
     assert immutability_filter._immutable == immutable
@@ -74,7 +74,7 @@ def test_filter_getitem():
         f['character']
     assert isinstance(f['division'], frozenset)
     f = f.add(division=5)
-    assert f['division'] == {5,}
+    assert f['division'] == {5, }
 
 
 def test_filter_equals():
@@ -92,10 +92,10 @@ def test_filter_repr():
 
 def test_filter_merge():
     starting_filter = sfilter.Filter().add(division=1)
-    assert starting_filter['division'] == {1,}
+    assert starting_filter['division'] == {1, }
     other_filter = sfilter.Filter().add(division=2).add(pilot=u'Paxswill')
-    assert other_filter['division'] == {2,}
-    assert other_filter['pilot'] == {u'Paxswill',}
+    assert other_filter['division'] == {2, }
+    assert other_filter['pilot'] == {u'Paxswill', }
     merged_filter = starting_filter.merge(other_filter)
     expected_filter = sfilter.Filter().\
         add(pilot=u'Paxswill').\
@@ -132,7 +132,8 @@ status_values = list((s.name for s in models.ActionType.statuses))
 status_values.append(models.ActionType.approved)
 
 
-all_values = dict(string_or_id_values,
+all_values = dict(
+    string_or_id_values,
     kill_timestamp=period_values,
     submit_timestamp=period_values,
     payout=decimal_values,
@@ -168,25 +169,27 @@ def convert_value(attribute):
 
 class TestAddPredicate(object):
 
-    @pytest.mark.parametrize('attribute,value',
-        ((attrib, value) for attrib, values in six.iteritems(all_values) \
-            for value in values)
+    @pytest.mark.parametrize(
+        'attribute,value',
+        ((attrib, value) for attrib, values in six.iteritems(all_values)
+         for value in values)
     )
     def test_single_predicates(self, attribute, value, immutable,
                                convert_value):
         start_filter = sfilter.Filter(filter_immutable=immutable)
         kwargs = {attribute: value}
         test_filter = start_filter.add(**kwargs)
-        assert test_filter._filters == {attribute: {convert_value(value),}}
+        assert test_filter._filters == {attribute: {convert_value(value)}}
         if immutable:
             assert id(start_filter) != id(test_filter)
             assert start_filter._filters == {}
         else:
             assert id(start_filter) == id(test_filter)
 
-    @pytest.mark.parametrize('attribute,values',
-        ((attrib, value) for attrib, values in six.iteritems(all_values) \
-            for value in itertools.combinations(values, 2))
+    @pytest.mark.parametrize(
+        'attribute,values',
+        ((attrib, value) for attrib, values in six.iteritems(all_values)
+         for value in itertools.combinations(values, 2))
     )
     def test_multiple_predicates(self, attribute, values, immutable,
                                  convert_value):
@@ -194,7 +197,7 @@ class TestAddPredicate(object):
         start_filter = sfilter.Filter(filter_immutable=immutable)
         kwargs = {attribute: first}
         mid_filter = start_filter.add(**kwargs)
-        assert mid_filter._filters == {attribute: {convert_value(first),}}
+        assert mid_filter._filters == {attribute: {convert_value(first)}}
         if immutable:
             assert id(start_filter) != id(mid_filter)
             assert start_filter._filters == {}
@@ -205,12 +208,13 @@ class TestAddPredicate(object):
                                                    convert_value(second)}}
         if immutable:
             assert id(mid_filter) != id(end_filter)
-            assert mid_filter._filters == {attribute: {convert_value(first),}}
+            assert mid_filter._filters == {attribute: {convert_value(first)}}
         else:
             assert id(start_filter) == id(mid_filter)
             assert id(mid_filter) == id(end_filter)
 
-    @pytest.mark.parametrize('attribute, value',
+    @pytest.mark.parametrize(
+        'attribute, value',
         ((key, 3.14159) for key in six.iterkeys(string_or_id_values))
     )
     def test_invalid_string_predicates(self, attribute, value):
@@ -221,7 +225,10 @@ class TestAddPredicate(object):
         assert excinfo.value.key == attribute
         assert excinfo.value.value == value
 
-    @pytest.mark.parametrize('attribute', ('submit_timestamp', 'kill_timestamp'))
+    @pytest.mark.parametrize('attribute', (
+        'submit_timestamp',
+        'kill_timestamp',
+    ))
     @pytest.mark.parametrize('value', ('foo', dt.datetime(2016, 12, 24)))
     def test_invalid_period_predicates(self, attribute, value):
         kwargs = {attribute: value}
@@ -259,9 +266,10 @@ class TestAddPredicate(object):
 
 class TestRemovePredicates(object):
 
-    @pytest.mark.parametrize('attribute,value',
-        ((attrib, value) for attrib, values in six.iteritems(all_values) \
-            for value in values)
+    @pytest.mark.parametrize(
+        'attribute,value',
+        ((att, value) for att, values in six.iteritems(all_values)
+         for value in values)
     )
     def test_single_predicates(self, attribute, value, immutable,
                                convert_value):
@@ -272,7 +280,11 @@ class TestRemovePredicates(object):
         assert test_filter._filters == {}
         if immutable:
             assert id(start_filter) != id(test_filter)
-            assert start_filter._filters == {attribute: {convert_value(value),}}
+            assert start_filter._filters == {
+                attribute: {
+                    convert_value(value),
+                },
+            }
         else:
             assert id(start_filter) == id(test_filter)
 

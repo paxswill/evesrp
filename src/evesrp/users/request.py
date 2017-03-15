@@ -13,8 +13,8 @@ class RequestSubmissionActivity(object):
 
     def list_divisions(self):
         permissions = self.user.get_permissions(self.store)
-        submit_division_ids = {p.division_id for p in permissions if \
-                              p.type_ == models.PermissionType.submit}
+        submit_division_ids = {p.division_id for p in permissions if
+                               p.type_ == models.PermissionType.submit}
         divisions = self.store.get_divisions(division_ids=submit_division_ids)
         return divisions
 
@@ -30,7 +30,7 @@ class RequestSubmissionActivity(object):
         if isinstance(killmail, six.integer_types):
             killmail = self.store.get_killmail(killmail_id=killmail)
         request = models.Request(None, details, killmail_id=killmail.id_,
-                                 division_id = division.id_)
+                                 division_id=division.id_)
         request.id_ = self.store.add_request(request)
         return request
 
@@ -47,7 +47,7 @@ class RequestActivity(object):
         self.request = request
         # Check permissions now
         # Create the permission tuples that will allow access to this request
-        allowed_permissions = {(pt, self.request.division_id) for pt in \
+        allowed_permissions = {(pt, self.request.division_id) for pt in
                                models.PermissionType.elevated}
         allowed_permissions.add(('user_id', self._submitter_id))
         if allowed_permissions.isdisjoint(user.get_permissions(self.store)):
@@ -91,16 +91,16 @@ class RequestActivity(object):
                                    (PT.review, PT.admin)}
         error_message = (u"User {} does not have permission to approve request"
                          u" #{}.").format(self.user.id_, self.request.id_)
-        return self._add_action(models.ActionType.approved, allowed_permissions,
-                                error_message, comment)
+        return self._add_action(models.ActionType.approved,
+                                allowed_permissions, error_message, comment)
 
     def incomplete(self, comment=u''):
         PT = models.PermissionType
         allowed_permissions = {(p, self.request.division_id) for p in
                                (PT.review, PT.admin)}
         error_message = (u"User {} does not have permission to mark "
-                         u"request #{} as incomplete.").format(self.user.id_,
-                                                               self.request.id_)
+                         u"request #{} as incomplete.").format(
+                             self.user.id_, self.request.id_)
         return self._add_action(models.ActionType.incomplete,
                                 allowed_permissions, error_message, comment)
 
@@ -134,8 +134,8 @@ class RequestActivity(object):
                                (PT.review, PT.admin)}
         error_message = (u"User {} does not have permission to reject request "
                          u" #{}.").format(self.user.id_, self.request.id_)
-        return self._add_action(models.ActionType.rejected, allowed_permissions,
-                                error_message, comment)
+        return self._add_action(models.ActionType.rejected,
+                                allowed_permissions, error_message, comment)
 
     def _add_modifier(self, value, type_, note=u''):
         PT = models.PermissionType
@@ -178,7 +178,6 @@ class RequestActivity(object):
             raise errors.InsufficientPermissionsError(error_message)
         else:
             self.request.set_details(self.store, new_details, user=self.user)
-
 
     def set_payout(self, new_payout):
         PT = models.PermissionType

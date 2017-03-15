@@ -2,7 +2,6 @@ try:
     from collections.abc import Sequence
 except ImportError:
     from collections import Sequence
-import json
 
 import requests
 import six
@@ -79,7 +78,7 @@ class CcpStore(object):
 
     def _single_search(self, category, query):
         search_results = self._esi_request('v1', 'search', strict=True,
-                                 categories=[category], search=query)
+                                           categories=[category], search=query)
         if category not in search_results[u'result']:
             # Not found
             search_results[u'result'] = None
@@ -128,8 +127,8 @@ class CcpStore(object):
         return search_results
 
     def _base_constellation(self, constellation_id):
-        resp = self._esi_request('v1',
-                                 '/universe/constellations/{constellation_id}/',
+        esi_path = '/universe/constellations/{constellation_id}/'
+        resp = self._esi_request('v1', esi_path,
                                  constellation_id=constellation_id)
         # NOTE As of 2017-03-07, ESI returns 500 instead of 404 for
         # constellations not found. Github issue ccpgames/esi-issues#307
@@ -162,7 +161,7 @@ class CcpStore(object):
             # End ESI workaround
             resp[u'result'] = None
             resp.setdefault(u'errors', [])
-            resp[u'errors'].append(u"System {} Not Found.".format( system_id))
+            resp[u'errors'].append(u"System {} Not Found.".format(system_id))
         return resp
 
     @staticmethod
@@ -355,7 +354,8 @@ class CcpStore(object):
                 char_resp[u'result'] = None
                 char_resp.setdefault(u'errors', [])
                 char_resp[u'errors'].append(
-                    u"Character {} is not in an alliance.".format(character_id))
+                    u"Character {} is not in an alliance.".format(
+                        character_id))
                 return char_resp
             alliance_resp = self.get_alliance(
                 alliance_id=char_resp[u'result'][u'alliance_id'])
@@ -530,6 +530,7 @@ class CachingCcpStore(CcpStore):
         key_priorities = ('region_id', 'region_name', 'constellation_id',
                           'constellation_name', 'system_id', 'system_name')
         # filter out invalid keys
+
         def filter_higher(k):
             # This is using the first letter of the keywords to see if they are
             # region, constellation or system keys. For region-level lookups,
@@ -621,5 +622,6 @@ class CachingCcpStore(CcpStore):
         # block executes if the loop does *not* break.
         else:
             raise ValueError("Need at least a type's name or ID to look up.")
+        kwargs = {key: value}
         getter = super(CachingCcpStore, self).get_type
         return self._update_map(static_data.ships, getter, **kwargs)

@@ -7,7 +7,6 @@ from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2 import OAuth2Error
 
 from .base import AuthenticationProvider
-import evesrp.new_models as models
 
 
 class OAuthProvider(AuthenticationProvider):
@@ -48,10 +47,9 @@ class OAuthProvider(AuthenticationProvider):
             token['refresh_token'] = authn_user.refresh_token
         return token
 
-
     def create_context(self, **kwargs):
         if 'user' in kwargs:
-            # We're creating a session from a stored access token or getting a 
+            # We're creating a session from a stored access token or getting a
             # new access token with a refresh token. If that's not possible,
             # we're returning an error.
             user = kwargs['user']
@@ -82,13 +80,11 @@ class OAuthProvider(AuthenticationProvider):
                                           redirect_uri=kwargs['redirect_uri'])
             try:
                 # NOTE: state checking **MUST** be done outside of this method
-                token = oauth_session.fetch_token(self.token_url,
-                                                  code=kwargs['code'],
-                                                  method=self.oauth_method,
-                                                  client_secret=\
-                                                      self.client_secret,
-                                                  auth=(self.client_id,
-                                                        self.client_secret))
+                token = oauth_session.fetch_token(
+                    self.token_url, code=kwargs['code'],
+                    method=self.oauth_method,
+                    client_secret=self.client_secret,
+                    auth=(self.client_id, self.client_secret))
             except OAuth2Error as e:
                 return {
                     'action': 'error',

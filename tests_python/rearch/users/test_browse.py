@@ -6,7 +6,6 @@ import pytest
 from evesrp import search_filter as sfilter
 from evesrp import users, storage
 from evesrp import new_models as models
-import evesrp.users.browse
 
 
 @pytest.fixture
@@ -104,7 +103,7 @@ def expected_filter(user, browse_method, add_filter, is_admin, is_reviewer,
 
 
 def test_browse_list(browse_store, add_filter, field_name, user,
-                       browse_method, expected_filter):
+                     browse_method, expected_filter):
     browser = users.browse.BrowseActivity(browse_store, user)
     # Set up the browse store mock
     mock_requests = [

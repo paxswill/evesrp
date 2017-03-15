@@ -65,7 +65,7 @@ def test_user_dict():
     user = models.User.from_dict(user_dict)
     assert user.name == 'Another User'
     assert user.id_ == 73
-    assert user.admin == True
+    assert user.admin
 
 
 def test_user_get_groups(store):
@@ -95,6 +95,7 @@ def test_user_permissions(store):
     store.get_groups.return_value = [
         models.Group("Group 2", 2),
     ]
+
     def get_permissions(entity_id):
         if entity_id == 9:
             return user1_perms
@@ -206,7 +207,7 @@ def test_permission_init_objects():
     user = models.User("A User", 1357)
     division = models.Division("A Division", 2468)
     permission = models.Permission(entity=user, division=division,
-                                  type_=models.PermissionType.submit)
+                                   type_=models.PermissionType.submit)
     assert permission.entity_id == user.id_
     assert permission.division_id == division.id_
     assert permission.type_ == models.PermissionType.submit
@@ -214,7 +215,7 @@ def test_permission_init_objects():
 
 def test_permission_init_object_ids():
     permission = models.Permission(entity_id=1357, division_id=2468,
-                                  type_=models.PermissionType.submit)
+                                   type_=models.PermissionType.submit)
     assert permission.entity_id == 1357
     assert permission.division_id == 2468
     assert permission.type_ == models.PermissionType.submit
@@ -234,21 +235,22 @@ def test_permission_dict():
 
 def test_permission_tuples():
     permission = models.Permission(entity_id=1, division_id=2,
-                                  type_=models.PermissionType.review)
+                                   type_=models.PermissionType.review)
     assert permission.to_tuple() == (models.PermissionType.review, 2)
 
 
-@pytest.mark.parametrize('timestamp', [
-    dt.datetime(2016, 12, 10),
-    None,1, 
-])
+@pytest.mark.parametrize(
+    'timestamp',
+    (dt.datetime(2016, 12, 10), None, 1),
+    ids=('datetime', 'None', 'int')
+)
 def test_note_init(timestamp):
     contents = u"A note about something."
     # If timestamp is None in the Note __init__, it uses utcnow.
     if timestamp is None:
         before = dt.datetime.utcnow()
     note = models.Note(contents, 1, timestamp, subject_id=2,
-                      submitter_id=3)
+                       submitter_id=3)
     if timestamp is None:
         after = dt.datetime.utcnow()
     assert note.id_ == 1

@@ -338,7 +338,7 @@ class Modifier(util.IdEquality):
     @property
     def is_void(self):
         return self.void_timestamp is not None and \
-               self.void_user_id is not None
+            self.void_user_id is not None
 
     def void(self, store, **kwargs):
         srp_request = store.get_request(request_id=self.request_id)

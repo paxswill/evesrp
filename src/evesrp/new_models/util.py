@@ -1,4 +1,3 @@
-import datetime as dt
 import iso8601
 import six
 

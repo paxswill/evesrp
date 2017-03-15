@@ -116,7 +116,7 @@ def test_request_dict():
     srp_request = models.Request.from_dict(request_dict)
     assert srp_request.id_ == 27
     assert srp_request.details == u"Gimme money please."
-    assert srp_request.killmail_id ==56474105
+    assert srp_request.killmail_id == 56474105
     assert srp_request.division_id == 2
     assert srp_request.timestamp == dt.datetime(2016, 12, 11)
     assert srp_request.status == models.ActionType.approved
@@ -207,8 +207,9 @@ def test_set_details(srp_request, starting_status, action_store):
     else:
         new_action = srp_request.set_details(action_store, new_details,
                                              user=user)
-        action_store.add_action.assert_called_once_with(srp_request.id_,
-            models.ActionType.evaluating, user.id_, old_details)
+        action_store.add_action.assert_called_once_with(
+            srp_request.id_, models.ActionType.evaluating, user.id_,
+            old_details)
         # Asserting that save_request was called twice in a row, once in
         # add_action(), once in change_details()
         action_store.save_request.assert_has_calls(
@@ -359,6 +360,8 @@ added_modifiers = [
     mock.Mock(type_=models.ModifierType.relative, value=Decimal("-0.3"),
               is_void=False),
 ]
+
+
 @pytest.mark.parametrize('added_modifier', added_modifiers)
 def test_request_current_payout(srp_request, mock_modifiers,
                                 mock_modifiers_store, added_modifier):
@@ -426,7 +429,7 @@ def test_action_dict():
         "timestamp": dt.datetime(2016, 12, 3),
         "request_id": 4,
         "user_id": 2,
-        "contents": u"A legitimate comment.", 
+        "contents": u"A legitimate comment.",
     }
     action = models.Action.from_dict(action_dict)
     assert action.id_ == action_dict['id']
@@ -457,8 +460,8 @@ def test_modifier_init(modifier, nullable_timestamp):
         assert modifier.timestamp == nullable_timestamp
     assert modifier.request_id == 7
     assert modifier.user_id == 1
-    assert modifier.void_timestamp == None
-    assert modifier.void_user_id == None
+    assert modifier.void_timestamp is None
+    assert modifier.void_user_id is None
 
 
 @pytest.mark.parametrize('voided', [True, False])
@@ -515,7 +518,8 @@ def test_modifier_void(modifier, status):
         assert modifier.is_void
         assert modifier.void_user_id == 1
         assert modifier.void_timestamp == mock.sentinel.modifier_void_timestamp
-        store.get_request.assert_called_once_with(request_id=modifier.request_id)
+        store.get_request.assert_called_once_with(
+            request_id=modifier.request_id)
         store.void_modifier.assert_called_once_with(modifier.id_, 1)
         assert srp_request.payout == mock.sentinel.current_payout
         store.save_request.assert_called_once_with(srp_request)

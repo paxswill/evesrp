@@ -5,7 +5,6 @@ except ImportError:
     import mock
 import pytest
 from evesrp import storage
-from evesrp import search_filter as sfilter
 
 
 not_implemented = [
@@ -13,7 +12,7 @@ not_implemented = [
     'get_authn_group', 'add_authn_group', 'save_authn_user',
     'get_division', 'get_divisions', 'add_division', 'save_division',
     'get_permissions', 'add_permission', 'remove_permission',
-    'get_user', 'add_user', 'get_users', 
+    'get_user', 'add_user', 'get_users',
     'get_group', 'add_group', 'get_groups',
     'associate_user_group', 'disassociate_user_group',
     'get_killmail', 'add_killmail',
@@ -96,7 +95,7 @@ def test_format_sparse(mock_filter_store, fields, single_killmail):
             format_kwargs['killmail'] = killmail
         else:
             format_kwargs['killmails'] = {
-                killmail['id']:killmail,
+                killmail['id']: killmail,
             }
         if 'pilot' in fields:
             mock_filter_store.get_pilot.return_value = {
@@ -147,19 +146,19 @@ def test_format_sparse(mock_filter_store, fields, single_killmail):
 def test_format_sparse_exception():
     store = storage.BaseStore()
     with pytest.raises(ValueError):
-        store._format_sparse(dict(), {'kill_timestamp',})
+        store._format_sparse(dict(), {'kill_timestamp', })
 
 
 def test_filter_sparse(mock_filter_store, fields):
     mock_filter_store.filter_requests.return_value = [
-        {'killmail_id': 1,},
-        {'killmail_id': 2,},
-        {'killmail_id': 3,},
+        {'killmail_id': 1},
+        {'killmail_id': 2},
+        {'killmail_id': 3},
     ]
     mock_filter_store.get_killmails.return_value = [
-        {'id': 1,},
-        {'id': 2,},
-        {'id': 3,},
+        {'id': 1},
+        {'id': 2},
+        {'id': 3},
     ]
     mock_filter_store._format_sparse = mock.Mock()
     mock_filter_store._format_sparse.return_value = mock.sentinel.sparse

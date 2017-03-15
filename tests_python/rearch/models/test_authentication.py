@@ -48,7 +48,7 @@ def test_auth_entity_init(auth_entity, use_entity_obj, use_provider_obj,
     entity = AuthenticatedEntity(**kwargs)
     assert entity.provider_key == mock.sentinel.provider_key
     assert entity.provider_uuid == mock.sentinel.provider_uuid
-    assert getattr(entity, auth_entity + '_id')== mock.sentinel.entity_id
+    assert getattr(entity, auth_entity + '_id') == mock.sentinel.entity_id
     if extra_kwargs:
         assert entity.extra_data == {
             'test_extra': mock.sentinel.test_extra,

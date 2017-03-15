@@ -28,8 +28,8 @@ def is_admin(request):
 
 
 def test_division_create(store, is_admin):
-    store.add_division.return_value = models.Division('A Division Name',
-                                                      mock.sentinel.division_id)
+    store.add_division.return_value = models.Division(
+        'A Division Name', mock.sentinel.division_id)
     user = mock.Mock(admin=is_admin)
     permissions_admin = authz.PermissionsAdmin(store, user)
     if is_admin:
@@ -71,11 +71,11 @@ def test_division_admin_list(store):
     division_admin = authz.DivisionAdmin(store, user, division)
     # Using just plain old mock objects so I can test equivalency/identity
     permissions = [
-        mock.Mock(), # submit
-        mock.Mock(), # review
-        mock.Mock(), # pay
-        mock.Mock(), # audit
-        mock.Mock(), # admin
+        mock.Mock(),  # submit
+        mock.Mock(),  # review
+        mock.Mock(),  # pay
+        mock.Mock(),  # audit
+        mock.Mock(),  # admin
     ]
     store.get_permissions.side_effect = permissions
     assert permissions[0] == division_admin.list_permissions(

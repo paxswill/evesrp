@@ -2,8 +2,6 @@ import datetime as dt
 import json
 import pytest
 
-from evesrp.util import utc
-
 from evesrp.new_models import authorization as authz_models
 from evesrp import serializers
 

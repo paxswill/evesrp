@@ -1,5 +1,4 @@
 import datetime as dt
-from decimal import Decimal
 try:
     from unittest import mock
 except ImportError:
@@ -53,10 +52,10 @@ def nullable_timestamp(request):
     return request.param
 
 
-# I would normally call this fixture 'request', but that's a special name in
-# py.test
 @pytest.fixture
 def srp_request(killmail, nullable_timestamp):
+    # I would normally call this fixture 'request', but that's a special name
+    # in py.test
     request = models.Request(25, u"Some details.",
                              killmail=killmail, division_id=1,
                              timestamp=nullable_timestamp,

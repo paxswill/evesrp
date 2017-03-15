@@ -30,7 +30,7 @@ class DivisionAdmin(object):
         if not self.user.admin:
             permissions = self.store.get_permissions(
                 division_id=self.division.id_,
-                type_ = models.PermissionType.admin)
+                type_=models.PermissionType.admin)
             if not permissions:
                 error_message = (u"User '{}' has insufficient permissions to "
                                  u"administer divisions.")
