@@ -43,11 +43,15 @@ def test_not_implemented(method_name):
 def test_get_killmails():
     store = storage.BaseStore()
     store.get_killmail = mock.Mock()
-    store.get_killmail.side_effect = lambda kid: getattr(mock.sentinel,
-                                                         "killmail_" +
-                                                         str(kid))
-    assert {getattr(mock.sentinel, "killmail_" + str(i)) for i in range(4)} == \
-        store.get_killmails(range(4))
+
+    def mock_get_killmail(killmail_id):
+        return {
+            u'result': getattr(mock.sentinel, 'killmail_' + str(killmail_id)),
+        }
+    store.get_killmail.side_effect = mock_get_killmail
+    sentinel_killmails = {getattr(mock.sentinel, 'killmail_' + str(i))
+                          for i in range(4)}
+    assert sentinel_killmails == set(store.get_killmails(range(4))[u'result'])
 
 
 @pytest.fixture
