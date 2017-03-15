@@ -2,6 +2,8 @@ import datetime as dt
 from decimal import Decimal
 import enum
 
+import six
+
 from . import util
 from ..util import classproperty
 
@@ -138,6 +140,9 @@ class Request(util.IdEquality):
 
     @classmethod
     def from_dict(cls, request_dict):
+        status = request_dict['status']
+        if isinstance(status, six.string_types):
+            status = ActionType[status]
         return cls(request_dict['id'],
                    request_dict['details'],
                    killmail_id=request_dict['killmail_id'],
@@ -145,7 +150,7 @@ class Request(util.IdEquality):
                    payout=Decimal(request_dict['payout']),
                    base_payout=Decimal(request_dict['base_payout']),
                    timestamp=util.parse_timestamp(request_dict['timestamp']),
-                   status=ActionType[request_dict['status']])
+                   status=status)
 
     def get_actions(self, store):
         return store.get_actions(request_id=self.id_)
