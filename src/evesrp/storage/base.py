@@ -2,10 +2,34 @@ import six
 
 
 class BaseStore(object):
+    """Basic implementation of a storage provider.
+
+    All public methods that return something other than `None` return
+    a :py:class:`dict` with at least a `u'result'` key. This key will be what
+    is documented as the return value in the methods below. If the value for
+    the result key is `None`, there will be an `u'errors'` key with an array of
+    text strings detailing what went wrong. There may also be a `u'warnings'`
+    key, following the same format as the errors, but for non-fatal warnings
+    instead.
+    """
 
     # Authentication
 
     def get_authn_user(self, provider_uuid, provider_key):
+        """Get an :py:class:`~.AuthenticatedUser` from storage.
+
+        If a user is unable to be found for the provided provider and key, the
+        string `u'not found'` will be present in the errors array.
+
+        :param provider_uuid: The UUID for the
+            :py:class:`~.AuthenticationProvider` for this
+            :py:class:`~.AuthenticatedUser`.
+        :type provider_uuid: :py:class:`uuid.UUID`
+        :param str provider_key: The key identifying a unique user to the
+            authentication provider.
+        :return: The user (if found).
+        :rtype: :py:class:`~.AuthenticatedUser` or `None`
+        """
         raise NotImplementedError
 
     def add_authn_user(self, user_id, provider_uuid, provider_key,
@@ -155,6 +179,17 @@ class BaseStore(object):
         raise NotImplementedError
 
     def save_request(self, request):
+        """Save an updated request to storage.
+
+        The only attributes documented to be able to change on a request are
+        `details`, `status`, `base_payout`, and `payout`. If any other
+        attribute has been changed, it is not guaranteed to be saved.
+        If the save failed for some reason, the errors list will have details.
+
+        :param request: The updated request to save.
+        :type request: :py:class:`evesrp.models.Request`
+        :rtype: `None`
+        """
         raise NotImplementedError
 
     # Request Actions
@@ -260,7 +295,7 @@ class BaseStore(object):
         `fields` should be a `set` of strings to include as keys in the output.
 
         If `fields` contains fields that need to be looked up on a `Killmail`
-        instance and either `killmail` nor `killmails` are given, an exception
+        instance and neither `killmail` nor `killmails` are given, an exception
         will be raised.
         `killmails` is a dict, with the keys being the integer IDs of the
         killmails, and the value being a `dict` of the killmail itself.
@@ -325,7 +360,7 @@ class BaseStore(object):
             killmail_ids = {r['killmail_id'] for r in full_requests}
             full_killmails = self.get_killmails(killmail_ids=killmail_ids)
             format_kwargs['killmails'] = {km['id']: km for km in 
-                                          full_killmails}
+                                          full_killmails[u'result']}
         for request in full_requests:
             yield self._format_sparse(request, **format_kwargs)
 
@@ -338,9 +373,15 @@ class BaseStore(object):
         raise NotImplementedError
 
     def save_character(self, character):
-        # Characters can have their name changed by CCP (if it's found to be
-        # offensive for example) and their owning character can be updated as
-        # well (character transfers).
+        """Save a modified character.
+
+        The only things that can change are the character's name and their
+        owning user's ID. Characters can have their name changed by CCP (for
+        example, if it's found to be offensive). Characters can also be
+        transferred to another account.
+        :param character: The character to save.
+        :type character: :py:class:`evesrp.models.Character`
+        """
         raise NotImplementedError
 
     # User Notes
