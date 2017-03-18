@@ -23,6 +23,17 @@ def test_id_equality_hash():
     assert hash(user) != hash(group)
 
 
+def test_get_item_attribute():
+
+    class TestItemAttribute(util.GetItemAttribute):
+        def __init__(self, **kwargs):
+            for key, value in kwargs.items():
+                setattr(self, key, value)
+
+    obj1 = TestItemAttribute(foo_=mock.sentinel.foo)
+    assert obj1.foo_ == obj1['foo'] == obj1['foo_'] == mock.sentinel.foo
+
+
 @pytest.mark.parametrize('kwargs', [
     # This is a bit of a weird way to get an object with an id_ attribute that
     # I've set, all in succint single line

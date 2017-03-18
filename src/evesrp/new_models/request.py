@@ -8,7 +8,7 @@ from . import util
 from ..util import classproperty
 
 
-class Character(util.IdEquality):
+class Character(util.IdEquality, util.GetItemAttribute):
 
     def __init__(self, name, id_, **kwargs):
         self.name = name
@@ -25,7 +25,7 @@ class Character(util.IdEquality):
         return store.get_user(self.user_id)
 
 
-class Killmail(util.IdEquality, util.FieldsAccess):
+class Killmail(util.IdEquality, util.FieldsAccess, util.GetItemAttribute):
 
     field_types = {
         'killmail_id': util.FieldType.app_id,
@@ -125,7 +125,7 @@ class RequestStatusError(ValueError):
     pass
 
 
-class Request(util.IdEquality, util.FieldsAccess):
+class Request(util.IdEquality, util.FieldsAccess, util.GetItemAttribute):
 
     field_types = {
         'request_id': util.FieldType.app_id,
@@ -303,7 +303,7 @@ class Request(util.IdEquality, util.FieldsAccess):
         store.save_request(self)
 
 
-class Action(util.IdEquality):
+class Action(util.IdEquality, util.GetItemAttribute):
 
     def __init__(self, id_, type_, timestamp=None, contents='', **kwargs):
         self.id_ = id_
@@ -336,7 +336,7 @@ class ModifierType(enum.Enum):
     absolute = 2
 
 
-class Modifier(util.IdEquality):
+class Modifier(util.IdEquality, util.GetItemAttribute):
 
     def __init__(self, id_, type_, value, note=u'', timestamp=None, **kwargs):
         self.id_ = id_

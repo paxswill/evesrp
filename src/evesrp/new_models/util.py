@@ -15,6 +15,22 @@ class IdEquality(object):
         return self.id_ == other.id_
 
 
+class GetItemAttribute(object):
+
+    def __getitem__(self, item):
+        key_error = KeyError("{} does not exist as an attribute.".format(item))
+        try:
+            return getattr(self, item)
+        except AttributeError:
+            # just in case the name is a reserved one being worked around by
+            # adding a trailing underscore (like type or id)
+            try:
+                return getattr(self, item + '_')
+            except AttributeError:
+                raise key_error
+            raise key_error
+
+
 def id_from_kwargs(arg_name, kwargs):
     id_name = arg_name + '_id'
     if arg_name not in kwargs and id_name not in kwargs:

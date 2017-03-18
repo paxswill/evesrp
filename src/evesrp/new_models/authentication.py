@@ -1,7 +1,7 @@
 from . import util
 
 
-class _AbstractAuthenticated(object):
+class _AbstractAuthenticated(util.GetItemAttribute):
 
     # If I ever end up dropping support for Py2, these arguments will become
     # by keyword only

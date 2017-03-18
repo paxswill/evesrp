@@ -5,7 +5,7 @@ from . import util
 from ..util import classproperty
 
 
-class Entity(util.IdEquality):
+class Entity(util.IdEquality, util.GetItemAttribute):
 
     def __init__(self, name, id_):
         self.name = name
@@ -25,7 +25,7 @@ class Entity(util.IdEquality):
             self=self, name=repr(self.name))
 
 
-class User(Entity):
+class User(Entity, util.GetItemAttribute):
 
     def __init__(self, name, id_, admin=False):
         super(User, self).__init__(name, id_)
@@ -58,7 +58,7 @@ class User(Entity):
                 "{self.admin})").format(self=self, name=repr(self.name))
 
 
-class Group(Entity):
+class Group(Entity, util.GetItemAttribute):
 
     def get_users(self, store):
         return store.get_users(group_id=self.id_)
@@ -72,7 +72,7 @@ class Group(Entity):
         store.disassociate_user_group(user_id=user_id, group_id=self.id_)
 
 
-class Division(util.IdEquality):
+class Division(util.IdEquality, util.GetItemAttribute):
 
     def __init__(self, name, id_):
         self.name = name
@@ -135,7 +135,7 @@ class PermissionType(enum.Enum):
                           cls.audit))
 
 
-class Permission(object):
+class Permission(util.GetItemAttribute):
 
     def __init__(self, division_id=None, entity_id=None, type_=None, **kwargs):
         if division_id is None:
@@ -170,7 +170,7 @@ class Permission(object):
                 "{self.type_})").format(self=self)
 
 
-class Note(util.IdEquality):
+class Note(util.IdEquality, util.GetItemAttribute):
 
     def __init__(self, contents, id_, timestamp=None, **kwargs):
         self.subject_id = util.id_from_kwargs('subject', kwargs)
