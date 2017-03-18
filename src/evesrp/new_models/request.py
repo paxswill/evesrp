@@ -34,7 +34,7 @@ class Killmail(util.IdEquality, util.FieldsAccess):
         'character_id': util.FieldType.ccp_id,
         'corporation_id': util.FieldType.ccp_id,
         'alliance_id': util.FieldType.ccp_id,
-        'solar_system_id': util.FieldType.ccp_id,
+        'system_id': util.FieldType.ccp_id,
         'constellation_id': util.FieldType.ccp_id,
         'region_id': util.FieldType.ccp_id,
         'killmail_timestamp': util.FieldType.datetime,
