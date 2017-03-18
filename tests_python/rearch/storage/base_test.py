@@ -17,7 +17,7 @@ class CommonStorageTest(object):
     @staticmethod
     def _test_get(getter, good_id, bad_id):
         good_resp = getter(good_id)
-        assert good_resp[u'result'].id_ == good_id
+        assert good_resp[u'result']['id'] == good_id
         bad_resp = getter(bad_id)
         assert bad_resp[u'result'] is None
         assert 'not found' in bad_resp[u'errors'][0]
@@ -38,10 +38,10 @@ class CommonStorageTest(object):
 
     def test_get_authn_entity(self, populated_store, entity_type,
                               auth_provider_uuid, auth_provider_key,
-                              authn_entity):
+                              authn_entity_dict):
         getter = getattr(populated_store, 'get_authn_' + entity_type)
         assert getter(auth_provider_uuid, auth_provider_key)[u'result'] == \
-            authn_entity
+            authn_entity_dict
         assert getter(auth_provider_uuid, 'Foo')[u'result'] is None
 
     def test_add_authn_entity(self, store, entity_type, authn_entity_dict):
@@ -60,11 +60,11 @@ class CommonStorageTest(object):
         saver = getattr(populated_store, 'save_authn_' + entity_type)
         getter = getattr(populated_store, 'get_authn_' + entity_type)
         entity1 = getter(auth_provider_uuid, auth_provider_key)[u'result']
-        assert entity1.extra_data == {}
-        entity1.test_extra = 'Foo'
+        assert entity1['extra_data'] == {}
+        entity1['extra_data']['test_extra'] = 'Foo'
         saver(entity1)
         entity2 = getter(auth_provider_uuid, auth_provider_key)[u'result']
-        assert entity2.extra_data == {'test_extra': 'Foo'}
+        assert entity2['extra_data'] == {'test_extra': 'Foo'}
 
     # Divisions
 
@@ -75,9 +75,9 @@ class CommonStorageTest(object):
         resp = populated_store.get_divisions((10, 30))
         divisions = resp[u'result']
         assert len(divisions) == 2
-        # Division name isn't considered for equality, only ID
-        assert models.Division(u'', 10) in divisions
-        assert models.Division(u'', 30) in divisions
+        assert {'name': u'Testing Division', 'id': 10} in divisions
+        assert {'name': u'YATD: Yet Another Testing Division', 'id': 30} in \
+            divisions
         # No list gets all
         assert len(populated_store.get_divisions()[u'result']) == 2
         assert len(populated_store.get_divisions((10, 20))[u'result']) == 1
@@ -88,7 +88,7 @@ class CommonStorageTest(object):
         pre_resp = store.get_divisions()
         assert len(pre_resp[u'result']) == 0
         add_resp = store.add_division(u'Division Foo')
-        new_id = add_resp[u'result'].id_
+        new_id = add_resp[u'result']['id']
         post_resp = store.get_divisions()
         assert len(post_resp[u'result']) == 1
         get_resp = store.get_division(new_id)
@@ -97,11 +97,11 @@ class CommonStorageTest(object):
     def test_save_division(self, populated_store):
         pre_resp = populated_store.get_division(10)
         division = pre_resp[u'result']
-        assert division.name == u'Testing Division'
-        division.name = u'Even Better Testing Division'
+        assert division['name'] == u'Testing Division'
+        division['name'] = u'Even Better Testing Division'
         populated_store.save_division(division)
         post_resp = populated_store.get_division(10)
-        assert post_resp[u'result'].name == u'Even Better Testing Division'
+        assert post_resp[u'result']['name'] == u'Even Better Testing Division'
 
     # Permissions
 
@@ -256,14 +256,14 @@ class CommonStorageTest(object):
     def test_get_users(self, populated_store, group_id, member_ids):
         get_resp = populated_store.get_users(group_id)
         users = get_resp[u'result']
-        user_ids = {user.id_ for user in users}
+        user_ids = {user['id'] for user in users}
         assert member_ids == user_ids
 
     @pytest.mark.parametrize('is_admin', (True, False))
     def test_add_user(self, store, is_admin):
         add_resp = store.add_user(u'User 6', is_admin)
         user = add_resp[u'result']
-        get_resp = store.get_user(user.id_)
+        get_resp = store.get_user(user['id'])
         assert get_resp[u'result'] == user
 
     def test_get_group(self, populated_store):
@@ -277,13 +277,13 @@ class CommonStorageTest(object):
     def test_get_groups(self, populated_store, user_id, group_ids):
         get_resp = populated_store.get_groups(user_id)
         groups = get_resp[u'result']
-        expected_group_ids = {group.id_ for group in groups}
+        expected_group_ids = {group['id'] for group in groups}
         assert group_ids == expected_group_ids
 
     def test_add_group(self, store):
         add_resp = store.add_group(u'Group ????')
         group = add_resp[u'result']
-        get_resp = store.get_group(group.id_)
+        get_resp = store.get_group(group['id'])
         assert get_resp[u'result'] == group
 
     @pytest.mark.parametrize('user_id', (0, 9),
@@ -321,7 +321,7 @@ class CommonStorageTest(object):
     def test_get_killmails(self, populated_store, requested_ids):
         resp = populated_store.get_killmails(requested_ids)
         killmails = resp[u'result']
-        killmail_ids = {km.id_ for km in killmails}
+        killmail_ids = {km['id'] for km in killmails}
         expected_ids = {id_ for id_ in requested_ids if id_ != 0}
         assert killmail_ids == expected_ids
 
@@ -351,11 +351,11 @@ class CommonStorageTest(object):
     def test_get_request(self, populated_store):
         # Start with a request_id
         req1_resp = populated_store.get_request(request_id=123)
-        assert req1_resp[u'result'].killmail_id == 52861733
+        assert req1_resp[u'result']['killmail_id'] == 52861733
         # Now try a killmail and division_id
         req2_resp = populated_store.get_request(division_id=10,
                                                 killmail_id=52861733)
-        assert req2_resp[u'result'].killmail_id == 52861733
+        assert req2_resp[u'result']['killmail_id'] == 52861733
         neg_resp = populated_store.get_request(234)
         assert neg_resp[u'result'] is None
         assert 'not found' in neg_resp[u'errors']
@@ -373,17 +373,17 @@ class CommonStorageTest(object):
                                                 killmail_id=60713776)
         assert add_resp[u'result'] == post_resp[u'result']
         request = post_resp[u'result']
-        assert request.killmail_id == 60713776
-        assert request.division_id == 10
+        assert request['killmail_id'] == 60713776
+        assert request['division_id'] == 10
 
     def test_save_request(self, populated_store):
         req1_resp = populated_store.get_request(456)
         request = req1_resp[u'result']
-        assert request.base_payout == Decimal(7000000)
-        request.base_payout = Decimal(5000000)
+        assert request['base_payout'] == Decimal(7000000)
+        request['base_payout'] = Decimal(5000000)
         populated_store.save_request(request)
         post_resp = populated_store.get_request(456)
-        assert post_resp[u'result'].base_payout == Decimal(5000000)
+        assert post_resp[u'result']['base_payout'] == Decimal(5000000)
 
     # Actions
 
@@ -440,7 +440,7 @@ class CommonStorageTest(object):
                            expected_ids):
         modifiers_resp = populated_store.get_modifiers(request_id, void=void,
                                                        type_=type_)
-        actual_ids = {m.id_ for m in modifiers_resp[u'result']}
+        actual_ids = {m['id'] for m in modifiers_resp[u'result']}
         assert actual_ids == expected_ids
 
     def test_add_modifier(self, populated_store):
@@ -454,7 +454,7 @@ class CommonStorageTest(object):
         post_resp = populated_store.get_modifiers(
             456, void=False, type_=models.ModifierType.absolute)
         assert len(post_resp[u'result']) == 1
-        assert add_resp[u'result'].id_ == post_resp[u'result'][0].id_
+        assert add_resp[u'result']['id'] == post_resp[u'result'][0]['id']
 
     @pytest.mark.parametrize('modifier_id', (100000, 0, 200000),
                              ids=('valid_id', 'invalid_id', 'already_void'))
@@ -466,7 +466,7 @@ class CommonStorageTest(object):
             assert u'already void' in resp[u'errors'][0]
         else:
             post_resp = populated_store.get_modifier(modifier_id)
-            assert post_resp[u'result'].is_void
+            assert post_resp[u'result']['void'] is not None
 
     # Filtering
 
@@ -483,16 +483,16 @@ class CommonStorageTest(object):
         add_resp = populated_store.add_character(7, 95465499, 'CCP Bartender')
         post_resp = populated_store.get_character(95465499)
         assert add_resp[u'result'] == post_resp[u'result']
-        assert post_resp[u'result'].id_ == 95465499
+        assert post_resp[u'result']['id'] == 95465499
 
     def test_save_character(self, populated_store):
         # Act like 'Paxswill' is offensive
         pre_resp = populated_store.get_character(570140137)
         character = pre_resp[u'result']
-        character.name = u'Gallente Citizen 570140137'
+        character['name'] = u'Gallente Citizen 570140137'
         populated_store.save_character(character)
         post_resp = populated_store.get_character(570140137)
-        assert post_resp[u'result'].name == u'Gallente Citizen 570140137'
+        assert post_resp[u'result']['name'] == u'Gallente Citizen 570140137'
 
     # Notes
 

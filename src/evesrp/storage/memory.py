@@ -40,14 +40,9 @@ class MemoryStore(BaseStore, CachingCcpStore):
         entity_dict = dict(entity_data)
         entity_dict['provider_uuid'] = provider_uuid
         entity_dict['provider_key'] = provider_key
-        if entity_type == 'user':
-            return {
-                u'result': models.AuthenticatedUser.from_dict(entity_dict),
-            }
-        elif entity_type == 'group':
-            return {
-                u'result': models.AuthenticatedGroup.from_dict(entity_dict),
-            }
+        return {
+            u'result': entity_dict,
+        }
 
     def _add_authn_entity(self, entity_type, entity_id, provider_uuid,
                           provider_key, extra_data=None, **kwargs):
@@ -63,22 +58,17 @@ class MemoryStore(BaseStore, CachingCcpStore):
         entity_dict = dict(entity_data)
         entity_dict['provider_uuid'] = provider_uuid
         entity_dict['provider_key'] = provider_key
-        if entity_type == 'user':
-            return {
-                u'result': models.AuthenticatedUser.from_dict(entity_dict),
-            }
-        elif entity_type == 'group':
-            return {
-                u'result': models.AuthenticatedGroup.from_dict(entity_dict),
-            }
+        return {
+            u'result': entity_dict,
+        }
 
     def _save_authn_entity(self, entity_type, authn_entity):
-        entity_key = (authn_entity.provider_uuid,
-                      str(authn_entity.provider_key))
+        entity_key = (authn_entity['provider_uuid'],
+                      str(authn_entity['provider_key']))
         id_name = entity_type + '_id'
         self._entity_storage(entity_type)[entity_key] = {
-            id_name: getattr(authn_entity, id_name),
-            'extra_data': authn_entity.extra_data,
+            id_name: authn_entity[id_name],
+            'extra_data': authn_entity['extra_data'],
         }
 
     def get_authn_user(self, provider_uuid, provider_key):
@@ -119,7 +109,7 @@ class MemoryStore(BaseStore, CachingCcpStore):
 
     # Shared
 
-    def _get_from_dict(self, data_key, id_, from_dict):
+    def _get_from_dict(self, data_key, id_):
         data = self._data[data_key].get(id_)
         if data is None:
             return {
@@ -129,9 +119,8 @@ class MemoryStore(BaseStore, CachingCcpStore):
                                                   id_),
                 ],
             }
-        model = from_dict(data)
         return {
-            u'result': model,
+            u'result': dict(data),
         }
 
     def _get_next_id(self, data_key):
@@ -140,20 +129,18 @@ class MemoryStore(BaseStore, CachingCcpStore):
             new_id += 1
         return new_id
 
-    def _add_to_dict(self, data_key, from_dict, data):
+    def _add_to_dict(self, data_key, data):
         if 'id' not in data:
             data['id'] = self._get_next_id(data_key)
         self._data[data_key][data['id']] = data
-        model = from_dict(data)
         return {
-            u'result': model,
+            u'result': dict(data),
         }
 
     # Divisions
 
     def get_division(self, division_id):
-        return self._get_from_dict('divisions', division_id,
-                                   models.Division.from_dict)
+        return self._get_from_dict('divisions', division_id)
 
     def get_divisions(self, division_ids=None):
         if division_ids is None:
@@ -161,21 +148,18 @@ class MemoryStore(BaseStore, CachingCcpStore):
         else:
             divisions_data = [self._data['divisions'].get(d_id) for d_id in
                               division_ids]
-        divisions_data = filter(lambda d: d is not None, divisions_data)
-        divisions = [models.Division.from_dict(d_data) for d_data in
-                     divisions_data]
+        divisions = filter(lambda d: d is not None, divisions_data)
         return {
-            u'result': divisions,
+            u'result': list(divisions),
         }
 
     def add_division(self, name):
-        return self._add_to_dict('divisions', models.Division.from_dict,
-                                 {'name': name})
+        return self._add_to_dict('divisions', {'name': name})
 
     def save_division(self, division):
-        self._data['divisions'][division.id_] = {
-            'name': division.name,
-            'id': division.id_,
+        self._data['divisions'][division['id']] = {
+            'name': division['name'],
+            'id': division['id'],
         }
 
     # Permissions
@@ -198,6 +182,7 @@ class MemoryStore(BaseStore, CachingCcpStore):
                 if len(value) > 0 and getattr(perm, key) not in value:
                     return False
             return True
+        # TODO Fix to return dicts
         return {
             u'result': set(filter(filter_func, self._data['permissions'])),
         }
@@ -236,39 +221,35 @@ class MemoryStore(BaseStore, CachingCcpStore):
     # Users and Groups
 
     def get_user(self, user_id):
-        return self._get_from_dict('users', user_id, models.User.from_dict)
+        return self._get_from_dict('users', user_id)
 
     def get_users(self, group_id):
         member_ids = self._data['group_members'].get(group_id, set())
-        users_data = [self._data['users'][uid] for uid in member_ids]
-        users = {models.User.from_dict(data) for data in users_data}
+        users = [self._data['users'][uid] for uid in member_ids]
         return {
             u'result': users,
         }
 
     def add_user(self, name, is_admin=False):
-        return self._add_to_dict('users', models.User.from_dict,
-                                 {
-                                     'name': name,
-                                     'admin': is_admin,
-                                 })
+        return self._add_to_dict('users', {
+            'name': name,
+            'admin': is_admin,
+        })
 
     def get_group(self, group_id):
-        return self._get_from_dict('groups', group_id, models.Group.from_dict)
+        return self._get_from_dict('groups', group_id)
 
     def get_groups(self, user_id):
         membership = self._data['group_members']
         group_ids = {gid for gid, uids in six.iteritems(membership) if
                      user_id in uids}
-        groups_data = [self._data['groups'][gid] for gid in group_ids]
-        groups = {models.User.from_dict(data) for data in groups_data}
+        groups = [self._data['groups'][gid] for gid in group_ids]
         return {
             u'result': groups,
         }
 
     def add_group(self, name):
-        return self._add_to_dict('groups', models.Group.from_dict,
-                                 {'name': name})
+        return self._add_to_dict('groups', {'name': name})
 
     def associate_user_group(self, user_id, group_id):
         errors = []
@@ -293,8 +274,7 @@ class MemoryStore(BaseStore, CachingCcpStore):
     # Killmails
 
     def get_killmail(self, killmail_id):
-        return self._get_from_dict('killmails', killmail_id,
-                                   models.Killmail.from_dict)
+        return self._get_from_dict('killmails', killmail_id)
 
     def add_killmail(self, **kwargs):
         errors = []
@@ -315,7 +295,7 @@ class MemoryStore(BaseStore, CachingCcpStore):
         killmail = models.Killmail.from_dict(killmail_data)
         self._data['killmails'][killmail_data['id']] = killmail_data
         return {
-            u'result': killmail,
+            u'result': dict(killmail_data),
         }
 
     # Requests
@@ -343,13 +323,12 @@ class MemoryStore(BaseStore, CachingCcpStore):
             }
         else:
             return {
-                u'result': models.Request.from_dict(request_data)
+                u'result': dict(request_data),
             }
 
     def get_requests(self, killmail_id):
-        requests_data = [km for km in six.itervalues(self._data['requests'])
-                         if km['killmail_id'] == killmail_id]
-        requests = [models.Request.from_dict(r) for r in requests_data]
+        requests = [km for km in six.itervalues(self._data['requests'])
+                    if km['killmail_id'] == killmail_id]
         return {
             u'result': requests,
         }
@@ -379,13 +358,13 @@ class MemoryStore(BaseStore, CachingCcpStore):
         }
         self._data['requests'][request_id] = request_data
         return {
-            u'result': models.Request.from_dict(request_data)
+            u'result': dict(request_data),
         }
 
     def save_request(self, request):
         # Only a few things are allowed to change on requests
         try:
-            request_data = self._data['requests'][request.id_]
+            request_data = self._data['requests'][request['id']]
         except KeyError:
             return {
                 u'errors': [
@@ -393,18 +372,16 @@ class MemoryStore(BaseStore, CachingCcpStore):
                 ],
             }
         for attr in ('details', 'status', 'base_payout', 'payout'):
-            request_data[attr] = getattr(request, attr)
+            request_data[attr] = request[attr]
 
     # Request Actions
 
     def get_action(self, action_id):
-        return self._get_from_dict('actions', action_id,
-                                   models.Action.from_dict)
+        return self._get_from_dict('actions', action_id)
 
     def get_actions(self, request_id):
-        actions_data = [act for act in six.itervalues(self._data['actions'])
-                        if act['request_id'] == request_id]
-        actions = [models.Action.from_dict(a) for a in actions_data]
+        actions = [act for act in six.itervalues(self._data['actions'])
+                   if act['request_id'] == request_id]
         return {
             u'result': actions,
         }
@@ -420,25 +397,22 @@ class MemoryStore(BaseStore, CachingCcpStore):
                 u'result': None,
                 u'errors': errors,
             }
-        return self._add_to_dict('actions', models.Action.from_dict,
-                                 {
-                                     'type': type_,
-                                     'timestamp': dt.datetime.utcnow(),
-                                     'contents': contents,
-                                     'user_id': user_id,
-                                     'request_id': request_id,
-                                 })
+        return self._add_to_dict('actions', {
+            'type': type_,
+            'timestamp': dt.datetime.utcnow(),
+            'contents': contents,
+            'user_id': user_id,
+            'request_id': request_id,
+        })
 
     # Request Modifiers
 
     def get_modifier(self, modifier_id):
-        return self._get_from_dict('modifiers', modifier_id,
-                                   models.Modifier.from_dict)
+        return self._get_from_dict('modifiers', modifier_id)
 
     def get_modifiers(self, request_id, void=None, type_=None):
-        modifiers_data = [mod for mod in
-                          six.itervalues(self._data['modifiers'])
-                          if mod['request_id'] == request_id]
+        modifiers = [mod for mod in six.itervalues(self._data['modifiers'])
+                     if mod['request_id'] == request_id]
 
         def void_filter(modifier):
             if void is not None:
@@ -449,11 +423,10 @@ class MemoryStore(BaseStore, CachingCcpStore):
             if type_ is not None:
                 return modifier['type'] == type_
             return True
-        modifiers_data = filter(void_filter, modifiers_data)
-        modifiers_data = filter(type_filter, modifiers_data)
-        modifiers = [models.Modifier.from_dict(m) for m in modifiers_data]
+        modifiers = filter(void_filter, modifiers)
+        modifiers = filter(type_filter, modifiers)
         return {
-            u'result': modifiers,
+            u'result': list(modifiers),
         }
 
     def add_modifier(self, request_id, user_id, type_, value, note=u''):
@@ -467,16 +440,15 @@ class MemoryStore(BaseStore, CachingCcpStore):
                 u'result': None,
                 u'errors': errors,
             }
-        return self._add_to_dict('modifiers', models.Modifier.from_dict,
-                                 {
-                                     'type': type_,
-                                     'value': value,
-                                     'note': note,
-                                     'timestamp': dt.datetime.utcnow(),
-                                     'user_id': user_id,
-                                     'request_id': request_id,
-                                     'void': None,
-                                 })
+        return self._add_to_dict('modifiers', {
+            'type': type_,
+            'value': value,
+            'note': note,
+            'timestamp': dt.datetime.utcnow(),
+            'user_id': user_id,
+            'request_id': request_id,
+            'void': None,
+        })
 
     def void_modifier(self, modifier_id, user_id):
         errors = []
@@ -503,14 +475,17 @@ class MemoryStore(BaseStore, CachingCcpStore):
 
     # Filtering
 
+    def _filter_match(self, filters, request):
+        killmail = self.get_killmail(request.id_)
+        
+
     def filter_requests(self, filters):
         raise NotImplementedError
 
     # Characters
 
     def get_character(self, character_id):
-        return self._get_from_dict('characters', character_id,
-                                   models.Character.from_dict)
+        return self._get_from_dict('characters', character_id)
 
     def add_character(self, user_id, character_id, character_name):
         if user_id not in self._data['users']:
@@ -520,24 +495,23 @@ class MemoryStore(BaseStore, CachingCcpStore):
                     u"User ID# {} not found".format(user_id),
                 ],
             }
-        return self._add_to_dict('characters', models.Character.from_dict,
-                                 {
-                                     'user_id': user_id,
-                                     'id': character_id,
-                                     'name': character_name,
-                                 })
+        return self._add_to_dict('characters', {
+            'user_id': user_id,
+            'id': character_id,
+            'name': character_name,
+        })
 
     def save_character(self, character):
-        if character.id_ not in self._data['characters']:
+        if character['id'] not in self._data['characters']:
             return {
                 u'result': None,
                 u'errors': [
                     u"Character ID# {} not found".format(user_id),
                 ],
             }
-        character_data = self._data['characters'][character.id_]
-        character_data['name'] = character.name
-        character_data['user_id'] = character.user_id
+        character_data = self._data['characters'][character['id']]
+        character_data['name'] = character['name']
+        character_data['user_id'] = character['user_id']
 
     # User Notes
 
@@ -549,8 +523,7 @@ class MemoryStore(BaseStore, CachingCcpStore):
                     u"User ID #{} not found".format(subject_id),
                 ],
             }
-        notes_data = self._data['notes'].get(subject_id, [])
-        notes = [models.Note.from_dict(n) for n in notes_data]
+        notes = self._data['notes'].get(subject_id, [])
         return {
             u'result': notes,
         }
@@ -576,5 +549,5 @@ class MemoryStore(BaseStore, CachingCcpStore):
         }
         notes[subject_id].append(note_data)
         return {
-            u'result': models.Note.from_dict(note_data)
+            u'result': dict(note_data),
         }
