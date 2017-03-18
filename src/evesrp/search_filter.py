@@ -187,7 +187,7 @@ class Filter(object):
                 # (represented by tuples of starting and ending times, both
                 # inclusive).
                 for start, end in values:
-                    if start <= timestamp >= end:
+                    if start <= timestamp <= end:
                         break
                 else:
                     return False
