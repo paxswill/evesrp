@@ -28,7 +28,7 @@ class Character(util.IdEquality):
 class Killmail(util.IdEquality, util.FieldsAccess):
 
     field_types = {
-        'id': util.FieldType.app_id,
+        'killmail_id': util.FieldType.app_id,
         'user_id': util.FieldType.app_id,
         # character_id is also technically an app_id
         'character_id': util.FieldType.ccp_id,
@@ -37,7 +37,7 @@ class Killmail(util.IdEquality, util.FieldsAccess):
         'solar_system_id': util.FieldType.ccp_id,
         'constellation_id': util.FieldType.ccp_id,
         'region_id': util.FieldType.ccp_id,
-        'timestamp': util.FieldType.datetime,
+        'killmail_timestamp': util.FieldType.datetime,
         'type_id': util.FieldType.ccp_id,
         'url': util.FieldType.url,
     }
@@ -128,14 +128,14 @@ class RequestStatusError(ValueError):
 class Request(util.IdEquality, util.FieldsAccess):
 
     field_types = {
-        'id': util.FieldType.app_id,
+        'request_id': util.FieldType.app_id,
         'details': util.FieldType.text,
         # Techinically killmail_id is defined by CCP, but it's used in the
         # context of util.FieldType to mean something we're using to link to an
         # entry in the app's database.
         'killmail_id': util.FieldType.app_id,
         'division_id': util.FieldType.app_id,
-        'timestamp': util.FieldType.datetime,
+        'request_timestamp': util.FieldType.datetime,
         'status': util.FieldType.status,
         'base_payout': util.FieldType.decimal,
         'payout': util.FieldType.decimal,

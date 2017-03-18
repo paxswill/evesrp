@@ -48,18 +48,10 @@ def check_filter_key(func):
 
 class Filter(object):
 
-    # _field_types is a local copy of the Request and Killmail field_types, but
-    # with some special field names repacing shared field names. killmail_id is
-    # not special-cased, as Request has it as a member.
-    _field_types = {
-        'request_id': models.FieldType.app_id,
-        'request_timestamp': models.FieldType.datetime,
-        'killmail_timestamp': models.FieldType.datetime,
-    }
+    # _field_types is a local copy of the Request and Killmail field_types
+    _field_types = {}
     _field_types.update(models.Killmail.field_types)
     _field_types.update(models.Request.field_types)
-    del _field_types['id']
-    del _field_types['timestamp']
 
     def __init__(self, initial_filters=None, **kwargs):
         self._filters = defaultdict(set)
