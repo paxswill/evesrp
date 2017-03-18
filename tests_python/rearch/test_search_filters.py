@@ -1,54 +1,49 @@
 import datetime as dt
 from decimal import Decimal
-import itertools
 try:
     from unittest import mock
 except ImportError:
     import mock
+
 import pytest
-import six
 import evesrp
 from evesrp import new_models as models
 from evesrp import search_filter as sfilter
 
 
-@pytest.fixture(params=(True, False))
-def immutable(request):
-    return request.param
-
-
-def test_filter_init(immutable):
-    default_filter = sfilter.Filter()
-    assert default_filter._immutable
-    assert default_filter._filters == {}
-    immutability_filter = sfilter.Filter(filter_immutable=immutable)
-    assert immutability_filter._immutable == immutable
-    source_filter = mock.Mock()
-    source_filter._filters = mock.sentinel.sourced_filters
-    with mock.patch('copy.deepcopy', autospec=True) as mock_deepcopy:
-        mock_deepcopy.return_value = mock.sentinel.copied_filters
-        sourced_filter = sfilter.Filter(filter_source=source_filter)
-        mock_deepcopy.assert_called_once_with(mock.sentinel.sourced_filters)
-        assert sourced_filter._filters == mock.sentinel.copied_filters
+@pytest.mark.parametrize('initial_values', (None, {'division_id': {0, }}))
+@pytest.mark.parametrize('additional_kwargs', ({}, {'division_id': {1, }}))
+def test_filter_init(initial_values, additional_kwargs):
+    test_filter = sfilter.Filter(initial_values, **additional_kwargs)
+    if initial_values is None and len(additional_kwargs) == 0:
+        assert len(test_filter._filters) == 0
+    elif initial_values is not None and len(additional_kwargs) == 0:
+        assert len(test_filter._filters) == 1
+        assert test_filter._filters['division_id'] == {0, }
+    elif initial_values is None and len(additional_kwargs) == 1:
+        assert len(test_filter._filters) == 1
+        assert test_filter._filters['division_id'] == {1, }
+    elif initial_values is not None and len(additional_kwargs) == 1:
+        assert len(test_filter._filters) == 1
+        assert test_filter._filters['division_id'] == {0, 1}
 
 
 def test_filter_length():
     filter_ = sfilter.Filter()
     assert len(filter_) == 0
-    filter_._filters['foo'].add(1)
+    filter_._filters['killmail_id'].add(1)
     assert len(filter_) == 1
-    filter_._filters['foo'].add(2)
+    filter_._filters['killmail_id'].add(2)
     assert len(filter_) == 1
-    filter_._filters['bar'].add(3)
+    filter_._filters['request_id'].add(3)
     assert len(filter_) == 2
-    del filter_._filters['foo']
 
 
 def test_filter_iter():
     filter_ = sfilter.Filter()
     filter_._filters = {
-        'foo': {1, 2, 3},
-        'bar': {4, 5},
+        'request_id': {1, 2, 3},
+        'killmail_id': {4, 5},
     }
     keys = set(filter_._filters.keys())
     for key, value in filter_:
@@ -59,60 +54,81 @@ def test_filter_iter():
 
 def test_filter_contains():
     test_filter = sfilter.Filter()
-    assert len(test_filter) == 0
-    test_filter = test_filter.add(division=1)
-    assert len(test_filter) == 1
-    # Adding another item to an existing field does not change the length
-    test_filter = test_filter.add(division=2)
-    assert len(test_filter) == 1
+    assert 'killmail_id' not in test_filter
+    test_filter._filters['killmail_id'].add(1)
+    assert 'killmail_id' in test_filter
 
 
 def test_filter_getitem():
     f = sfilter.Filter()
-    assert f['division'] == set()
+    assert f['division_id'] == set()
     with pytest.raises(KeyError):
         f['character']
-    assert isinstance(f['division'], frozenset)
-    f = f.add(division=5)
-    assert f['division'] == {5, }
+    assert isinstance(f['division_id'], frozenset)
 
 
 def test_filter_equals():
-    assert sfilter.Filter() == sfilter.Filter()
-    assert sfilter.Filter().add(division=2) == sfilter.Filter().add(division=2)
-    assert sfilter.Filter().add(division=2) != sfilter.Filter().add(division=0)
+    filter1 = sfilter.Filter()
+    filter2 = sfilter.Filter()
+    assert filter1 == filter2
+    filter1._filters['division_id'].add(1)
+    filter2._filters['division_id'].add(1)
+    assert filter1 == filter2
+    filter1._filters['division_id'].add(2)
+    assert filter1 != filter2
 
 
 def test_filter_repr():
-    f = sfilter.Filter()
-    assert repr(f) == "Filter({})"
-    f = f.add(division=2)
-    assert repr(f) == "Filter({'division': {2}})"
+    test_filter = sfilter.Filter()
+    assert repr(test_filter) == "Filter({})"
+    test_filter._filters['division_id'].add(2)
+    assert repr(test_filter) == "Filter({'division_id': {2}})"
 
 
 def test_filter_merge():
-    starting_filter = sfilter.Filter().add(division=1)
-    assert starting_filter['division'] == {1, }
-    other_filter = sfilter.Filter().add(division=2).add(pilot=u'Paxswill')
-    assert other_filter['division'] == {2, }
-    assert other_filter['pilot'] == {u'Paxswill', }
-    merged_filter = starting_filter.merge(other_filter)
-    expected_filter = sfilter.Filter().\
-        add(pilot=u'Paxswill').\
-        add(division=1).\
-        add(division=2)
-    assert merged_filter == expected_filter
+    starting_filter = sfilter.Filter()
+    starting_filter._filters['division_id'].add(1)
+    other_filter = sfilter.Filter()
+    other_filter._filters['division_id'].add(2)
+    other_filter._filters['character_id'].add(10)
+    starting_filter.merge(other_filter)
+    assert starting_filter._filters == {
+        'division_id': {1, 2},
+        'character_id': {10, },
+    }
 
 
-string_or_id_values = {
-    'type': (u'Erebus', u'Ragnarok', 671, u'Megathron',),
-    # "Numbers" is my favorite test case.
-    # https://github.com/bravecollective/core/issues/264
-    'pilot': (u'17007870', 91447153, u'Paxswill', u'DurrHurrDurr',),
-    'region': (10000014, u'Catch', u'The Forge',),
-    'constellation': (u'T-HHHT', u'Inolari', 20000020,),
-    'system': (30000142, u'Poitot', u'Jita'),
-}
+class TestMatches(object):
+
+    @pytest.fixture
+    def srp_request(self):
+        return mock.Mock(killmail_id=0, division_id=10)
+
+    @pytest.fixture
+    def killmail(self):
+        return mock.Mock(id_=0, type_id=100)
+
+    @pytest.mark.parametrize('killmail',(mock.Mock(id_=1), ))
+    def test_mismatched_killmail(self, srp_request, killmail):
+        test_filter = sfilter.Filter()
+        with pytest.raises(ValueError):
+            test_filter.matches(srp_request, killmail)
+
+    def test_matches_killmail(self, srp_request, killmail):
+        test_filter = sfilter.Filter(type_id={100, })
+        assert test_filter.matches(srp_request, killmail)
+
+    def test_matches_request(self, srp_request):
+        test_filter = sfilter.Filter(division_id={10, })
+        assert test_filter.matches(srp_request)
+
+    def test_not_matches(self, srp_request):
+        test_filter = sfilter.Filter(division_id={20, })
+        assert not test_filter.matches(srp_request)
+
+
+
+integer_values = (0, 1, 2)
 
 
 period_values = (
@@ -132,163 +148,69 @@ status_values = list((s.name for s in models.ActionType.statuses))
 status_values.append(models.ActionType.approved)
 
 
-all_values = dict(
-    string_or_id_values,
-    kill_timestamp=period_values,
-    submit_timestamp=period_values,
-    payout=decimal_values,
-    base_payout=decimal_values,
-    division=(1, 2, 3),
-    user=(1, 2, 3),
-    status=status_values,
-    details=(u'a details search', u'another search'),
+url_values = (
+    'http://example.com',
+    'http://example.com/foo/bar/baz',
 )
 
 
-@pytest.fixture
-def convert_value(attribute):
-    if attribute.endswith('payout'):
-        return lambda v: Decimal(v)
-    elif attribute.endswith('_timestamp'):
-        def _convert_datatime(value):
-            if not isinstance(value, tuple):
-                return evesrp.util.parse_datetime(value)
-            else:
-                return value
-        return _convert_datatime
-    elif attribute == 'status':
-        def _convert_actiontype(value):
-            if value in models.ActionType:
-                return value
-            else:
-                return models.ActionType[value]
-        return _convert_actiontype
+def convert_value(field_type, field_value):
+    if field_type == models.FieldType.decimal:
+        return Decimal(field_value)
+    elif field_type == models.FieldType.datetime:
+        if not isinstance(field_value, tuple):
+            return evesrp.util.parse_datetime(field_value)
+        else:
+            return field_value
+    elif field_type == models.FieldType.status:
+        if field_value in models.ActionType:
+            return field_value
+        else:
+            return models.ActionType[field_value]
     else:
-        return lambda v: v
+        return field_value
 
 
-class TestAddPredicate(object):
+class TestPredicate(object):
 
-    @pytest.mark.parametrize(
-        'attribute,value',
-        ((attrib, value) for attrib, values in six.iteritems(all_values)
-         for value in values)
-    )
-    def test_single_predicates(self, attribute, value, immutable,
-                               convert_value):
-        start_filter = sfilter.Filter(filter_immutable=immutable)
-        kwargs = {attribute: value}
-        test_filter = start_filter.add(**kwargs)
-        assert test_filter._filters == {attribute: {convert_value(value)}}
-        if immutable:
-            assert id(start_filter) != id(test_filter)
-            assert start_filter._filters == {}
+
+    @pytest.mark.parametrize('field_name,field_type',
+                             sfilter.Filter._field_types.items())
+    def test_add_predicate(self, field_name, field_type):
+        if field_type == models.FieldType.decimal:
+            values = decimal_values
+        elif field_type == models.FieldType.datetime:
+            values = period_values
+        elif field_type == models.FieldType.status:
+            values = status_values
+        elif field_type in (models.FieldType.string,
+                            models.FieldType.text,
+                            models.FieldType.url):
+            values = url_values
+        elif field_type in (models.FieldType.integer,
+                            models.FieldType.app_id,
+                            models.FieldType.ccp_id):
+            values = integer_values
+        added_values = set()
+        test_filter = sfilter.Filter()
+        for value in values:
+            added_values.add(convert_value(field_type, value))
+            test_filter.add(field_name, value)
+            assert test_filter._filters[field_name] == added_values
+
+    @pytest.mark.parametrize('valid_field', (True, False),
+                             ids=('valid_field', 'invalid_field'))
+    def test_remove_empty(self, valid_field):
+        test_filter = sfilter.Filter()
+        if valid_field:
+            # Testing that it doesn't raise
+            test_filter.remove('division_id', 0)
         else:
-            assert id(start_filter) == id(test_filter)
+            with pytest.raises(sfilter.InvalidFilterKeyError):
+                test_filter.remove('foo', 0)
 
-    @pytest.mark.parametrize(
-        'attribute,values',
-        ((attrib, value) for attrib, values in six.iteritems(all_values)
-         for value in itertools.combinations(values, 2))
-    )
-    def test_multiple_predicates(self, attribute, values, immutable,
-                                 convert_value):
-        first, second = values
-        start_filter = sfilter.Filter(filter_immutable=immutable)
-        kwargs = {attribute: first}
-        mid_filter = start_filter.add(**kwargs)
-        assert mid_filter._filters == {attribute: {convert_value(first)}}
-        if immutable:
-            assert id(start_filter) != id(mid_filter)
-            assert start_filter._filters == {}
-        else:
-            assert id(start_filter) == id(mid_filter)
-        end_filter = mid_filter.add(**{attribute: second})
-        assert end_filter._filters == {attribute: {convert_value(first),
-                                                   convert_value(second)}}
-        if immutable:
-            assert id(mid_filter) != id(end_filter)
-            assert mid_filter._filters == {attribute: {convert_value(first)}}
-        else:
-            assert id(start_filter) == id(mid_filter)
-            assert id(mid_filter) == id(end_filter)
-
-    @pytest.mark.parametrize(
-        'attribute, value',
-        ((key, 3.14159) for key in six.iterkeys(string_or_id_values))
-    )
-    def test_invalid_string_predicates(self, attribute, value):
-        filter_ = sfilter.Filter()
-        kwargs = {attribute: value}
-        with pytest.raises(sfilter.InvalidFilterValueError) as excinfo:
-            filter_.add(**kwargs)
-        assert excinfo.value.key == attribute
-        assert excinfo.value.value == value
-
-    @pytest.mark.parametrize('attribute', (
-        'submit_timestamp',
-        'kill_timestamp',
-    ))
-    @pytest.mark.parametrize('value', ('foo', dt.datetime(2016, 12, 24)))
-    def test_invalid_period_predicates(self, attribute, value):
-        kwargs = {attribute: value}
-        with pytest.raises(sfilter.InvalidFilterValueError) as excinfo:
-            sfilter.Filter().add(**kwargs)
-        assert excinfo.value.key == attribute
-        assert excinfo.value.value == value
-
-    @pytest.mark.parametrize('attribute', ('payout', 'base_payout'))
-    def test_invalid_decimal_predicates(self, attribute):
-        with pytest.raises(sfilter.InvalidFilterValueError) as excinfo:
-            sfilter.Filter().add(**{attribute: 'foo'})
-        assert excinfo.value.key == attribute
-        assert excinfo.value.value == 'foo'
-
-    @pytest.mark.parametrize('value', ('foo', 'comment'))
-    def test_invalid_status_predicates(self, value):
-        with pytest.raises(sfilter.InvalidFilterValueError) as excinfo:
-            sfilter.Filter().add(status=value)
-        assert excinfo.value.key == 'status'
-        assert excinfo.value.value == value
-
-    @pytest.mark.parametrize('attribute', ('division', 'user'))
-    def test_invalid_int_predicates(self, attribute):
-        with pytest.raises(sfilter.InvalidFilterValueError) as excinfo:
-            sfilter.Filter().add(**{attribute: 'foo'})
-        assert excinfo.value.key == attribute
-        assert excinfo.value.value == 'foo'
-
-    def test_invalid_attribute(self):
-        with pytest.raises(sfilter.InvalidFilterKeyError) as excinfo:
-            sfilter.Filter().add(foo='bar')
-        assert excinfo.value.key == 'foo'
-
-
-class TestRemovePredicates(object):
-
-    @pytest.mark.parametrize(
-        'attribute,value',
-        ((att, value) for att, values in six.iteritems(all_values)
-         for value in values)
-    )
-    def test_single_predicates(self, attribute, value, immutable,
-                               convert_value):
-        start_filter = sfilter.Filter(filter_immutable=immutable)
-        start_filter._filters[attribute].add(convert_value(value))
-        kwargs = {attribute: value}
-        test_filter = start_filter.remove(**kwargs)
-        assert test_filter._filters == {}
-        if immutable:
-            assert id(start_filter) != id(test_filter)
-            assert start_filter._filters == {
-                attribute: {
-                    convert_value(value),
-                },
-            }
-        else:
-            assert id(start_filter) == id(test_filter)
-
-    def test_invalid_attribute(self):
-        with pytest.raises(sfilter.InvalidFilterKeyError) as excinfo:
-            sfilter.Filter().add(foo='bar')
-        assert excinfo.value.key == 'foo'
+    def test_remove_last(self):
+        test_filter = sfilter.Filter(division_id=(0, ))
+        assert len(test_filter) == 1
+        test_filter.remove('division_id', 0)
+        assert len(test_filter) == 0

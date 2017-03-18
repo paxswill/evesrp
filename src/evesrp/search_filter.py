@@ -2,7 +2,7 @@ from collections import defaultdict
 import datetime as dt
 import decimal
 import itertools
-import copy
+import functools
 
 import six
 import iso8601
@@ -11,7 +11,7 @@ import evesrp
 from evesrp import new_models as models
 
 
-class InvalidFilterKeyError(ValueError):
+class InvalidFilterKeyError(KeyError):
 
     def __init__(self, key):
         self.key = key
@@ -32,14 +32,42 @@ class InvalidFilterValueError(ValueError):
 integer_text_types = tuple(itertools.chain(six.integer_types, (six.text_type,)))
 
 
+def check_filter_key(func):
+    @functools.wraps(func)
+    def key_check(*args, **kwargs):
+        try:
+            key = args[1]
+        except IndexError:
+            raise TypeError("{} requires at least a key".format(
+                func.__name__))
+        if key not in Filter._field_types:
+            raise InvalidFilterKeyError(key)
+        return func(*args, **kwargs)
+    return key_check
+
+
 class Filter(object):
 
-    def __init__(self, filter_source=None, filter_immutable=True):
-        self._immutable = filter_immutable
-        if filter_source is not None:
-            self._filters = copy.deepcopy(filter_source._filters)
-        else:
-            self._filters = defaultdict(set)
+    # _field_types is a local copy of the Request and Killmail field_types, but
+    # with some special field names repacing shared field names. killmail_id is
+    # not special-cased, as Request has it as a member.
+    _field_types = {
+        'request_id': models.FieldType.app_id,
+        'request_timestamp': models.FieldType.datetime,
+        'killmail_timestamp': models.FieldType.datetime,
+    }
+    _field_types.update(models.Killmail.field_types)
+    _field_types.update(models.Request.field_types)
+    del _field_types['id']
+    del _field_types['timestamp']
+
+    def __init__(self, initial_filters=None, **kwargs):
+        self._filters = defaultdict(set)
+        if initial_filters is not None:
+            for field, values in six.iteritems(initial_filters):
+                self.add(field, *values)
+        for field, values in six.iteritems(kwargs):
+            self.add(field, *values)
 
     def __len__(self):
         return len(self._filters)
@@ -51,13 +79,13 @@ class Filter(object):
     def __contains__(self, item):
         return item in self._filters
 
+    @check_filter_key
     def __getitem__(self, key):
-        if key not in self._all_keys:
-            raise KeyError(key)
+        if key not in self._field_types:
+            raise InvalidFilterKeyError(key)
         return frozenset(self._filters[key])
 
     def __eq__(self, other):
-        # NOTE: Equality does not check for immutability!
         return self._filters == other._filters
 
     def __repr__(self):
@@ -69,97 +97,14 @@ class Filter(object):
             return "{{{}}}".format(", ".join(items))
         return "Filter({})".format(dict_repr(self._filters))
 
-    def add(self, **kwargs):
-        # Copy ourselves if we're immutable
-        if self._immutable:
-            work_filter = self.__class__(filter_source=self)
-        else:
-            work_filter = self
-        for key, value in self._check_predicates(**kwargs):
-            work_filter._filters[key].add(value)
-        return work_filter
-
-    def remove(self, **kwargs):
-        # Again, create a new filter if we're immutable
-        if self._immutable:
-            work_filter = self.__class__(filter_source=self)
-        else:
-            work_filter = self
-        for key, value in self._check_predicates(**kwargs):
-            work_filter._filters[key].discard(value)
-            if len(work_filter._filters[key]) == 0:
-                del work_filter._filters[key]
-        return work_filter
-
-    def merge(self, other_filter):
-        # if other_filter is None or empty, this is a noop
-        if other_filter is None or len(other_filter) == 0:
-            return self
-        if self._immutable:
-            work_filter = self.__class__(filter_source=self)
-        else:
-            work_filter = self
-        for key, values in other_filter:
-            work_filter._filters[key].update(values)
-        return work_filter
-
-    _int_keys = {'division', 'user'}
-
-    _ccp_keys = {'type', 'pilot', 'region', 'constellation', 'system'}
-
-    _timestamp_keys = {'submit_timestamp', 'kill_timestamp'}
-
-    _decimal_keys = {'payout', 'base_payout'}
-
-    _text_keys = {'details', }
-
-    _all_keys = frozenset(itertools.chain(_int_keys, _ccp_keys,
-                                            _timestamp_keys, _decimal_keys,
-                                            _text_keys, ('status',)))
-
-    @classmethod
-    def _check_predicates(cls, **kwargs):
-        # This is the bulk of the logic in this class. Basically, each
-        # attribute falls into one of a handful of classes:
-        #    * Only allow integer ID numbers (for predicates referring to items
-        #      in this app's database).
-        #    * Allow either text types (str for Py3, unicode for Py2) or an
-        #      integer ID number (for predicates referring to CCP items).
-        #    * Only allow values that can be converted to a Decimal.
-        #    * Only allow values that refer to a request's status.
-        #    * Anything textual goes (for filtering on details, aka a full text
-        #      search).
-        # From there, type checking is enforced and exceptions raised. Instead
-        # of returning, this function is a generator so it can process all of
-        # the keyword arguments in one pass.
-        for key, value in six.iteritems(kwargs):
-            if key in cls._int_keys:
-                if not isinstance(value, six.integer_types):
-                    raise InvalidFilterValueError(key, value)
-                yield key, value
-            # TODO: Add alliance and corporation
-            elif key in cls._ccp_keys:
-                # Must be a string name, or a CCP ID.
-                if not isinstance(value, integer_text_types):
-                    raise InvalidFilterValueError(key, value)
-                yield key, value
-            elif key in cls._timestamp_keys:
-                # Must be a pair of datetimes, or a string parseable
-                # with evesrp.util.datetime.parse_datetime
-                if isinstance(value, tuple) and len(value) == 2:
-                    if isinstance(value[0], dt.datetime) and \
-                            isinstance(value[1], dt.datetime):
-                        yield key, value
-                elif isinstance(value, six.text_type):
-                    try:
-                        yield key, evesrp.util.parse_datetime(value)
-                    except iso8601.ParseError:
-                        raise InvalidFilterValueError(key, value)
-                else:
-                    raise InvalidFilterValueError(key, value)
-            elif key in cls._decimal_keys:
-                # Must be a Decimal, or some other type exactly convertable to
-                # a Decimal.
+    @check_filter_key
+    def add(self, key, *values):
+        field_type = self._field_types[key]
+        # putting checked values in a separate list to avoid a value part way
+        # through aborting the process.
+        checked_values = []
+        for value in values:
+            if field_type == models.FieldType.decimal:
                 if not isinstance(value, decimal.Decimal):
                     try:
                         new_value = decimal.Decimal(value)
@@ -167,25 +112,104 @@ class Filter(object):
                         raise InvalidFilterValueError(key, value)
                 else:
                     new_value = value
-                yield key, new_value
-            elif key == 'status':
-                # Must be a string that is equal to one of the enum members for
-                # ActionType. Alternatively, can be an ActionType member.
-                if value in models.ActionType:
-                    yield key, value
-                    continue
-                try:
-                    status = models.ActionType[value]
-                except KeyError:
+                checked_values.append(new_value)
+            elif field_type == models.FieldType.datetime:
+                # Must be a pair of datetimes, or a string parseable
+                # with evesrp.util.datetime.parse_datetime
+                if isinstance(value, tuple) and len(value) == 2:
+                    if isinstance(value[0], dt.datetime) and \
+                            isinstance(value[1], dt.datetime):
+                        checked_values.append(value)
+                elif isinstance(value, six.text_type):
+                    try:
+                        parsed_value = evesrp.util.parse_datetime(value)
+                        checked_values.append(parsed_value)
+                    except iso8601.ParseError:
+                        raise InvalidFilterValueError(key, value)
+                else:
                     raise InvalidFilterValueError(key, value)
-                if status not in models.ActionType.statuses:
+            elif field_type == models.FieldType.status:
+                if value not in models.ActionType:
+                    try:
+                        status = models.ActionType[value]
+                    except KeyError:
+                        raise InvalidFilterValueError(key, value)
+                else:
+                    status = value
+                checked_values.append(status)
+            elif field_type == models.FieldType.url:
+                # TODO: Better URL checking
+                if not isinstance(value, six.string_types):
                     raise InvalidFilterValueError(key, value)
-                yield key, status
-            elif key in cls._text_keys:
-                # Must be a string
-                if not isinstance(value, six.text_type):
+                checked_values.append(value)
+            elif field_type in (models.FieldType.string,
+                                models.FieldType.text):
+                if not isinstance(value, six.string_types):
                     raise InvalidFilterValueError(key, value)
-                yield key, value
-            else:
-                raise InvalidFilterKeyError(key)
+                checked_values.append(value)
+            elif field_type in (models.FieldType.integer,
+                                models.FieldType.app_id,
+                                models.FieldType.ccp_id):
+                if not isinstance(value, six.integer_types):
+                    raise InvalidFilterValueError(key, value)
+                checked_values.append(value)
+        self._filters[key].update(checked_values)
 
+    @check_filter_key
+    def remove(self, key, *values):
+        if key not in self._filters:
+            # For keys not added yet, bail out quickly
+            return
+        self._filters[key].difference_update(values)
+        # Remove empty filters
+        if len(self._filters[key]) == 0:
+               del self._filters[key]
+
+    def merge(self, other_filter):
+        # if other_filter is None, empty, or equivalent, this is a noop
+        if other_filter is None or len(other_filter) == 0 or \
+               other_filter == self:
+            return self
+        for field, values in other_filter:
+            self._filters[field].update(values)
+
+    def matches(self, request, killmail=None):
+        if killmail is not None and request.killmail_id != killmail.id_:
+            raise ValueError("You must pass in the killmail for the request.")
+        missing_killmail_error = ValueError("The killmail must be passed in if"
+                                            " filtering on killmail "
+                                            "attributes.")
+        for key, values in six.iteritems(self._filters):
+            # Killmail fields
+            if key in models.Killmail.fields:
+                if killmail is None:
+                    raise missing_killmail_error
+                if getattr(killmail, key) not in values:
+                    return False
+            # Request fields
+            elif key in models.Request.fields:
+                if getattr(request, key) not in values:
+                    return False
+            # Special fields
+            elif key == 'request_id':
+                if request.id_ not in values:
+                    return False
+            elif key.endswith('_timestamp'):
+                if key.startswith('request'):
+                    timestamp = request.timestamp
+                elif key.startswith('killmail'):
+                    if killmail is None:
+                        raise missing_killmail_error
+                    timestamp = killmail.timestamp
+                # Timestamps are special. The values are all ranges
+                # (represented by tuples of starting and ending times, both
+                # inclusive).
+                for start, end in values:
+                    if start <= timestamp >= end:
+                        break
+                else:
+                    return False
+            else:
+                raise InvalidFilterKeyError("This point should not be "
+                                            "reached.")
+        return True
