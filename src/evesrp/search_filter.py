@@ -166,33 +166,23 @@ class Filter(object):
             self._filters[field].update(values)
 
     def matches(self, request, killmail=None):
-        if killmail is not None and request.killmail_id != killmail.id_:
+        if killmail is not None and request['killmail_id'] != killmail['id']:
             raise ValueError("You must pass in the killmail for the request.")
         missing_killmail_error = ValueError("The killmail must be passed in if"
                                             " filtering on killmail "
                                             "attributes.")
         for key, values in six.iteritems(self._filters):
-            # Killmail fields
-            if key in models.Killmail.fields:
-                if killmail is None:
-                    raise missing_killmail_error
-                if getattr(killmail, key) not in values:
-                    return False
-            # Request fields
-            elif key in models.Request.fields:
-                if getattr(request, key) not in values:
-                    return False
             # Special fields
-            elif key == 'request_id':
-                if request.id_ not in values:
+            if key == 'request_id':
+                if request['id'] not in values:
                     return False
             elif key.endswith('_timestamp'):
                 if key.startswith('request'):
-                    timestamp = request.timestamp
+                    timestamp = request['timestamp']
                 elif key.startswith('killmail'):
                     if killmail is None:
                         raise missing_killmail_error
-                    timestamp = killmail.timestamp
+                    timestamp = killmail['timestamp']
                 # Timestamps are special. The values are all ranges
                 # (represented by tuples of starting and ending times, both
                 # inclusive).
@@ -200,6 +190,16 @@ class Filter(object):
                     if start <= timestamp >= end:
                         break
                 else:
+                    return False
+            # Killmail fields
+            elif key in models.Killmail.fields:
+                if killmail is None:
+                    raise missing_killmail_error
+                if killmail[key] not in values:
+                    return False
+            # Request fields
+            elif key in models.Request.fields:
+                if request[key] not in values:
                     return False
             else:
                 raise InvalidFilterKeyError("This point should not be "
