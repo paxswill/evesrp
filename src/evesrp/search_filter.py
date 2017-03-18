@@ -191,6 +191,12 @@ class Filter(object):
                         break
                 else:
                     return False
+            elif key == 'details':
+                # details are done as a case-insensitive substring search.
+                field_value = request['details'].lower()
+                for value in {value.lower() for value in values}:
+                    if value not in field_value:
+                        return False
             # Killmail fields
             elif key in models.Killmail.fields:
                 if killmail is None:
