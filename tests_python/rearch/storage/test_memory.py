@@ -7,6 +7,7 @@ import pytest
 
 from evesrp import storage
 from evesrp import new_models as models
+from evesrp.util import utc
 from .base_test import CommonStorageTest
 
 
@@ -116,7 +117,7 @@ class TestMemoryStore(CommonStorageTest):
                 'system_id': 30000848,
                 'constellation_id': 20000124,
                 'region_id': 10000010,
-                'timestamp': dt.datetime(2016, 3, 28, 2, 32, 50),
+                'timestamp': dt.datetime(2016, 3, 28, 2, 32, 50, tzinfo=utc),
                 'url': u'https://zkillboard.com/kill/52861733/',
             },
             # Recent kill I found on zKB that wasn't in an alliance
@@ -133,7 +134,7 @@ class TestMemoryStore(CommonStorageTest):
                 'system_id': 31002586,
                 'constellation_id': 21000332,
                 'region_id': 11000032,
-                'timestamp': dt.datetime(2017, 3, 12, 0, 33, 10),
+                'timestamp': dt.datetime(2017, 3, 12, 0, 33, 10, tzinfo=utc),
                 'url': u'https://zkillboard.com/kill/60713776/',
             },
         })
@@ -143,7 +144,7 @@ class TestMemoryStore(CommonStorageTest):
                 'killmail_id': 52861733,
                 'division_id': 10,
                 'details': u'Hey! I lost a Windrunner.',
-                'timestamp': dt.datetime(2016, 3, 30, 9, 30),
+                'timestamp': dt.datetime(2016, 3, 30, 9, 30, tzinfo=utc),
                 'base_payout': Decimal(5000000),
                 'payout': Decimal(5500000),
                 'status': models.ActionType.rejected,
@@ -152,8 +153,9 @@ class TestMemoryStore(CommonStorageTest):
                 'id': 456,
                 'killmail_id': 52861733,
                 'division_id': 30,
-                'details': u'I deserve money from this division as well',
-                'timestamp': dt.datetime(2017, 3, 10, 10, 11, 12),
+                'details': (u'I deserve money from this division as well, '
+                            u'please'),
+                'timestamp': dt.datetime(2017, 3, 10, 10, 11, 12, tzinfo=utc),
                 'base_payout': Decimal(7000000),
                 'payout': Decimal(3500000),
                 'status': models.ActionType.evaluating,
@@ -163,7 +165,7 @@ class TestMemoryStore(CommonStorageTest):
                 'killmail_id': 60713776,
                 'division_id': 30,
                 'details': u"I'm an explorer who lost a Heron. Gimme money.",
-                'timestamp': dt.datetime(2017, 3, 15, 13, 27),
+                'timestamp': dt.datetime(2017, 3, 15, 13, 27, tzinfo=utc),
                 'base_payout': Decimal(5000000),
                 'payout': Decimal(50000),
                 'status': models.ActionType.approved,
@@ -173,7 +175,7 @@ class TestMemoryStore(CommonStorageTest):
             10000: {
                 'id': 10000,
                 'type': models.ActionType.rejected,
-                'timestamp': dt.datetime(2016, 4, 3),
+                'timestamp': dt.datetime(2016, 4, 3, tzinfo=utc),
                 'contents': u'git gud scrub',
                 'user_id': 7,
                 'request_id': 123,
@@ -181,7 +183,7 @@ class TestMemoryStore(CommonStorageTest):
             20000: {
                 'id': 20000,
                 'type': models.ActionType.comment,
-                'timestamp': dt.datetime(2016, 4, 3, 1),
+                'timestamp': dt.datetime(2016, 4, 3, 1, tzinfo=utc),
                 'contents': u'sadface',
                 'user_id': 9,
                 'request_id': 123,
@@ -189,7 +191,7 @@ class TestMemoryStore(CommonStorageTest):
             30000: {
                 'id': 30000,
                 'type': models.ActionType.approved,
-                'timestamp': dt.datetime(2017, 4, 3, 1),
+                'timestamp': dt.datetime(2017, 4, 3, 1, tzinfo=utc),
                 'contents': u'',
                 'user_id': 7,
                 'request_id': 789,
@@ -201,7 +203,7 @@ class TestMemoryStore(CommonStorageTest):
                 'type': models.ModifierType.absolute,
                 'value': Decimal(500000),
                 'note': u'For something good',
-                'timestamp': dt.datetime(2016, 4, 1),
+                'timestamp': dt.datetime(2016, 4, 1, tzinfo=utc),
                 'user_id': 7,
                 'request_id': 123,
                 'void': None,
@@ -211,12 +213,12 @@ class TestMemoryStore(CommonStorageTest):
                 'type': models.ModifierType.absolute,
                 'value': Decimal(500000),
                 'note': u'Incorrect bonus',
-                'timestamp': dt.datetime(2017, 3, 11, 1, 0),
+                'timestamp': dt.datetime(2017, 3, 11, 1, 0, tzinfo=utc),
                 'user_id': 7,
                 'request_id': 456,
                 'void': {
                     'user_id': 7,
-                    'timestamp': dt.datetime(2017, 3, 11, 1, 5),
+                    'timestamp': dt.datetime(2017, 3, 11, 1, 5, tzinfo=utc),
                 },
             },
             300000: {
@@ -224,7 +226,7 @@ class TestMemoryStore(CommonStorageTest):
                 'type': models.ModifierType.relative,
                 'value': Decimal('-0.5'),
                 'note': u'You dun goofed',
-                'timestamp': dt.datetime(2017, 3, 11, 1, 7),
+                'timestamp': dt.datetime(2017, 3, 11, 1, 7, tzinfo=utc),
                 'user_id': 7,
                 'request_id': 456,
                 'void': None,
@@ -234,7 +236,7 @@ class TestMemoryStore(CommonStorageTest):
                 'type': models.ModifierType.relative,
                 'value': Decimal('-0.5'),
                 'note': u'Major deduction',
-                'timestamp': dt.datetime(2017, 3, 16, 1, 7),
+                'timestamp': dt.datetime(2017, 3, 16, 1, 7, tzinfo=utc),
                 'user_id': 7,
                 'request_id': 789,
                 'void': None,
@@ -244,7 +246,7 @@ class TestMemoryStore(CommonStorageTest):
                 'type': models.ModifierType.relative,
                 'value': Decimal('-0.49'),
                 'note': u'Almost overkill',
-                'timestamp': dt.datetime(2017, 3, 16, 1, 7),
+                'timestamp': dt.datetime(2017, 3, 16, 1, 7, tzinfo=utc),
                 'user_id': 7,
                 'request_id': 789,
                 'void': None,
@@ -256,7 +258,7 @@ class TestMemoryStore(CommonStorageTest):
                     'id': 1,
                     'submitter_id': 7,
                     'subject_id': 9,
-                    'timestamp': dt.datetime(2017, 4, 1),
+                    'timestamp': dt.datetime(2017, 4, 1, tzinfo=utc),
                     'contents': (u'Not the sharpest tool in the shed. Keeps '
                                  u'losing things, deny future requests.'),
                 },
