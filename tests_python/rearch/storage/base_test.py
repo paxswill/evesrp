@@ -365,8 +365,10 @@ class CommonStorageTest(object):
         assert 'not found' in neg_resp[u'errors']
 
     def test_get_requests(self, populated_store):
-        # TODO
-        pass
+        single_resp = populated_store.get_requests(60713776)
+        assert len(single_resp[u'result']) == 1
+        multiple_resp = populated_store.get_requests(52861733)
+        assert len(multiple_resp[u'result']) == 2
 
     def test_add_request(self, populated_store):
         pre_resp = populated_store.get_request(division_id=10,
