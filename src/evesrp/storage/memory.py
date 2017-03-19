@@ -8,7 +8,7 @@ from . import BaseStore, CachingCcpStore
 from evesrp import new_models as models
 
 
-class MemoryStore(BaseStore, CachingCcpStore):
+class MemoryStore(CachingCcpStore, BaseStore):
 
     def __init__(self, **kwargs):
         self._data = {}
@@ -476,11 +476,14 @@ class MemoryStore(BaseStore, CachingCcpStore):
     # Filtering
 
     def _filter_match(self, filters, request):
-        killmail = self.get_killmail(request.id_)
-        
+        killmail = self.get_killmail(request['killmail_id'])[u'result']
+        return filters.matches(request, killmail)
 
     def filter_requests(self, filters):
-        raise NotImplementedError
+        return {
+            u'result': [r for r in six.itervalues(self._data['requests'])
+                        if self._filter_match(filters, r)],
+        }
 
     # Characters
 

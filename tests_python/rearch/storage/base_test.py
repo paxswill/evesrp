@@ -1,8 +1,12 @@
+import datetime as dt
 from decimal import Decimal
 
 import pytest
+from six.moves import zip
 
 from evesrp import new_models as models
+from evesrp import search_filter as sfilter
+from evesrp.util import parse_datetime, utc
 
 
 class CommonStorageTest(object):
@@ -356,7 +360,7 @@ class CommonStorageTest(object):
         req2_resp = populated_store.get_request(division_id=10,
                                                 killmail_id=52861733)
         assert req2_resp[u'result']['killmail_id'] == 52861733
-        neg_resp = populated_store.get_request(234)
+        neg_resp = populated_store.get_request(987)
         assert neg_resp[u'result'] is None
         assert 'not found' in neg_resp[u'errors']
 
@@ -470,7 +474,97 @@ class CommonStorageTest(object):
 
     # Filtering
 
-    # TODO
+    @pytest.fixture(params=(
+        sfilter.Filter(killmail_timestamp=(parse_datetime('2016-04-04'), )),
+        sfilter.Filter(character_id=(570140137, )),
+        sfilter.Filter(character_id=(570140137, 2112311608)),
+        sfilter.Filter(),
+        sfilter.Filter(division_id=(10, )),
+        sfilter.Filter(details=(u'please', )),
+        sfilter.Filter(killmail_timestamp=(parse_datetime('2016-04-04'), ),
+                       type_id=(593, )),
+    ))
+    def filter_(self, request):
+        return request.param
+
+    @pytest.fixture
+    def filter_ids(self, filter_):
+        if len(filter_) == 0:
+            return {123, 456, 789, 234, 345}
+        elif len(filter_) == 1:
+            if 'character_id' in filter_:
+                if len(filter_['character_id']) == 1:
+                    return {123, 456, 234, 345}
+                elif len(filter_['character_id']) == 2:
+                    return {123, 456, 789, 234, 345}
+            elif 'details' in filter_:
+                return {456, 345}
+            elif 'division_id' in filter_:
+                return {123, 345}
+            elif 'killmail_timestamp' in filter_:
+                return {234, 345}
+        elif len(filter_) == 2:
+            return {234, 345}
+
+    def test_filter(self, populated_store, filter_, filter_ids):
+        requests = populated_store.filter_requests(filter_)[u'result']
+        matching_ids = {r['id'] for r in requests}
+        assert matching_ids == filter_ids
+
+    @pytest.mark.parametrize('filter_', (sfilter.Filter(), ))
+    @pytest.mark.parametrize('fields', (
+        {'request_id', },
+        {'request_id', 'type_id'},
+        {'request_id', 'type_name'},
+        {'request_id', 'killmail_timestamp'},
+        {'request_id', 'request_timestamp'},
+        {'request_id', 'character_id'},
+        {'request_id', 'character_name'},
+        {'request_id', 'status'}
+    ))
+    def test_sparse_filter(self, populated_store, filter_, fields):
+        sparse = populated_store.filter_sparse(filter_, fields)[u'result']
+        request_ids = [123, 456, 789, 234, 345]
+        other_data = {
+            'type_id': [4310, 4310, 605, 593, 593],
+            'type_name': [u'Tornado', u'Tornado', u'Heron', u'Tristan',
+                          u'Tristan'],
+            'killmail_timestamp': [
+                dt.datetime(2016, 3, 28, 2, 32, 50, tzinfo=utc),
+                dt.datetime(2016, 3, 28, 2, 32, 50, tzinfo=utc),
+                dt.datetime(2017, 3, 12, 0, 33, 10, tzinfo=utc),
+                dt.datetime(2016, 4, 4, 17, 58, 45, tzinfo=utc),
+                dt.datetime(2016, 4, 4, 18, 19, 27, tzinfo=utc),
+            ],
+            'request_timestamp': [
+                dt.datetime(2016, 3, 30, 9, 30, tzinfo=utc),
+                dt.datetime(2017, 3, 10, 10, 11, 12, tzinfo=utc),
+                dt.datetime(2017, 3, 15, 13, 27, tzinfo=utc),
+                dt.datetime(2017, 4, 10, tzinfo=utc),
+                dt.datetime(2017, 4, 9, tzinfo=utc),
+            ],
+            'character_id': [570140137, 570140137, 2112311608, 570140137,
+                             570140137],
+            'character_name': [u'Paxswill', u'Paxswill', u'marssell kross',
+                               u'Paxswill', u'Paxswill'],
+            'status': [
+                models.ActionType.rejected,
+                models.ActionType.evaluating,
+                models.ActionType.approved,
+                models.ActionType.incomplete,
+                models.ActionType.incomplete,
+            ],
+        }
+        for field in other_data.keys():
+            if field in fields:
+                extra_values = other_data[field]
+                packed = zip(request_ids, extra_values)
+                expected = [{'request_id': r, field: e} for r, e in packed]
+                break
+        else:
+            # first case, only request_id
+            expected = [{'request_id': r} for r in request_ids]
+        assert sparse == expected
 
     # Characters
 
