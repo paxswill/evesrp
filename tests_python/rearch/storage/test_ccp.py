@@ -1,3 +1,5 @@
+import warnings
+
 import pytest
 import requests
 import six
@@ -17,63 +19,26 @@ def requests_session():
     return session
 
 
-# Creating the Bravado client involves getting the swagger spec and parsing it.
-# It takes a while, and is 100% sharable between test runs (there is no shared
-# state).
 @pytest.fixture(scope='session')
 def ccp_store(requests_session):
     # NOTE: This is a live test, against CCP's live ESI servers. This means it
     # /may/ experience downtime as their service does. It also will expose any
     # problems due to updating APIs.
     store = storage.CcpStore(requests_session=requests_session)
-    # Instrument/replace _esi_request to check for warning headers
-    original_esi_request = store._esi_request
-
-    def warning_esi_request(*args, **kwargs):
-        result = original_esi_request(*args, **kwargs)
-        assert u'warning' not in result
-        return result
-    store._esi_request = warning_esi_request
+    # Raise EsiWranings to errors
+    warnings.simplefilter('error', category=storage.EsiWarning)
     return store
 
 
 @pytest.fixture(scope='session')
-def _caching_store(requests_session):
+def caching_store(requests_session):
     store = storage.CachingCcpStore(requests_session=requests_session)
-    """
-    # Get a list of the names of all public members of an instance (the storage
-    # instance in this case).
-    public_attrs = [attr for attr in dir(store) if not attr.startswith('_')]
-    # Filter out things that aren't methods
-    methods = [attr for attr in public_attrs if
-               isinstance(getattr(store, attr), types.MethodType)]
-    # Now wrap every method in a mock instance set up to pas things through so
-    # we can watch which calls are made
-    for method_name in methods:
-        method = getattr(store, method_name)
-        mock_method = mock.Mock()
-        mock_method.side_effect = method
-        setattr(store, method_name, mock_method)
-        setattr(store, "_original_{}".format(method_name), method)
-    store._mocked_methods = methods
-    """
     return store
 
 
 @pytest.fixture(params=(True, False), ids=('cache_hit', 'cache_not_hit'))
 def hit_cache(request):
     return request.param
-
-
-@pytest.fixture(scope='function')
-def caching_store(_caching_store):
-    # reset call counts between test function calls
-    """
-    for method_name in _caching_store._mocked_methods:
-        mocked_method = getattr(_caching_store, method_name)
-        mocked_method.reset_mock()
-        """
-    return _caching_store
 
 
 def _kwarg_id(kwarg):
@@ -139,10 +104,10 @@ class TestSimpleCcpStore(object):
             pass
         get_location = getattr(ccp_store, 'get_' + location_type)
         if len(location_kwargs) == 0:
-            with pytest.raises(ValueError):
+            with pytest.raises(TypeError):
                 get_location(**location_kwargs)
         else:
-            result = get_location(**location_kwargs)[u'result']
+            result = get_location(**location_kwargs)
             assert location == result
 
     @pytest.mark.parametrize('location_negative_kwargs', (
@@ -164,9 +129,9 @@ class TestSimpleCcpStore(object):
             pytest.skip("region_* and constellation_* kwargs not valid for "
                         "get_system")
         get_location = getattr(ccp_store, 'get_' + location_type)
-        resp = get_location(**location_negative_kwargs)
-        assert resp[u'result'] is None
-        assert unicode(location_negative_kwargs[key]) in resp[u'errors'][0]
+        with pytest.raises(storage.NotFoundError) as exc_info:
+            get_location(**location_negative_kwargs)
+        assert exc_info.value.identifier == location_negative_kwargs[key]
 
     @pytest.fixture(params=('alliance', 'corporation', 'character'))
     def identity_type(self, request):
@@ -303,8 +268,11 @@ class TestSimpleCcpStore(object):
             get_identity = ccp_store.get_ccp_character
         else:
             get_identity = getattr(ccp_store, 'get_' + identity_type)
-        result = get_identity(**identity_kwargs)
-        assert result[u'result'] == expected_identity
+        if expected_identity is None:
+            with pytest.raises(storage.NotInAllianceError):
+                get_identity(**identity_kwargs)
+        else:
+            assert get_identity(**identity_kwargs) == expected_identity
 
     @pytest.mark.parametrize('negative_kwargs', (
         {'alliance_id': 0},
@@ -331,9 +299,9 @@ class TestSimpleCcpStore(object):
             get_identity = ccp_store.get_ccp_character
         else:
             get_identity = getattr(ccp_store, 'get_' + identity_type)
-        resp = get_identity(**negative_kwargs)
-        assert resp[u'result'] is None
-        assert unicode(negative_kwargs[key]) in resp[u'errors'][0]
+        with pytest.raises(storage.NotFoundError) as exc_info:
+            get_identity(**negative_kwargs)
+        assert exc_info.value.identifier == negative_kwargs[key]
 
     @pytest.mark.parametrize('get_kwargs,expected', (
         ({'type_id': 17926}, {u'id': 17926, u'name': u'Cruor'}),
@@ -346,13 +314,16 @@ class TestSimpleCcpStore(object):
     def test_get_type(self, ccp_store, get_kwargs, expected):
         if len(get_kwargs) == 0:
             # negative test for no kwargs error
-            with pytest.raises(ValueError):
+            with pytest.raises(TypeError):
                 ccp_store.get_type(**get_kwargs)
         else:
-            resp = ccp_store.get_type(**get_kwargs)
-            assert resp[u'result'] == expected
             if expected is None:
-                assert 'Not Found' in resp[u'errors'][0]
+                with pytest.raises(storage.NotFoundError) as exc_info:
+                    ccp_store.get_type(**get_kwargs)
+                assert exc_info.value.kind == 'type'
+            else:
+                assert ccp_store.get_type(**get_kwargs) == expected
+
 
 
 class TestCachedCcpStore(object):
@@ -388,11 +359,10 @@ class TestCachedCcpStore(object):
         get_location = getattr(caching_store, 'get_' + location_type)
         # Expect an exception when passing no kwargs
         if len(location_kwargs) == 0:
-            with pytest.raises(ValueError):
+            with pytest.raises(TypeError):
                 get_location(**location_kwargs)
         else:
-            result = get_location(**location_kwargs)[u'result']
-            assert location == result
+            assert get_location(**location_kwargs) == location
 
     @pytest.mark.parametrize('get_kwargs,expected', (
         ({'type_id': 17926}, {u'id': 17926, u'name': u'Cruor'}),
@@ -410,10 +380,12 @@ class TestCachedCcpStore(object):
             monkeypatch.delitem(static_data.ships, 17926)
         if len(get_kwargs) == 0:
             # negative test for no kwargs error
-            with pytest.raises(ValueError):
+            with pytest.raises(TypeError):
                 caching_store.get_type(**get_kwargs)
         else:
-            resp = caching_store.get_type(**get_kwargs)
-            assert resp[u'result'] == expected
             if expected is None:
-                assert 'Not Found' in resp[u'errors'][0]
+                with pytest.raises(storage.NotFoundError) as exc:
+                    caching_store.get_type(**get_kwargs)
+                    assert exc.kind == 'type'
+            else:
+                assert caching_store.get_type(**get_kwargs) == expected
