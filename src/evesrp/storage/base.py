@@ -7,14 +7,6 @@ from evesrp import new_models as models
 
 class BaseStore(object):
     """Basic implementation of a storage provider.
-
-    All public methods that return something other than `None` return
-    a :py:class:`dict` with at least a `u'result'` key. This key will be what
-    is documented as the return value in the methods below. If the value for
-    the result key is `None`, there will be an `u'errors'` key with an array of
-    text strings detailing what went wrong. There may also be a `u'warnings'`
-    key, following the same format as the errors, but for non-fatal warnings
-    instead.
     """
 
     # Authentication
@@ -129,12 +121,10 @@ class BaseStore(object):
         raise NotImplementedError
 
     def get_killmails(self, killmail_ids):
-        killmails = {self.get_killmail(kid)[u'result'] for kid in killmail_ids}
+        killmails = {self.get_killmail(kid) for kid in killmail_ids}
         # filter out any empty or None values
         killmails = filter(None, killmails)
-        return {
-            u'result': list(killmails),
-        }
+        return killmails
 
     def add_killmail(self, **kwargs):
         """Create a record for a killmail.
@@ -285,12 +275,17 @@ class BaseStore(object):
         `killmails` is a dict, with the keys being the integer IDs of the
         killmails, and the value being a `dict` of the killmail itself.
         """
-        if not models.Killmail.fields.isdisjoint(fields) and \
+        # killmail_id is available on both Request and Killmail
+        shared_fields = models.Killmail.fields.intersection(
+            models.Request.fields)
+        no_shared_fields = set(fields)
+        no_shared_fields.difference_update(shared_fields)
+        if models.Request.fields.isdisjoint(no_shared_fields) and \
                 killmail == killmails is None:
-            raise ValueError(u"Either 'killmail' or 'killmails' must be given"
-                             u" if a killmail field is being returned.")
+            raise TypeError(u"Either 'killmail' or 'killmails' must be given"
+                            u" if a killmail field is being returned.")
         elif killmail is None and killmails is not None:
-            killmail = killmails[request['killmail_id']]
+            killmail = killmails[request.killmail_id]
         # Construct the sparse request dictionary
         sparse_request = {}
         # A helper function to look up values from the appropriate object
@@ -303,12 +298,13 @@ class BaseStore(object):
                 real_field_name = 'id'
             else:
                 real_field_name = field_name
-            # Check Request
             if field_name in models.Request.fields:
-                return request[real_field_name]
+                obj = request
             elif field_name in models.Killmail.fields:
-                return killmail[real_field_name]
+                obj = killmail
+            return getattr(obj, real_field_name)
 
+        # Fill in each field specified
         for field_name in fields:
             if field_name in self._mapped_fields:
                 id_name = self._mapped_fields[field_name]
@@ -321,23 +317,30 @@ class BaseStore(object):
                     id_name: id_value,
                 }
                 response = getter(**kwargs)
-                sparse_request[field_name] = response[u'result'][u'name']
+                try:
+                    sparse_request[field_name] = response[u'name']
+                except TypeError:
+                    sparse_request[field_name] = response.name
             else:
                 sparse_request[field_name] = lookup_field(field_name)
         return sparse_request
 
     def filter_sparse(self, filters, fields):
-        full_requests = self.filter_requests(filters)[u'result']
+        full_requests = self.filter_requests(filters)
         format_kwargs = {'fields': fields}
-        if not models.Killmail.fields.isdisjoint(self.map_fields(fields)):
-            killmail_ids = {r['killmail_id'] for r in full_requests}
+        # Don't count fields on both Request and Killmail to figure out if we
+        # need to fetch killmails
+        shared_fields = models.Killmail.fields.intersection(
+            models.Request.fields)
+        no_shared_fields = set(fields)
+        no_shared_fields.difference_update(shared_fields)
+        if not models.Killmail.fields.isdisjoint(
+                self.map_fields(no_shared_fields)):
+            killmail_ids = {r.killmail_id for r in full_requests}
             full_killmails = self.get_killmails(killmail_ids=killmail_ids)
-            format_kwargs['killmails'] = {km['id']: km for km in 
-                                          full_killmails[u'result']}
-        return {
-            u'result': [self._format_sparse(request, **format_kwargs)
-                        for request in full_requests],
-        }
+            format_kwargs['killmails'] = {km.id_: km for km in full_killmails}
+        return [self._format_sparse(request, **format_kwargs) 
+                for request in full_requests]
 
     # Characters
 
