@@ -129,8 +129,7 @@ class BaseStore(object):
         raise NotImplementedError
 
     def get_killmails(self, killmail_ids):
-        killmail_ids = set(killmail_ids)
-        killmails = [self.get_killmail(kid)[u'result'] for kid in killmail_ids]
+        killmails = {self.get_killmail(kid)[u'result'] for kid in killmail_ids}
         # filter out any empty or None values
         killmails = filter(None, killmails)
         return {

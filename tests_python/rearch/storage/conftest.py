@@ -50,3 +50,11 @@ def authn_entity_dict(entity_type, auth_provider_uuid, auth_provider_key):
             'provider_key': auth_provider_key,
             'extra_data': {},
         }
+
+
+@pytest.fixture
+def authn_entity(authn_entity_dict):
+    if 'user_id' in authn_entity_dict:
+        return models.AuthenticatedUser.from_dict(authn_entity_dict)
+    elif 'group_id' in authn_entity_dict:
+        return models.AuthenticatedGroup.from_dict(authn_entity_dict)
