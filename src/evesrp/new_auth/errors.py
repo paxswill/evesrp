@@ -1,0 +1,2 @@
+class RemoteLoginError(Exception):
+    pass

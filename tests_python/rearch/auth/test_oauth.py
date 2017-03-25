@@ -23,7 +23,7 @@ def patch_oauth(monkeypatch):
 @pytest.mark.parametrize('use_refresh,use_get,scope,token_expiry',
                          itertools.product((True, False), repeat=4))
 def test_oauth_provider_init(use_refresh, use_get, scope, token_expiry):
-    store = mock.Mock()
+    store = mock.create_autospec(storage.BaseStore)
     provider_kwargs = {
         'client_id': mock.sentinel.client_id,
         'client_secret': mock.sentinel.client_secret,
