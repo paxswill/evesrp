@@ -3,6 +3,7 @@ import itertools
 import six
 
 from evesrp import new_models as models
+from . import errors
 
 
 class BaseStore(object):
@@ -121,10 +122,12 @@ class BaseStore(object):
         raise NotImplementedError
 
     def get_killmails(self, killmail_ids):
-        killmails = {self.get_killmail(kid) for kid in killmail_ids}
-        # filter out any empty or None values
-        killmails = filter(None, killmails)
-        return killmails
+        id_set = set(killmail_ids)
+        for kid in id_set:
+            try:
+                yield self.get_killmail(kid)
+            except errors.NotFoundError:
+                pass
 
     def add_killmail(self, **kwargs):
         """Create a record for a killmail.
@@ -295,7 +298,7 @@ class BaseStore(object):
             if field_name.endswith('_timestamp'):
                 real_field_name = 'timestamp'
             elif field_name == 'request_id':
-                real_field_name = 'id'
+                real_field_name = 'id_'
             else:
                 real_field_name = field_name
             if field_name in models.Request.fields:
@@ -336,11 +339,12 @@ class BaseStore(object):
         no_shared_fields.difference_update(shared_fields)
         if not models.Killmail.fields.isdisjoint(
                 self.map_fields(no_shared_fields)):
-            killmail_ids = {r.killmail_id for r in full_requests}
+            killmail_ids = {r.killmail_id for r in
+                            self.filter_requests(filters)}
             full_killmails = self.get_killmails(killmail_ids=killmail_ids)
             format_kwargs['killmails'] = {km.id_: km for km in full_killmails}
-        return [self._format_sparse(request, **format_kwargs) 
-                for request in full_requests]
+        return [self._format_sparse(request, **format_kwargs)
+                for request in self.filter_requests(filters)]
 
     # Characters
 

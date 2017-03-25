@@ -36,3 +36,12 @@ class EsiError(Exception):
 
 class EsiWarning(DeprecationWarning):
     pass
+
+
+class VoidedModifierError(Exception):
+
+    def __init__(self, modifier_id):
+        self.modifier_id = modifier_id
+
+    def __str__(self):
+        return "Modifier #{} is already voided.".format(self.modifier_id)

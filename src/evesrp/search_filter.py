@@ -166,7 +166,7 @@ class Filter(object):
             self._filters[field].update(values)
 
     def matches(self, request, killmail=None):
-        if killmail is not None and request['killmail_id'] != killmail['id']:
+        if killmail is not None and request.killmail_id != killmail.id_:
             raise ValueError("You must pass in the killmail for the request.")
         missing_killmail_error = ValueError("The killmail must be passed in if"
                                             " filtering on killmail "
@@ -178,11 +178,11 @@ class Filter(object):
                     return False
             elif key.endswith('_timestamp'):
                 if key.startswith('request'):
-                    timestamp = request['timestamp']
+                    timestamp = request.timestamp
                 elif key.startswith('killmail'):
                     if killmail is None:
                         raise missing_killmail_error
-                    timestamp = killmail['timestamp']
+                    timestamp = killmail.timestamp
                 # Timestamps are special. The values are all ranges
                 # (represented by tuples of starting and ending times, both
                 # inclusive).
@@ -193,7 +193,7 @@ class Filter(object):
                     return False
             elif key == 'details':
                 # details are done as a case-insensitive substring search.
-                field_value = request['details'].lower()
+                field_value = request.details.lower()
                 for value in {value.lower() for value in values}:
                     if value not in field_value:
                         return False
@@ -201,11 +201,11 @@ class Filter(object):
             elif key in models.Killmail.fields:
                 if killmail is None:
                     raise missing_killmail_error
-                if killmail[key] not in values:
+                if getattr(killmail, key) not in values:
                     return False
             # Request fields
             elif key in models.Request.fields:
-                if request[key] not in values:
+                if getattr(request, key) not in values:
                     return False
             else:
                 raise InvalidFilterKeyError("This point should not be "

@@ -65,7 +65,7 @@ setup(
         'WTForms >= 2.0.0',
         'alembic ~= 0.8.4',
         'requests >= 2.9.1',
-        'six == 1.7.3',
+        'six == 1.10.0',
         'iso8601 >= 0.1.5',
         'beautifulsoup4 >= 4.4.1',
         'speaklater ~= 1.3',

@@ -22,16 +22,16 @@ class TestMemoryStore(CommonStorageTest):
         store._data['authn_users'].update({
             (
                 uuid.UUID('3a80f9c8-f552-472b-9ed4-a479cb8f8521'),
-                'authn_user'
+                'authn_user',
             ): {
-                'user_id': 987,
+                'user_id': 9,
                 'extra_data': {},
             },
         })
         store._data['authn_groups'].update({
             (uuid.UUID('3a80f9c8-f552-472b-9ed4-a479cb8f8521'),
              'authn_group'): {
-                'group_id': 876,
+                'group_id': 3000,
                 'extra_data': {},
             },
         })

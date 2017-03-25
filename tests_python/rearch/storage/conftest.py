@@ -38,14 +38,14 @@ def auth_provider_key(entity_type):
 def authn_entity_dict(entity_type, auth_provider_uuid, auth_provider_key):
     if entity_type == 'user':
         return {
-            'user_id': 987,
+            'user_id': 2,
             'provider_uuid': auth_provider_uuid,
             'provider_key': auth_provider_key,
             'extra_data': {},
         }
     elif entity_type == 'group':
         return {
-            'group_id': 876,
+            'group_id': 6000,
             'provider_uuid': auth_provider_uuid,
             'provider_key': auth_provider_key,
             'extra_data': {},
