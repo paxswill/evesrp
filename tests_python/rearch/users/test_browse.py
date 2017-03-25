@@ -70,35 +70,26 @@ def expected_filter(user, browse_method, add_filter, is_admin, is_reviewer,
                     is_payer):
     expected_filter = sfilter.Filter()
     if browse_method == 'list_personal':
-        expected_filter = expected_filter.add(user=user.id_)
+        expected_filter.add('user_id', user.id_)
     elif browse_method == 'list_review':
-        expected_filter = expected_filter.\
-            add(status=models.ActionType.evaluating).\
-            add(status=models.ActionType.incomplete).\
-            add(status=models.ActionType.approved)
+        expected_filter.add('status',
+                            models.ActionType.evaluating,
+                            models.ActionType.incomplete,
+                            models.ActionType.approved)
         if is_reviewer:
-            expected_filter = expected_filter.\
-                add(division=100).\
-                add(division=200)
+            expected_filter.add('division_id', 100, 200)
     elif browse_method == 'list_pay':
-        expected_filter = expected_filter.\
-            add(status=models.ActionType.approved)
+        expected_filter.add('status', models.ActionType.approved)
         if is_payer:
-            expected_filter = expected_filter.\
-                add(division=200).\
-                add(division=300)
+            expected_filter.add('division_id', 200, 300)
     elif browse_method == 'list_all':
         if not is_admin:
             if is_reviewer:
-                expected_filter = expected_filter.\
-                    add(division=100).\
-                    add(division=200)
+                expected_filter.add('division_id', 100, 200)
             if is_payer:
-                expected_filter = expected_filter.\
-                    add(division=200).\
-                    add(division=300)
+                expected_filter.add('division_id', 200, 300)
     if add_filter:
-        expected_filter = expected_filter.add(pilot=u'Paxswill')
+        expected_filter.add('character_id', 570140137)
     return expected_filter
 
 
@@ -119,7 +110,8 @@ def test_browse_list(browse_store, add_filter, field_name, user,
     if field_name is not None:
         kwargs['fields'] = set((field_name,))
     if add_filter:
-        filters = sfilter.Filter().add(pilot=u'Paxswill')
+        filters = sfilter.Filter()
+        filters.add('character_id', 570140137)
         kwargs['filters'] = filters
     if field_name == 'character':
         with pytest.raises(users.InvalidFieldsError):

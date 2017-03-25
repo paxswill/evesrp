@@ -51,8 +51,9 @@ class BrowseActivity(object):
             return self.store.filter_sparse(filters=filters, fields=field_set)
 
     def list_personal(self, filters=None, fields=None):
-        personal_filter = search_filter.Filter().add(user=self.user.id_)
-        personal_filter = personal_filter.merge(filters)
+        personal_filter = search_filter.Filter()
+        personal_filter.add('user_id', self.user.id_)
+        personal_filter.merge(filters)
         return self._list(filters=personal_filter, fields=fields)
 
     def _create_permission_filter(self, permissions):
@@ -66,21 +67,21 @@ class BrowseActivity(object):
                         permissions]
         permission_filter = search_filter.Filter()
         for division_id in division_ids:
-            permission_filter = permission_filter.add(division=division_id)
+            permission_filter.add('division_id', division_id)
         return permission_filter
 
     def list_review(self, filters=None, fields=None):
         review_filter = self._create_permission_filter(
             models.PermissionType.review)
         for status in models.ActionType.pending:
-            review_filter = review_filter.add(status=status)
-        review_filter = review_filter.merge(filters)
+            review_filter.add('status', status)
+        review_filter.merge(filters)
         return self._list(filters=review_filter, fields=fields)
 
     def list_pay(self, filters=None, fields=None):
         pay_filter = self._create_permission_filter(models.PermissionType.pay)
-        pay_filter = pay_filter.add(status=models.ActionType.approved)
-        pay_filter = pay_filter.merge(filters)
+        pay_filter.add('status', models.ActionType.approved)
+        pay_filter.merge(filters)
         return self._list(filters=pay_filter, fields=fields)
 
     def list_all(self, filters=None, fields=None):
@@ -91,5 +92,5 @@ class BrowseActivity(object):
         else:
             # Global admin users aren't filtered
             all_filter = search_filter.Filter()
-        all_filter = all_filter.merge(filters)
+        all_filter.merge(filters)
         return self._list(filters=all_filter, fields=fields)
