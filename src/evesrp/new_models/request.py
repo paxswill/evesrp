@@ -95,19 +95,22 @@ class Killmail(util.IdEquality, util.FieldsAccess, util.GetItemAttribute):
         return store.get_requests(killmail_id=self.id_)
 
 
-class ActionType(enum.Enum):
+class ActionType(enum.IntEnum):
+
+    # Values are spaced out to allow for possible future action types and to
+    # allow for proper ordering
 
     evaluating = 1
 
-    approved = 2
+    incomplete = 3
 
-    paid = 3
+    approved = 5
 
-    rejected = 4
+    paid = 10
 
-    incomplete = 5
+    rejected = 11
 
-    comment = 6
+    comment = 20
 
     # TODO: split details changes out from evaluating
 
