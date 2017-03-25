@@ -68,7 +68,7 @@ def browse_method(request):
 @pytest.fixture
 def expected_filter(user, browse_method, add_filter, is_admin, is_reviewer,
                     is_payer):
-    expected_filter = sfilter.Filter()
+    expected_filter = sfilter.Search()
     if browse_method == 'list_personal':
         expected_filter.add('user_id', user.id_)
     elif browse_method == 'list_review':
@@ -110,7 +110,7 @@ def test_browse_list(browse_store, add_filter, field_name, user,
     if field_name is not None:
         kwargs['fields'] = set((field_name,))
     if add_filter:
-        filters = sfilter.Filter()
+        filters = sfilter.Search()
         filters.add('character_id', 570140137)
         kwargs['filters'] = filters
     if field_name == 'character':

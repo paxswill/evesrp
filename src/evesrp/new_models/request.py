@@ -42,6 +42,17 @@ class Killmail(util.IdEquality, util.FieldsAccess, util.GetItemAttribute):
         'url': util.FieldType.url,
     }
 
+    sorts = (
+        'character_name',
+        'corporation_name',
+        'alliance_name',
+        'system_name',
+        'constellation_name',
+        'region_name',
+        'killmail_timestamp',
+        'type_name',
+    )
+
     def __init__(self, id_, **kwargs):
         self.id_ = id_
         self.user_id = util.id_from_kwargs('user', kwargs)
@@ -140,6 +151,14 @@ class Request(util.IdEquality, util.FieldsAccess, util.GetItemAttribute):
         'base_payout': util.FieldType.decimal,
         'payout': util.FieldType.decimal,
     }
+
+    sorts = (
+        'division_name',
+        'request_timestamp',
+        'status',
+        'base_payout',
+        'payout',
+    )
 
     # If you're adding a column/data field for Requests, make sure to update
     # Request.__init__ and Request.from_dict in addition to

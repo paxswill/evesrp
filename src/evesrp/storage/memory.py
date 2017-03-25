@@ -1,11 +1,13 @@
 import datetime as dt
 from decimal import Decimal
+import functools
 import itertools
 
 import six
 
 from . import BaseStore, CachingCcpStore, errors
 from evesrp import new_models as models
+from evesrp import search_filter
 
 
 class MemoryStore(CachingCcpStore, BaseStore):
@@ -405,11 +407,42 @@ class MemoryStore(CachingCcpStore, BaseStore):
     # Filtering
 
     def filter_requests(self, filters):
+        requests_and_killmails = []
         for request_data in six.itervalues(self._data['requests']):
             request = models.Request.from_dict(request_data)
             killmail = self.get_killmail(request.killmail_id)
             if filters.matches(request, killmail):
-                yield models.Request.from_dict(request)
+                requests_and_killmails.append((request, killmail))
+        # Helper sorting key function
+
+        def sort_key(request_killmail, key):
+            request, killmail = request_killmail
+            if key in models.Request.sorts:
+                obj = request
+            elif key in models.Killmail.sorts:
+                obj = killmail
+            if key.endswith('_name'):
+                # Get the name from the ID
+                base_name = sort_key[:-5]
+                id_attribute = base_name + '_id'
+                id_value = getattr(obj, id_attribute)
+                getter = getattr(self, 'get_' + base_name)
+                response = getter(**{id_attribute: id_value})
+                try:
+                    return response['name']
+                except KeyError:
+                    return response.name
+            elif key.endswith('_timestamp'):
+                return getattr(obj, 'timestamp')
+            else:
+                return getattr(obj, key)
+
+        # Now sort the requests
+        for key, direction in reversed(list(filters.sorts)):
+            key_func = functools.partial(sort_key, key=key)
+            reversed_ = direction != search_filter.SortDirection.ascending
+            requests_and_killmails.sort(key=key_func, reverse=reversed_)
+        return [request for request, killmail in requests_and_killmails]
 
     # Characters
 

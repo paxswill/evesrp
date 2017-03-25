@@ -477,43 +477,105 @@ class CommonStorageTest(object):
     # Filtering
 
     @pytest.fixture(params=(
-        sfilter.Filter(killmail_timestamp=(parse_datetime('2016-04-04'), )),
-        sfilter.Filter(character_id=(570140137, )),
-        sfilter.Filter(character_id=(570140137, 2112311608)),
-        sfilter.Filter(),
-        sfilter.Filter(division_id=(10, )),
-        sfilter.Filter(details=(u'please', )),
-        sfilter.Filter(killmail_timestamp=(parse_datetime('2016-04-04'), ),
-                       type_id=(593, )),
+        dict(killmail_timestamp=(parse_datetime('2016-04-04'), )),
+        dict(character_id=(570140137, )),
+        dict(character_id=(570140137, 2112311608)),
+        dict(),
+        dict(division_id=(10, )),
+        dict(details=(u'please', )),
+        dict(killmail_timestamp=(parse_datetime('2016-04-04'), ), 
+             type_id=(593, )),
+    ), ids=(
+        'single_killmail_timestamp',
+        'single_character_id',
+        'multiple_character_ids',
+        'no_filter',
+        'single_division_id',
+        'details',
+        'killmail_timestamp__type_id',
     ))
-    def filter_(self, request):
+    def search_filter(self, request):
+        return request.param
+
+    @pytest.fixture(params=(
+        None,
+        (('request_timestamp', sfilter.SortDirection.descending), ),
+        (('request_timestamp', sfilter.SortDirection.ascending), ),
+        (('status', sfilter.SortDirection.ascending), ),
+        (
+            ('status', sfilter.SortDirection.ascending),
+            ('killmail_timestamp', sfilter.SortDirection.ascending),
+        ),
+    ), ids=(
+        'default_sort',
+        'descending_request_timestamps',
+        'ascending_request_timestamps',
+        'ascending_status',
+        'ascending_status__ascending_killmail_timestamp',
+    ))
+    def search_sort(self, request):
         return request.param
 
     @pytest.fixture
-    def filter_ids(self, filter_):
-        if len(filter_) == 0:
-            return {123, 456, 789, 234, 345}
-        elif len(filter_) == 1:
-            if 'character_id' in filter_:
-                if len(filter_['character_id']) == 1:
-                    return {123, 456, 234, 345}
-                elif len(filter_['character_id']) == 2:
-                    return {123, 456, 789, 234, 345}
-            elif 'details' in filter_:
-                return {456, 345}
-            elif 'division_id' in filter_:
-                return {123, 345}
-            elif 'killmail_timestamp' in filter_:
-                return {234, 345}
-        elif len(filter_) == 2:
-            return {234, 345}
+    def search(self, search_filter, search_sort):
+        search = sfilter.Search(**search_filter)
+        if search_sort is not None:
+            search.set_sort(*search_sort[0])
+            for sort_item in search_sort[1:]:
+                search.add_sort(*sort_item)
+        return search
 
-    def test_filter(self, populated_store, filter_, filter_ids):
-        requests = populated_store.filter_requests(filter_)
-        matching_ids = {r['id'] for r in requests}
-        assert matching_ids == filter_ids
+    @pytest.fixture
+    def request_ids(self, search):
+        # First define the order
+        order_map = {
+            # This is the default sort
+            ('status', 'request_timestamp'): {
+                (sfilter.SortDirection.ascending,
+                 sfilter.SortDirection.ascending): [456, 345, 234, 789, 123],
+            },
+            ('status', 'killmail_timestamp'): {
+                (sfilter.SortDirection.ascending,
+                 sfilter.SortDirection.ascending): [456, 234, 345, 789, 123],
+            },
+            ('status', ): {
+                 (sfilter.SortDirection.ascending, ):
+                [456, 234, 345, 789, 123],
+            },
+            ('request_timestamp', ): {
+                 (sfilter.SortDirection.descending, ):
+                [234, 345, 789, 456, 123],
+                 (sfilter.SortDirection.ascending, ):
+                [123, 456, 789, 345, 234],
+            },
+        }
+        sorted_ids = order_map[tuple(search.sort_fields)][
+            tuple(search.sort_orders)]
+        # Now define which IDs are present
+        if len(search) == 0:
+            filtered_ids = {123, 456, 789, 234, 345}
+        elif len(search) == 1:
+            if 'character_id' in search:
+                if len(search['character_id']) == 1:
+                    filtered_ids = {123, 456, 234, 345}
+                elif len(search['character_id']) == 2:
+                    filtered_ids = {123, 456, 789, 234, 345}
+            elif 'details' in search:
+                filtered_ids = {456, 345}
+            elif 'division_id' in search:
+                filtered_ids = {123, 345}
+            elif 'killmail_timestamp' in search:
+                filtered_ids = {234, 345}
+        elif len(search) == 2:
+            filtered_ids = {234, 345}
+        return [rid for rid in sorted_ids if rid in filtered_ids]
 
-    @pytest.mark.parametrize('filter_', (sfilter.Filter(), ))
+
+    def test_filter(self, populated_store, search, request_ids):
+        requests = populated_store.filter_requests(search)
+        matching_ids = [r.id_ for r in requests]
+        assert matching_ids == request_ids
+
     @pytest.mark.parametrize('fields', (
         {'request_id', },
         {'request_id', 'type_id'},
@@ -524,39 +586,87 @@ class CommonStorageTest(object):
         {'request_id', 'character_name'},
         {'request_id', 'status'}
     ))
-    def test_sparse_filter(self, populated_store, filter_, fields):
-        sparse = populated_store.filter_sparse(filter_, fields)
-        request_ids = [123, 456, 789, 234, 345]
+    @pytest.mark.paramterize('sort,request_ids', (
+        (
+            None,  # Defualt sort
+            [234, 345, 789, 456, 123],
+        ),
+        (
+            [234, 345, 789, 456, 123],
+        ),
+        (
+        ),
+        (
+            [234, 345, 789, 456, 123],
+        ),
+    ))
+    @pytest.mark.parametrize('search_filter', ({}, ))
+    def test_sparse_filter(self, populated_store, fields, search, request_ids):
+        results = populated_store.filter_sparse(search, fields)
         other_data = {
-            'type_id': [4310, 4310, 605, 593, 593],
-            'type_name': [u'Tornado', u'Tornado', u'Heron', u'Tristan',
-                          u'Tristan'],
-            'killmail_timestamp': [
-                dt.datetime(2016, 3, 28, 2, 32, 50, tzinfo=utc),
-                dt.datetime(2016, 3, 28, 2, 32, 50, tzinfo=utc),
-                dt.datetime(2017, 3, 12, 0, 33, 10, tzinfo=utc),
-                dt.datetime(2016, 4, 4, 17, 58, 45, tzinfo=utc),
-                dt.datetime(2016, 4, 4, 18, 19, 27, tzinfo=utc),
-            ],
-            'request_timestamp': [
-                dt.datetime(2016, 3, 30, 9, 30, tzinfo=utc),
-                dt.datetime(2017, 3, 10, 10, 11, 12, tzinfo=utc),
-                dt.datetime(2017, 3, 15, 13, 27, tzinfo=utc),
-                dt.datetime(2017, 4, 10, tzinfo=utc),
-                dt.datetime(2017, 4, 9, tzinfo=utc),
-            ],
-            'character_id': [570140137, 570140137, 2112311608, 570140137,
-                             570140137],
-            'character_name': [u'Paxswill', u'Paxswill', u'marssell kross',
-                               u'Paxswill', u'Paxswill'],
-            'status': [
-                models.ActionType.rejected,
-                models.ActionType.evaluating,
-                models.ActionType.approved,
-                models.ActionType.incomplete,
-                models.ActionType.incomplete,
-            ],
+            123: {
+                'killmail_timestamp': dt.datetime(
+                    2016, 3, 28, 2, 32, 50, tzinfo=utc),
+                'request_timestamp': dt.datetime(
+                    2016, 3, 30, 9, 30, tzinfo=utc),
+                'character_id': 570140137,
+                'character_name': u'Paxswill',
+                'type_id': 4310,
+                'type_name': u'Tornado',
+                'status': models.ActionType.rejected,
+            },
+            456: {
+                'killmail_timestamp': dt.datetime(
+                    2016, 3, 28, 2, 32, 50, tzinfo=utc),
+                'request_timestamp': dt.datetime(
+                    2017, 3, 10, 10, 11, 12, tzinfo=utc),
+                'character_id': 570140137,
+                'character_name': u'Paxswill',
+                'type_id': 4310,
+                'type_name': u'Tornado',
+                'status': models.ActionType.evaluating,
+            },
+            789: {
+                'killmail_timestamp': dt.datetime(
+                    2017, 3, 12, 0, 33, 10, tzinfo=utc),
+                'request_timestamp': dt.datetime(
+                    2017, 3, 15, 13, 27, tzinfo=utc),
+                'character_id': 2112311608,
+                'character_name': u'marssell kross',
+                'type_id': 605,
+                'type_name': u'Heron',
+                'status': models.ActionType.approved,
+            },
+            234: {
+                'killmail_timestamp': dt.datetime(
+                    2016, 4, 4, 17, 58, 45, tzinfo=utc),
+                'request_timestamp': dt.datetime(2017, 4, 10, tzinfo=utc),
+                'character_id': 570140137,
+                'character_name': u'Paxswill',
+                'type_id': 593,
+                'type_name': u'Tristan',
+                'status': models.ActionType.incomplete,
+            },
+            345: {
+                'killmail_timestamp': dt.datetime(
+                    2016, 4, 4, 18, 19, 27, tzinfo=utc),
+                'request_timestamp': dt.datetime(2017, 4, 9, tzinfo=utc),
+                'character_id': 570140137,
+                'character_name': u'Paxswill',
+                'type_id': 593,
+                'type_name': u'Tristan',
+                'status': models.ActionType.incomplete,
+            },
         }
+        # first case, only request_id
+        expected = [{'request_id': r} for r in request_ids]
+        if len(fields) > 1:
+            for sparse in expected:
+                for field in (f for f in fields if f != 'request_id'):
+                    sparse[field] = other_data[sparse['request_id']][field]
+        assert results == expected
+        return
+
         for field in other_data.keys():
             if field in fields:
                 extra_values = other_data[field]

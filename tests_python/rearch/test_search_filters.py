@@ -14,7 +14,7 @@ from evesrp import search_filter as sfilter
 @pytest.mark.parametrize('initial_values', (None, {'division_id': {0, }}))
 @pytest.mark.parametrize('additional_kwargs', ({}, {'division_id': {1, }}))
 def test_filter_init(initial_values, additional_kwargs):
-    test_filter = sfilter.Filter(initial_values, **additional_kwargs)
+    test_filter = sfilter.Search(initial_values, **additional_kwargs)
     if initial_values is None and len(additional_kwargs) == 0:
         assert len(test_filter._filters) == 0
     elif initial_values is not None and len(additional_kwargs) == 0:
@@ -29,7 +29,7 @@ def test_filter_init(initial_values, additional_kwargs):
 
 
 def test_filter_length():
-    filter_ = sfilter.Filter()
+    filter_ = sfilter.Search()
     assert len(filter_) == 0
     filter_._filters['killmail_id'].add(1)
     assert len(filter_) == 1
@@ -40,7 +40,7 @@ def test_filter_length():
 
 
 def test_filter_iter():
-    filter_ = sfilter.Filter()
+    filter_ = sfilter.Search()
     filter_._filters = {
         'request_id': {1, 2, 3},
         'killmail_id': {4, 5},
@@ -53,14 +53,14 @@ def test_filter_iter():
 
 
 def test_filter_contains():
-    test_filter = sfilter.Filter()
+    test_filter = sfilter.Search()
     assert 'killmail_id' not in test_filter
     test_filter._filters['killmail_id'].add(1)
     assert 'killmail_id' in test_filter
 
 
 def test_filter_getitem():
-    f = sfilter.Filter()
+    f = sfilter.Search()
     assert f['division_id'] == set()
     with pytest.raises(KeyError):
         f['character']
@@ -68,8 +68,8 @@ def test_filter_getitem():
 
 
 def test_filter_equals():
-    filter1 = sfilter.Filter()
-    filter2 = sfilter.Filter()
+    filter1 = sfilter.Search()
+    filter2 = sfilter.Search()
     assert filter1 == filter2
     filter1._filters['division_id'].add(1)
     filter2._filters['division_id'].add(1)
@@ -79,16 +79,68 @@ def test_filter_equals():
 
 
 def test_filter_repr():
-    test_filter = sfilter.Filter()
-    assert repr(test_filter) == "Filter({})"
+    test_filter = sfilter.Search()
+    assert repr(test_filter) == "Search({})"
     test_filter._filters['division_id'].add(2)
-    assert repr(test_filter) == "Filter({'division_id': {2}})"
+    assert repr(test_filter) == "Search({'division_id': {2}})"
+
+
+def test_filter_default_sort():
+    test_filter = sfilter.Search()
+    assert list(test_filter.sorts) == [
+        ('status', sfilter.SortDirection.ascending),
+        ('request_timestamp', sfilter.SortDirection.ascending),
+    ]
+
+
+def test_filter_set_sort():
+    test_filter = sfilter.Search()
+    # Default direction
+    test_filter.set_sort('killmail_timestamp')
+    assert list(test_filter.sorts) == [
+        ('killmail_timestamp', sfilter.SortDirection.ascending),
+    ]
+    # Explicit direction
+    test_filter.set_sort('killmail_timestamp',
+                         sfilter.SortDirection.descending)
+    assert list(test_filter.sorts) == [
+        ('killmail_timestamp', sfilter.SortDirection.descending),
+    ]
+
+
+def test_filter_add_sort():
+    test_filter = sfilter.Search()
+    # Default direction
+    test_filter.add_sort('killmail_timestamp')
+    assert list(test_filter.sorts) == [
+        ('status', sfilter.SortDirection.ascending),
+        ('request_timestamp', sfilter.SortDirection.ascending),
+        ('killmail_timestamp', sfilter.SortDirection.ascending),
+    ]
+    # Explicit Direction
+    test_filter.add_sort('type_name',
+                         sfilter.SortDirection.descending)
+    assert list(test_filter.sorts) == [
+        ('status', sfilter.SortDirection.ascending),
+        ('request_timestamp', sfilter.SortDirection.ascending),
+        ('killmail_timestamp', sfilter.SortDirection.ascending),
+        ('type_name', sfilter.SortDirection.descending),
+    ]
+
+
+def test_filter_pop_sort():
+    test_filter = sfilter.Search()
+    popped = test_filter.pop_sort()
+    assert popped == ('request_timestamp', sfilter.SortDirection.ascending)
+    assert list(test_filter.sorts) == [
+        ('status', sfilter.SortDirection.ascending),
+    ]
 
 
 def test_filter_merge():
-    starting_filter = sfilter.Filter()
+    starting_filter = sfilter.Search()
     starting_filter._filters['division_id'].add(1)
-    other_filter = sfilter.Filter()
+    other_filter = sfilter.Search()
     other_filter._filters['division_id'].add(2)
     other_filter._filters['character_id'].add(10)
     starting_filter.merge(other_filter)
@@ -110,20 +162,20 @@ class TestMatches(object):
 
     @pytest.mark.parametrize('killmail',(mock.Mock(id_=1), ))
     def test_mismatched_killmail(self, srp_request, killmail):
-        test_filter = sfilter.Filter()
+        test_filter = sfilter.Search()
         with pytest.raises(ValueError):
             test_filter.matches(srp_request, killmail)
 
     def test_matches_killmail(self, srp_request, killmail):
-        test_filter = sfilter.Filter(type_id={100, })
+        test_filter = sfilter.Search(type_id={100, })
         assert test_filter.matches(srp_request, killmail)
 
     def test_matches_request(self, srp_request):
-        test_filter = sfilter.Filter(division_id={10, })
+        test_filter = sfilter.Search(division_id={10, })
         assert test_filter.matches(srp_request)
 
     def test_not_matches(self, srp_request):
-        test_filter = sfilter.Filter(division_id={20, })
+        test_filter = sfilter.Search(division_id={20, })
         assert not test_filter.matches(srp_request)
 
 
@@ -175,7 +227,7 @@ class TestPredicate(object):
 
 
     @pytest.mark.parametrize('field_name,field_type',
-                             sfilter.Filter._field_types.items())
+                             sfilter.Search._field_types.items())
     def test_add_predicate(self, field_name, field_type):
         if field_type == models.FieldType.decimal:
             values = decimal_values
@@ -192,7 +244,7 @@ class TestPredicate(object):
                             models.FieldType.ccp_id):
             values = integer_values
         added_values = set()
-        test_filter = sfilter.Filter()
+        test_filter = sfilter.Search()
         for value in values:
             added_values.add(convert_value(field_type, value))
             test_filter.add(field_name, value)
@@ -201,7 +253,7 @@ class TestPredicate(object):
     @pytest.mark.parametrize('valid_field', (True, False),
                              ids=('valid_field', 'invalid_field'))
     def test_remove_empty(self, valid_field):
-        test_filter = sfilter.Filter()
+        test_filter = sfilter.Search()
         if valid_field:
             # Testing that it doesn't raise
             test_filter.remove('division_id', 0)
@@ -210,7 +262,7 @@ class TestPredicate(object):
                 test_filter.remove('foo', 0)
 
     def test_remove_last(self):
-        test_filter = sfilter.Filter(division_id=(0, ))
+        test_filter = sfilter.Search(division_id=(0, ))
         assert len(test_filter) == 1
         test_filter.remove('division_id', 0)
         assert len(test_filter) == 0

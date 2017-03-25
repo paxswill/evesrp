@@ -51,7 +51,7 @@ class BrowseActivity(object):
             return self.store.filter_sparse(filters=filters, fields=field_set)
 
     def list_personal(self, filters=None, fields=None):
-        personal_filter = search_filter.Filter()
+        personal_filter = search_filter.Search()
         personal_filter.add('user_id', self.user.id_)
         personal_filter.merge(filters)
         return self._list(filters=personal_filter, fields=fields)
@@ -65,7 +65,7 @@ class BrowseActivity(object):
         user_permissions = self.user.get_permissions(self.store)
         division_ids = [perm[0] for perm in user_permissions if perm[1] in
                         permissions]
-        permission_filter = search_filter.Filter()
+        permission_filter = search_filter.Search()
         for division_id in division_ids:
             permission_filter.add('division_id', division_id)
         return permission_filter
@@ -91,6 +91,6 @@ class BrowseActivity(object):
                 models.PermissionType.elevated)
         else:
             # Global admin users aren't filtered
-            all_filter = search_filter.Filter()
+            all_filter = search_filter.Search()
         all_filter.merge(filters)
         return self._list(filters=all_filter, fields=fields)

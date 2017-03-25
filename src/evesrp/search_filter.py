@@ -1,10 +1,12 @@
-from collections import defaultdict
+import collections
 import datetime as dt
 import decimal
-import itertools
+import enum
 import functools
+import itertools
 
 import six
+from six.moves import zip
 import iso8601
 
 import evesrp
@@ -34,19 +36,56 @@ integer_text_types = tuple(itertools.chain(six.integer_types, (six.text_type,)))
 
 def check_filter_key(func):
     @functools.wraps(func)
-    def key_check(*args, **kwargs):
+    def filter_key_check(*args, **kwargs):
         try:
             key = args[1]
         except IndexError:
             raise TypeError("{} requires at least a key".format(
                 func.__name__))
-        if key not in Filter._field_types:
+        if key not in Search._field_types:
             raise InvalidFilterKeyError(key)
         return func(*args, **kwargs)
-    return key_check
+    return filter_key_check
 
 
-class Filter(object):
+def check_sort_key(func):
+    @functools.wraps(func)
+    def sort_key_check(*args, **kwargs):
+        # Check the key
+        try:
+            key = args[1]
+        except IndexError:
+            raise TypeError("{} requires at least a key".format(
+                func.__name__))
+        if key not in models.Killmail.sorts and \
+                key not in models.Request.sorts:
+            raise ValueError("key is not sortable.")
+        # The direction may not be given, in which case it uses the default
+        # (valid) direction
+        try:
+            direction = args[2]
+            direction_given = True
+        except IndexError:
+            try:
+                direction = kwargs['direction']
+                direction_given = True
+            except KeyError:
+                direction_given = False
+        # Check the key and direction validity
+        if direction_given and direction not in SortDirection:
+            raise TypeError("invalid direction given.")
+        return func(*args, **kwargs)
+    return sort_key_check
+
+
+class SortDirection(enum.Enum):
+
+    ascending = 1
+
+    descending = -1
+
+
+class Search(object):
 
     # _field_types is a local copy of the Request and Killmail field_types
     _field_types = {}
@@ -54,12 +93,16 @@ class Filter(object):
     _field_types.update(models.Request.field_types)
 
     def __init__(self, initial_filters=None, **kwargs):
-        self._filters = defaultdict(set)
+        self._filters = collections.defaultdict(set)
         if initial_filters is not None:
             for field, values in six.iteritems(initial_filters):
                 self.add(field, *values)
         for field, values in six.iteritems(kwargs):
             self.add(field, *values)
+        # Default sort
+        self.sort_orders = collections.deque(
+            [SortDirection.ascending, SortDirection.ascending])
+        self.sort_fields = collections.deque(['status', 'request_timestamp'])
 
     def __len__(self):
         return len(self._filters)
@@ -78,6 +121,8 @@ class Filter(object):
         return frozenset(self._filters[key])
 
     def __eq__(self, other):
+        if not isinstance(other, Search):
+            return NotImplemented
         return self._filters == other._filters
 
     def __repr__(self):
@@ -87,7 +132,40 @@ class Filter(object):
             items = ["'{}': {}".format(key, set_repr(value)) for key, value in
                      six.iteritems(a_dict)]
             return "{{{}}}".format(", ".join(items))
-        return "Filter({})".format(dict_repr(self._filters))
+        return "Search({})".format(dict_repr(self._filters))
+
+    # Sorting
+
+    @check_sort_key
+    def set_sort(self, key, direction=SortDirection.ascending):
+        """Sets the sort orders to a new, single value.
+
+        :param str key: A field key to sort on.
+        :param direction: The direction to sort.
+        :type direction: :py:class:`.SortDirection`
+        """
+        self.sort_fields = collections.deque([key])
+        self.sort_orders = collections.deque([direction])
+
+    @check_sort_key
+    def add_sort(self, key, direction=SortDirection.ascending):
+        """Add an additional, secondary sort.
+
+        :param str key: A field key to sort on.
+        :param direction: The direction to sort.
+        :type direction: :py:class:`.SortDirection`
+        """
+        self.sort_fields.append(key)
+        self.sort_orders.append(direction)
+
+    def pop_sort(self):
+        return (self.sort_fields.pop(), self.sort_orders.pop())
+
+    @property
+    def sorts(self):
+        return zip(self.sort_fields, self.sort_orders)
+
+    # Filtering
 
     @check_filter_key
     def add(self, key, *values):
