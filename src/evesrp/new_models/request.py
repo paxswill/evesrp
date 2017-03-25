@@ -68,6 +68,11 @@ class Killmail(util.IdEquality, util.FieldsAccess, util.GetItemAttribute):
         self.timestamp = kwargs['timestamp']
         self.url = kwargs['url']
 
+    def __repr__(self):
+        return "{}({})".format(
+            self.__class__.__name__,
+            self.id_)
+
     @classmethod
     def from_dict(cls, killmail_dict):
         return cls(killmail_dict['id'],
@@ -188,6 +193,13 @@ class Request(util.IdEquality, util.FieldsAccess, util.GetItemAttribute):
         elif not isinstance(payout, Decimal):
             payout = Decimal(payout)
         self.payout = payout
+
+    def __repr__(self):
+        return "{}({}, {}, {})".format(
+            self.__class__.__name__,
+            self.id_,
+            self.payout,
+            self.status.name)
 
     @classmethod
     def from_dict(cls, request_dict):
