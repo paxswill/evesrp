@@ -32,11 +32,35 @@ class AuthenticationProvider(object):
         raise NotImplementedError
 
     def get_user(self, context, current_user=None):
+        """Get a user identity for the given context.
+
+        If this is a new identity an current_user is given, the identity is
+        associated with that user. Otherwise, a new user is created.
+        :param context: The context created by
+            :py:method:`OAuth2Session.create_context`.
+        :param current_user:
+        :type current_user: :py:class:`~.User` or `None`
+        :rtype: :py:class:`~.AuthenticatedUser`
+        """
         raise NotImplementedError
 
-    def get_pilots(self, context):
+    def get_characters(self, context):
+        """Get a list of the characters associated with a context.
+
+        Returns a :py:class:`list` of :py:class:`dict` objects, with the keys
+        `id` and `name` for the character's ID number and name respectively.
+        :param context: The context created by
+            :py:method:`OAuth2Session.create_context`.
+        :rtype: :py:class:`list`
+        """
         raise NotImplementedError
 
     def get_groups(self, context):
+        """Get a list of the group identities for the given context.
+
+        :param context: The context created by
+            :py:method:`OAuth2Session.create_context`.
+            :rtype: :py:class:`list` of :py:class:`~.AuthenticatedGroup`
+        """
         raise NotImplementedError
 
