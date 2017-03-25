@@ -119,6 +119,10 @@ def test_get_groups(context, store, existing_groups, in_alliance):
             mock.sentinel.authn_corp_group,
             mock.sentinel.authn_alliance_group,
         )
+        store.add_group.side_effect = (
+            mock.Mock(id_=mock.sentinel.corp_group_id),
+            mock.Mock(id_=mock.sentinel.alliance_group_id),
+        )
     if in_alliance:
         assert provider.get_groups(context) == [
             mock.sentinel.authn_corp_group,
@@ -138,16 +142,18 @@ def test_get_groups(context, store, existing_groups, in_alliance):
 
     if not existing_groups:
         store.add_group.assert_any_call('Dreddit')
-        store.add_authn_group.assert_any_call(group_id=mock.ANY,
-                                              provider_uuid=mock.ANY,
-                                              provider_key='1018389948')
+        store.add_authn_group.assert_any_call(
+            group_id=mock.sentinel.corp_group_id,
+            provider_uuid=provider.uuid,
+            provider_key='1018389948')
         if in_alliance:
             assert store.add_group.call_count == 2
             assert store.add_authn_group.call_count == 2
             store.add_group.assert_any_call('Test Alliance Please Ignore')
-            store.add_authn_group.assert_any_call(group_id=mock.ANY,
-                                                  provider_uuid=mock.ANY,
-                                                  provider_key='498125261')
+            store.add_authn_group.assert_any_call(
+                group_id=mock.sentinel.alliance_group_id,
+                provider_uuid=provider.uuid,
+                provider_key='498125261')
         else:
             assert store.add_group.call_count == 1
             assert store.add_authn_group.call_count == 1
