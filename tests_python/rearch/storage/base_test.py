@@ -1,5 +1,6 @@
 import datetime as dt
 from decimal import Decimal
+import itertools
 
 import pytest
 from six.moves import zip
@@ -532,24 +533,36 @@ class CommonStorageTest(object):
             # This is the default sort
             ('status', 'request_timestamp'): {
                 (sfilter.SortDirection.ascending,
-                 sfilter.SortDirection.ascending): [456, 345, 234, 789, 123],
+                 sfilter.SortDirection.ascending): (
+                     [456, 345, 234, 789, 123],
+                     None,
+                 ),
             },
             ('status', 'killmail_timestamp'): {
                 (sfilter.SortDirection.ascending,
-                 sfilter.SortDirection.ascending): [456, 234, 345, 789, 123],
+                 sfilter.SortDirection.ascending): (
+                     [456, 234, 345, 789, 123],
+                     None,
+                 ),
             },
             ('status', ): {
-                 (sfilter.SortDirection.ascending, ):
-                [456, 234, 345, 789, 123],
+                (sfilter.SortDirection.ascending, ): (
+                    [456, 234, 345, 789, 123],
+                    (1, 2)
+                ),
             },
             ('request_timestamp', ): {
-                 (sfilter.SortDirection.descending, ):
-                [234, 345, 789, 456, 123],
-                 (sfilter.SortDirection.ascending, ):
-                [123, 456, 789, 345, 234],
+                (sfilter.SortDirection.descending, ): (
+                    [234, 345, 789, 456, 123],
+                    None,
+                ),
+                (sfilter.SortDirection.ascending, ): (
+                    [123, 456, 789, 345, 234],
+                    None,
+                ),
             },
         }
-        sorted_ids = order_map[tuple(search.sort_fields)][
+        sorted_ids, undefined_order = order_map[tuple(search.sort_fields)][
             tuple(search.sort_orders)]
         # Now define which IDs are present
         if len(search) == 0:
@@ -568,13 +581,26 @@ class CommonStorageTest(object):
                 filtered_ids = {234, 345}
         elif len(search) == 2:
             filtered_ids = {234, 345}
-        return [rid for rid in sorted_ids if rid in filtered_ids]
+        # Handle cases where the order is a little flexible/undefined
+        if undefined_order is not None:
+            start_index, end_index = undefined_order
+            # Account for slice indexing being non-inclusive
+            end_index += 1
+            elements = sorted_ids[start_index:end_index]
+            beginning = sorted_ids[:start_index]
+            end = sorted_ids[end_index:]
+            all_orders = itertools.permutations(elements)
+            orders = [(beginning + list(order) + end) for order in all_orders]
+        else:
+            orders = [sorted_ids]
+        return [[rid for rid in order if rid in filtered_ids]
+                for order in orders]
 
 
     def test_filter(self, populated_store, search, request_ids):
         requests = populated_store.filter_requests(search)
         matching_ids = [r.id_ for r in requests]
-        assert matching_ids == request_ids
+        assert matching_ids in request_ids
 
     @pytest.mark.parametrize('fields', (
         {'request_id', },
@@ -659,24 +685,15 @@ class CommonStorageTest(object):
             },
         }
         # first case, only request_id
-        expected = [{'request_id': r} for r in request_ids]
-        if len(fields) > 1:
-            for sparse in expected:
-                for field in (f for f in fields if f != 'request_id'):
-                    sparse[field] = other_data[sparse['request_id']][field]
-        assert results == expected
-        return
-
-        for field in other_data.keys():
-            if field in fields:
-                extra_values = other_data[field]
-                packed = zip(request_ids, extra_values)
-                expected = [{'request_id': r, field: e} for r, e in packed]
-                break
-        else:
-            # first case, only request_id
-            expected = [{'request_id': r} for r in request_ids]
-        assert sparse == expected
+        expected_orders = []
+        for id_order in request_ids:
+            expected = [{'request_id': r} for r in id_order]
+            if len(fields) > 1:
+                for sparse in expected:
+                    for field in (f for f in fields if f != 'request_id'):
+                        sparse[field] = other_data[sparse['request_id']][field]
+            expected_orders.append(expected)
+        assert results in expected_orders
 
     # Characters
 
