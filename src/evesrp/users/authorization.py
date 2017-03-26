@@ -16,6 +16,12 @@ class PermissionsAdmin(object):
                                               u"divisions.".format(self.user))
         return self.store.add_division(division_name)
 
+    def list_divisions(self):
+        permissions = self.user.get_permissions(self.store)
+        division_ids = {permission.division_id for permission in permissions}
+        divisions = self.store.get_divisions(division_ids)
+        return divisions
+
 
 class DivisionAdmin(object):
 

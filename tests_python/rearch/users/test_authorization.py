@@ -43,6 +43,34 @@ def test_division_create(store, is_admin):
             permissions_admin.create_division('Non-Admin Division')
 
 
+def test_list_divisions(store):
+    user = mock.Mock(id_=mock.sentinel.user_id)
+    user.get_permissions.return_value = {
+        mock.Mock(division_id=mock.sentinel.division_1_id),
+        mock.Mock(division_id=mock.sentinel.division_2_id),
+        mock.Mock(division_id=mock.sentinel.division_3_id),
+    }
+    store.get_divisions.return_value = {
+        mock.sentinel.division_1,
+        mock.sentinel.division_2,
+        mock.sentinel.division_3,
+    }
+    # Prep done, actual testing follows
+    permissions_admin = authz.PermissionsAdmin(store, user)
+    divisions = permissions_admin.list_divisions()
+    assert divisions == {
+        mock.sentinel.division_1,
+        mock.sentinel.division_2,
+        mock.sentinel.division_3,
+    }
+    store.get_divisions.assert_called_once_with({
+        mock.sentinel.division_1_id,
+        mock.sentinel.division_2_id,
+        mock.sentinel.division_3_id,
+    })
+    user.get_permissions.assert_called_once_with(store)
+
+
 @pytest.mark.parametrize('admin_permission', [True, False])
 def test_division_admin_init(store, is_admin, admin_permission):
     user = mock.Mock(admin=is_admin, id_=1)
