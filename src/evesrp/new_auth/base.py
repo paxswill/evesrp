@@ -1,12 +1,51 @@
+import collections
+import enum
 import uuid
+
+
+class LoginFieldType(enum.Enum):
+
+    string = 0
+    """An unmasked string value, like for a username."""
+
+    password = 1
+    """A masked string value, like for a password."""
 
 
 class AuthenticationProvider(object):
 
     __namespace_uuid = uuid.UUID('d6ffa87f-eea7-4318-81d1-7ee6a51433cc')
 
-    def __init__(self, store):
+    def __init__(self, store, name=None):
         self.store = store
+        self.name = name
+
+    @property
+    def name(self):
+        """A name to be shown to a user identifying this provider."""
+        if self.name is None:
+            return u"Base Authentication"
+        return self.name
+
+    @property
+    def fields(self):
+        """A map of the fields needed to log in with this provider.
+
+        The keys in the map are the keys for the fields that are passed in to
+        `create_context`, as unicode strings. The values are members of
+        :pt:class:`LoginFieldType` corresponding to the type of field.
+
+        An additional key `u'submit'` is provided to customize the login text
+        on the button. The value may be either a plain string, or it can be a
+        tuple of alt text and either a URL or the name of an image to display.
+        If not provided, the text on the button will be "Log In".
+
+        :rtype: :py:class:`collections.OrderedDict`
+        """
+        fields = collections.OrderedDict()
+        fields[u'submit'] = u'Log In'
+        return fields
+
 
     @property
     def uuid(self):

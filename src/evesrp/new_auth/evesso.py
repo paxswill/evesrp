@@ -20,6 +20,7 @@ class EveSsoProvider(OAuthProvider):
         kwargs.setdefault('refresh_token_url', self.domain + '/oauth/token')
         kwargs.setdefault('scope', ['publicData'])
         kwargs.setdefault('method', 'POST')
+        kwargs.setdefault('name', u"EVE SSO")
         super(EveSsoProvider, self).__init__(store, **kwargs)
 
     def _get_user_data(self, context):
