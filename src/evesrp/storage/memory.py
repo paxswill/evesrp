@@ -219,7 +219,7 @@ class MemoryStore(CachingCcpStore, BaseStore):
         group_ids = {gid for gid, uids in six.iteritems(membership) if
                      user_id in uids}
         groups_data = [self._data['groups'][gid] for gid in group_ids]
-        return {models.User.from_dict(data) for data in groups_data}
+        return {models.Group.from_dict(data) for data in groups_data}
 
     def add_group(self, name):
         return self._add_to_dict('groups', models.Group.from_dict,

@@ -286,6 +286,8 @@ class CommonStorageTest(object):
         groups = get_resp
         expected_group_ids = {group.id_ for group in groups}
         assert group_ids == expected_group_ids
+        for group in groups:
+            assert isinstance(group, models.Group)
 
     def test_add_group(self, store):
         add_resp = store.add_group(u'Group ????')
