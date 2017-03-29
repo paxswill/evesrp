@@ -1,2 +1,2 @@
 from .errors import *
-from base import LoginFieldType
+from .base import LoginFieldType
