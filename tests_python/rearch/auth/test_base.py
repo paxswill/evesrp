@@ -19,3 +19,16 @@ def test_base_uuid():
         pass
     assert ProviderSub(None).uuid == \
         uuid.UUID('6751e9d0-2e95-5d26-aaf5-7ea7bcdd5f52')
+
+
+def test_base_name():
+    provider1 = auth_base.AuthenticationProvider(None, name=None)
+    assert provider1.name == u'Base Authentication'
+    provider2 = auth_base.AuthenticationProvider(None, name=mock.sentinel.name)
+    assert provider2.name == mock.sentinel.name
+
+
+def test_base_fields():
+    provider = auth_base.AuthenticationProvider(None)
+    assert len(provider.fields) == 1
+    assert next(iter(provider.fields.items())) == (u'submit', u'Log In')

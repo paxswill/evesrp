@@ -23,9 +23,13 @@ class AuthenticationProvider(object):
     @property
     def name(self):
         """A name to be shown to a user identifying this provider."""
-        if self.name is None:
+        if self._name is None:
             return u"Base Authentication"
-        return self.name
+        return self._name
+
+    @name.setter
+    def name(self, new_name):
+        self._name = new_name
 
     @property
     def fields(self):
