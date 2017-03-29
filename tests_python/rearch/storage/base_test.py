@@ -702,6 +702,13 @@ class CommonStorageTest(object):
     def test_get_character(self, populated_store):
         self._test_get(populated_store.get_character, 570140137, 0)
 
+    def test_get_characters(self, populated_store):
+        characters = populated_store.get_characters(9)
+        assert len(characters) == 2
+        assert {c.id_ for c in characters} == {2112311608, 570140137}
+        for character in characters:
+            assert isinstance(character, models.Character)
+
     def test_add_character(self, populated_store):
         with pytest.raises(storage.NotFoundError):
             populated_store.get_character(95465499)

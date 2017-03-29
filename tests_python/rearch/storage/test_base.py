@@ -20,7 +20,7 @@ not_implemented = [
     'get_action', 'get_actions', 'add_action',
     'get_modifier', 'get_modifiers', 'add_modifier', 'void_modifier',
     'filter_requests',
-    'get_character', 'add_character', 'save_character',
+    'get_character', 'get_characters', 'add_character', 'save_character',
     'get_notes', 'add_note',
     'get_region', 'get_constellation', 'get_system',
     'get_alliance', 'get_corporation', 'get_ccp_character',

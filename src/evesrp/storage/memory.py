@@ -450,6 +450,12 @@ class MemoryStore(CachingCcpStore, BaseStore):
         return self._get_from_dict('characters', character_id,
                                    models.Character.from_dict)
 
+    def get_characters(self, user_id):
+        return {models.Character.from_dict(c)
+                for c in six.itervalues(self._data['characters'])
+                if c['user_id'] == user_id}
+
+
     def add_character(self, user_id, character_id, character_name):
         if user_id not in self._data['users']:
             raise errors.NotFoundError('user', user_id)

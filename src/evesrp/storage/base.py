@@ -351,6 +351,9 @@ class BaseStore(object):
     def get_character(self, character_id):
         raise NotImplementedError
 
+    def get_characters(self, user_id):
+        raise NotImplementedError
+
     def add_character(self, user_id, character_id, character_name):
         raise NotImplementedError
 
