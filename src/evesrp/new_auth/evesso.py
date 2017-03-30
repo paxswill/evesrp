@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+import collections
 
 from oauthlib.oauth2 import OAuth2Error
 import six
@@ -22,6 +23,15 @@ class EveSsoProvider(OAuthProvider):
         kwargs.setdefault('method', 'POST')
         kwargs.setdefault('name', u"EVE SSO")
         super(EveSsoProvider, self).__init__(store, **kwargs)
+
+    @property
+    def fields(self):
+        # Instead of a simbple submit button, CCP prefers a fancy image is
+        # used.
+        fields = collections.OrderedDict()
+        # Yes, this is mixing presentation and logic a bit here
+        fields[u'submit'] = ('Log In with EVE Online', 'evesso.png')
+        return fields
 
     def _get_user_data(self, context):
         session = context['oauth_session']

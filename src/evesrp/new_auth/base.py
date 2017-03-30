@@ -101,6 +101,8 @@ class AuthenticationProvider(object):
     def get_groups(self, context):
         """Get a list of the group identities for the given context.
 
+        The implementation of a subclasses' `get_groups` method is responsible
+        for creating the corresponding :py:class:`~.models.Group`.
         :param context: The context created by
             :py:method:`OAuth2Session.create_context`.
             :rtype: :py:class:`list` of :py:class:`~.AuthenticatedGroup`

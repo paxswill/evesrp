@@ -62,7 +62,7 @@
             {% block navitems_right %}
             {% if current_user.is_anonymous %}
             {# TRANS: This is a link in the navigation bar. It goes to the login page. #}
-            {{ macros.navbar_button(gettext('Log In'), 'login.login')|indent(12)|safe }}
+            {{ macros.navbar_button(gettext('Log In'), 'authn.login')|indent(12)|safe }}
             {% else %}
             {% if current_user.has_permission(PermissionType.submit) %}
             {# TRANS: This is a link in the navigation bar to the page for submitting a request. #}
@@ -88,7 +88,7 @@
                 {{ macros.navbar_button(gettext('Permissions'), 'divisions.permissions')|indent(16)|safe }}
                 <li class="divider"></li>
                 {# TRANS: The link in the navigation bar at the top for logging out of the app. #}
-                {{ macros.navbar_button(gettext('Log Out'), 'login.logout')|indent(16)|safe }}
+                {{ macros.navbar_button(gettext('Log Out'), 'authn.logout')|indent(16)|safe }}
               </ul>
             </li>
             {% endif %}

@@ -56,6 +56,13 @@ def store(in_alliance):
     return store
 
 
+def test_fields():
+    provider = evesso.EveSsoProvider(None, client_id=None, client_secret=None)
+    fields = provider.fields
+    assert len(fields) == 1
+    assert fields[u'submit'] == (u'Log In with EVE Online', 'evesso.png')
+
+
 @pytest.mark.parametrize('existing_authn_user,logged_in_user', (
     (True, None),
     (False, True),

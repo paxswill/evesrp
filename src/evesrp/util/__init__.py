@@ -1,6 +1,8 @@
 from .classproperty import classproperty
 from .decimal import PrettyDecimal, PrettyNumeric
 from .enum import DeclEnum
+from .fields import ImageField
+from .instance_from_dict import instance_from_dict
 from .jsonify import jsonify
 from .models import AutoID, Timestamped, AutoName
 from .request import AcceptRequest
