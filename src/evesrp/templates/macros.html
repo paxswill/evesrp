@@ -81,7 +81,7 @@
   <a href="{{ url }}"{{ (' id="navbar-button-' ~ id ~ '"')|safe if id != None }}>
     {{ text }}
     {% if count != None %}
-    <span class="badge hidden-sm"{{ (' id="badge-' ~ id ~ '"')|safe if id != None }}>{{ count|numberfmt if count != 0 }}</span>
+    <span class="badge hidden-sm"{{ (' id="badge-' ~ id ~ '"')|safe if id != None }}>{{ count|numberformat if count != 0 }}</span>
     {% endif %}
   </a>
 </li>
@@ -122,13 +122,13 @@ danger
   {# TRANS: How a flat ISK bonus is written as text. The %(amount)s is special,
             it will be replaced with the bonus amount (in millions of ISK)
   #}
-  {{ gettext("%(amount)sM ISK bonus", amount=(value|numberfmt)) }}
+  {{ gettext("%(amount)sM ISK bonus", amount=(value|numberformat)) }}
   {% else %}
   {# TRANS: How a flat ISK penalty is written as text. The %(amount)s is
             special, it will be replaced with the penalty amount (in
             millions of ISK).
   #}
-  {{ gettext("%(amount)sM ISK penalty", amount=(value|numberfmt)) }}
+  {{ gettext("%(amount)sM ISK penalty", amount=(value|numberformat)) }}
   {% endif %}
 {% endwith %}
 {% elif modifier._type == 'RelativeModifier' %}
@@ -137,13 +137,13 @@ danger
             is special, it will be replaced with the amount as a percentage,
             formatted according to the current locale.
   #}
-  {{ gettext("%(amount)s bonus", amount=(modifier.value|percentfmt)) }}
+  {{ gettext("%(amount)s bonus", amount=(modifier.value|percentformat)) }}
   {% else %}
   {# TRANS: How a percentage penalty is written as text. The %(amount)s
             is special, it will be replaced with the amount as a percentage,
             formatted according to the current locale.
   #}
-  {{ gettext("%(amount)s penalty", amount=(modifier.value|percentfmt)) }}
+  {{ gettext("%(amount)s penalty", amount=(modifier.value|percentformat)) }}
   {% endif %}
 {% endif %}
 {% endmacro %}

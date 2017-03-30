@@ -73,7 +73,7 @@
                 {% with personal_count = request_count(PermissionType.submit) %}
                 <span class="caret"></span> {{ current_user.name }} <span class="badge hidden-sm" id="badge-personal">
                   {%- if personal_count != 0 -%}
-                  {{ personal_count|numberfmt }}
+                  {{ personal_count|numberformat }}
                   {%- endif -%}
                 </span>
                 {% endwith %}
