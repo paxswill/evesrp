@@ -52,9 +52,9 @@ setup(
         u'Topic :: Games/Entertainment',
     ],
     install_requires=[
-        'Babel >= 2.2.0',
+        'Babel == 2.4.0',
         'Flask >= 0.10.1',
-        'Flask-Babel >= 0.9',
+        'Flask-Babel == 0.11.1',
         'Flask-Login == 0.4.0',
         'Flask-Migrate ~= 1.7.0',
         'Flask-Script == 2.0.5',
