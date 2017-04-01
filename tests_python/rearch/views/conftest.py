@@ -23,7 +23,4 @@ def flask_app(store):
     app.config['SERVER_NAME'] = 'localhost'
     app.store = store
     babel = flask_babel.Babel(app)
-
     return app
-
-
