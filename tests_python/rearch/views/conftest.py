@@ -18,7 +18,7 @@ def store():
 
 @pytest.fixture
 def flask_app(store):
-    app = flask.Flask(__name__)
+    app = flask.Flask('evesrp')
     app.config['TESTING'] = True
     app.config['SERVER_NAME'] = 'localhost'
     app.store = store
