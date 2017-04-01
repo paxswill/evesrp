@@ -33,7 +33,7 @@ def locale_selector():
 
 
 blueprint = flask.Blueprint('i18n',
-                            'evesrp.i18n',
+                            'evesrp.new_views.i18n',
                             static_folder='static',
                             static_url_path='/static/translations')
 blueprint.add_app_template_global(flask_babel.get_locale, 'get_locale')

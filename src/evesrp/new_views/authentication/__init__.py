@@ -1,1 +1,1 @@
-from .blueprint import login_manager, authn_blueprint
+from ._blueprint import login_manager, blueprint

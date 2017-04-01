@@ -86,8 +86,7 @@ generated_messages.pot: babel.cfg $(addprefix $(SRC_DIR)/, *.py */*.py templates
 
 ##### JSON translations #####
 # STATIC_DIR is defined in the parent Makefile
-JSON_TRANSLATIONS_DIR := $(STATIC_DIR)/translations
-JSON_TRANSLATIONS_DIR := $(SRC_DIR)/i18n/static
+JSON_TRANSLATIONS_DIR := $(SRC_DIR)/new_views/i18n/static
 DASH_LOCALES := $(subst _,-,$(UNDER_LOCALES))
 JSON_LOCALES := $(foreach \
 	lang,$(DASH_LOCALES),$(JSON_TRANSLATIONS_DIR)/$(lang).json)

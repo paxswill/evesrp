@@ -14,7 +14,7 @@ from evesrp import new_views as views
 from evesrp import new_auth as authn
 from evesrp import new_models as models
 from evesrp import util, storage
-import evesrp.new_views.authentication.blueprint as bprint
+import evesrp.new_views.authentication._blueprint as bprint
 
 
 @pytest.fixture
@@ -27,7 +27,7 @@ def flask_app(flask_app):
         },
 
     ]
-    flask_app.register_blueprint(bprint.authn_blueprint)
+    flask_app.register_blueprint(views.authn.blueprint)
     return flask_app
 
 
@@ -35,14 +35,14 @@ def test_attach_blueprint(monkeypatch):
     login_manager = mock.Mock()
     monkeypatch.setattr(bprint, 'login_manager', login_manager)
     app = flask.Flask(__name__)
-    app.register_blueprint(bprint.authn_blueprint)
+    app.register_blueprint(bprint.blueprint)
     login_manager.init_app.assert_called_once_with(app)
     assert 'authn' in app.blueprints
     # Check that login_manager is only set up once per app
-    app.register_blueprint(bprint.authn_blueprint, prefix='/authn')
+    app.register_blueprint(bprint.blueprint, prefix='/authn')
     login_manager.init_app.assert_called_once_with(app)
     app2 = flask.Flask(__name__)
-    app2.register_blueprint(bprint.authn_blueprint)
+    app2.register_blueprint(bprint.blueprint)
     login_manager.init_app.assert_called_with(app2)
 
 

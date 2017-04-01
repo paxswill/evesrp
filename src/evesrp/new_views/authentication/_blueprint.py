@@ -15,10 +15,10 @@ from .user import LoginUser
 
 
 
-authn_blueprint = flask.Blueprint('authn', 'evesrp.new_views.authentication',
-                                  template_folder='templates',
-                                  static_folder='static',
-                                  static_url_path='/static/authn')
+blueprint = flask.Blueprint('authn', 'evesrp.new_views.authentication',
+                            template_folder='templates',
+                            static_folder='static',
+                            static_url_path='/static/authn')
 
 
 login_manager = flask_login.LoginManager()
@@ -26,7 +26,7 @@ login_manager.login_view = 'authn.login'
 login_manager.localize_callback = flask_babel.gettext
 
 
-@authn_blueprint.record_once
+@blueprint.record_once
 def attach_login_manager(state):
     login_manager.init_app(state.app)
 
@@ -175,7 +175,7 @@ def redirect_next(session):
     return flask.redirect(next_url or flask.url_for('index'))
 
 
-@authn_blueprint.route('/login/', methods=['GET', 'POST'])
+@blueprint.route('/login/', methods=['GET', 'POST'])
 def login():
     providers = create_providers(flask.current_app)
     if check_second_stage(providers, flask.current_app):
@@ -221,7 +221,7 @@ def login():
                                  title=flask_babel.gettext(u'Log In'))
 
 
-@authn_blueprint.route('/logout/')
+@blueprint.route('/logout/')
 @flask_login.login_required
 def logout():
     flask_login.logout_user()

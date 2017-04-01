@@ -3,14 +3,14 @@ try:
     from unittest import mock
 except ImportError:
     import mock
-import uuid
 
 import babel
 import flask
 import flask_babel
 import pytest
 
-import evesrp.i18n._blueprint as bprint
+from evesrp import new_views as views
+import evesrp.new_views.i18n._blueprint as bprint
 
 
 @pytest.fixture
@@ -23,7 +23,7 @@ def flask_app(flask_app, enabled_locales):
     # enabled_locales can be None when overridden by specific tests
     if enabled_locales is not None:
         flask_app.config['SRP_LOCALES'] = enabled_locales
-    flask_app.register_blueprint(bprint.blueprint)
+    flask_app.register_blueprint(views.i18n.blueprint)
     return flask_app
 
 
