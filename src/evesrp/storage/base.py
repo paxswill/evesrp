@@ -101,6 +101,17 @@ class BaseStore(object):
     def add_user(self, name, is_admin=False):
         raise NotImplementedError
 
+    def save_user(self, user):
+        """Save a modified user.
+
+        The only two attributes that can save on a user are the user's name and
+        whether thay are an admin or not.
+
+        :param user: The user to save.
+        :type user: :py:class:`~.User`
+        """
+        raise NotImplementedError
+
     def get_group(self, group_id):
         raise NotImplementedError
 
@@ -108,6 +119,18 @@ class BaseStore(object):
         raise NotImplementedError
 
     def add_group(self, name):
+        raise NotImplementedError
+
+    def save_group(self, group):
+        """Save a changed group.
+
+        The only attribute that can change on a group is
+        :py:attr:`~.Group.name`. Any other changed attributes will not be
+        saved.
+
+        :param group: The group to save.
+        :type group: :py:class:`~.Group`
+        """
         raise NotImplementedError
 
     def associate_user_group(self, user_id, group_id):

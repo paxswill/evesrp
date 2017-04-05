@@ -273,6 +273,26 @@ class CommonStorageTest(object):
         get_resp = store.get_user(user.id_)
         assert get_resp == user
 
+    def test_save_user(self, populated_store):
+        # admin change
+        user9 = populated_store.get_user(9)
+        user9.admin = True
+        populated_store.save_user(user9)
+        user9 = populated_store.get_user(9)
+        assert user9.admin
+        assert user9.name == u'User 9'
+        # name change
+        user7 = populated_store.get_user(7)
+        user7.name = u'User Siete'
+        populated_store.save_user(user7)
+        user7 = populated_store.get_user(7)
+        assert not user7.admin
+        assert user7.name == u'User Siete'
+        # Non-existant user
+        user0 = models.User(u'User 0', 0)
+        with pytest.raises(storage.NotFoundError):
+            populated_store.save_user(user0)
+
     def test_get_group(self, populated_store):
         self._test_get(populated_store.get_group, 6000, 0)
 
@@ -294,6 +314,18 @@ class CommonStorageTest(object):
         group = add_resp
         get_resp = store.get_group(group.id_)
         assert get_resp == group
+
+    def test_save_group(self, populated_store):
+        # Name change
+        group = populated_store.get_group(3000)
+        group.name = u'Group 3e3'
+        populated_store.save_group(group)
+        group = populated_store.get_group(3000)
+        assert group.name == u'Group 3e3'
+        # Non-existant group
+        bad_group = models.Group(u'Group 1', 1)
+        with pytest.raises(storage.NotFoundError):
+            populated_store.save_group(bad_group)
 
     @pytest.mark.parametrize('user_id', (0, 9),
                              ids=('invalid_user', 'valid_user'))

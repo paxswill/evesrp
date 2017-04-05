@@ -211,6 +211,14 @@ class MemoryStore(CachingCcpStore, BaseStore):
                                      'admin': is_admin,
                                  })
 
+    def save_user(self, user):
+        # Only names and admin-ness can change
+        if user.id_ not in self._data['users']:
+            raise errors.NotFoundError('user', user.id_)
+        user_data = self._data['users'][user.id_]
+        user_data['admin'] = user.admin
+        user_data['name'] = user.name
+
     def get_group(self, group_id):
         return self._get_from_dict('groups', group_id, models.Group.from_dict)
 
@@ -224,6 +232,13 @@ class MemoryStore(CachingCcpStore, BaseStore):
     def add_group(self, name):
         return self._add_to_dict('groups', models.Group.from_dict,
                                  {'name': name})
+
+    def save_group(self, group):
+        # Only group names can change
+        if group.id_ not in self._data['groups']:
+            raise errors.NotFoundError('group', group.id_)
+        group_data = self._data['groups'][group.id_]
+        group_data['name'] = group.name
 
     def associate_user_group(self, user_id, group_id):
         if user_id not in self._data['users']:
