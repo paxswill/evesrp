@@ -164,3 +164,11 @@ def test_get_groups(context, store, existing_groups, in_alliance):
         else:
             assert store.add_group.call_count == 1
             assert store.add_authn_group.call_count == 1
+
+
+@pytest.mark.parametrize('admins', ([u'Paxswill'], [u'Not Paxswill']),
+                         ids=('admin', 'not_admin'))
+def test_is_admin(context, admins):
+    provider = evesso.EveSsoProvider(store, client_id=None, client_secret=None,
+                                     admins=admins)
+    assert provider.is_admin(context) == (admins[0] == u'Paxswill')

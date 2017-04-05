@@ -16,9 +16,19 @@ class AuthenticationProvider(object):
 
     __namespace_uuid = uuid.UUID('d6ffa87f-eea7-4318-81d1-7ee6a51433cc')
 
-    def __init__(self, store, name=None):
+    def __init__(self, store, name=None, admins=None):
+        """Create a provider that will be used to authenticate users.
+
+        :param str name: A name to be used to identify this provider.
+        :param list admins: A list of user names to be treated as app-wide
+            administrators.
+        """
         self.store = store
         self.name = name
+        if admins is None:
+            self.admins = []
+        else:
+            self.admins = admins
 
     @property
     def name(self):
@@ -109,3 +119,11 @@ class AuthenticationProvider(object):
         """
         raise NotImplementedError
 
+    def is_admin(self, context):
+        """Identify if the user is an app-wide administrator.
+
+        :param context: The context created by
+            :py:method:`OAuth2Session.create_context`.
+        :rtype: bool
+        """
+        raise NotImplementedError

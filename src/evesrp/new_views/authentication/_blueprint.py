@@ -133,7 +133,12 @@ def login_user(provider, context, app):
     user = store.get_user(user_identity.user_id)
     login_user = LoginUser(user)
     flask_login.login_user(login_user)
-    # TODO: Add a way to determine if a user is an admin
+    # Check to see if the admin flag needs to be applied
+    # NOTE: If/when the "multiple identities per user" becomes a thing, this
+    # will need to be reworked to account for different identities saying
+    # different things about a user.
+    user.admin = provider.is_admin(context)
+    store.save_user(user)
     # Add new character
     new_characters = provider.get_characters(context)
     for character_data in new_characters:

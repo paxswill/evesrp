@@ -28,6 +28,14 @@ def test_base_name():
     assert provider2.name == mock.sentinel.name
 
 
+def test_base_admins():
+    provider1 = auth_base.AuthenticationProvider(None,
+                                                 admins=[mock.sentinel.admins])
+    assert provider1.admins == [mock.sentinel.admins]
+    provider2 = auth_base.AuthenticationProvider(None)
+    assert provider2.admins == []
+
+
 def test_base_fields():
     provider = auth_base.AuthenticationProvider(None)
     assert len(provider.fields) == 1

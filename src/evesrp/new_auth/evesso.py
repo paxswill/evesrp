@@ -111,3 +111,8 @@ class EveSsoProvider(OAuthProvider):
                     provider_key=str(alliance_info['id']))
             groups.append(alliance_authn_group)
         return groups
+
+    def is_admin(self, context):
+        user_data = self._get_user_data(context)
+        user_name = user_data[u'name']
+        return user_name in self.admins
