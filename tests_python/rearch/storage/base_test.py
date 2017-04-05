@@ -258,13 +258,15 @@ class CommonStorageTest(object):
         (3000, {9, }),
         (4000, {2, }),
         (5000, {2, 9}),
-        (6000, set())
+        (6000, set()),
+        (None, {9, 2, 7}),
     ))
     def test_get_users(self, populated_store, group_id, member_ids):
-        get_resp = populated_store.get_users(group_id)
-        users = get_resp
+        users = populated_store.get_users(group_id)
         user_ids = {user.id_ for user in users}
         assert member_ids == user_ids
+        for user in users:
+            assert isinstance(user, models.User)
 
     @pytest.mark.parametrize('is_admin', (True, False))
     def test_add_user(self, store, is_admin):
@@ -300,10 +302,10 @@ class CommonStorageTest(object):
         (2, {4000, 5000}),
         (9, {3000, 5000}),
         (1, set()),
+        (None, {3000, 4000, 5000, 6000}),
     ))
     def test_get_groups(self, populated_store, user_id, group_ids):
-        get_resp = populated_store.get_groups(user_id)
-        groups = get_resp
+        groups = populated_store.get_groups(user_id)
         expected_group_ids = {group.id_ for group in groups}
         assert group_ids == expected_group_ids
         for group in groups:

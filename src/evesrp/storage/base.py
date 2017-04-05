@@ -95,7 +95,16 @@ class BaseStore(object):
     def get_user(self, user_id):
         raise NotImplementedError
 
-    def get_users(self, group_id):
+    def get_users(self, group_id=None):
+        """Get multiple users.
+
+        If a :py:class:`~.Group` ID number is given, only members of that groups
+        will be returned. Otherwise, every user is returned.
+
+        :param group_id: :py:attr:`~.Group.id_` to get users for.
+        :type group_id: int or None
+        :rtype: iterable
+        """
         raise NotImplementedError
 
     def add_user(self, name, is_admin=False):
@@ -115,7 +124,16 @@ class BaseStore(object):
     def get_group(self, group_id):
         raise NotImplementedError
 
-    def get_groups(self, user_id):
+    def get_groups(self, user_id=None):
+        """Get multiple groups.
+
+        If given a :py:class:`~.User` ID, looks up all groups that user is a
+        member of. Otherwise, it returns all groups.
+
+        :param user_id: A :py:attr:`~.User.id_` to look up groups for.
+        :type user_id: int or None
+        :rtype: iterable
+        """
         raise NotImplementedError
 
     def add_group(self, name):

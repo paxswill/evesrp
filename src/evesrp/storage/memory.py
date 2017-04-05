@@ -199,9 +199,12 @@ class MemoryStore(CachingCcpStore, BaseStore):
     def get_user(self, user_id):
         return self._get_from_dict('users', user_id, models.User.from_dict)
 
-    def get_users(self, group_id):
-        member_ids = self._data['group_members'].get(group_id, set())
-        users_data = [self._data['users'][uid] for uid in member_ids]
+    def get_users(self, group_id=None):
+        if group_id is None:
+            users_data = six.itervalues(self._data['users'])
+        else:
+            member_ids = self._data['group_members'].get(group_id, set())
+            users_data = [self._data['users'][uid] for uid in member_ids]
         return {models.User.from_dict(data) for data in users_data}
 
     def add_user(self, name, is_admin=False):
@@ -222,11 +225,14 @@ class MemoryStore(CachingCcpStore, BaseStore):
     def get_group(self, group_id):
         return self._get_from_dict('groups', group_id, models.Group.from_dict)
 
-    def get_groups(self, user_id):
-        membership = self._data['group_members']
-        group_ids = {gid for gid, uids in six.iteritems(membership) if
-                     user_id in uids}
-        groups_data = [self._data['groups'][gid] for gid in group_ids]
+    def get_groups(self, user_id=None):
+        if user_id is None:
+            groups_data = six.itervalues(self._data['groups'])
+        else:
+            membership = self._data['group_members']
+            group_ids = {gid for gid, uids in six.iteritems(membership) if
+                         user_id in uids}
+            groups_data = [self._data['groups'][gid] for gid in group_ids]
         return {models.Group.from_dict(data) for data in groups_data}
 
     def add_group(self, name):
