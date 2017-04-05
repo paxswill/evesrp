@@ -14,6 +14,7 @@ not_implemented = [
     'get_permissions', 'add_permission', 'remove_permission',
     'get_user', 'add_user', 'get_users', 'save_user',
     'get_group', 'add_group', 'get_groups', 'save_group',
+    'get_entity',
     'associate_user_group', 'disassociate_user_group',
     'get_killmail', 'add_killmail',
     'get_request', 'get_requests', 'add_request', 'save_request',

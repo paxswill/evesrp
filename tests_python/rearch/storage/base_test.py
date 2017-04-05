@@ -317,6 +317,12 @@ class CommonStorageTest(object):
         get_resp = store.get_group(group.id_)
         assert get_resp == group
 
+    def test_add_group_multiple(self, store):
+        added_groups = [store.add_group(u'Group ' + str(n))
+                        for n in range(1, 11)]
+        fetched_groups = store.get_groups()
+        assert len(added_groups) == len(fetched_groups)
+
     def test_save_group(self, populated_store):
         # Name change
         group = populated_store.get_group(3000)
@@ -328,6 +334,16 @@ class CommonStorageTest(object):
         bad_group = models.Group(u'Group 1', 1)
         with pytest.raises(storage.NotFoundError):
             populated_store.save_group(bad_group)
+
+    def test_get_entity(self, populated_store):
+        user = populated_store.get_entity(7)
+        assert isinstance(user, models.User)
+        assert user.id_ == 7
+        group = populated_store.get_entity(3000)
+        assert isinstance(group, models.Group)
+        assert group.id_ == 3000
+        with pytest.raises(storage.NotFoundError):
+            populated_store.get_entity(900)
 
     @pytest.mark.parametrize('user_id', (0, 9),
                              ids=('invalid_user', 'valid_user'))

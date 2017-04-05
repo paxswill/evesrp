@@ -52,6 +52,17 @@ class BaseStore(object):
         raise NotImplementedError
 
     def get_divisions(self, division_ids=None):
+        """Get multiple divisions.
+
+        If a collection of :py:class:`~.Division` IDs is given, only the
+        divisions with those IDs are fetched. If no IDs are given, all
+        divisions are fetched. If an ID is given for a non-existant division,
+        no error is raised.
+
+        :param division_ids: Division IDs to check for.
+        :type division_ids: None or :py:class:`collections.Container`
+        :rtype: iterable
+        """
         raise NotImplementedError
 
     def add_division(self, name):
@@ -148,6 +159,13 @@ class BaseStore(object):
 
         :param group: The group to save.
         :type group: :py:class:`~.Group`
+        """
+        raise NotImplementedError
+
+    def get_entity(self, entity_id):
+        """Get an entity, whether it's a user or a group.
+
+        :rtype: :py:class:`~.User` or :py:class:`~.Group`
         """
         raise NotImplementedError
 

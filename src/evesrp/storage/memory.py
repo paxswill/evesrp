@@ -196,6 +196,13 @@ class MemoryStore(CachingCcpStore, BaseStore):
 
     # Users and Groups
 
+    def _next_entity_id(self):
+        # modified _get_new_id to unify users and groups ids
+        new_id = min(len(self._data['users']), len(self._data['groups']))
+        while new_id in self._data['users'] or new_id in self._data['groups']:
+            new_id += 1
+        return new_id
+
     def get_user(self, user_id):
         return self._get_from_dict('users', user_id, models.User.from_dict)
 
@@ -208,11 +215,13 @@ class MemoryStore(CachingCcpStore, BaseStore):
         return {models.User.from_dict(data) for data in users_data}
 
     def add_user(self, name, is_admin=False):
-        return self._add_to_dict('users', models.User.from_dict,
-                                 {
-                                     'name': name,
-                                     'admin': is_admin,
-                                 })
+        user_data = {
+            'id': self._next_entity_id(),
+            'name': name,
+            'admin': is_admin,
+        }
+        self._data['users'][user_data['id']] = user_data
+        return models.User.from_dict(user_data)
 
     def save_user(self, user):
         # Only names and admin-ness can change
@@ -236,8 +245,12 @@ class MemoryStore(CachingCcpStore, BaseStore):
         return {models.Group.from_dict(data) for data in groups_data}
 
     def add_group(self, name):
-        return self._add_to_dict('groups', models.Group.from_dict,
-                                 {'name': name})
+        group_data = {
+            'id': self._next_entity_id(),
+            'name': name,
+        }
+        self._data['groups'][group_data['id']] = group_data
+        return models.Group.from_dict(group_data)
 
     def save_group(self, group):
         # Only group names can change
@@ -245,6 +258,13 @@ class MemoryStore(CachingCcpStore, BaseStore):
             raise errors.NotFoundError('group', group.id_)
         group_data = self._data['groups'][group.id_]
         group_data['name'] = group.name
+
+    def get_entity(self, entity_id):
+        try:
+            return self.get_user(entity_id)
+        except errors.NotFoundError as user_exc:
+            # Just let this exception bubble up
+            return self.get_group(entity_id)
 
     def associate_user_group(self, user_id, group_id):
         if user_id not in self._data['users']:
