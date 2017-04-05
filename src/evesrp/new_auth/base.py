@@ -115,7 +115,7 @@ class AuthenticationProvider(object):
         for creating the corresponding :py:class:`~.models.Group`.
         :param context: The context created by
             :py:method:`OAuth2Session.create_context`.
-            :rtype: :py:class:`list` of :py:class:`~.AuthenticatedGroup`
+        :rtype: :py:class:`list` of :py:class:`~.AuthenticatedGroup`
         """
         raise NotImplementedError
 

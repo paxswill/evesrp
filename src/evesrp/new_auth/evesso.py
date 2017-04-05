@@ -30,7 +30,7 @@ class EveSsoProvider(OAuthProvider):
         # used.
         fields = collections.OrderedDict()
         # Yes, this is mixing presentation and logic a bit here
-        fields[u'submit'] = ('Log In with EVE Online', 'evesso.png')
+        fields[u'submit'] = (u'Log In with EVE Online', 'evesso.png')
         return fields
 
     def _get_user_data(self, context):
