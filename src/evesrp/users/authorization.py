@@ -1,4 +1,8 @@
+import collections
+import itertools
+
 import six
+
 from . import errors
 from .. import new_models as models
 
@@ -10,6 +14,11 @@ class PermissionsAdmin(object):
         self.store = store
 
     def create_division(self, division_name):
+        """Create a new division.
+
+        :raises AdminPermissionError: if the user is not a global admin.
+        :param str division_name: The name of the new division.
+        """
         if not self.user.admin:
             raise errors.AdminPermissionError(u"User '{}' has insufficient "
                                               u"permissions to create "
@@ -17,10 +26,47 @@ class PermissionsAdmin(object):
         return self.store.add_division(division_name)
 
     def list_divisions(self):
+        """List all divisions a user is able to administer.
+
+        For users marked as admins globally, this will be all divisions.
+        Otherwise, it is just divisions a user has the admin permission in.
+
+        :rtype: iterable of :py:class:`~.Division`
+        """
+        if self.user.admin:
+            # admins see all divisions
+            return self.store.get_divisions()
+        else:
+            permissions = self.user.get_permissions(self.store)
+            division_ids = {permission[1] for permission in permissions
+                            if permission[0] in models.PermissionType}
+            divisions = self.store.get_divisions(division_ids)
+            return divisions
+
+    def list_permissions(self):
+        """List permissions the user has, grouped by division.
+
+        Returns a dict with the keys being :py:class:`~.Division` objects and
+        the values a set of :py:class:`~.PermissionType` members that the user
+        has in each division.
+
+        :rtype: dict
+        """
         permissions = self.user.get_permissions(self.store)
-        division_ids = {permission.division_id for permission in permissions}
+        division_ids = {permission[1] for permission in permissions
+                        if permission[0] in models.PermissionType}
         divisions = self.store.get_divisions(division_ids)
-        return divisions
+        divisions_map = {d.id_: d for d in divisions}
+        permissions_map = {}
+        for permission_type, permission_id in permissions:
+            # Skip non-granted permissions (ex: user_id)
+            if permission_type not in models.PermissionType:
+                continue
+            division = divisions_map[permission_id]
+            if division not in permissions_map:
+                permissions_map[division] = set()
+            permissions_map[division].add(permission_type)
+        return permissions_map
 
 
 class DivisionAdmin(object):
@@ -46,6 +92,7 @@ class DivisionAdmin(object):
                 entity_id=new_user.id_,
                 division_id=self.division.id_,
                 type_=models.PermissionType.admin)
+            permissions = set(permissions)
             if not permissions:
                 error_message = (u"User '{}' has insufficient permissions to "
                                  u"administer divisions.")
@@ -53,7 +100,35 @@ class DivisionAdmin(object):
                 raise errors.AdminPermissionError(error_message)
         self._user = new_user
 
-    def list_permissions(self, type_):
+    def list_entities(self, permission_type):
         permissions = self.store.get_permissions(division_id=self.division.id_,
-                                                 type_=type_)
+                                                 type_=permission_type)
+        entities = {self.store.get_entity(p.entity_id) for p in permissions}
+        return entities
+
+    def list_all_entities(self):
+        permissions = collections.OrderedDict()
+        # Enforcing order for later display
+        ordered_permissions = (
+            models.PermissionType.submit,
+            models.PermissionType.review,
+            models.PermissionType.pay,
+            models.PermissionType.audit,
+            models.PermissionType.admin,
+        )
+        for permission in ordered_permissions:
+            permissions[permission] = self.list_entities(permission)
         return permissions
+
+    def list_all_available_entities(self):
+        users = self.store.get_users()
+        groups = self.store.get_groups()
+        return itertools.chain(users, groups)
+
+    def add_permission(self, entity, permission):
+        return self.store.add_permission(self.division.id_, entity.id_,
+                                         permission)
+
+    def remove_permission(self, entity, permission):
+       self.store.remove_permission(self.division.id_, entity.id_, permission)
+
