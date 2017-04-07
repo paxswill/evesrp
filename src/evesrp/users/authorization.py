@@ -26,22 +26,33 @@ class PermissionsAdmin(object):
         return self.store.add_division(division_name)
 
     def list_divisions(self):
-        """List all divisions a user is able to administer.
+        """List all divisions a user is able to administer with user counts.
 
         For users marked as admins globally, this will be all divisions.
         Otherwise, it is just divisions a user has the admin permission in.
+        Keys are divisions, and the values is a dict of user counts. For the
+        inner dicts, the keys are :py:class:`~.PermissionType` and the values
+        are ints
 
-        :rtype: iterable of :py:class:`~.Division`
+        :rtype: dict
         """
         if self.user.admin:
             # admins see all divisions
-            return self.store.get_divisions()
+            divisions = self.store.get_divisions()
         else:
-            permissions = self.user.get_permissions(self.store)
-            division_ids = {permission[1] for permission in permissions
+            permission_tuples = self.user.get_permissions(self.store)
+            division_ids = {permission[1] for permission in permission_tuples
                             if permission[0] in models.PermissionType}
             divisions = self.store.get_divisions(division_ids)
-            return divisions
+        divisions_map = {}
+        for division in divisions:
+            permissions = self.store.get_permissions(division_id=division.id_)
+            counts = {}
+            for permission in models.PermissionType.all:
+                filtered = filter(lambda p: p.type_ == permission ,permissions)
+                counts[permission] = len(list(filtered))
+            divisions_map[division] = counts
+        return divisions_map
 
     def list_permissions(self):
         """List permissions the user has, grouped by division.
