@@ -134,6 +134,17 @@ class TestPermissionsAdmin(object):
         else:
             assert len(permissions) == 0
 
+    def test_list_all_available(self, permissions_admin, groups,
+                                has_admin_permission, is_admin):
+        if has_admin_permission or is_admin:
+            # Including groups fixture to add a bunch of groups to the store
+            entities = set(permissions_admin.list_entities())
+            # 1 user + 2 groups for each permission type (of which there are 5)
+            assert len(entities) == 11
+        else:
+            with pytest.raises(errors.AdminPermissionError):
+                entities = set(permissions_admin.list_entities())
+
 
 def test_division_admin_init(store, user, division, is_admin,
                              has_admin_permission):
@@ -190,13 +201,6 @@ class TestAdminDivision(object):
         if has_admin_permission:
             expected_permissions[models.PermissionType.admin].add(user)
         assert dict(all_permissions) == expected_permissions
-
-
-    def test_list_all_available(self, division_admin, groups):
-        # Including groups fixture to add a bunch of groups to the store
-        entities = set(division_admin.list_all_available_entities())
-        # 1 user + 2 groups for each permission type (of which there are 5)
-        assert len(entities) == 11
 
     @pytest.mark.parametrize('action', ('add', 'remove'))
     def test_change_permissions(self, action, store, division_admin, division,

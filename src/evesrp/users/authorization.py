@@ -68,6 +68,22 @@ class PermissionsAdmin(object):
             permissions_map[division].add(permission_type)
         return permissions_map
 
+    def list_entities(self):
+        # Entity listing is only availabe to admin users, either global admins
+        # or with an admin permission in a division
+        if not self.user.admin:
+            # Check for an admin permission
+            admin_permissions = list(self.store.get_permissions(
+                type_=models.PermissionType.admin,
+                entity_id=self.user.id_))
+            if not len(admin_permissions):
+                raise errors.AdminPermissionError(u"User '{}' has insufficient"
+                                                  u" permissions to list all "
+                                                  u"entities.")
+        users = self.store.get_users()
+        groups = self.store.get_groups()
+        return itertools.chain(users, groups)
+
 
 class DivisionAdmin(object):
 
@@ -119,11 +135,6 @@ class DivisionAdmin(object):
         for permission in ordered_permissions:
             permissions[permission] = self.list_entities(permission)
         return permissions
-
-    def list_all_available_entities(self):
-        users = self.store.get_users()
-        groups = self.store.get_groups()
-        return itertools.chain(users, groups)
 
     def add_permission(self, entity, permission):
         return self.store.add_permission(self.division.id_, entity.id_,
