@@ -85,7 +85,7 @@
                 {# TRANS: This is a link in the navigation bar to the page for managing the app's external API keys (not API keys from CCP, but those from within the app). #}
                 {{ macros.navbar_button(gettext('API Keys'), 'login.api_keys')|indent(16)|safe }}
                 {# TRANS: This is a link in the navigation bar to a page listing the permissions a user has in different reimbursement divisions. #}
-                {{ macros.navbar_button(gettext('Permissions'), 'divisions.permissions')|indent(16)|safe }}
+                {{ macros.navbar_button(gettext('Permissions'), 'authz.permissions')|indent(16)|safe }}
                 <li class="divider"></li>
                 {# TRANS: The link in the navigation bar at the top for logging out of the app. #}
                 {{ macros.navbar_button(gettext('Log Out'), 'authn.logout')|indent(16)|safe }}

@@ -99,21 +99,12 @@ createEntitySelect = (selector) ->
         }
 
     addEntityOptions = (data) ->
-        if 'users' of data
-            entities = data.users
-        else if 'groups' of data
-            entities = data.groups
         $selects.each () ->
-            @selectize.addOption entities
+            @selectize.addOption data.entities
 
-    usersRequest = jQuery.ajax {
+    entitiesRequest = jQuery.ajax {
         type: 'GET'
-        url: "#{ scriptRoot }/user/"
-        success: addEntityOptions
-    }
-    groupsRequest = jQuery.ajax {
-        type: 'GET'
-        url: "#{ scriptRoot }/group/"
+        url: "#{ scriptRoot }/division/entities/"
         success: addEntityOptions
     }
 

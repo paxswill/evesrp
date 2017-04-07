@@ -1,6 +1,52 @@
 {% extends "permissions.html" %}
-{% block content %}
+{% import "macros.html" as macros with context %}
+
+{% block title %}{{ site_name }}: {{ gettext('Permissions') }}{% endblock title %}
+{% block body %}
+<div class="modal fade" id="addDivisionModal" tabindex="-1" role="dialog" aria-labelledby="notesModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        {# TRANS: A header used for a modal window for adding a new division. #}
+        <h3 class="modal-title" id="notesModalLabel">{% trans %}Add Division{% endtrans %}</h3>
+      </div>
+      <form class="modal-body" method="post">
+        {{ form.csrf_token() }}
+        {{ macros.render_input(form.name) }}
+        {# TRANS: Button that if clicked, will close a modal window . #}
+        <button type="button" class="btn btn-default" data-dismiss="modal">{% trans %}Close{% endtrans %}</button>
+        {# TRANS: On a form for creating a new division, this is a button for creating a new division (by submitting the form). #}
+        <button type="submit" class="btn btn-primary">{% trans %}Create Division{% endtrans %}</button>
+      </form>
+    </div>
+  </div>
+</div>
 {{ super() }}
+{% endblock body %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-10 col-md-offset-1">
+    {# TRANS: The header for a table listing the permissions you have in divisions. #}
+    <h3>{% trans %}Your Permissions{% endtrans %}</h3>
+    <table class="table">
+      <tr>
+        {# TRANS: A column header in a table with the name of a division. #}
+        <th>{% trans %}Division{% endtrans %}</th>
+        {# TRANS: A column header in a table that lists the permissions you have in a division (there can be multiple permissions in a row, separated by commas). #}
+        <th>{% trans %}Permissions{% endtrans %}</th>
+      </tr>
+      {% for division, permissions in activity.list_permissions() | dictsort %}
+      <tr>
+        <td>{{ division.name }}</td>
+        <td>{{ permissions | map('name') | join(', ') }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+{% if ((activity.list_divisions() | length) > 0) or activity.user.admin %}
 <div class="row">
   <div class="col-md-10 col-md-offset-1">
     {# TRANS: This is a heading for a section of a page that deals with administering divisions. People who can see this have access to either modify the permissions in a division, or to create divisions. #}
@@ -20,21 +66,20 @@
         {# TRANS: In an overview table of divisions, this is the heading for the column showing the number of people or groups granted the 'admin' permission, meaning they can manage who has been granted the other permissions. #}
         <th>{% trans %}Admins{% endtrans %}</th>
       </tr>
-      {% if divisions %}
-      {% for division in divisions %}
+      {% for division, permission_counts in activity.list_divisions() | dictsort %}
       <tr>
-        <td><a href="{{ url_for('divisions.get_division_details', division_id=division.id) }}">{{ division.name }}</a></td>
+        <td><a href="{{ url_for('authz.get_division', division_id=division.id_) }}">{{ division.name }}</a></td>
         {% for perm in (PermissionType.submit, PermissionType.review, PermissionType.pay,  PermissionType.audit, PermissionType.admin) %}
-        <td><a href="{{ url_for('divisions.get_division_details', division_id=division.id) }}#{{ perm.value }}">{{ division.permissions[perm]|length|numberfmt }}</a></td>
+        <td><a href="{{ url_for('authz.get_division', division_id=division.id) }}#{{ perm.name }}">{{ permission_counts[perm] | numberformat }}</a></td>
         {% endfor %}
       </tr>
       {% endfor %}
-      {% endif %}
     </table>
-    {% if current_user.admin %}
+    {% if activity.user.admin %}
     {# TRANS: This is a button for creating a new division. #}
-    <a class="btn btn-primary" href="{{ url_for('divisions.add_division') }}">{% trans %}Add Division{% endtrans %}</a>
+    <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#addDivisionModal">{% trans %}Add Division{% endtrans %}</button>
     {% endif %}
   </div>
 </div>
+{% endif %}
 {% endblock content %}
