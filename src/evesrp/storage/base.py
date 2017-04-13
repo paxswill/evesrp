@@ -220,6 +220,8 @@ class BaseStore(object):
 
         Either `request_id` or both `killmail_id` and `division_id` must be
         given.
+        :raises TypeError: When neither `request_id` nor `killmail_id` and
+            `division_id` have been given.
         :param int request_id: The ID number for the request.
         :param int killmail_id: The ID for the killmail associated with a
             request.
