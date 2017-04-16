@@ -18,11 +18,6 @@ class Entity(IdName):
 
     permissions = graphene.NonNull(graphene.List(lambda: Permission))
 
-    def resolve_permissions(self, args, context, info):
-        store = context['store']
-        return [Permission.from_model(p)
-                for p in store.get_permissions(entity_id=self.id)]
-
 
 class User(graphene.ObjectType):
 
@@ -39,36 +34,6 @@ class User(graphene.ObjectType):
 
     characters = graphene.List(lambda: Character)
 
-    def resolve_groups(self, args, context, info):
-        store = context['store']
-        return [Group.from_model(g) for g in store.get_groups(self.id)]
-
-    def resolve_notes(self, args, context, info):
-        store = context['store']
-        return [Note.from_model(n) for n in store.get_notes(self.id)]
-
-    def resolve_requests(self, args, context, info):
-        store = context['store']
-        search = search_filter.Search()
-        search.add('user_id', self.id)
-        request_models = store.filter_requests(search)
-        return [Request.from_model(r) for r in request_models]
-
-    def resolve_permissions(self, args, context, info):
-        store = context['store']
-        permission_models = set()
-        permission_models.update(store.get_permissions(entity_id=self.id))
-        group_models = store.get_groups(self.id)
-        for group in group_models:
-            permission_models.update(
-                store.get_permissions(entity_id=group.id_))
-        return [Permission.from_model(p) for p in permission_models]
-
-    def resolve_characters(self, args, context, info):
-        store = context['store']
-        character_models = store.get_characters(self.id)
-        return [Character.from_model(c) for c in character_models]
-
     @classmethod
     def from_model(cls, model):
         return cls(id=model.id_, name=model.name, admin=model.admin)
@@ -80,10 +45,6 @@ class Group(graphene.ObjectType):
         interfaces = (Entity, )
 
     users = graphene.NonNull(graphene.List(User))
-
-    def resolve_users(self, args, context, info):
-        store = context['store']
-        return [User.from_model(u) for u in store.get_users(self.id)]
 
     @classmethod
     def from_model(cls, model):
@@ -142,21 +103,6 @@ class Permission(graphene.ObjectType):
 
     division = graphene.NonNull(Division)
 
-    def resolve_entity(self, args, context, info):
-        store = context['store']
-        # self.entity is stored as an int when created with
-        # Permission.from_model
-        entity = store.get_entity(self.entity)
-        if isinstance(entity, models.User):
-            return User.from_model(entity)
-        else:
-            return Group.from_model(entity)
-
-    def resolve_permission(self, args, context, info):
-        # graphene requires you to return the name of the enum member, not just
-        # the enum member. wat.
-        return self.permission.name
-
     @classmethod
     def from_model(cls, model):
         # Turns out graphene Enums aren't quite API compatible with standard
@@ -195,18 +141,6 @@ class Character(graphene.ObjectType):
         interfaces = (IdName, )
 
     user = graphene.Field(User)
-
-    def resolve_name(self, args, context, info):
-        store = context['store']
-        character_model = store.get_character(self.id)
-        return character_model.name
-
-    def resolve_user(self, args, context, info):
-        store = context['store']
-        character_model = store.get_character(self.id)
-        if character_model.user_id is None:
-            return None
-        return User(id=character_model.user_id)
 
     @classmethod
     def from_model(cls, model):
@@ -271,9 +205,6 @@ class Action(graphene.ObjectType):
 
     user = graphene.NonNull(User)
 
-    def resolve_action_type(self, args, context, info):
-        return self.action_type.name
-
     @classmethod
     def from_model(cls, model):
         user = User(id=model.user_id)
@@ -307,12 +238,6 @@ class Modifier(graphene.ObjectType):
     void_user = User()
 
     void_timestamp = graphene.types.datetime.DateTime()
-
-    def resolve_modifier_type(self, args, context, info):
-        return self.modifier_type.name
-
-    def resolve_void(self, args, context, info):
-        return self.void_user is not None and self.void_timestamp is not None
 
     @classmethod
     def from_model(cls, model):
