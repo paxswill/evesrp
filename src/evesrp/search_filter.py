@@ -31,9 +31,6 @@ class InvalidFilterValueError(ValueError):
         super(InvalidFilterValueError, self).__init__(error_msg)
 
 
-integer_text_types = tuple(itertools.chain(six.integer_types, (six.text_type,)))
-
-
 def check_filter_key(func):
     @functools.wraps(func)
     def filter_key_check(*args, **kwargs):
