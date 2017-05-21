@@ -98,16 +98,6 @@ class Query(graphene.ObjectType):
                                   required=False
                               ))
 
-    killmails = graphene.Field(graphene.List(types.Killmail),
-                               limit=graphene.Int(),
-                               after_cursor=graphene.ID(),
-                               search=graphene.Argument(
-                                   pagination.InputKillmailSearch
-                               ),
-                               sort=graphene.Argument(
-                                   pagination.InputSort
-                               ))
-
     actions = graphene.Field(graphene.List(types.Action),
                              request_id=graphene.Argument(
                                  graphene.Int,

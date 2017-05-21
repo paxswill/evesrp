@@ -188,10 +188,6 @@ class Resolver(object):
         else:
             return types.Killmail.from_model(killmail_model)
 
-    def resolve_query_field_killmails(self, source, args, context, info):
-        # TODO
-        pass
-
     def resolve_query_field_actions(self, source, args, context, info):
         return [types.Action.from_model(a)
                 for a in self.store.get_actions(request_id)]
