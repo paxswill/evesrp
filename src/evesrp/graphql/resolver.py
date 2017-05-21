@@ -1,6 +1,7 @@
 import base64
 import itertools
 
+from graphql_relay import from_global_id
 import six
 
 from evesrp import new_models as models
@@ -43,6 +44,10 @@ class Resolver(object):
 
     # Query
 
+    # Not implementing resolve_query_field_node as we're going to rely on
+    # graphene.relay's get_node magic and then rely on the sub-types'
+    # resolvers.
+
     def resolve_query_field_identity(self, source, args, context, info):
         uuid = args['uuid']
         key = args['key']
@@ -61,9 +66,28 @@ class Resolver(object):
             extra=identity.extra_data)
         return IdentityType(**identity_kwargs)
 
+    @staticmethod
+    def _check_id(relay_id, type_names):
+        if isinstance(type_names, six.string_types):
+            type_names = [type_names]
+        id_type, type_id = from_global_id(relay_id)
+        if id_type != type_name:
+            if len(type_names) == 1:
+                message = ("Given a '{}' ID instead of a "
+                           "'{}' ID ({}).").format(
+                               id_type, type_names[0], relay_id))
+            else:
+                message = ("Given a '{}' ID instead of one of the following: "
+                           "{} ({}).").format(
+                               id_type, str(type_names), relay_id)
+            raise Exception(message)
+        return int(type_id)
+
     def resolve_query_field_user(self, source, args, context, info):
+        relay_id = args['id']
+        user_id = self._check_id(relay_id, 'User')
         try:
-            user_model = self.store.get_user(args['id'])
+            user_model = self.store.get_user(user_id)
         except storage.NotFoundError:
             return None
         else:
@@ -71,12 +95,16 @@ class Resolver(object):
 
     def resolve_query_field_users(self, source, args, context, info):
         group_id = args.get('group_id')
+        if group_id is not None:
+            group_id = self._check_id(group_id, 'Group')
         return [types.User.from_model(u)
                 for u in self.store.get_users(group_id)]
 
     def resolve_query_field_group(self, source, args, context, info):
+        relay_id = args['id']
+        group_id = self._check_id(relay_id, 'Group')
         try:
-            group_model = self.store.get_group(args['id'])
+            group_model = self.store.get_group(group_id)
         except storage.NotFoundError:
             return None
         else:
@@ -84,12 +112,16 @@ class Resolver(object):
 
     def resolve_query_field_groups(self, source, args, context, info):
         user_id = args.get('user_id')
+        if user_id is not None:
+            user_id = self._check_id(user_id, 'User')
         return [types.Group.from_model(g)
                 for g in self.store.get_groups(user_id)]
 
     def resolve_query_field_division(self, source, args, context, info):
+        relay_id = args['id']
+        division_id = self._check_id(relay_id, 'Division')
         try:
-            division_model = store.get_division(args['id'])
+            division_model = store.get_division(division_id)
         except storage.NotFoundError:
             return None
         else:
@@ -100,30 +132,57 @@ class Resolver(object):
                 for d in self.store.get_divisions()]
 
     def resolve_query_field_permission(self, source, args, context, info):
-        permissions = list(self.store.get_permissions(**args))
+        entity_id = self._check_id(args['entity_id'], ['Entity', 'User',
+                                                       'Group'])
+        division_id = self._check_id(args['division_id'], 'Division')
+        permission_type = args['permission_type']
+        permissions = list(self.store.get_permissions(
+            entity_id=entity_id, division_id=division_id,
+            permission_type=permission_type))
         if not permissions:
             return None
         return types.Permission.from_model(permissions[0])
 
     def resolve_query_field_permissions(self, source, args, context, info):
+        entity_id = self._check_id(args['entity_id'], ['Entity', 'User',
+                                                       'Group'])
+        division_id = self._check_id(args['division_id'], 'Division')
+        permission_type = args['permission_type']
         return [types.Permission.from_model(p)
-                for p in self.store.get_permissions(**args)]
+                for p in self.store.get_permissions(
+                        entity_id=entity_id, division_id=division_id,
+                        permission_type=permission_type)]
 
     def resolve_query_field_notes(self, source, args, context, info):
+        subject_id = self._check_id(args['subject_id'], 'User')
         return [types.Note.from_model(n)
                 for n in self.store.get_notes(subject_id)]
 
     def resolve_query_field_character(self, source, args, context, info):
+        ccp_id = args.get('ccp_id')
+        if ccp_id is None:
+            relay_id = args.get('id')
+            if relay_id is None:
+                raise Exception("At least one of either 'id' or 'ccp_id' are "
+                                "required.")
+            ccp_id = self._check_id(relay_id, 'Character')
         try:
-            character_model = self.store.get_character(id)
+            character_model = self.store.get_character(ccp_id)
         except storage.NotFoundError:
             return None
         else:
             return types.Character.from_model(character_model)
 
     def resolve_query_field_killmail(self, source, args, context, info):
+        ccp_id = args.get('ccp_id')
+        if ccp_id is None:
+            relay_id = args.get('id')
+            if relay_id is None:
+                raise Exception("At least one of either 'id' or 'ccp_id' are "
+                                "required.")
+            ccp_id = self._check_id(relay_id, 'Killmail')
         try:
-            killmail_model = self.store.get_killmail(id)
+            killmail_model = self.store.get_killmail(ccp_id)
         except storage.NotFoundError:
             return None
         else:
@@ -264,6 +323,9 @@ class Resolver(object):
         character_model = self.store.get_character(source.id)
         return character_model.name
 
+    def resolve_character_field_ccpid(self, source, args, context, info):
+        return source.id
+
     def resolve_character_field_user(self, source, args, context, info):
         character_model = self.store.get_character(source.id)
         if character_model.user_id is None:
@@ -298,3 +360,7 @@ class Resolver(object):
         modifier_models = self.store.get_modifiers(source.id)
         return [types.Modifier.from_model(m) for m in modifier_models]
 
+    # Killmail
+
+    def resolve_killmail_field_killmail_id(self, source, args, context, info):
+        return source.id

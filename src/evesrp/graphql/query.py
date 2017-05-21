@@ -1,6 +1,7 @@
 import functools
 
 import graphene
+import graphene.relay
 
 from evesrp.graphql import types, pagination
 from evesrp import graphql
@@ -9,6 +10,8 @@ from evesrp import storage
 
 
 class Query(graphene.ObjectType):
+
+    node = graphene.relay.Node.Field()
 
     identity = graphene.Field(types.IdentityUnion,
                               uuid=graphene.Argument(
@@ -22,31 +25,35 @@ class Query(graphene.ObjectType):
 
     user = graphene.Field(types.User,
                           id=graphene.Argument(
-                              graphene.Int,
+                              graphene.ID,
                               required=True
                           ))
 
-    users = graphene.Field(graphene.List(types.User), group_id=graphene.Int())
+    users = graphene.Field(graphene.List(types.User), group_id=graphene.ID())
 
     group = graphene.Field(types.Group,
                            id=graphene.Argument(
-                               graphene.Int,
+                               graphene.ID,
                                required=True
                            ))
 
-    groups = graphene.Field(graphene.List(types.Group), user_id=graphene.Int())
+    groups = graphene.Field(graphene.List(types.Group), user_id=graphene.ID())
 
-    division = graphene.Field(types.Division, id=graphene.Int())
+    division = graphene.Field(types.Division, 
+                              id=graphene.Argument(
+                                  graphene.ID,
+                                  required=True
+                              ))
 
     divisions = graphene.Field(graphene.List(types.Division))
 
     permission = graphene.Field(types.Permission,
                                 entity_id=graphene.Argument(
-                                    graphene.Int,
+                                    graphene.ID,
                                     required=True
                                 ),
                                 division_id=graphene.Argument(
-                                    graphene.Int,
+                                    graphene.ID,
                                     required=True
                                 ),
                                 permission_type=graphene.Argument(
@@ -56,10 +63,10 @@ class Query(graphene.ObjectType):
 
     permissions = graphene.Field(graphene.List(types.Permission),
                                  entity_id=graphene.Argument(
-                                     graphene.Int
+                                     graphene.ID
                                  ),
                                  division_id=graphene.Argument(
-                                     graphene.Int
+                                     graphene.ID
                                  ),
                                  permission_type=graphene.Argument(
                                      types.PermissionType
@@ -67,20 +74,28 @@ class Query(graphene.ObjectType):
 
     notes = graphene.Field(graphene.List(types.Note),
                            subject_id=graphene.Argument(
-                               graphene.Int,
+                               graphene.ID,
                                required=True
                            ))
 
     character = graphene.Field(types.Character,
                                id=graphene.Argument(
+                                   graphene.ID,
+                                   required=False
+                               ),
+                               ccp_id=graphene.Argument(
                                    graphene.Int,
-                                   required=True
+                                   required=False
                                ))
 
     killmail = graphene.Field(types.Killmail,
                               id=graphene.Argument(
+                                  graphene.ID,
+                                  required=False
+                              ),
+                              ccp_id=graphene.Argument(
                                   graphene.Int,
-                                  required=True
+                                  required=False
                               ))
 
     killmails = graphene.Field(graphene.List(types.Killmail),

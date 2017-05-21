@@ -1,28 +1,37 @@
 import graphene
 import graphene.types.datetime
 import graphene.types.json
+import graphene.relay
 
 from evesrp import new_models as models
 from evesrp import search_filter
 from . import decimal
 
 
-class IdName(graphene.Interface):
+def get_node(cls, id, context, info):
+    return cls(id=int(id))
+
+
+def simple_get_node(klass):
+    klass.get_node = classmethod(get_node)
+    return klass
+
+
+class Named(graphene.Interface):
 
     name = graphene.String(required=True)
 
-    id = graphene.Int(required=True)
 
-
-class Entity(IdName):
+class Entity(graphene.Interface):
 
     permissions = graphene.NonNull(graphene.List(lambda: Permission))
 
 
+@simple_get_node
 class User(graphene.ObjectType):
 
     class Meta(object):
-        interfaces = (Entity, )
+        interfaces = (graphene.relay.Node, Named, Entity)
 
     admin = graphene.Boolean(required=True)
 
@@ -39,10 +48,11 @@ class User(graphene.ObjectType):
         return cls(id=model.id_, name=model.name, admin=model.admin)
 
 
+@simple_get_node
 class Group(graphene.ObjectType):
 
     class Meta(object):
-        interfaces = (Entity, )
+        interfaces = (graphene.relay.Node, Named, Entity)
 
     users = graphene.NonNull(graphene.List(User))
 
@@ -82,10 +92,11 @@ class IdentityUnion(graphene.Union):
         types = (UserIdentity, GroupIdentity)
 
 
+@simple_get_node
 class Division(graphene.ObjectType):
 
     class Meta(object):
-        interfaces = (IdName, )
+        interfaces = (graphene.relay.Node, Named)
 
     @classmethod
     def from_model(cls, model):
@@ -114,9 +125,11 @@ class Permission(graphene.ObjectType):
                    entity=model.entity_id)
 
 
+@simple_get_node
 class Note(graphene.ObjectType):
 
-    id = graphene.Int(required=True)
+    class Meta(object):
+        interfaces = (graphene.relay.Node, )
 
     subject = graphene.NonNull(User)
 
@@ -135,12 +148,15 @@ class Note(graphene.ObjectType):
                    timestamp=model.timestamp)
 
 
+@simple_get_node
 class Character(graphene.ObjectType):
 
     class Meta(object):
-        interfaces = (IdName, )
+        interfaces = (graphene.relay.Node, Named)
 
     user = graphene.Field(User)
+
+    ccp_id = graphene.Int(required=True)
 
     @classmethod
     def from_model(cls, model):
@@ -148,9 +164,13 @@ class Character(graphene.ObjectType):
         return cls(id=model.id_, name=model.name, user=user)
 
 
+@simple_get_node
 class Killmail(graphene.ObjectType):
 
-    id = graphene.Int(required=True)
+    class Meta(object):
+        interfaces = (graphene.relay.Node, )
+
+    killmail_id = graphene.Int(required=True)
 
     user = graphene.NonNull(User)
 
@@ -193,9 +213,11 @@ class Killmail(graphene.ObjectType):
 ActionType = graphene.Enum.from_enum(models.ActionType)
 
 
+@simple_get_node
 class Action(graphene.ObjectType):
 
-    id = graphene.Int(required=True)
+    class Meta(object):
+        interfaces = (graphene.relay.Node, )
 
     action_type = graphene.NonNull(ActionType)
 
@@ -219,9 +241,11 @@ class Action(graphene.ObjectType):
 ModifierType = graphene.Enum.from_enum(models.ModifierType)
 
 
+@simple_get_node
 class Modifier(graphene.ObjectType):
 
-    id = graphene.Int(required=True)
+    class Meta(object):
+        interfaces = (graphene.relay.Node, )
 
     modifier_type = graphene.NonNull(ModifierType)
 
@@ -259,9 +283,11 @@ class Modifier(graphene.ObjectType):
                    void_timestamp=void_timestamp)
 
 
+@simple_get_node
 class Request(graphene.ObjectType):
 
-    id = graphene.Int(required=True)
+    class Meta(object):
+        interfaces = (graphene.relay.Node, )
 
     details = graphene.String()
 
