@@ -4,7 +4,6 @@ import graphene
 import graphene.relay
 
 from evesrp.graphql import types
-from evesrp import graphql
 from evesrp import new_models as models
 from evesrp import storage
 
