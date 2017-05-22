@@ -3,7 +3,7 @@ import functools
 import graphene
 import graphene.relay
 
-from evesrp.graphql import types, pagination
+from evesrp.graphql import types
 from evesrp import graphql
 from evesrp import new_models as models
 from evesrp import storage
@@ -122,15 +122,10 @@ class Query(graphene.ObjectType):
                              killmail_id=graphene.Int(),
                              division_id=graphene.Int())
 
-    requests = graphene.Field(pagination.Pager,
-                              limit=graphene.Int(),
-                              after_cursor=graphene.ID(),
-                              search=graphene.Argument(
-                                  pagination.InputRequestSearch
-                              ),
-                              sort=graphene.Argument(
-                                  pagination.InputSort
-                              ))
+    requests_connection = graphene.relay.ConnectionField(
+        types.RequestConnection,
+        search=graphene.Argument(types.InputRequestSearch)
+    )
 
 
 schema = graphene.Schema(query=Query)
