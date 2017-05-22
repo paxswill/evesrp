@@ -3,8 +3,8 @@ import graphene.relay
 import graphene.types.datetime
 
 from evesrp import new_models as models
+import evesrp.graphql.types
 from . import util, decimal, ccp
-from . import authorization as types_authorization
 
 
 @util.simple_get_node
@@ -13,13 +13,13 @@ class Character(graphene.ObjectType):
     class Meta(object):
         interfaces = (graphene.relay.Node, util.Named)
 
-    user = graphene.Field(lambda: types_authorization.User)
+    user = graphene.Field('evesrp.graphql.types.authorization.User')
 
     ccp_id = graphene.Int(required=True)
 
     @classmethod
     def from_model(cls, model):
-        user = types_authorization.User(id=model.user_id)
+        user = evesrp.graphql.types.User(id=model.user_id)
         return cls(id=model.id_, name=model.name, user=user)
 
 
@@ -31,7 +31,7 @@ class Killmail(graphene.ObjectType):
 
     killmail_id = graphene.Int(required=True)
 
-    user = graphene.NonNull(lambda: types_authorization.User)
+    user = graphene.NonNull('evesrp.graphql.types.authorization.User')
 
     character = graphene.NonNull(Character)
 
@@ -51,12 +51,12 @@ class Killmail(graphene.ObjectType):
 
     url = graphene.String(required=True)
 
-    requests = graphene.Field(graphene.List(lambda: Request),
-                              required=True)
+    requests = graphene.Field(
+        graphene.List('evesrp.graphql.types.request.Request'), required=True)
 
     @classmethod
     def from_model(cls, model):
-        user = types_authorization.User(id=model.user_id)
+        user = evesrp.graphql.types.User(id=model.user_id)
         character = Character(id=model.character_id)
         return cls(id=model.id_,
                    user=user,
@@ -86,11 +86,11 @@ class Action(graphene.ObjectType):
 
     contents = graphene.String()
 
-    user = graphene.NonNull(lambda: types_authorization.User)
+    user = graphene.NonNull('evesrp.graphql.types.authorization.User')
 
     @classmethod
     def from_model(cls, model):
-        user = types_authorization.User(id=model.user_id)
+        user = evesrp.graphql.types.User(id=model.user_id)
         action_type = getattr(ActionType, model.type_.name)
         return cls(id=model.id_,
                    action_type=action_type,
@@ -114,21 +114,21 @@ class Modifier(graphene.ObjectType):
 
     note = graphene.String()
 
-    user = graphene.NonNull(lambda: types_authorization.User)
+    user = graphene.NonNull('evesrp.graphql.types.authorization.User')
 
     timestamp = graphene.types.datetime.DateTime(required=True)
 
     void = graphene.Boolean(required=True)
 
-    void_user = graphene.NonNull(lambda: types_authorization.User)
+    void_user = graphene.NonNull('evesrp.graphql.types.authorization.User')
 
     void_timestamp = graphene.types.datetime.DateTime()
 
     @classmethod
     def from_model(cls, model):
-        user = types_authorization.User(id=model.user_id)
+        user = evesrp.graphql.types.User(id=model.user_id)
         if model.is_void:
-            void_user = types_authorization.User(id=model.void_user_id)
+            void_user = evesrp.graphql.types.User(id=model.void_user_id)
             void_timetamp = model.void_timestamp
         else:
             void_user = None
@@ -154,7 +154,7 @@ class Request(graphene.ObjectType):
 
     killmail = graphene.NonNull(Killmail)
 
-    division = graphene.NonNull(lambda: types_authorization.Division)
+    division = graphene.NonNull('evesrp.graphql.types.authorization.Division')
 
     timestamp = graphene.types.datetime.DateTime(required=True)
 

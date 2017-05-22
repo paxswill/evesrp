@@ -9,7 +9,8 @@ from . import util
 
 class Entity(graphene.Interface):
 
-    permissions = graphene.NonNull(graphene.List(lambda: Permission))
+    permissions = graphene.NonNull(
+        graphene.List('evesrp.graphql.types.authorization.Permission'))
 
 
 @util.simple_get_node
@@ -20,13 +21,13 @@ class User(graphene.ObjectType):
 
     admin = graphene.Boolean(required=True)
 
-    groups = graphene.List(lambda: Group)
+    groups = graphene.List('evesrp.graphql.types.authorization.Group')
 
-    notes = graphene.List(lambda: Note)
+    notes = graphene.List('evesrp.graphql.types.authorization.Note')
 
-    requests = graphene.List(lambda: types_request.Request)
+    requests = graphene.List('evesrp.graphql.types.request.Request')
 
-    characters = graphene.List(lambda: types_request.Character)
+    characters = graphene.List('evesrp.graphql.types.request.Character')
 
     @classmethod
     def from_model(cls, model):
@@ -131,7 +132,3 @@ class Note(graphene.ObjectType):
                    submitter=User(id=model.submitter_id),
                    contents=model.contents,
                    timestamp=model.timestamp)
-
-
-# Bit of a hack/workaround to resolve circular dependencies
-from . import request as types_request
