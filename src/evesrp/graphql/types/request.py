@@ -52,6 +52,9 @@ class Killmail(graphene.ObjectType):
 
     url = graphene.String(required=True)
 
+    requests = graphene.Field(graphene.List(lambda: Request),
+                              required=True)
+
     @classmethod
     def from_model(cls, model):
         user = types_authorization.User(id=model.user_id)
