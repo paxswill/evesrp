@@ -122,7 +122,7 @@ class Query(graphene.ObjectType):
                              division_id=graphene.Int())
 
     requests_connection = graphene.relay.ConnectionField(
-        types.RequestConnection,
+        types.SearchableRequestConnection,
         search=graphene.Argument(types.InputRequestSearch)
     )
 

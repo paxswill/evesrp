@@ -157,11 +157,16 @@ RequestSearch = _create_request_search('RequestSearch', False)
 
 class RequestConnection(graphene.relay.Connection):
 
+    class Meta(object):
+        node = types_request.Request
+
     total_count = graphene.Int(required=True)
 
     total_payout = graphene.Field(decimal.Decimal, required=True)
 
-    search = graphene.Field(RequestSearch, required=True)
+class SearchableRequestConnection(RequestConnection):
 
     class Meta(object):
         node = types_request.Request
+
+    search = graphene.Field(RequestSearch, required=True)

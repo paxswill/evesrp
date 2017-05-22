@@ -27,6 +27,9 @@ class User(graphene.ObjectType):
 
     requests = graphene.List('evesrp.graphql.types.request.Request')
 
+    requests_connection = graphene.relay.ConnectionField(
+        'evesrp.graphql.types.connection.RequestConnection')
+
     characters = graphene.List('evesrp.graphql.types.request.Character')
 
     @classmethod
