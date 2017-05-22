@@ -3,7 +3,7 @@ import graphene.relay
 import graphene.types.datetime
 
 from evesrp import new_models as models
-from . import util, decimal
+from . import util, decimal, ccp
 from . import authorization as types_authorization
 
 
@@ -35,18 +35,17 @@ class Killmail(graphene.ObjectType):
 
     character = graphene.NonNull(Character)
 
-    # TODO: redo the various CCP *_ids to custom CCP object types
-    corporation_id = graphene.Int(required=True)
+    corporation = graphene.Field(ccp.CcpType, required=True)
 
-    alliance_id = graphene.Int()
+    alliance = graphene.Field(ccp.CcpType, required=True)
 
-    system_id = graphene.Int(required=True)
+    system = graphene.Field(ccp.CcpType, required=True)
 
-    constellation_id = graphene.Int(required=True)
+    constellation = graphene.Field(ccp.CcpType, required=True)
 
-    region_id = graphene.Int(required=True)
+    region = graphene.Field(ccp.CcpType, required=True)
 
-    type_id = graphene.Int(required=True)
+    type = graphene.Field(ccp.CcpType, required=True)
 
     timestamp = graphene.types.datetime.DateTime(required=True)
 
