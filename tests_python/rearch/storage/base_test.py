@@ -14,8 +14,10 @@ from evesrp.util import parse_datetime, utc
 class CommonStorageTest(object):
     """Shared common tests for Storage implementations
 
-    Subclasses must overrider the store and populated_store fixtures. See
-    TestMemoryStore for the data that needs to be present in populated_store.
+    Subclasses must overrider the `store` and `populated_store` fixtures. See
+    the `memory_store` fixture in the root-level conftest for details as to the
+    data expected to be present in the `populated_store` fixture. The `store`
+    fixture should be empty.
     """
 
     # Common tests
