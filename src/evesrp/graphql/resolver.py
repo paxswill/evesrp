@@ -241,19 +241,6 @@ class Resolver(object):
             [types.Request.from_model(r) for r in request_models],
             offset, limit)
 
-    # Pager
-
-    def resolve_pager_field_edges(self, source, args, context, info):
-        pass
-
-    def resolve_pager_field_total_count(self, source, args, context, info):
-        pass
-
-    def resolve_pager_field_total_payout(self, source, args, context, info):
-        pass
-
-    def resolve_pager_field_page_info(self, source, args, context, info):
-        pass
 
     # Entity
 
