@@ -241,6 +241,14 @@ class Resolver(object):
             [types.Request.from_model(r) for r in request_models],
             offset, limit)
 
+    # Named
+
+    def resolve_named_field_name(self, source, args, context, info):
+        model_name = type(source).__name__.lower()
+        getter_name = 'get_{}'.format(model_name)
+        getter = getattr(self.store, getter_name)
+        model = getter(source.id)
+        return model.name
 
     # Entity
 
