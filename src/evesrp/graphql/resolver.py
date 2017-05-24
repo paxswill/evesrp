@@ -75,7 +75,7 @@ class Resolver(object):
             if len(type_names) == 1:
                 message = ("Given a '{}' ID instead of a "
                            "'{}' ID ({}).").format(
-                               id_type, type_names[0], relay_id))
+                               id_type, type_names[0], relay_id)
             else:
                 message = ("Given a '{}' ID instead of one of the following: "
                            "{} ({}).").format(
