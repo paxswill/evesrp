@@ -21,16 +21,20 @@ class User(graphene.ObjectType):
 
     admin = graphene.Boolean(required=True)
 
-    groups = graphene.List('evesrp.graphql.types.authorization.Group')
+    groups = graphene.NonNull(
+        graphene.List('evesrp.graphql.types.authorization.Group'))
 
-    notes = graphene.List('evesrp.graphql.types.authorization.Note')
+    notes = graphene.NonNull(
+        graphene.List('evesrp.graphql.types.authorization.Note'))
 
-    requests = graphene.List('evesrp.graphql.types.request.Request')
+    requests = graphene.NonNull(
+        graphene.List('evesrp.graphql.types.request.Request'))
 
     requests_connection = graphene.relay.ConnectionField(
         'evesrp.graphql.types.connection.RequestConnection')
 
-    characters = graphene.List('evesrp.graphql.types.request.Character')
+    characters = graphene.NonNull(
+        graphene.List('evesrp.graphql.types.request.Character'))
 
     @classmethod
     def from_model(cls, model):
