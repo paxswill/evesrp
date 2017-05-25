@@ -187,7 +187,8 @@ class Request(graphene.ObjectType):
         return cls(id=model.id_,
                    details=model.details,
                    killmail=Killmail(id=model.killmail_id),
-                   division=Division(id=model.division_id),
+                   division=evesrp.graphql.types.Division(
+                       id=model.division_id),
                    timestamp=model.timestamp,
                    status=status,
                    base_payout=model.base_payout,

@@ -258,11 +258,15 @@ class Resolver(object):
 
     # User
 
+    def resolve_user_field_admin(self, source, args, context, info):
+        model = self.store.get_user(source.id)
+        return model.admin
+
     def resolve_user_field_groups(self, source, args, context, info):
         return [types.Group.from_model(g)
                 for g in self.store.get_groups(source.id)]
 
-    def resolve_user_notes(self, source, args, context, info):
+    def resolve_user_field_notes(self, source, args, context, info):
         return [types.Note.from_model(n)
                 for n in self.store.get_notes(source.id)]
 
