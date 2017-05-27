@@ -7,4 +7,5 @@ from .connection import (SortKey, SortDirection, InputSortToken, SortToken,
                          InputRequestSearch, RequestSearch, RequestConnection,
                          SearchableRequestConnection)
 from .decimal import Decimal
+from .ccp import CcpType
 from .util import Named

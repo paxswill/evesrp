@@ -297,6 +297,76 @@ class TestNode(object):
             }
         }
 
+    @pytest.mark.parametrize(
+        'attribute,value',
+        (
+            ('killmailId', 52861733),
+            ('user', {'id': to_global_id('User', 9)}),
+            ('character', {'id': to_global_id('Character', 570140137)}),
+            ('corporation', {'id': 1018389948, 'name': u'Dreddit'}),
+            ('alliance', {'id': 498125261,
+                          'name': u'Test Alliance Please Ignore'}),
+            ('system', {'id': 30000848, 'name': u'M-OEE8'}),
+            ('constellation', {'id': 20000124, 'name': u'1P-VL2'}),
+            ('region', {'id': 10000010, 'name': u'Tribute'}),
+            ('type', {'id': 4310, 'name': u'Tornado'}),
+            ('timestamp',
+             dt.datetime(2016, 3, 28, 2, 32, 50, tzinfo=utc).isoformat()),
+            ('url', 'https://zkillboard.com/kill/52861733/'),
+            ('requests', {to_global_id('Request', rid) for rid in (123, 456)}),
+        ),
+        ids=('killmail_id', 'user', 'character', 'corporation', 'alliance',
+             'system', 'constellation', 'region', 'type', 'timestamp', 'url',
+             'requests')
+    )
+    def test_killmail(self, graphql_client, attribute, value):
+        node_id = to_global_id('Killmail', 52861733)
+        if isinstance(value, (dict, set)):
+            if isinstance(value, dict):
+                fields = ' '.join(value.keys())
+            else:
+                fields = 'id'
+            query = '''
+            query getKillmail($nodeID: ID!) {
+                node(id: $nodeID) {
+                    id
+                    ... on Killmail {
+                        %s {
+                            %s
+                        }
+                    }
+                }
+            }
+            ''' % (attribute, fields)
+        else:
+            query = '''
+            query getKillmail($nodeID: ID!) {
+                node(id: $nodeID) {
+                    id
+                    ... on Killmail {
+                        %s
+                    }
+                }
+            }
+            ''' % attribute
+        result = graphql_client.execute(
+            query,
+            variable_values={'nodeID': node_id}
+        )
+        if isinstance(value, set):
+            assert 'data' in result
+            result_ids = {r['id'] for r in result['data']['node'][attribute]}
+            assert result_ids == value
+        else:
+            assert result == {
+                'data': {
+                    'node': {
+                        'id': node_id,
+                        attribute: value,
+                    }
+                }
+            }
+
 
 @pytest.mark.parametrize(
     'group_id,expected_user_ids',

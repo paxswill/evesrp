@@ -367,5 +367,35 @@ class Resolver(object):
 
     # Killmail
 
-    def resolve_killmail_field_killmail_id(self, source, args, context, info):
+    def resolve_killmail_field_killmailid(self, source, args, context, info):
         return source.id
+
+    def resolve_killmail_field_user(self, source, args, context, info):
+        model = self.store.get_killmail(source.id)
+        return types.User(id=model.user_id)
+
+    def resolve_killmail_field_character(self, source, args, context, info):
+        model = self.store.get_killmail(source.id)
+        return types.Character(id=model.character_id)
+
+    def resolve_killmail_fields(self, source, args, context, info):
+        """Resolve CCP-derived info like location, membership and type from
+        here.
+        """
+        model = self.store.get_killmail(source.id)
+        if info.field_name in {'corporation', 'alliance', 'system',
+                               'constellation', 'region', 'type'}:
+            named_id = "{}_id".format(info.field_name)
+            id_ = getattr(model, named_id)
+            # Get the name
+            getter_name = "get_{}".format(info.field_name)
+            getter = getattr(self.store, getter_name)
+            getter_args = {named_id: id_}
+            name = getter(**getter_args)['name']
+            return types.CcpType(id=id_, name=name)
+        else:
+            return getattr(model, info.field_name)
+
+    def resolve_killmail_field_requests(self, source, args, context, info):
+        request_models = self.store.get_requests(source.id)
+        return [types.Request(id=r.id_) for r in request_models]
