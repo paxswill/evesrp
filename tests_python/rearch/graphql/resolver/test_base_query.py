@@ -99,6 +99,7 @@ def test_entity(graphql_client, relay_node_id, permission_tuples):
         ('notes', [to_global_id('Note', 1)]),
         ('requests', [to_global_id('Request', km) for km in
                       (456, 345, 234, 123)]),
+        # TODO: Add requests_connection test
         ('characters', [to_global_id('Character', c) for c in
                         (2112311608, 570140137)]),
     ),

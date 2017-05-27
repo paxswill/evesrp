@@ -199,6 +199,8 @@ class TestLoginUser(object):
 
     @pytest.fixture
     def store(self):
+        # Not using the memory_store fixture, as there's enough differences
+        # that updating this to use it would be tedious.
         store = storage.MemoryStore()
         store._data['authn_users'].update({
             (

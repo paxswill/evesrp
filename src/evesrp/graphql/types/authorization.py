@@ -49,6 +49,8 @@ class Group(graphene.ObjectType):
 
     users = graphene.NonNull(graphene.List(User))
 
+    # TODO Add a users_connection
+
     @classmethod
     def from_model(cls, model):
         return cls(id=model.id_, name=model.name)
