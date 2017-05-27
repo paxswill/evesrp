@@ -71,7 +71,7 @@ class Resolver(object):
         if isinstance(type_names, six.string_types):
             type_names = [type_names]
         id_type, type_id = from_global_id(relay_id)
-        if id_type != type_name:
+        if id_type not in type_names:
             if len(type_names) == 1:
                 message = ("Given a '{}' ID instead of a "
                            "'{}' ID ({}).").format(
