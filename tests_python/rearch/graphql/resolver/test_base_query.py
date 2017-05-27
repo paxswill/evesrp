@@ -250,6 +250,53 @@ class TestNode(object):
             }
         }
 
+    @pytest.mark.parametrize(
+        'attribute,value',
+        (
+            ('user', {'id': to_global_id('User', 9)}),
+            ('ccpId', 570140137),
+        ),
+        ids=('user', 'ccp_id')
+    )
+    def test_character(self, graphql_client, attribute, value):
+        node_id = to_global_id('Character', 570140137)
+        if isinstance(value, dict):
+            query = '''
+            query getCharacter($nodeID: ID!) {
+                node(id: $nodeID) {
+                    id
+                    ... on Character {
+                        %s {
+                            id
+                        }
+                    }
+                }
+            }
+            ''' % attribute
+        else:
+            query = '''
+            query getCharacter($nodeID: ID!) {
+                node(id: $nodeID) {
+                    id
+                    ... on Character {
+                        %s
+                    }
+                }
+            }
+            ''' % attribute
+        result = graphql_client.execute(
+            query,
+            variable_values={'nodeID': node_id}
+        )
+        assert result == {
+            'data': {
+                'node': {
+                    'id': node_id,
+                    attribute: value,
+                }
+            }
+        }
+
 
 @pytest.mark.parametrize(
     'group_id,expected_user_ids',
