@@ -93,6 +93,8 @@ class Division(graphene.ObjectType):
     class Meta(object):
         interfaces = (graphene.relay.Node, util.Named)
 
+    # TODO: Add a permissions field of some kind maybe?
+
     @classmethod
     def from_model(cls, model):
         return cls(id=model.id_, name=model.name)

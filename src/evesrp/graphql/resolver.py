@@ -315,6 +315,13 @@ class Resolver(object):
         # the enum member. wat.
         return source.permission.name
 
+    # Note
+
+    def resolve_note_fields(self, source, args, context, info):
+        model = self.store.get_note(source.id)
+        note = types.Note.from_model(model)
+        return getattr(note, info.field_name)
+
     # Character
 
     def resolve_character_field_name(self, source, args, context, info):

@@ -1,7 +1,10 @@
 import collections
+import datetime as dt
 
 from graphql_relay.node.node import to_global_id
 import pytest
+
+from evesrp.util import utc
 
 
 # Old style string formatting is being used throughout, as str.format uses
@@ -177,6 +180,75 @@ class TestNode(object):
         expected_user_ids = {to_global_id('User', uid) for uid in (2, 9)}
         result_user_ids = {u['id'] for u in results['data']['node']['users']}
         assert expected_user_ids == result_user_ids
+
+    def test_division(self, graphql_client):
+        node_id = to_global_id('Division', 30)
+        query = '''
+        query getDivision($nodeID: ID!) {
+            node(id: $nodeID) {
+                id
+            }
+        }
+        '''
+        results = graphql_client.execute(query,
+                                         variable_values={'nodeID': node_id})
+        assert results == {
+            'data': {
+                'node': {
+                    'id': node_id
+                }
+            }
+        }
+
+    @pytest.mark.parametrize(
+        'attribute,value',
+        (
+            ('subject', {'id': to_global_id('User', 9)}),
+            ('submitter', {'id': to_global_id('User', 7)}),
+            ('contents', (u'Not the sharpest tool in the shed. Keeps '
+                          u'losing things, deny future requests.')),
+            ('timestamp', dt.datetime(2017, 4, 1, tzinfo=utc).isoformat()),
+        ),
+        ids=('subject', 'submitter', 'contents', 'timestamp')
+    )
+    def test_note(self, graphql_client, attribute, value):
+        node_id = to_global_id('Note', 1)
+        if isinstance(value, dict):
+            query = '''
+            query getNote($nodeID: ID!) {
+                node(id: $nodeID) {
+                    id
+                    ... on Note {
+                        %s {
+                            id
+                        }
+                    }
+                }
+            }
+            ''' % attribute
+        else:
+            query = '''
+            query getNote($nodeID: ID!) {
+                node(id: $nodeID) {
+                    id
+                    ... on Note {
+                        %s
+                    }
+                }
+            }
+            ''' % attribute
+        result = graphql_client.execute(
+            query,
+            variable_values={'nodeID': node_id}
+        )
+        assert result == {
+            'data': {
+                'node': {
+                    'id': node_id,
+                    attribute: value,
+                }
+            }
+        }
 
 
 @pytest.mark.parametrize(
