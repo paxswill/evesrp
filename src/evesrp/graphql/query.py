@@ -28,7 +28,9 @@ class Query(graphene.ObjectType):
                               required=True
                           ))
 
-    users = graphene.Field(graphene.List(types.User), group_id=graphene.ID())
+    users = graphene.Field(
+        graphene.NonNull(graphene.List(types.User)),
+        group_id=graphene.ID())
 
     group = graphene.Field(types.Group,
                            id=graphene.Argument(
