@@ -34,6 +34,57 @@ def test_named_node(graphql_client, relay_node_id, name):
         }
     }
 
+
+@pytest.mark.parametrize(
+    'relay_node_id,permission_tuples',
+    (
+        (to_global_id('User', 9), (
+            # Order is entity_id, permssion string, division_id
+            (to_global_id('User', 9), 'submit', to_global_id('Division', 10)),
+            (to_global_id('Group', 5000), 'submit',
+             to_global_id('Division', 30)),
+        )),
+        (to_global_id('Group', 5000), (
+            (to_global_id('Group', 5000), 'submit',
+             to_global_id('Division', 30)),
+        )),
+    ),
+    ids=('user', 'group')
+)
+def test_entity(graphql_client, relay_node_id, permission_tuples):
+    result = graphql_client.execute('''
+    query getEntity($nodeID: ID!) {
+        node(id: $nodeID) {
+            id
+            ... on Entity {
+                permissions {
+                    permission
+                    entity {
+                        ... on Node {
+                            id
+                        }
+                    }
+                    division {
+                        id
+                    }
+                }
+            }
+        }
+    }
+    ''', variable_values={'nodeID': relay_node_id})
+
+    def to_tuple(permission_result):
+        return (permission_result['entity']['id'],
+                permission_result['permission'],
+                permission_result['division']['id'])
+
+    assert 'data' in result
+    assert result['data']['node']['id'] == relay_node_id
+    expected_permissions = set(permission_tuples)
+    permissions = {to_tuple(p) for p in result['data']['node']['permissions']}
+    assert expected_permissions == permissions
+
+
 # Old style string formatting is being used throughout, as str.format uses
 # braces, and I don't want to escape every brace in GraphQL queries. Format
 # strings would be a nicer option if/when Python 2 support is ever dropped and
