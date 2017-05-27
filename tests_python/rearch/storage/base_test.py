@@ -783,6 +783,19 @@ class CommonStorageTest(object):
 
     @pytest.mark.parametrize('note_present', (True, False),
                              ids=('note_present', 'note_not_present'))
+    def test_get_note(self, populated_store, note_present):
+        if note_present:
+            note_id = 1
+            note = populated_store.get_note(note_id)
+            assert note.id_ == note_id
+        else:
+            note_id = -1
+            with pytest.raises(storage.NotFoundError):
+                populated_store.get_note(note_id)
+
+
+    @pytest.mark.parametrize('note_present', (True, False),
+                             ids=('note_present', 'note_not_present'))
     def test_get_notes(self, populated_store, note_present):
         if note_present:
             subject_id = 9

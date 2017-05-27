@@ -432,6 +432,9 @@ class BaseStore(object):
 
     # User Notes
 
+    def get_note(self, note_id):
+        raise NotImplementedError
+
     def get_notes(self, subject_id):
         raise NotImplementedError
 

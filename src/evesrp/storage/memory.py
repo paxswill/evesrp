@@ -516,6 +516,16 @@ class MemoryStore(CachingCcpStore, BaseStore):
 
     # User Notes
 
+    def get_note(self, note_id):
+        # Note in the MemoryStore are keyed (indexed if you will) on the
+        # subject's user ID, so we have to iterate over everything to find the
+        # note we're looking for.
+        for subject_notes in six.itervalues(self._data['notes']):
+            for note_data in subject_notes:
+                if note_data['id'] == note_id:
+                    return models.Note.from_dict(note_data)
+        raise errors.NotFoundError('note', note_id)
+
     def get_notes(self, subject_id):
         if subject_id not in self._data['users']:
             raise errors.NotFoundError('user', subject_id)
