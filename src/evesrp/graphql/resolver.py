@@ -18,14 +18,17 @@ class Resolver(object):
     def resolve(self, next, source, args, context, info):
         field_name = info.field_name
         model_name = info.parent_type.name
-        func_name_template = "resolve_{}_field_{}"
+        interface_names = [getattr(i, 'name')
+                           for i in info.parent_type.interfaces]
+        # Skip trying to resolve for Node.id
+        if 'Node' in interface_names and field_name == 'id':
+            return next(source, args, context, info)
         # Start with a resolver for that object's field
+        func_name_template = "resolve_{}_field_{}"
         object_func_name = func_name_template.format(model_name.lower(),
                                                      field_name.lower())
         func_names = [object_func_name]
         # Then check interface resolvers for that field
-        interface_names = [getattr(i, 'name')
-                           for i in info.parent_type.interfaces]
         func_names.extend([func_name_template.format(interface.lower(),
                                                      field_name.lower())
                            for interface in interface_names])
