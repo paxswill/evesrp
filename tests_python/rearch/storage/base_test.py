@@ -147,6 +147,14 @@ class CommonStorageTest(object):
             },
             tuple(),
         ),
+        (
+            {
+                'division_id': 30,
+                'entity_id': 2,
+                'type_': models.PermissionType.submit,
+            },
+            tuple(),
+        ),
     ))
     def test_get_permissions(self, populated_store, permission_filter,
                              expected_indexes):
