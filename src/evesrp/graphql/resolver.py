@@ -104,8 +104,9 @@ class Resolver(object):
         return [types.Group(id=gid) for gid in group_ids]
 
     def resolve_query_field_divisions(self, source, args, context, info):
-        return [types.Division.from_model(d)
-                for d in self.store.get_divisions()]
+        division_ids = [d.id_ for d in self.store.get_divisions()]
+        division_ids.sort()
+        return [types.Division(id=did) for did in division_ids]
 
     def resolve_query_field_permission(self, source, args, context, info):
         entity_id = self._check_id(args['entity_id'], ['Entity', 'User',

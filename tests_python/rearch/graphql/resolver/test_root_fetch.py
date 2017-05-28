@@ -107,3 +107,22 @@ def test_groups(graphql_client, user_id, expected_group_ids):
         }
     }
 
+
+def test_divisions(graphql_client):
+    query = '''
+    {
+        divisions {
+            id
+        }
+    }
+    '''
+    result = graphql_client.execute(query)
+    expected_divisions = [{'id': to_global_id('Division', did)}
+                          for did in (10, 30)]
+    assert result == {
+        'data': {
+            'divisions': expected_divisions
+        }
+    }
+
+
