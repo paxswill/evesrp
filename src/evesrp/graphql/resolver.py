@@ -180,8 +180,8 @@ class Resolver(object):
         return [types.Modifier.from_model(m) for m in modifier_models]
 
     def resolve_query_field_request(self, source, args, context, info):
-        killmail_id = self._check_id(args['killmailId'], 'Killmail')
-        division_id = self._check_id(args['divisionId'], 'Division')
+        killmail_id = self._check_id(args['killmail_id'], 'Killmail')
+        division_id = self._check_id(args['division_id'], 'Division')
         try:
             request_model = self.store.get_request(killmail_id=killmail_id,
                                                    division_id=division_id)

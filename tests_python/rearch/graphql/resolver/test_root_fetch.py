@@ -462,3 +462,38 @@ def test_get_modifiers(graphql_client, request_id, include_void,
             'modifiers': modifiers
         }
     }
+
+
+@pytest.mark.parametrize(
+    'killmail_id',
+    [to_global_id('Killmail', k) for k in (0, 60713776)],
+    ids=('invalid_killmail', 'valid_killmail')
+)
+@pytest.mark.parametrize(
+    'division_id',
+    [to_global_id('Division', k) for k in (0, 10, 30)],
+    ids=('non_existant_division', 'valid_division', 'invalid_division')
+)
+def test_get_request(graphql_client, killmail_id, division_id):
+    query = '''
+    query getRequest($killmailID: ID!, $divisionID: ID!) {
+        request(divisionId: $divisionID, killmailId: $killmailID) {
+            id
+        }
+    }
+    '''
+    result = graphql_client.execute(
+        query,
+        variable_values={
+            'killmailID': killmail_id,
+            'divisionID': division_id,
+        }
+    )
+    if killmail_id == to_global_id('Killmail', 60713776) and \
+            division_id == to_global_id('Division', 30):
+        request = {'id': to_global_id('Request', 789)}
+    else:
+        request = None
+    assert 'data' in result
+    assert ('errors' in result) == (request is None)
+    assert result['data']['request'] == request
