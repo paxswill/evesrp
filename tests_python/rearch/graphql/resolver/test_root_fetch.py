@@ -384,3 +384,81 @@ def test_get_ccp_killmail(graphql_client, valid_id):
             'killmail': killmail,
         }
     }
+
+
+@pytest.mark.parametrize('with_actions', (True, False),
+                         ids=('with_actions', 'without_actions'))
+def test_get_actions(graphql_client, with_actions):
+    if with_actions:
+        request_id = to_global_id('Request', 123)
+    else:
+        request_id = to_global_id('Request', 456)
+    query = '''
+    query getActions($requestID: ID!) {
+        actions(requestId: $requestID) {
+            id
+        }
+    }
+    '''
+    result = graphql_client.execute(query,
+                                     variable_values={'requestID': request_id})
+    if with_actions:
+        actions = [
+            {'id': to_global_id('Action', 10000)},
+            {'id': to_global_id('Action', 20000)},
+        ]
+    else:
+        actions = []
+    assert result == {
+        'data': {
+            'actions': actions
+        }
+    }
+
+
+@pytest.mark.parametrize('include_void', (None, True, False),
+                         ids=('void_none', 'with_void', 'without_void'))
+@pytest.mark.parametrize('modifier_type', (None, 'absolute', 'relative'),
+                         ids=('type_none', 'absolute', 'relative'))
+@pytest.mark.parametrize('request_id',
+                         [to_global_id('Request', r) for r in (456, 234)],
+                         ids=('Request456', 'Request234'))
+def test_get_modifiers(graphql_client, request_id, include_void,
+                       modifier_type):
+    query = '''
+    query getModifiers($requestID: ID!, $void: Boolean, $type: ModifierType) {
+        modifiers(requestId: $requestID, includeVoid: $void,
+                  modifierType: $type) {
+            id
+        }
+    }
+    '''
+    variables = {
+        'requestID': request_id,
+    }
+    if include_void is not None:
+        variables['void'] = include_void
+    if modifier_type is not None:
+        variables['type'] = modifier_type
+    if request_id == to_global_id('Request', 234):
+        modifier_ids = []
+    else:
+        if modifier_type == 'relative':
+            modifier_ids = [300000]
+        elif modifier_type == 'absolute':
+            if include_void is None or include_void:
+                modifier_ids = [200000]
+            else:
+                modifier_ids = []
+        else:
+            if include_void is None or include_void:
+                modifier_ids = [200000, 300000]
+            else:
+                modifier_ids = [300000]
+    modifiers = [{'id': to_global_id('Modifier', mid)} for mid in modifier_ids]
+    result = graphql_client.execute(query, variable_values=variables)
+    assert result == {
+        'data': {
+            'modifiers': modifiers
+        }
+    }

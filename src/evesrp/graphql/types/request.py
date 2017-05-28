@@ -130,7 +130,7 @@ class Modifier(graphene.ObjectType):
         user = evesrp.graphql.types.User(id=model.user_id)
         if model.is_void:
             void_user = evesrp.graphql.types.User(id=model.void_user_id)
-            void_timetamp = model.void_timestamp
+            void_timestamp = model.void_timestamp
         else:
             void_user = None
             void_timestamp = None

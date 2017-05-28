@@ -164,13 +164,17 @@ class Resolver(object):
             return types.Killmail.from_model(killmail_model)
 
     def resolve_query_field_actions(self, source, args, context, info):
+        request_id = self._check_id(args['request_id'], 'Request')
         return [types.Action.from_model(a)
                 for a in self.store.get_actions(request_id)]
 
     def resolve_query_field_modifiers(self, source, args, context, info):
         modifier_type = args.get('modifier_type')
+        if modifier_type is not None:
+            modifier_type = models.ModifierType(modifier_type)
         void_arg = None if args['include_void'] else False
-        modifier_models = self.store.get_modifiers(args['request_id'], 
+        request_id = self._check_id(args['request_id'], 'Request')
+        modifier_models = self.store.get_modifiers(request_id,
                                                    void=void_arg,
                                                    type_=modifier_type)
         return [types.Modifier.from_model(m) for m in modifier_models]

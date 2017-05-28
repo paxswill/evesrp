@@ -87,17 +87,17 @@ class Query(graphene.ObjectType):
     )
 
     actions = graphene.Field(
-        graphene.List(types.Action),
+        graphene.NonNull(graphene.List(types.Action)),
         request_id=graphene.Argument(
-            graphene.Int,
+            graphene.ID,
             required=True
         )
     )
 
     modifiers = graphene.Field(
-        graphene.List(types.Modifier),
+        graphene.NonNull(graphene.List(types.Modifier)),
         request_id=graphene.Argument(
-            graphene.Int,
+            graphene.ID,
             required=True
         ),
         include_void=graphene.Argument(
