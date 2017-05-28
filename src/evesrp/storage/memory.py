@@ -475,6 +475,8 @@ class MemoryStore(CachingCcpStore, BaseStore):
                     return response.name
             elif key.endswith('_timestamp'):
                 return getattr(obj, 'timestamp')
+            elif key in ('request_id', 'killmail_id'):
+                return obj.id_
             else:
                 return getattr(obj, key)
 

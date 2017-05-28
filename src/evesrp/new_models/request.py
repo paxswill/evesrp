@@ -43,6 +43,7 @@ class Killmail(util.IdEquality, util.FieldsAccess, util.GetItemAttribute):
     }
 
     sorts = (
+        'killmail_id',
         'character_name',
         'corporation_name',
         'alliance_name',
@@ -161,6 +162,7 @@ class Request(util.IdEquality, util.FieldsAccess, util.GetItemAttribute):
     }
 
     sorts = (
+        'request_id',
         'division_name',
         'request_timestamp',
         'status',
