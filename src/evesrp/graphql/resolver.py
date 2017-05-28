@@ -87,16 +87,6 @@ class Resolver(object):
             raise Exception(message)
         return int(type_id)
 
-    def resolve_query_field_user(self, source, args, context, info):
-        relay_id = args['id']
-        user_id = self._check_id(relay_id, 'User')
-        try:
-            user_model = self.store.get_user(user_id)
-        except storage.NotFoundError:
-            return None
-        else:
-            return types.User.from_model(user_model)
-
     def resolve_query_field_users(self, source, args, context, info):
         group_id = args.get('group_id')
         if group_id is not None:
@@ -104,32 +94,12 @@ class Resolver(object):
         return [types.User.from_model(u)
                 for u in self.store.get_users(group_id)]
 
-    def resolve_query_field_group(self, source, args, context, info):
-        relay_id = args['id']
-        group_id = self._check_id(relay_id, 'Group')
-        try:
-            group_model = self.store.get_group(group_id)
-        except storage.NotFoundError:
-            return None
-        else:
-            return types.Group.from_model(group_model)
-
     def resolve_query_field_groups(self, source, args, context, info):
         user_id = args.get('user_id')
         if user_id is not None:
             user_id = self._check_id(user_id, 'User')
         return [types.Group.from_model(g)
                 for g in self.store.get_groups(user_id)]
-
-    def resolve_query_field_division(self, source, args, context, info):
-        relay_id = args['id']
-        division_id = self._check_id(relay_id, 'Division')
-        try:
-            division_model = store.get_division(division_id)
-        except storage.NotFoundError:
-            return None
-        else:
-            return types.Division.from_model(division_model)
 
     def resolve_query_field_divisions(self, source, args, context, info):
         return [types.Division.from_model(d)
@@ -163,13 +133,7 @@ class Resolver(object):
                 for n in self.store.get_notes(subject_id)]
 
     def resolve_query_field_character(self, source, args, context, info):
-        ccp_id = args.get('ccp_id')
-        if ccp_id is None:
-            relay_id = args.get('id')
-            if relay_id is None:
-                raise Exception("At least one of either 'id' or 'ccp_id' are "
-                                "required.")
-            ccp_id = self._check_id(relay_id, 'Character')
+        ccp_id = args['ccpId']
         try:
             character_model = self.store.get_character(ccp_id)
         except storage.NotFoundError:
@@ -178,13 +142,7 @@ class Resolver(object):
             return types.Character.from_model(character_model)
 
     def resolve_query_field_killmail(self, source, args, context, info):
-        ccp_id = args.get('ccp_id')
-        if ccp_id is None:
-            relay_id = args.get('id')
-            if relay_id is None:
-                raise Exception("At least one of either 'id' or 'ccp_id' are "
-                                "required.")
-            ccp_id = self._check_id(relay_id, 'Killmail')
+        ccp_id = args['ccpId']
         try:
             killmail_model = self.store.get_killmail(ccp_id)
         except storage.NotFoundError:
@@ -205,14 +163,17 @@ class Resolver(object):
         return [types.Modifier.from_model(m) for m in modifier_models]
 
     def resolve_query_field_request(self, source, args, context, info):
+        killmail_id = self._check_id(args['killmailId'], 'Killmail')
+        division_id = self._check_id(args['divisionId'], 'Division')
         try:
-            request_model = self.store.get_request(**args)
+            request_model = self.store.get_request(killmail_id=killmail_id,
+                                                   division_id=division_id)
         except TypeError:
             # TODO: Check to see if we can raise an error here instead of just
             # returning null
             return None
         else:
-            return types.Request.from_model(request_model)
+            return types.Request(id=request_model.id_)
 
     def resolve_query_field_requests(self, source, args, context, info):
         limit = args.get('limit')
