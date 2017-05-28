@@ -192,36 +192,6 @@ class Resolver(object):
         else:
             return types.Request(id=request_model.id_)
 
-    def resolve_query_field_requests(self, source, args, context, info):
-        limit = args.get('limit')
-        after_cursor = args.get('after_cursor')
-        input_search = args.get('search')
-        sort = args.get('sort')
-        store_search = search_filter.Search()
-        if input_search is not None:
-            field_names = itertools.chain(
-                six.iterkeys(models.Request.field_types),
-                six.iterkeys(models.Killmail.field_types))
-            for field_name in field_names:
-                values = getattr(input_search, field_name)
-                if len(values):
-                    store_search.add(field_name, *values)
-        if sort is not None:
-            pass
-        request_models = self.store.filter_requests(store_search)
-        # Sanitize input
-        if limit is not None and limit < 0:
-            limit = None
-        if after_cursor is not None:
-            decoded = base64.b64decode(after_cursor)
-            # cursor is of the form "offset###"
-            offset = int(decoded[6:])
-        else:
-            offset = 0
-        # TODO Fix this so it returns Edges and Pager and stuff correctly
-        return itertools.islice(
-            [types.Request.from_model(r) for r in request_models],
-            offset, limit)
 
     # Named
 
