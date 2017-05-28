@@ -417,6 +417,62 @@ class TestNode(object):
             }
         }
 
+    @pytest.mark.parametrize(
+        'attribute,value',
+        (
+            ('modifierType', 'absolute'),
+            ('value', '500000'),
+            ('note', u'Incorrect bonus'),
+            ('user', {'id': to_global_id('User', 7)}),
+            ('timestamp',
+             dt.datetime(2017, 3, 11, 1, 0, tzinfo=utc).isoformat()),
+            ('void', True),
+            ('voidUser', {'id': to_global_id('User', 7)}),
+            ('voidTimestamp',
+             dt.datetime(2017, 3, 11, 1, 5, tzinfo=utc).isoformat()),
+        ),
+        ids=('type', 'value', 'note', 'user', 'timestamp', 'void', 'void_user',
+             'void_timestamp')
+    )
+    def test_modifier(self, graphql_client, attribute, value):
+        node_id = to_global_id('Modifier', 200000)
+        if isinstance(value, dict):
+            query = '''
+            query getModifier($nodeID: ID!) {
+                node(id: $nodeID) {
+                    id
+                    ... on Modifier {
+                        %s {
+                            id
+                        }
+                    }
+                }
+            }
+            ''' % attribute
+        else:
+            query = '''
+            query getModifier($nodeID: ID!) {
+                node(id: $nodeID) {
+                    id
+                    ... on Modifier {
+                        %s
+                    }
+                }
+            }
+            ''' % attribute
+        result = graphql_client.execute(
+            query,
+            variable_values={'nodeID': node_id}
+        )
+        assert result == {
+            'data': {
+                'node': {
+                    'id': node_id,
+                    attribute: value,
+                }
+            }
+        }
+
 
 @pytest.mark.parametrize(
     'group_id,expected_user_ids',

@@ -345,7 +345,11 @@ class Resolver(object):
 
     def resolve_action_field_actiontype(self, source, args, context, info):
         model = self.store.get_action(source.id)
-        return model.type_
+        # Just throwing it out there, graphql-core's handling of enumerated
+        # types is inconsistent with how it seems everybody else uses them, and
+        # tracking down errors is hampered by their poor logging/exception
+        # handling. Ugh.
+        return model.type_.value
 
     def resolve_action_field_user(self, source, args, context, info):
         model = self.store.get_action(source.id)
@@ -353,13 +357,34 @@ class Resolver(object):
 
     # Modifier
 
-    def resolve_modifier_field_modifier_type(self, source, args, context,
+    def resolve_modifier_fields(self, source, args, context, info):
+        model = self.store.get_modifier(source.id)
+        value = getattr(model, info.field_name)
+        return value
+
+    def resolve_modifier_field_modifiertype(self, source, args, context, info):
+        # See the comment in resolve_action_field_actiontype about handling
+        # enums. It's terrible.
+        model = self.store.get_modifier(source.id)
+        type_ = getattr(types.ModifierType, model.type_.name)
+        return type_.value
+
+    def resolve_modifier_field_user(self, source, args, context, info):
+        model = self.store.get_modifier(source.id)
+        return types.User(model.user_id)
+
+    def resolve_modifier_field_voiduser(self, source, args, context, info):
+        model = self.store.get_modifier(source.id)
+        return types.User(model.void_user_id)
+
+    def resolve_modifier_field_voidtimestamp(self, source, args, context,
                                              info):
-        return source.modifier_type.name
+        model = self.store.get_modifier(source.id)
+        return model.void_timestamp
 
     def resolve_modifier_field_void(self, source, args, context, info):
-        return source.void_user is not None and \
-            source.void_timestamp is not None
+        model = self.store.get_modifier(source.id)
+        return model.is_void
 
     # Request
 
