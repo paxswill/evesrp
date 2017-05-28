@@ -375,7 +375,9 @@ class MemoryStore(CachingCcpStore, BaseStore):
     def get_actions(self, request_id):
         actions_data = [act for act in six.itervalues(self._data['actions'])
                         if act['request_id'] == request_id]
-        return [models.Action.from_dict(a) for a in actions_data]
+        actions = [models.Action.from_dict(a) for a in actions_data]
+        actions.sort(key=lambda a: a.timestamp)
+        return actions
 
     def add_action(self, request_id, type_, user_id, contents=u''):
         if request_id not in self._data['requests']:
