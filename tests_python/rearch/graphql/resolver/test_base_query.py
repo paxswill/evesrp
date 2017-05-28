@@ -367,6 +367,56 @@ class TestNode(object):
                 }
             }
 
+    @pytest.mark.parametrize(
+        'attribute,value',
+        (
+            ('actionType', 'rejected'),
+            ('timestamp',
+             dt.datetime(2016, 4, 3, tzinfo=utc).isoformat()),
+            ('contents', u'git gud scrub'),
+            ('user', {'id': to_global_id('User', 7)}),
+        ),
+        ids=('type', 'timestamp', 'contents', 'user')
+    )
+    def test_action(self, graphql_client, attribute, value):
+        node_id = to_global_id('Action', 10000)
+        if isinstance(value, dict):
+            query = '''
+            query getAction($nodeID: ID!) {
+                node(id: $nodeID) {
+                    id
+                    ... on Action {
+                        %s {
+                            id
+                        }
+                    }
+                }
+            }
+            ''' % attribute
+        else:
+            query = '''
+            query getAction($nodeID: ID!) {
+                node(id: $nodeID) {
+                    id
+                    ... on Action {
+                        %s
+                    }
+                }
+            }
+            ''' % attribute
+        result = graphql_client.execute(
+            query,
+            variable_values={'nodeID': node_id}
+        )
+        assert result == {
+            'data': {
+                'node': {
+                    'id': node_id,
+                    attribute: value,
+                }
+            }
+        }
+
 
 @pytest.mark.parametrize(
     'group_id,expected_user_ids',

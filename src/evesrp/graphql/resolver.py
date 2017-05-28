@@ -339,8 +339,17 @@ class Resolver(object):
 
     # Action
 
-    def resolve_action_field_action_type(self, source, args, context, info):
-        return source.action_type.name
+    def resolve_action_fields(self, source, args, context, info):
+        model = self.store.get_action(source.id)
+        return getattr(model, info.field_name)
+
+    def resolve_action_field_actiontype(self, source, args, context, info):
+        model = self.store.get_action(source.id)
+        return model.type_
+
+    def resolve_action_field_user(self, source, args, context, info):
+        model = self.store.get_action(source.id)
+        return types.User(model.user_id)
 
     # Modifier
 
