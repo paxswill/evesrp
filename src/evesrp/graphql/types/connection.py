@@ -164,9 +164,4 @@ class RequestConnection(graphene.relay.Connection):
 
     total_payout = graphene.Field(decimal.Decimal, required=True)
 
-class SearchableRequestConnection(RequestConnection):
-
-    class Meta(object):
-        node = types_request.Request
-
     search = graphene.Field(RequestSearch, required=True)

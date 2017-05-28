@@ -122,7 +122,7 @@ class Query(graphene.ObjectType):
     )
 
     requests_connection = graphene.relay.ConnectionField(
-        types.SearchableRequestConnection,
+        types.RequestConnection,
         search=graphene.Argument(types.InputRequestSearch)
     )
 
