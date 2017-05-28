@@ -388,8 +388,26 @@ class Resolver(object):
 
     # Request
 
+    def resolve_request_fields(self, source, args, context, info):
+        model = self.store.get_request(source.id)
+        if info.field_name == 'basePayout':
+            field_name = 'base_payout'
+        else:
+            field_name = info.field_name
+        return getattr(model, field_name)
+
     def resolve_request_field_status(self, source, args, context, info):
-        return source.status.name
+        # More graphene enum silliness
+        model = self.store.get_request(source.id)
+        return model.status.value
+
+    def resolve_request_field_division(self, source, args, context, info):
+        model = self.store.get_request(source.id)
+        return types.Division(id=model.division_id)
+
+    def resolve_request_field_killmail(self, source, args, context, info):
+        model = self.store.get_request(source.id)
+        return types.Killmail(id=model.killmail_id)
 
     def resolve_request_field_actions(self, source, args, context, info):
         action_models = self.store.get_actions(source.id)

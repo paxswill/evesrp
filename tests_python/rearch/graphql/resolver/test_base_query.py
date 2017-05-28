@@ -473,6 +473,66 @@ class TestNode(object):
             }
         }
 
+    @pytest.mark.parametrize(
+        'attribute,value',
+        (
+            ('details', u'Hey! I lost a Windrunner.'),
+            ('killmail', {'id': to_global_id('Killmail', 52861733)}),
+            ('division', {'id': to_global_id('Division', 10)}),
+            ('timestamp',
+             dt.datetime(2016, 3, 30, 9, 30, tzinfo=utc).isoformat()),
+            ('status', 'rejected'),
+            ('basePayout', '5000000'),
+            ('payout', '5500000'),
+            ('actions', [to_global_id('Action', a) for a in (10000, 20000)]),
+            ('modifiers', [to_global_id('Modifier', 100000)]),
+        ),
+        ids=('details', 'killmail', 'division', 'timestamp', 'status',
+             'base_payout', 'payout', 'actions', 'modifiers')
+    )
+    def test_request(self, graphql_client, attribute, value):
+        node_id = to_global_id('Request', 123)
+        if isinstance(value, (list, dict)):
+            query = '''
+            query getRequest($nodeID: ID!) {
+                node(id: $nodeID) {
+                    id
+                    ... on Request {
+                        %s {
+                            id
+                        }
+                    }
+                }
+            }
+            ''' % attribute
+        else:
+            query = '''
+            query getRequest($nodeID: ID!) {
+                node(id: $nodeID) {
+                    id
+                    ... on Request {
+                        %s
+                    }
+                }
+            }
+            ''' % attribute
+        result = graphql_client.execute(
+            query,
+            variable_values={'nodeID': node_id}
+        )
+        if isinstance(value, list):
+            assert 'data' in result
+            result_ids = [r['id'] for r in result['data']['node'][attribute]]
+            assert result_ids == value
+        else:
+            assert result == {
+                'data': {
+                    'node': {
+                        'id': node_id,
+                        attribute: value,
+                    }
+                }
+            }
 
 @pytest.mark.parametrize(
     'group_id,expected_user_ids',

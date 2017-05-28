@@ -168,19 +168,6 @@ class Request(graphene.ObjectType):
 
     modifiers = graphene.List(Modifier)
 
-    def resolve_status(self, args, context, info):
-        return self.status.name
-
-    def resolve_actions(self, args, context, info):
-        store = context['store']
-        action_models = store.get_actions(self.id)
-        return [Action.from_model(a) for a in action_models]
-
-    def resolve_modifiers(self, args, context, info):
-        store = context['store']
-        modifier_models = store.get_modifiers(self.id)
-        return [Modifier.from_model(m) for m in modifier_models]
-
     @classmethod
     def from_model(cls, model):
         status = getattr(ActionType, model.status.name)
