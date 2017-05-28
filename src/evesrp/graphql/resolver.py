@@ -112,7 +112,7 @@ class Resolver(object):
         entity_id = self._check_id(args['entity_id'], ['Entity', 'User',
                                                        'Group'])
         division_id = self._check_id(args['division_id'], 'Division')
-        permission_type = models.PermissionType[args['permission_type']]
+        permission_type = models.PermissionType(args['permission_type'])
         permissions = list(self.store.get_permissions(
             entity_id=entity_id, division_id=division_id,
             type_=permission_type))
@@ -131,7 +131,7 @@ class Resolver(object):
                             for did in division_ids]
         permission_types = args.get('permission_types')
         if permission_types is not None:
-            permission_types = [models.PermissionType[p]
+            permission_types = [models.PermissionType(p)
                                 for p in permission_types]
         permissions = list(self.store.get_permissions(
             entity_id=entity_ids,
