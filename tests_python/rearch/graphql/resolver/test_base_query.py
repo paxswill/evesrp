@@ -52,7 +52,7 @@ class TestNode(object):
         'relay_node_id,permission_tuples',
         (
             (to_global_id('User', 9), (
-                # Order is entity_id, permssion string, division_id
+                # Order is entity_id, permission string, division_id
                 (to_global_id('User', 9), 'submit',
                  to_global_id('Division', 10)),
                 (to_global_id('Group', 5000), 'submit',
@@ -103,20 +103,19 @@ class TestNode(object):
         'attribute,value',
         (
             ('admin', False),
-            ('groups', [to_global_id('Group', g) for g in (5000, 3000)]),
+            ('groups', [to_global_id('Group', g) for g in (3000, 5000)]),
             ('notes', [to_global_id('Note', 1)]),
             ('requests', [to_global_id('Request', km) for km in
-                          (456, 345, 234, 123)]),
+                          (123, 234, 345, 456)]),
             # TODO: Add requests_connection test
             ('characters', [to_global_id('Character', c) for c in
-                            (2112311608, 570140137)]),
+                            (570140137, 2112311608)]),
         ),
         ids=('admin', 'groups', 'notes', 'requests', 'characters')
     )
     def test_user(self, graphql_client, attribute, value):
         node_id = to_global_id('User', 9)
         if isinstance(value, collections.Sequence):
-            expected = set(value)
             query = '''
             query getUser($nodeID: ID!) {
                 node(id: $nodeID) {
@@ -130,7 +129,6 @@ class TestNode(object):
             }
             ''' % attribute
         else:
-            expected = value
             query = '''
             query getUser($nodeID: ID!) {
                 node(id: $nodeID) {
@@ -145,17 +143,16 @@ class TestNode(object):
             query,
             variable_values={'nodeID': node_id}
         )
-        # Do some silliness to compare things without respect to order
         if isinstance(value, collections.Sequence):
             assert 'data' in result
-            ids = {v['id'] for v in result['data']['node'][attribute]}
-            assert ids == expected
+            ids = [v['id'] for v in result['data']['node'][attribute]]
+            assert ids == value
         else:
             assert result == {
                 'data': {
                     'node': {
                         'id': node_id,
-                        attribute: expected,
+                        attribute: value,
                     }
                 }
             }
@@ -313,7 +310,7 @@ class TestNode(object):
             ('timestamp',
              dt.datetime(2016, 3, 28, 2, 32, 50, tzinfo=utc).isoformat()),
             ('url', 'https://zkillboard.com/kill/52861733/'),
-            ('requests', {to_global_id('Request', rid) for rid in (123, 456)}),
+            ('requests', [to_global_id('Request', rid) for rid in (123, 456)]),
         ),
         ids=('killmail_id', 'user', 'character', 'corporation', 'alliance',
              'system', 'constellation', 'region', 'type', 'timestamp', 'url',
@@ -321,7 +318,7 @@ class TestNode(object):
     )
     def test_killmail(self, graphql_client, attribute, value):
         node_id = to_global_id('Killmail', 52861733)
-        if isinstance(value, (dict, set)):
+        if isinstance(value, (dict, list)):
             if isinstance(value, dict):
                 fields = ' '.join(value.keys())
             else:
@@ -353,9 +350,9 @@ class TestNode(object):
             query,
             variable_values={'nodeID': node_id}
         )
-        if isinstance(value, set):
+        if isinstance(value, list):
             assert 'data' in result
-            result_ids = {r['id'] for r in result['data']['node'][attribute]}
+            result_ids = [r['id'] for r in result['data']['node'][attribute]]
             assert result_ids == value
         else:
             assert result == {

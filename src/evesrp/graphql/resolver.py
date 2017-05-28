@@ -266,8 +266,10 @@ class Resolver(object):
         return model.admin
 
     def resolve_user_field_groups(self, source, args, context, info):
-        return [types.Group.from_model(g)
-                for g in self.store.get_groups(source.id)]
+        group_models = self.store.get_groups(source.id)
+        group_ids = [g.id_ for g in group_models]
+        group_ids.sort()
+        return [types.Group(id=gid) for gid in group_ids]
 
     def resolve_user_field_notes(self, source, args, context, info):
         return [types.Note.from_model(n)
@@ -276,6 +278,8 @@ class Resolver(object):
     def resolve_user_field_requests(self, source, args, context, info):
         search = search_filter.Search()
         search.add('user_id', source.id)
+        # TODO: sorting on request_id is broken
+        search.set_sort('request_id')
         request_models = self.store.filter_requests(search)
         return [types.Request.from_model(r) for r in request_models]
 
@@ -291,7 +295,9 @@ class Resolver(object):
 
     def resolve_user_field_characters(self, source, args, context, info):
         character_models = self.store.get_characters(source.id)
-        return [types.Character.from_model(c) for c in character_models]
+        character_ids = [c.id_ for c in character_models]
+        character_ids.sort()
+        return [types.Character(id=cid) for cid in character_ids]
 
     # Group
 
@@ -450,4 +456,6 @@ class Resolver(object):
 
     def resolve_killmail_field_requests(self, source, args, context, info):
         request_models = self.store.get_requests(source.id)
-        return [types.Request(id=r.id_) for r in request_models]
+        request_ids = [r.id_ for r in request_models]
+        request_ids.sort()
+        return [types.Request(id=rid) for rid in request_ids]
