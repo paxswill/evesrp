@@ -1,3 +1,4 @@
+import collections
 import datetime as dt
 from decimal import Decimal
 import functools
@@ -159,9 +160,10 @@ class MemoryStore(CachingCcpStore, BaseStore):
             'type_': set(),
         }
         for key in six.iterkeys(filter_sets):
-            if isinstance(kwargs.get(key), (int, models.PermissionType)):
+            arg_value = kwargs.get(key)
+            if isinstance(arg_value, (int, models.PermissionType)):
                 filter_sets[key].add(kwargs[key])
-            elif key in kwargs:
+            elif isinstance(arg_value, collections.Iterable):
                 filter_sets[key].update(kwargs[key])
 
         def filter_func(perm):
