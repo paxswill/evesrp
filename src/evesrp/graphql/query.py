@@ -63,7 +63,7 @@ class Query(graphene.ObjectType):
     )
 
     notes = graphene.Field(
-        graphene.List(types.Note),
+        graphene.NonNull(graphene.List(types.Note)),
         subject_id=graphene.Argument(
             graphene.ID,
             required=True

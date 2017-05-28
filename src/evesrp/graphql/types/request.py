@@ -56,19 +56,20 @@ class Killmail(graphene.ObjectType):
 
     @classmethod
     def from_model(cls, model):
-        user = evesrp.graphql.types.User(id=model.user_id)
-        character = Character(id=model.character_id)
-        return cls(id=model.id_,
-                   user=user,
-                   character=character,
-                   corporation_id=model.corporation_id,
-                   alliance_id=model.alliance_id,
-                   system_id=model.system_id,
-                   constellation_id=model.constellation_id,
-                   region_id=model.region_id,
-                   type_id=model.type_id,
-                   timestamp=model.timestamp,
-                   url=model.url)
+        args = {
+            'id': model.id_,
+            'user': evesrp.graphql.types.User(id=model.user_id),
+            'character': Character(id=model.character_id),
+        }
+        for attribute in ('corporation', 'system', 'constellation', 'region',
+                      'type'):
+            ccp_id = getattr(model, attribute + '_id')
+            args[attribute] = ccp.CcpType(id=ccp_id)
+        if model.alliance_id is not None:
+            args['alliance'] = ccp.CcpType(id=model.alliance_id)
+        for attribute in ('timestamp', 'url'):
+            args[attribute] = getattr(model, attribute)
+        return cls(**args)
 
 
 ActionType = graphene.Enum.from_enum(models.ActionType)

@@ -289,3 +289,98 @@ def test_permissions(graphql_client, permission_filter, expected_indexes):
     permission_tuples = {to_tuple(p) for p in result['data']['permissions']}
     assert permission_tuples == expected_permission_tuples
 
+
+@pytest.mark.parametrize(
+    'user_id,expect_notes',
+    (
+        (to_global_id('User', 9), True),
+        # User 7 is chosen as it was the submitter for the test note about User
+        # 9
+        (to_global_id('User', 7), False),
+    ),
+    ids=('notes', 'no_notes')
+)
+def test_get_notes(graphql_client, user_id, expect_notes):
+    query = '''
+    query getNotes($subjectID: ID!) {
+        notes(subjectId: $subjectID) {
+            id
+        }
+    }
+    '''
+    result = graphql_client.execute(query,
+                                    variable_values={'subjectID': user_id})
+    if expect_notes:
+        notes = [
+            {
+                'id': to_global_id('Note', 1)
+            }
+        ]
+    else:
+        notes = []
+    assert result == {
+        'data': {
+            'notes': notes,
+        }
+    }
+
+
+@pytest.mark.parametrize('valid_id', (True, False),
+                         ids=('valid_id', 'invalid_id'))
+def test_get_ccp_character(graphql_client, valid_id):
+    if valid_id:
+        ccp_id = 570140137
+    else:
+        ccp_id = 0
+    query = '''
+    query getCharacter($ccpID: Int!) {
+        character(ccpId: $ccpID) {
+            id
+            name
+        }
+    }
+    '''
+    result = graphql_client.execute(query, variable_values={'ccpID': ccp_id})
+    if valid_id:
+        character = {
+            'id': to_global_id('Character', 570140137),
+            'name': u'Paxswill',
+        }
+    else:
+        character = None
+    assert result == {
+        'data': {
+            'character': character,
+        }
+    }
+
+
+
+@pytest.mark.parametrize('valid_id', (True, False),
+                         ids=('valid_id', 'invalid_id'))
+def test_get_ccp_killmail(graphql_client, valid_id):
+    if valid_id:
+        ccp_id = 52861733
+    else:
+        ccp_id = 0
+    query = '''
+    query getKillmail($ccpID: Int!) {
+        killmail(ccpId: $ccpID) {
+            id
+            url
+        }
+    }
+    '''
+    result = graphql_client.execute(query, variable_values={'ccpID': ccp_id})
+    if valid_id:
+        killmail = {
+            'id': to_global_id('Killmail', 52861733),
+            'url': u'https://zkillboard.com/kill/52861733/',
+        }
+    else:
+        killmail = None
+    assert result == {
+        'data': {
+            'killmail': killmail,
+        }
+    }

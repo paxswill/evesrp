@@ -146,7 +146,7 @@ class Resolver(object):
                 for n in self.store.get_notes(subject_id)]
 
     def resolve_query_field_character(self, source, args, context, info):
-        ccp_id = args['ccpId']
+        ccp_id = args['ccp_id']
         try:
             character_model = self.store.get_character(ccp_id)
         except storage.NotFoundError:
@@ -155,7 +155,7 @@ class Resolver(object):
             return types.Character.from_model(character_model)
 
     def resolve_query_field_killmail(self, source, args, context, info):
-        ccp_id = args['ccpId']
+        ccp_id = args['ccp_id']
         try:
             killmail_model = self.store.get_killmail(ccp_id)
         except storage.NotFoundError:
