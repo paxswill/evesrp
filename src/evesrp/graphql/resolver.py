@@ -112,23 +112,33 @@ class Resolver(object):
         entity_id = self._check_id(args['entity_id'], ['Entity', 'User',
                                                        'Group'])
         division_id = self._check_id(args['division_id'], 'Division')
-        permission_type = args['permission_type']
+        permission_type = models.PermissionType[args['permission_type']]
         permissions = list(self.store.get_permissions(
             entity_id=entity_id, division_id=division_id,
-            permission_type=permission_type))
+            type_=permission_type))
         if not permissions:
             return None
         return types.Permission.from_model(permissions[0])
 
     def resolve_query_field_permissions(self, source, args, context, info):
-        entity_id = self._check_id(args['entity_id'], ['Entity', 'User',
-                                                       'Group'])
-        division_id = self._check_id(args['division_id'], 'Division')
-        permission_type = args['permission_type']
-        return [types.Permission.from_model(p)
-                for p in self.store.get_permissions(
-                        entity_id=entity_id, division_id=division_id,
-                        permission_type=permission_type)]
+        entity_ids = args.get('entity_ids')
+        if entity_ids is not None:
+            entity_ids = [self._check_id(eid, ['Entity', 'User', 'Group'])
+                          for eid in entity_ids]
+        division_ids = args.get('division_ids')
+        if division_ids is not None:
+            division_ids = [self._check_id(did, 'Division')
+                            for did in division_ids]
+        permission_types = args.get('permission_types')
+        if permission_types is not None:
+            permission_types = [models.PermissionType[p]
+                                for p in permission_types]
+        permissions = list(self.store.get_permissions(
+            entity_id=entity_ids,
+            division_id=division_ids,
+            type_=permission_types
+        ))
+        return [types.Permission.from_model(p) for p in permissions]
 
     def resolve_query_field_notes(self, source, args, context, info):
         subject_id = self._check_id(args['subject_id'], 'User')

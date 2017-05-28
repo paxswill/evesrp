@@ -51,14 +51,14 @@ class Query(graphene.ObjectType):
 
     permissions = graphene.Field(
         graphene.List(types.Permission),
-        entity_id=graphene.Argument(
-            graphene.ID
+        entity_ids=graphene.Argument(
+            graphene.List(graphene.NonNull(graphene.ID))
         ),
-        division_id=graphene.Argument(
-            graphene.ID
+        division_ids=graphene.Argument(
+            graphene.List(graphene.NonNull(graphene.ID))
         ),
-        permission_type=graphene.Argument(
-            types.PermissionType
+        permission_types=graphene.Argument(
+            graphene.List(graphene.NonNull(types.PermissionType))
         )
     )
 
