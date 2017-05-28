@@ -55,11 +55,10 @@ def test_identity(graphql_client, provider_uuid, key, type_name, entity_id):
     }
 
 
-
 @pytest.mark.parametrize(
     'group_id,expected_user_ids',
     (
-        (None, (9, 2, 7)),
+        (None, (2, 7, 9)),
         (to_global_id('Group', 3000), (9, )),
         (to_global_id('Group', 5000), (2, 9)),
     ),
@@ -75,9 +74,36 @@ def test_users(graphql_client, group_id, expected_user_ids):
     '''
     result = graphql_client.execute(query,
                                     variable_values={'groupID': group_id})
-    assert 'data' in result
-    ids = {user['id'] for user in result['data']['users']}
-    expected_relay_ids = {to_global_id('User', uid) for uid in
-                          expected_user_ids}
-    assert ids == expected_relay_ids
+    users = [{'id': to_global_id('User', uid)} for uid in expected_user_ids]
+    assert result == {
+        'data': {
+            'users': users
+        }
+    }
+
+
+@pytest.mark.parametrize(
+    'user_id,expected_group_ids',
+    (
+        (None, (3000, 4000, 5000, 6000)),
+        (to_global_id('User', 2), (4000, 5000)),
+    ),
+    ids=('all_groups', 'users_groups')
+)
+def test_groups(graphql_client, user_id, expected_group_ids):
+    query = '''
+    query getGroups($userID: ID) {
+        groups(userId: $userID) {
+            id
+        }
+    }
+    '''
+    result = graphql_client.execute(query,
+                                    variable_values={'userID': user_id})
+    groups = [{'id': to_global_id('Group', gid)} for gid in expected_group_ids]
+    assert result == {
+        'data': {
+            'groups': groups
+        }
+    }
 

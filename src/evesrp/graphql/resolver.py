@@ -91,15 +91,17 @@ class Resolver(object):
         group_id = args.get('group_id')
         if group_id is not None:
             group_id = self._check_id(group_id, 'Group')
-        return [types.User.from_model(u)
-                for u in self.store.get_users(group_id)]
+        user_ids = [u.id_ for u in self.store.get_users(group_id)]
+        user_ids.sort()
+        return [types.User(id=uid) for uid in user_ids]
 
     def resolve_query_field_groups(self, source, args, context, info):
         user_id = args.get('user_id')
         if user_id is not None:
             user_id = self._check_id(user_id, 'User')
-        return [types.Group.from_model(g)
-                for g in self.store.get_groups(user_id)]
+        group_ids = [g.id_ for g in self.store.get_groups(user_id)]
+        group_ids.sort()
+        return [types.Group(id=gid) for gid in group_ids]
 
     def resolve_query_field_divisions(self, source, args, context, info):
         return [types.Division.from_model(d)
