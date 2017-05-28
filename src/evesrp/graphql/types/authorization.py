@@ -78,7 +78,7 @@ class GroupIdentity(graphene.ObjectType):
     class Meta(object):
         interfaces = (Identity, )
 
-    group = Group()
+    group = graphene.Field(Group)
 
 
 class IdentityUnion(graphene.Union):

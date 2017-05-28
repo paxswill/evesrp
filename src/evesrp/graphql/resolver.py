@@ -1,11 +1,12 @@
 import base64
 import itertools
+import uuid
 
 from graphql_relay import from_global_id
 import six
 
 from evesrp import new_models as models
-from evesrp import search_filter
+from evesrp import search_filter, storage
 from . import types
 
 
@@ -52,15 +53,15 @@ class Resolver(object):
     # resolvers.
 
     def resolve_query_field_identity(self, source, args, context, info):
-        uuid = args['uuid']
+        provider_uuid = uuid.UUID(args['uuid'])
         key = args['key']
         identity_kwargs = {}
         try:
-            identity = self.store.get_authn_user(uuid, key)
+            identity = self.store.get_authn_user(provider_uuid, key)
             identity_kwargs['user'] = types.User(id=identity.user_id)
             IdentityType = types.UserIdentity
         except storage.NotFoundError:
-            identity = self.store.get_authn_group(uuid, key)
+            identity = self.store.get_authn_group(provider_uuid, key)
             identity_kwargs['group'] = types.Group(id=identity.group_id)
             IdentityType = types.GroupIdentity
         identity_kwargs.update(
