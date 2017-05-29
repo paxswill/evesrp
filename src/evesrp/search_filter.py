@@ -120,7 +120,9 @@ class Search(object):
     def __eq__(self, other):
         if not isinstance(other, Search):
             return NotImplemented
-        return self._filters == other._filters
+        return self._filters == other._filters and \
+            self.sort_fields == other.sort_fields and \
+            self.sort_orders == other.sort_orders
 
     def __repr__(self):
         def set_repr(a_set):
