@@ -125,6 +125,9 @@ class Permission(graphene.ObjectType):
         assert permission_type is not None
         return cls(permission=permission_type,
                    division=Division(id=model.division_id),
+                   # NOTE: This is not a real resolution, look at
+                   # Resolver.resolve_permission_field_entity for the rest of
+                   # the resolution.
                    entity=model.entity_id)
 
 

@@ -119,6 +119,8 @@ class Resolver(object):
         if not permissions:
             return None
         permission = next(permissions)
+        # NOTE: Permission.entity is resolved the rest of the way in
+        # Resolve.resolve_permission_field_entity
         return types.Permission.from_model(permission)
 
     def resolve_query_field_permissions(self, source, args, context, info):
@@ -139,6 +141,8 @@ class Resolver(object):
             division_id=division_ids,
             type_=permission_types
         ))
+        # NOTE: Permission.entity is resolved the rest of the way in
+        # Resolve.resolve_permission_field_entity
         return [types.Permission.from_model(p) for p in permissions]
 
     def resolve_query_field_notes(self, source, args, context, info):
