@@ -158,6 +158,14 @@ def test_permission(graphql_client, permission_args, is_present):
         permission(entityId: $entityID, divisionId: $divisionID,
                    permissionType: $permission) {
             permission
+            entity {
+                ... on Node {
+                    id
+                }
+            }
+            division {
+                id
+            }
         }
     }
     '''
@@ -172,7 +180,11 @@ def test_permission(graphql_client, permission_args, is_present):
     assert 'data' in result
     permission = result['data']['permission']
     if is_present:
-        assert permission is not None
+        assert permission == {
+            'division': {'id': permission_args['division_id']},
+            'entity': {'id': permission_args['entity_id']},
+            'permission': permission_args['type_']
+        }
     else:
         assert permission is None
 

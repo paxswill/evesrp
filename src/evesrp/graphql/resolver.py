@@ -113,12 +113,13 @@ class Resolver(object):
                                                        'Group'])
         division_id = self._check_id(args['division_id'], 'Division')
         permission_type = models.PermissionType(args['permission_type'])
-        permissions = list(self.store.get_permissions(
+        permissions = self.store.get_permissions(
             entity_id=entity_id, division_id=division_id,
-            type_=permission_type))
+            type_=permission_type)
         if not permissions:
             return None
-        return types.Permission.from_model(permissions[0])
+        permission = next(permissions)
+        return types.Permission.from_model(permission)
 
     def resolve_query_field_permissions(self, source, args, context, info):
         entity_ids = args.get('entity_ids')
