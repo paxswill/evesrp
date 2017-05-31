@@ -150,7 +150,7 @@ class Request(util.IdEquality, util.FieldsAccess, util.GetItemAttribute):
     field_types = {
         'request_id': util.FieldType.app_id,
         'details': util.FieldType.text,
-        # Techinically killmail_id is defined by CCP, but it's used in the
+        # Technically killmail_id is defined by CCP, but it's used in the
         # context of util.FieldType to mean something we're using to link to an
         # entry in the app's database.
         'killmail_id': util.FieldType.app_id,
