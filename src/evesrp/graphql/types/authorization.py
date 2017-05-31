@@ -56,6 +56,12 @@ class Group(graphene.ObjectType):
         return cls(id=model.id_, name=model.name)
 
 
+class UserGroupUnion(graphene.Union):
+
+    class Meta(object):
+        types = (User, Group)
+
+
 class Identity(graphene.Interface):
 
     provider_uuid = graphene.ID(required=True)
@@ -107,7 +113,7 @@ class Permission(graphene.ObjectType):
 
     permission = PermissionType()
 
-    entity = graphene.NonNull(Entity)
+    entity = graphene.NonNull(UserGroupUnion)
 
     division = graphene.NonNull(Division)
 
