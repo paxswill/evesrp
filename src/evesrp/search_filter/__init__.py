@@ -1,0 +1,1 @@
+from .predicate import PredicateType
