@@ -11,6 +11,205 @@ from evesrp import new_models as models
 from evesrp import search_filter as sfilter
 
 
+class TestPredicateType(object):
+
+    @pytest.fixture(params=list(sfilter.PredicateType),
+                    ids=lambda p: p.name)
+    def left(self, request):
+        return request.param
+
+    @pytest.fixture(params=list(sfilter.PredicateType),
+                    ids=lambda p: p.name)
+    def right(self, request):
+        return request.param
+
+    def test_or_equivalence(self, left, right):
+        # Test that the various different ways to OR two operands are
+        # equivalent (ordering, function vs operator).
+        function_left = left.add_or(right)
+        function_right = right.add_or(left)
+        operator_left = left | right
+        operator_right = right | left
+        assert function_left == function_right
+        assert operator_left == operator_right
+        assert function_left == operator_left
+
+    def test_and_equivalence(self, left, right):
+        # Same as test_or_equivalence but for AND
+        function_left = left.add_and(right)
+        function_right = right.add_and(left)
+        operator_left = left & right
+        operator_right = right & left
+        assert function_left == function_right
+        assert operator_left == operator_right
+        assert function_left == operator_left
+
+    def test_or_results(self, left, right):
+        # I am explicitly rewriting the big dict from the add_or method as a
+        # series of if-elif-else statements to ensure everything is right (and
+        # to hopefully avoid any copy-paste errors. Basically, I'm rewriting a
+        # truth-table as a big block of if-else
+        if left == sfilter.PredicateType.greater:
+            if right == sfilter.PredicateType.greater:
+                assert left | right == sfilter.PredicateType.greater
+            elif right == sfilter.PredicateType.less:
+                assert left | right == sfilter.PredicateType.not_equal
+            elif right == sfilter.PredicateType.equal:
+                assert left | right == sfilter.PredicateType.greater_equal
+            elif right == sfilter.PredicateType.not_equal:
+                assert left | right == sfilter.PredicateType.not_equal
+            elif right == sfilter.PredicateType.greater_equal:
+                assert left | right == sfilter.PredicateType.greater_equal
+            elif right == sfilter.PredicateType.less_equal:
+                assert left | right == None
+        elif left == sfilter.PredicateType.less:
+            if right == sfilter.PredicateType.greater:
+                assert left | right == sfilter.PredicateType.not_equal
+            elif right == sfilter.PredicateType.less:
+                assert left | right == sfilter.PredicateType.less
+            elif right == sfilter.PredicateType.equal:
+                assert left | right == sfilter.PredicateType.less_equal
+            elif right == sfilter.PredicateType.not_equal:
+                assert left | right == sfilter.PredicateType.not_equal
+            elif right == sfilter.PredicateType.greater_equal:
+                assert left | right == None
+            elif right == sfilter.PredicateType.less_equal:
+                assert left | right == sfilter.PredicateType.less_equal
+        elif left == sfilter.PredicateType.equal:
+            if right == sfilter.PredicateType.greater:
+                assert left | right == sfilter.PredicateType.greater_equal
+            elif right == sfilter.PredicateType.less:
+                assert left | right == sfilter.PredicateType.less_equal
+            elif right == sfilter.PredicateType.equal:
+                assert left | right == sfilter.PredicateType.equal
+            elif right == sfilter.PredicateType.not_equal:
+                assert left | right == None
+            elif right == sfilter.PredicateType.greater_equal:
+                assert left | right == sfilter.PredicateType.greater_equal
+            elif right == sfilter.PredicateType.less_equal:
+                assert left | right == sfilter.PredicateType.less_equal
+        elif left == sfilter.PredicateType.not_equal:
+            if right == sfilter.PredicateType.greater:
+                assert left | right == sfilter.PredicateType.not_equal
+            elif right == sfilter.PredicateType.less:
+                assert left | right == sfilter.PredicateType.not_equal
+            elif right == sfilter.PredicateType.equal:
+                assert left | right == None
+            elif right == sfilter.PredicateType.not_equal:
+                assert left | right == sfilter.PredicateType.not_equal
+            elif right == sfilter.PredicateType.greater_equal:
+                assert left | right == None
+            elif right == sfilter.PredicateType.less_equal:
+                assert left | right == None
+        elif left == sfilter.PredicateType.greater_equal:
+            if right == sfilter.PredicateType.greater:
+                assert left | right == sfilter.PredicateType.greater_equal
+            elif right == sfilter.PredicateType.less:
+                assert left | right == None
+            elif right == sfilter.PredicateType.equal:
+                assert left | right == sfilter.PredicateType.greater_equal
+            elif right == sfilter.PredicateType.not_equal:
+                assert left | right == None
+            elif right == sfilter.PredicateType.greater_equal:
+                assert left | right == sfilter.PredicateType.greater_equal
+            elif right == sfilter.PredicateType.less_equal:
+                assert left | right == None
+        elif left == sfilter.PredicateType.less_equal:
+            if right == sfilter.PredicateType.greater:
+                assert left | right == None
+            elif right == sfilter.PredicateType.less:
+                assert left | right == sfilter.PredicateType.less_equal
+            elif right == sfilter.PredicateType.equal:
+                assert left | right == sfilter.PredicateType.less_equal
+            elif right == sfilter.PredicateType.not_equal:
+                assert left | right == None
+            elif right == sfilter.PredicateType.greater_equal:
+                assert left | right == None
+            elif right == sfilter.PredicateType.less_equal:
+                assert left | right == sfilter.PredicateType.less_equal
+
+    def test_and_results(self, left, right):
+        # Again, rewriting a truth table as an if-else block.
+        if left == sfilter.PredicateType.greater:
+            if right == sfilter.PredicateType.greater:
+                assert left & right == sfilter.PredicateType.greater
+            elif right == sfilter.PredicateType.less:
+                assert left & right == None
+            elif right == sfilter.PredicateType.equal:
+                assert left & right == None
+            elif right == sfilter.PredicateType.not_equal:
+                assert left & right == sfilter.PredicateType.greater
+            elif right == sfilter.PredicateType.greater_equal:
+                assert left & right == sfilter.PredicateType.greater
+            elif right == sfilter.PredicateType.less_equal:
+                assert left & right == None
+        elif left == sfilter.PredicateType.less:
+            if right == sfilter.PredicateType.greater:
+                assert left & right == None
+            elif right == sfilter.PredicateType.less:
+                assert left & right == sfilter.PredicateType.less
+            elif right == sfilter.PredicateType.equal:
+                assert left & right == None
+            elif right == sfilter.PredicateType.not_equal:
+                assert left & right == sfilter.PredicateType.less
+            elif right == sfilter.PredicateType.greater_equal:
+                assert left & right == None
+            elif right == sfilter.PredicateType.less_equal:
+                assert left & right == sfilter.PredicateType.less
+        elif left == sfilter.PredicateType.equal:
+            if right == sfilter.PredicateType.greater:
+                assert left & right == None
+            elif right == sfilter.PredicateType.less:
+                assert left & right == None
+            elif right == sfilter.PredicateType.equal:
+                assert left & right == sfilter.PredicateType.equal
+            elif right == sfilter.PredicateType.not_equal:
+                assert left & right == None
+            elif right == sfilter.PredicateType.greater_equal:
+                assert left & right == sfilter.PredicateType.equal
+            elif right == sfilter.PredicateType.less_equal:
+                assert left & right == sfilter.PredicateType.equal
+        elif left == sfilter.PredicateType.not_equal:
+            if right == sfilter.PredicateType.greater:
+                assert left & right == sfilter.PredicateType.greater
+            elif right == sfilter.PredicateType.less:
+                assert left & right == sfilter.PredicateType.less
+            elif right == sfilter.PredicateType.equal:
+                assert left & right == None
+            elif right == sfilter.PredicateType.not_equal:
+                assert left & right == sfilter.PredicateType.not_equal
+            elif right == sfilter.PredicateType.greater_equal:
+                assert left & right == sfilter.PredicateType.greater
+            elif right == sfilter.PredicateType.less_equal:
+                assert left & right == sfilter.PredicateType.less
+        elif left == sfilter.PredicateType.greater_equal:
+            if right == sfilter.PredicateType.greater:
+                assert left & right == sfilter.PredicateType.greater
+            elif right == sfilter.PredicateType.less:
+                assert left & right == None
+            elif right == sfilter.PredicateType.equal:
+                assert left & right == sfilter.PredicateType.equal
+            elif right == sfilter.PredicateType.not_equal:
+                assert left & right == sfilter.PredicateType.greater
+            elif right == sfilter.PredicateType.greater_equal:
+                assert left & right == sfilter.PredicateType.greater_equal
+            elif right == sfilter.PredicateType.less_equal:
+                assert left & right == sfilter.PredicateType.equal
+        elif left == sfilter.PredicateType.less_equal:
+            if right == sfilter.PredicateType.greater:
+                assert left & right == None
+            elif right == sfilter.PredicateType.less:
+                assert left & right == sfilter.PredicateType.less
+            elif right == sfilter.PredicateType.equal:
+                assert left & right == sfilter.PredicateType.equal
+            elif right == sfilter.PredicateType.not_equal:
+                assert left & right == sfilter.PredicateType.less
+            elif right == sfilter.PredicateType.greater_equal:
+                assert left & right == sfilter.PredicateType.equal
+            elif right == sfilter.PredicateType.less_equal:
+                assert left & right == sfilter.PredicateType.less_equal
+
+
 @pytest.mark.parametrize('initial_values', (None, {'division_id': {0, }}))
 @pytest.mark.parametrize('additional_kwargs', ({}, {'division_id': {1, }}))
 def test_filter_init(initial_values, additional_kwargs):
