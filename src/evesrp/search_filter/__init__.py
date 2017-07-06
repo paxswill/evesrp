@@ -1,3 +1,3 @@
 from .predicate import PredicateType
-from .filters import (InvalidFilterKeyError, InvalidFilterValueError, Search,
-                      SortDirection)
+from .filters import (InvalidFilterKeyError, InvalidFilterValueError,
+                      InvalidFilterPredicateError, Search, SortDirection)

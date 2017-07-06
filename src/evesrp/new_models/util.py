@@ -78,12 +78,31 @@ class FieldsAccess(object):
 
 
 class FieldType(enum.Enum):
+    """A way to classify which fields on models are able to be filtered, and
+    how to filter them.
+
+    Model classes that support filtering (at this time, just
+    :py:class:`~.Killmail` and :py:class:`~.Request`\) declare a
+    `field_types` mapping of string field names to
+    :py:class:`FieldType`\s.
+
+    If the model class also supports sorting on fields, those are declared in 
+    a `sorts` attribute consisting of an iterable of field names. All
+    of the field names must be present in the `field_types` mapping,
+    with one exception: sorting field names of the form `foo_name` are
+    allowed when there is an actual field name `foo_id` of the type
+    :py:attr:`ccp_id`\.
+    """
 
     integer = 0
     """For fields that store an integer with no further restrictions."""
 
     datetime = 1
-    """For fields that store a date and time."""
+    """For fields that store a date and time.
+    
+    Filtering on these fields is done by specifying a range with a starting and
+    and ending timestamp.
+    """
 
     decimal = 2
     """For fields that hold a decimal value."""
@@ -97,15 +116,64 @@ class FieldType(enum.Enum):
     """
 
     ccp_id = 5
-    """For integer fields referring to a CCP defined ID number."""
+    """For integer fields referring to a CCP defined ID number.
+
+    As an ID, filtering on this type is exact only.
+    """
 
     app_id = 6
     """For integer fields referrring to an ID for an item in this app's
     database.
+
+    Like :py:attr:`ccp_id`\, fields of this type are filtered by exact matches
+    only.
     """
 
     status = 7
-    """For fields referring to an :py:class:`~.ActionType`."""
+    """For fields referring to an :py:class:`~.ActionType`.
+
+    Again, exact match filtering only.
+    """
 
     url = 8
     """For string fields referring to a URL."""
+
+    @classproperty
+    def exact_types(cls):
+        """These field types only support filtering for exact values."""
+        return frozenset((
+            cls.ccp_id,
+            cls.app_id,
+            cls.status,
+            cls.string
+        ))
+
+    @classproperty
+    def range_types(cls):
+        """These field types support complex comparisons when filtering.
+
+        Complex comparisons are things like less than or greater than.
+        """
+        return frozenset((
+            cls.integer,
+            cls.datetime,
+            cls.decimal
+        ))
+
+    @classproperty
+    def integer_types(cls):
+        """Covers all types that are integers, no matter the semantics."""
+        return frozenset((
+            cls.integer,
+            cls.ccp_id,
+            cls.app_id
+        ))
+
+    @classproperty
+    def string_types(cls):
+        """Covers all types that are strings, no matter the semantics."""
+        return frozenset((
+            cls.string,
+            cls.text,
+            cls.url
+        ))

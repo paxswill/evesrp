@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
 import enum
+import operator
 from evesrp.util import classproperty
 
 
@@ -17,21 +18,29 @@ class PredicateType(enum.Enum):
 
     greater_equal = '>='
 
+    any = 'any'
+
+    none = 'none'
+
     @classproperty
     def exact_comparisons(cls):
-        return frozenset(
+        return frozenset((
             cls.equal,
             cls.not_equal
-        )
+        ))
 
     @classproperty
     def range_comparisons(cls):
-        return frozenset(
+        return frozenset((
             cls.less,
             cls.greater,
             cls.less_equal,
-            cls.greater_equal
-        )
+            cls.greater_equal,
+            # These were added in after the other members for allowable range
+            # comparisons.
+            cls.equal,
+            cls.not_equal
+        ))
 
 
     def add_or(self, other):
@@ -42,33 +51,37 @@ class PredicateType(enum.Enum):
         # spec
         elif not isinstance(other, PredicateType):
             return NotImplemented
+        elif PredicateType.any in (self, other):
+            return PredicateType.any
+        elif PredicateType.none == self:
+            return other
+        elif PredicateType.none == other:
+            return self
         else:
             # keys are sets (frozensets so they're hashable) of the two
             # operations we're ORing, and the value is the logical equivalent.
-            # None is a special vaue signifying all values are allowed, and the
-            # predicate can be dropped.
             or_results = {
-                # Start with the all cases
-                # = | ≠ ≡ all
+                # Start with the any cases
+                # = | ≠ ≡ any
                 frozenset((PredicateType.equal, PredicateType.not_equal)):
-                    None,
-                # ≥ | ≠ ≡ all
+                    PredicateType.any,
+                # ≥ | ≠ ≡ any
                 frozenset((PredicateType.greater_equal,
                            PredicateType.not_equal)):
-                    None,
-                # ≤ | ≠ ≡ all
+                    PredicateType.any,
+                # ≤ | ≠ ≡ any
                 frozenset((PredicateType.less_equal, PredicateType.not_equal)):
-                    None,
-                # ≥ | < ≡ all
+                    PredicateType.any,
+                # ≥ | < ≡ any
                 frozenset((PredicateType.greater_equal, PredicateType.less)):
-                    None,
-                # ≤ | > ≡ all
+                    PredicateType.any,
+                # ≤ | > ≡ any
                 frozenset((PredicateType.less_equal, PredicateType.greater)):
-                    None,
-                # ≥ | ≤ ≡ all
+                    PredicateType.any,
+                # ≥ | ≤ ≡ any
                 frozenset((PredicateType.greater_equal,
                            PredicateType.less_equal)):
-                    None,
+                    PredicateType.any,
                 # Now not-equal
                 # < | > ≡ ≠
                 frozenset((PredicateType.less, PredicateType.greater)):
@@ -113,6 +126,12 @@ class PredicateType(enum.Enum):
         # Again, conforming to the operator spec
         elif not isinstance(other, PredicateType):
             return NotImplemented
+        elif PredicateType.none in (self, other):
+            return PredicateType.none
+        elif PredicateType.any == self:
+            return other
+        elif PredicateType.any == other:
+            return self
         else:
             # Same structure as the or_results map in the add_or method, with
             # the exception that None in this case represents the null set (aka
@@ -120,20 +139,23 @@ class PredicateType(enum.Enum):
             and_results = {
                 # Start with the null cases
                 # > & < ≡ null
-                frozenset((PredicateType.greater, PredicateType.less)): None,
+                frozenset((PredicateType.greater, PredicateType.less)):
+                    PredicateType.none,
                 # > & = ≡ null
-                frozenset((PredicateType.greater, PredicateType.equal)): None,
+                frozenset((PredicateType.greater, PredicateType.equal)):
+                    PredicateType.none,
                 # ≤ & > ≡ null
                 frozenset((PredicateType.less_equal, PredicateType.greater)):
-                    None,
+                    PredicateType.none,
                 # < & = ≡ null
-                frozenset((PredicateType.less, PredicateType.equal)): None,
+                frozenset((PredicateType.less, PredicateType.equal)):
+                    PredicateType.none,
                 # < & ≥ ≡ null
                 frozenset((PredicateType.less, PredicateType.greater_equal)):
-                    None,
+                    PredicateType.none,
                 # = & ≠ ≡ null
                 frozenset((PredicateType.equal, PredicateType.not_equal)):
-                    None,
+                    PredicateType.none,
                 # Now equal
                 # ≥ & = ≡ =
                 frozenset((PredicateType.greater_equal,
@@ -173,3 +195,16 @@ class PredicateType(enum.Enum):
             return and_results[operands]
 
     __and__ = add_and
+
+    def operator(self, a, b):
+        operations = {
+            PredicateType.equal: operator.eq,
+            PredicateType.not_equal: operator.ne,
+            PredicateType.less: operator.lt,
+            PredicateType.greater: operator.gt,
+            PredicateType.less_equal: operator.le,
+            PredicateType.greater_equal: operator.ge,
+            PredicateType.any: lambda a, b: True,
+            PredicateType.none: lambda a, b: False,
+        }
+        return operations[self](a, b)

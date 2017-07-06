@@ -3,7 +3,7 @@ from decimal import Decimal
 import itertools
 
 import pytest
-from six.moves import zip
+import six
 
 from evesrp import new_models as models
 from evesrp import search_filter as sfilter
@@ -581,16 +581,37 @@ class CommonStorageTest(object):
 
     @pytest.fixture
     def search(self, search_filter, search_sort):
-        search = sfilter.Search(**search_filter)
+        search = sfilter.Search()
+        for field_name, values in six.iteritems(search_filter):
+            for value in values:
+                # Massage the pair of timestamps into a range 
+                if field_name.endswith('timestamp'):
+                    start, end = value
+                    search.add_filter(
+                        field_name, start,
+                        predicate=sfilter.PredicateType.greater_equal)
+                    search.add_filter(
+                        field_name, end,
+                        predicate=sfilter.PredicateType.less)
+                else:
+                    search.add_filter(field_name, value)
         if search_sort is not None:
-            search.set_sort(*search_sort[0])
-            for sort_item in search_sort[1:]:
-                search.add_sort(*sort_item)
+            for sort in search_sort:
+                search.add_sort(*sort)
+        else:
+            search.set_default_sort()
         return search
 
     @pytest.fixture
     def request_ids(self, search):
-        # First define the order
+        # First define the order. Keys are the sort fields, values are a map.
+        # The inner map is the direction for the sort fields (the key for the
+        # outer map). Both keys for the inner and outer map are tuples. The
+        # values for the inner map are 2-tuples, the first value being a sorted
+        # list of the request IDs, and the second value being a tuple or None.
+        # If None, the sorted request IDs have only one order. If it's a tuple,
+        # the tuple is a listing of the indexes where the order may be swapped
+        # around.
         order_map = {
             # This is the default sort
             ('status', 'request_timestamp'): {
@@ -624,24 +645,37 @@ class CommonStorageTest(object):
                 ),
             },
         }
-        sorted_ids, undefined_order = order_map[tuple(search.sort_fields)][
-            tuple(search.sort_orders)]
+        sorts = list(search.sorts)
+        sort_fields = [s[0] for s in sorts]
+        sort_orders = [s[1] for s in sorts]
+        sorted_ids, undefined_order = order_map[tuple(sort_fields)][
+            tuple(sort_orders)]
         # Now define which IDs are present
-        if len(search) == 0:
+        search_filters = list(search)
+        if len(search_filters) == 0:
+            # Empty filter, aka 'no_filter'
             filtered_ids = {123, 456, 789, 234, 345}
-        elif len(search) == 1:
+        elif len(search_filters) == 1:
             if 'character_id' in search:
+                # There are two tested filters using the character_id field
                 if len(search['character_id']) == 1:
+                    # 'single_character_id'
                     filtered_ids = {123, 456, 234, 345}
                 elif len(search['character_id']) == 2:
+                    # 'multiple_character_ids'
                     filtered_ids = {123, 456, 789, 234, 345}
             elif 'details' in search:
+                # search_filter test id 'details'
                 filtered_ids = {456, 345}
             elif 'division_id' in search:
+                # 'single_division_id'
                 filtered_ids = {123, 345}
             elif 'killmail_timestamp' in search:
+                # 'single_killmail_timestamp'
                 filtered_ids = {234, 345}
-        elif len(search) == 2:
+        elif len(search_filters) == 2:
+            # The only tested filter with two fields is
+            # 'killmail_timestamp__type_id'
             filtered_ids = {234, 345}
         # Handle cases where the order is a little flexible/undefined
         if undefined_order is not None:
