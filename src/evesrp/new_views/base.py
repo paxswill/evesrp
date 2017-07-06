@@ -44,10 +44,13 @@ def request_count(permission_type):
         return 0
     store = flask.current_app.store
     user_permissions = flask_login.current_user.get_permissions(store)
-    division_ids = [perm[1] for perm in user_permissions
+    permission_tuples = map(lambda p: p.to_tuple(), user_permissions)
+    division_ids = [perm[1] for perm in permission_tuples
                     if perm[0] == permission_type]
-    search = search_filter.Search(status=statuses, division_id=division_ids)
+    search = search_filter.Search()
+    search.add_filter('status', *statuses)
+    search.add_filter('division_id', *division_ids)
     if permission_type == models.PermissionType.submit:
-        search.add('user_id', flask_login.current_user.user.id_)
+        search.add_filter('user_id', flask_login.current_user.user.id_)
     request_ids = set(store.filter_sparse(search, {'request_id', }))
     return len(request_ids)
