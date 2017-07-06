@@ -66,35 +66,35 @@ def browse_method(request):
 
 
 @pytest.fixture
-def expected_filter(user, browse_method, add_filter, is_admin, is_reviewer,
+def expected_search(user, browse_method, add_filter, is_admin, is_reviewer,
                     is_payer):
-    expected_filter = sfilter.Search()
+    expected_search = sfilter.Search()
     if browse_method == 'list_personal':
-        expected_filter.add('user_id', user.id_)
+        expected_search.add_filter('user_id', user.id_)
     elif browse_method == 'list_review':
-        expected_filter.add('status',
-                            models.ActionType.evaluating,
-                            models.ActionType.incomplete,
-                            models.ActionType.approved)
+        expected_search.add_filter('status',
+                                   models.ActionType.evaluating,
+                                   models.ActionType.incomplete,
+                                   models.ActionType.approved)
         if is_reviewer:
-            expected_filter.add('division_id', 100, 200)
+            expected_search.add_filter('division_id', 100, 200)
     elif browse_method == 'list_pay':
-        expected_filter.add('status', models.ActionType.approved)
+        expected_search.add_filter('status', models.ActionType.approved)
         if is_payer:
-            expected_filter.add('division_id', 200, 300)
+            expected_search.add_filter('division_id', 200, 300)
     elif browse_method == 'list_all':
         if not is_admin:
             if is_reviewer:
-                expected_filter.add('division_id', 100, 200)
+                expected_search.add_filter('division_id', 100, 200)
             if is_payer:
-                expected_filter.add('division_id', 200, 300)
+                expected_search.add_filter('division_id', 200, 300)
     if add_filter:
-        expected_filter.add('character_id', 570140137)
-    return expected_filter
+        expected_search.add_filter('character_id', 570140137)
+    return expected_search
 
 
 def test_browse_list(browse_store, add_filter, field_name, user,
-                     browse_method, expected_filter):
+                     browse_method, expected_search):
     browser = users.browse.BrowseActivity(browse_store, user)
     # Set up the browse store mock
     mock_requests = [
@@ -110,9 +110,9 @@ def test_browse_list(browse_store, add_filter, field_name, user,
     if field_name is not None:
         kwargs['fields'] = set((field_name,))
     if add_filter:
-        filters = sfilter.Search()
-        filters.add('character_id', 570140137)
-        kwargs['filters'] = filters
+        search = sfilter.Search()
+        search.add_filter('character_id', 570140137)
+        kwargs['search'] = search
     if field_name == 'character':
         with pytest.raises(users.InvalidFieldsError):
             results = list_method(**kwargs)
@@ -120,7 +120,7 @@ def test_browse_list(browse_store, add_filter, field_name, user,
         results = list_method(**kwargs)
         if field_name is None:
             browse_store.filter_requests.assert_called_once_with(
-                filters=expected_filter)
+                expected_search)
             browse_store.get_killmails.assert_called_once_with(
                 killmail_ids={10, 20, 30})
             assert results == {
@@ -129,5 +129,5 @@ def test_browse_list(browse_store, add_filter, field_name, user,
             }
         elif field_name == 'pilot':
             browse_store.filter_sparse.assert_called_once_with(
-                filters=expected_filter, fields=set(('pilot',)))
+                expected_search, set(('pilot',)))
             assert results == mock.sentinel.sparse_results
