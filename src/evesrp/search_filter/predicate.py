@@ -6,17 +6,17 @@ from evesrp.util import classproperty
 
 class PredicateType(enum.Enum):
 
-    equal = '='
+    equal = 'eq'
 
-    not_equal = '!='
+    not_equal = 'ne'
 
-    less = '<'
+    less = 'lt'
 
-    greater = '>'
+    greater = 'gt'
 
-    less_equal = '<='
+    less_equal = 'le'
 
-    greater_equal = '>='
+    greater_equal = 'ge'
 
     any = 'any'
 
