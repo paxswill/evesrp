@@ -231,9 +231,8 @@ class Resolver(object):
 
     def resolve_user_field_requests(self, source, args, context, info):
         search = search_filter.Search()
-        search.add('user_id', source.id)
-        # TODO: sorting on request_id is broken
-        search.set_sort('request_id')
+        search.add_filter('user_id', source.id)
+        search.add_sort('request_id')
         request_models = self.store.filter_requests(search)
         return [types.Request.from_model(r) for r in request_models]
 
