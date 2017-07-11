@@ -139,19 +139,19 @@ class TestSimpleCcpStore(object):
 
     @pytest.fixture(params=(
         {'character_id': 570140137},
-        {'character_id': 95189399},
+        {'character_id': 93260529},
         {'character_id': 2112390815},
         {'corporation_id': 1018389948},
-        {'corporation_id': 1000167},
+        {'corporation_id': 98261309},
         {'corporation_id': 1000166},
         {'corporation_id': 109299958},
         {'alliance_id': 434243723},
         {'alliance_id': 498125261},
         {'character_name': u'Paxswill'},
-        {'character_name': u'Iusia'},
+        {'character_name': u'Aimi Shihari'},
         {'character_name': u'Cpt Hector'},
         {'corporation_name': u'Dreddit'},
-        {'corporation_name': u'State War Academy'},
+        {'corporation_name': u'Such Corporation'},
         {'corporation_name': u'Imperial Academy'},
         {'corporation_name': u'C C P'},
         {'alliance_name': u'Test Alliance Please Ignore'},
@@ -173,9 +173,9 @@ class TestSimpleCcpStore(object):
             u'id': 1018389948,
             u'name': u'Dreddit',
         }
-        swa = {
-            u'id': 1000167,
-            u'name': u'State War Academy',
+        suchc = {
+            u'id': 98261309,
+            u'name': u'Such Corporation',
         }
         iac = {
             u'id': 1000166,
@@ -199,12 +199,12 @@ class TestSimpleCcpStore(object):
                     u'name': u'Paxswill',
                 },
             },
-            95189399: {
+            93260529: {
                 'alliance': None,
-                'corporation': swa,
+                'corporation': suchc,
                 'character': {
-                    u'id': 95189399,
-                    u'name': u'Iusia',
+                    u'id': 93260529,
+                    u'name': u'Aimi Shihari',
                 },
             },
             2112390815: {
@@ -220,8 +220,8 @@ class TestSimpleCcpStore(object):
                 'corporation': b0rt,
                 'alliance': test_alliance,
             },
-            swa[u'id']: {
-                'corporation': swa,
+            suchc[u'id']: {
+                'corporation': suchc,
                 'alliance': None,
             },
             iac[u'id']: {
