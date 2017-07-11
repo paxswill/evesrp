@@ -113,9 +113,9 @@ class Resolver(object):
                                                        'Group'])
         division_id = self._check_id(args['division_id'], 'Division')
         permission_type = models.PermissionType(args['permission_type'])
-        permissions = self.store.get_permissions(
+        permissions = iter(self.store.get_permissions(
             entity_id=entity_id, division_id=division_id,
-            type_=permission_type)
+            type_=permission_type))
         if not permissions:
             return None
         permission = next(permissions)
