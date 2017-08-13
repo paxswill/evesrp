@@ -247,6 +247,8 @@ class Search(object):
 
     @property
     def sorts(self):
+        """An iterator of 2-tuples of sort keys (strings) and directions.
+        """
         # Can be replaced by a yield from statement in Python >= 3.3
         for k, v in six.iteritems(self._sorts):
             yield (k, v)

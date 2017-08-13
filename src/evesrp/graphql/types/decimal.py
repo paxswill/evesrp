@@ -22,3 +22,6 @@ class Decimal(graphene.types.Scalar):
     @staticmethod
     def parse_value(value):
         return decimal.Decimal(value)
+
+    def __repr__(self):
+        return "types.Decimal({})".format(self.args[0])
