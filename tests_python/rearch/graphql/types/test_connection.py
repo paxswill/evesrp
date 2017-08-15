@@ -144,7 +144,8 @@ class TestSearchTypes(object):
                 '2016-10-31T00:00',
             ],
             'status': [
-                'evaluating',
+                # Graphene converts Enum values to ints
+                1,
             ],
             'payout__le': [
                 '90000000',

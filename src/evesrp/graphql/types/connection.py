@@ -7,7 +7,7 @@ import itertools
 import graphene
 import graphene.relay
 import graphene.types.datetime
-from graphene.utils.str_converters import to_camel_case
+from graphene.utils.str_converters import to_camel_case, to_snake_case
 import iso8601
 import six
 
@@ -191,8 +191,13 @@ def _output_search_from_input_search(cls, input_search):
     # Graphene input types passed in as arguments are plain old dictionaries
     # with the keys being the original, snake-case names.
     if input_search is not None:
+        # Because the Field names are being explicitly given in
+        # _create_request_search, we need to manually convert from CamelCase to
+        # snake_case.
+        converted_input = {to_snake_case(k): v for k, v in
+                           six.iteritems(input_search)}
         for field_name, attr_name in _all_field_names(True):
-            if attr_name in input_search:
+            if attr_name in converted_input:
                 try:
                     field_type = models.Request.field_types[field_name]
                 except KeyError:
@@ -206,17 +211,19 @@ def _output_search_from_input_search(cls, input_search):
                 # types before going further
                 if field_type == models.FieldType.datetime:
                     values = [iso8601.parse_date(v, default_timezone=None)
-                              for v in input_search[attr_name]]
+                              for v in converted_input[attr_name]]
                 elif field_type == models.FieldType.decimal:
                     values = [std_decimal.Decimal(v) for v in
-                              input_search[attr_name]]
+                              converted_input[attr_name]]
                 elif field_type == models.FieldType.status:
-                    values = [getattr(types_request.ActionType, v) for v in
-                              input_search[attr_name]]
+                    # Enum values are converted to ints, even when passed in as
+                    # string values.
+                    values = [types_request.ActionType.get(v) for v in
+                              converted_input[attr_name]]
                 else:
-                    values = input_search[attr_name]
+                    values = converted_input[attr_name]
                 setattr(output_search, attr_name, values)
-        if 'sorts' in input_search:
+        if 'sorts' in converted_input:
             output_search.sorts = [SortToken.from_dict(t) for t in
                                    input_search['sorts']]
     return output_search
