@@ -141,9 +141,7 @@ class Search(object):
     Sorting definitions are added using :py:meth:`add_sort`\. The first sort
     definition is used to sort the Requests, and if some requests have an
     identical value for that field, the next sort field is used for those
-    requests and so on and so forth. To ensure a stable sorting order for all
-    searches, an ascending sort on the Killmail ID and Request ID will be added
-    to all Searches.
+    requests and so on and so forth.
     """
 
     # _field_types is a local copy of the Request and Killmail field_types
@@ -252,6 +250,23 @@ class Search(object):
         # Can be replaced by a yield from statement in Python >= 3.3
         for k, v in six.iteritems(self._sorts):
             yield (k, v)
+
+    @property
+    def stable_sorts(self):
+        """Similar to :py:attr:`sorts`\, but ensures that the sorting order is
+        stable.
+
+        This is ensured by adding ascending sorts for on the killmail ID and
+        request ID if those fields are not already being sorted on.
+        """
+        # Again, could totally be a yield from if older Python versions were
+        # dropped from support.
+        for k, v in self.sorts:
+            yield (k, v)
+        # Ensure a stable sorting order
+        for field in ('killmail_id', 'request_id'):
+            if field not in self._sorts:
+                yield (field, SortDirection.ascending)
 
     # Filtering
 

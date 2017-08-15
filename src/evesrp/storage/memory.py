@@ -485,7 +485,7 @@ class MemoryStore(CachingCcpStore, BaseStore):
                 return getattr(obj, key)
 
         # Now sort the requests
-        for key, direction in reversed(list(filters.sorts)):
+        for key, direction in reversed(list(filters.stable_sorts)):
             key_func = functools.partial(sort_key, key=key)
             reversed_ = direction != search_filter.SortDirection.ascending
             requests_and_killmails.sort(key=key_func, reverse=reversed_)
