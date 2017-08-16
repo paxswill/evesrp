@@ -209,13 +209,7 @@ def _output_search_from_input_search(cls, input_search):
                         raise
                 # Some types of fields need to be converted to their actual
                 # types before going further
-                if field_type == models.FieldType.datetime:
-                    values = [iso8601.parse_date(v, default_timezone=None)
-                              for v in converted_input[attr_name]]
-                elif field_type == models.FieldType.decimal:
-                    values = [std_decimal.Decimal(v) for v in
-                              converted_input[attr_name]]
-                elif field_type == models.FieldType.status:
+                if field_type == models.FieldType.status:
                     # Enum values are converted to ints, even when passed in as
                     # string values.
                     values = [types_request.ActionType.get(v) for v in

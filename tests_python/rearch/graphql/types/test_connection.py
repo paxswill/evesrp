@@ -138,17 +138,20 @@ class TestSearchTypes(object):
             'request_id': [1, 2, 3],
             'request_id__ne': [4, 5, 6],
             'request_timestamp': [
-                '2017-07-04T00:00',
+                # If done properly, datetimes are silently converted for us by
+                # Graphene
+                dt.datetime(2017, 7, 4),
             ],
             'request_timestamp__gt': [
-                '2016-10-31T00:00',
+                dt.datetime(2016, 10, 31),
             ],
             'status': [
                 # Graphene converts Enum values to ints
                 1,
             ],
             'payout__le': [
-                '90000000',
+                # As with datetimes, Graphene converts to Decimals for us
+                decimal.Decimal('90000000'),
             ],
             'sorts': [
                 {
