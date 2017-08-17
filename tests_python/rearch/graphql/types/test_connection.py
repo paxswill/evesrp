@@ -25,8 +25,10 @@ def test_sort_key():
     # Peek into the meta variable to get the stdlib Enum because that supports
     # iteration unlike graphene's halfway implementation.
     names = {e.name for e in types.SortKey._meta.enum}
-    expected_names = set(models.Killmail.sorts)
-    expected_names.update(models.Request.sorts)
+    expected_names = {to_camel_case(k) for k in models.Killmail.sorts}
+    expected_names.update(
+        {to_camel_case(k) for k in models.Request.sorts}
+    )
     assert names == expected_names
 
 

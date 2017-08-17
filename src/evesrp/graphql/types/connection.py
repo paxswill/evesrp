@@ -32,7 +32,7 @@ _scalar_field_types = {
 
 def _create_sort_enum():
     """Create a GraphQL enumerated type for sorting keys."""
-    sorts = [(name, value) for value, name in enumerate(
+    sorts = [(to_camel_case(name), value) for value, name in enumerate(
         itertools.chain(models.Killmail.sorts, models.Request.sorts))]
     return graphene.Enum('SortKey', sorts)
 
