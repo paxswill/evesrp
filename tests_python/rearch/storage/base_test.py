@@ -612,6 +612,9 @@ class CommonStorageTest(object):
         # If None, the sorted request IDs have only one order. If it's a tuple,
         # the tuple is a listing of the indexes where the order may be swapped
         # around.
+
+        # TODO: Remove instability in sort order, it's all stable now. Also,
+        # add a test for the "*_name" sorts, they are currently untested
         order_map = {
             # This is the default sort
             ('status', 'request_timestamp'): {

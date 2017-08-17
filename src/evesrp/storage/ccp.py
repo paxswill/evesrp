@@ -56,7 +56,7 @@ class CcpStore(object):
         try:
             resp.json()
         except ValueError as exc:
-            new_exc = errors.EsiError(response)
+            new_exc = errors.EsiError(resp)
             six.raise_from(new_exc, exc)
         # Check for deprecation headers
         if 'warning' in resp.headers:

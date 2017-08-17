@@ -25,7 +25,7 @@ def ccp_store(requests_session):
     # /may/ experience downtime as their service does. It also will expose any
     # problems due to updating APIs.
     store = storage.CcpStore(requests_session=requests_session)
-    # Raise EsiWranings to errors
+    # Raise EsiWarnings to errors
     warnings.simplefilter('error', category=storage.EsiWarning)
     return store
 

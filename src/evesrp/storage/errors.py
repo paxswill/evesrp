@@ -28,7 +28,8 @@ class EsiError(Exception):
             json_resp = response.json()
         except ValueError:
             self.error = "No parseable JSON."
-        self.error = json_resp[u'error']
+        else:
+            self.error = json_resp[u'error']
 
     def __str__(self):
         return self.error
