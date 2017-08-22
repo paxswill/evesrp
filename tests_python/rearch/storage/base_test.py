@@ -607,51 +607,29 @@ class CommonStorageTest(object):
         # First define the order. Keys are the sort fields, values are a map.
         # The inner map is the direction for the sort fields (the key for the
         # outer map). Both keys for the inner and outer map are tuples. The
-        # values for the inner map are 2-tuples, the first value being a sorted
-        # list of the request IDs, and the second value being a tuple or None.
-        # If None, the sorted request IDs have only one order. If it's a tuple,
-        # the tuple is a listing of the indexes where the order may be swapped
-        # around.
-
-        # TODO: Remove instability in sort order, it's all stable now. Also,
-        # add a test for the "*_name" sorts, they are currently untested
+        # values for the inner map are a sorted list of the request IDs.
         order_map = {
             # This is the default sort
             ('status', 'request_timestamp'): {
                 (sfilter.SortDirection.ascending,
-                 sfilter.SortDirection.ascending): (
-                     [456, 345, 234, 789, 123],
-                     None,
-                 ),
+                 sfilter.SortDirection.ascending): [456, 345, 234, 789, 123],
             },
             ('status', 'killmail_timestamp'): {
                 (sfilter.SortDirection.ascending,
-                 sfilter.SortDirection.ascending): (
-                     [456, 234, 345, 789, 123],
-                     None,
-                 ),
+                 sfilter.SortDirection.ascending): [456, 234, 345, 789, 123],
             },
             ('status', ): {
-                (sfilter.SortDirection.ascending, ): (
-                    [456, 234, 345, 789, 123],
-                    (1, 2)
-                ),
+                (sfilter.SortDirection.ascending, ): [456, 234, 345, 789, 123],
             },
             ('request_timestamp', ): {
-                (sfilter.SortDirection.descending, ): (
-                    [234, 345, 789, 456, 123],
-                    None,
-                ),
-                (sfilter.SortDirection.ascending, ): (
-                    [123, 456, 789, 345, 234],
-                    None,
-                ),
+                (sfilter.SortDirection.descending, ): [234, 345, 789, 456, 123],
+                (sfilter.SortDirection.ascending, ): [123, 456, 789, 345, 234],
             },
         }
         sorts = list(search.sorts)
         sort_fields = [s[0] for s in sorts]
         sort_orders = [s[1] for s in sorts]
-        sorted_ids, undefined_order = order_map[tuple(sort_fields)][
+        sorted_ids = order_map[tuple(sort_fields)][
             tuple(sort_orders)]
         # Now define which IDs are present
         search_filters = list(search)
@@ -680,26 +658,12 @@ class CommonStorageTest(object):
             # The only tested filter with two fields is
             # 'killmail_timestamp__type_id'
             filtered_ids = {234, 345}
-        # Handle cases where the order is a little flexible/undefined
-        if undefined_order is not None:
-            start_index, end_index = undefined_order
-            # Account for slice indexing being non-inclusive
-            end_index += 1
-            elements = sorted_ids[start_index:end_index]
-            beginning = sorted_ids[:start_index]
-            end = sorted_ids[end_index:]
-            all_orders = itertools.permutations(elements)
-            orders = [(beginning + list(order) + end) for order in all_orders]
-        else:
-            orders = [sorted_ids]
-        return [[rid for rid in order if rid in filtered_ids]
-                for order in orders]
-
+        return [rid for rid in sorted_ids if rid in filtered_ids]
 
     def test_filter(self, populated_store, search, request_ids):
         requests = populated_store.filter_requests(search)
         matching_ids = [r.id_ for r in requests]
-        assert matching_ids in request_ids
+        assert matching_ids == request_ids
 
     @pytest.mark.parametrize('fields', (
         {'request_id', },
@@ -710,20 +674,6 @@ class CommonStorageTest(object):
         {'request_id', 'character_id'},
         {'request_id', 'character_name'},
         {'request_id', 'status'}
-    ))
-    @pytest.mark.paramterize('sort,request_ids', (
-        (
-            None,  # Defualt sort
-            [234, 345, 789, 456, 123],
-        ),
-        (
-            [234, 345, 789, 456, 123],
-        ),
-        (
-        ),
-        (
-            [234, 345, 789, 456, 123],
-        ),
     ))
     @pytest.mark.parametrize('search_filter', ({}, ))
     def test_sparse_filter(self, populated_store, fields, search, request_ids):
@@ -784,15 +734,12 @@ class CommonStorageTest(object):
             },
         }
         # first case, only request_id
-        expected_orders = []
-        for id_order in request_ids:
-            expected = [{'request_id': r} for r in id_order]
-            if len(fields) > 1:
-                for sparse in expected:
-                    for field in (f for f in fields if f != 'request_id'):
-                        sparse[field] = other_data[sparse['request_id']][field]
-            expected_orders.append(expected)
-        assert results in expected_orders
+        expected = [{'request_id': r} for r in request_ids]
+        if len(fields) > 1:
+            for sparse in expected:
+                for field in (f for f in fields if f != 'request_id'):
+                    sparse[field] = other_data[sparse['request_id']][field]
+        assert results == expected
 
     # Characters
 
