@@ -84,13 +84,15 @@ class SortToken(graphene.ObjectType, BaseSortToken):
     direction = graphene.Field(SortDirection, required=True)
 
     @classmethod
-    def from_dict(cls, in_dict):
+    def from_input(cls, in_dict):
         """Creates a SortToken from a dictionary.
 
         Primarily used as a way to convert InputSortTokens in dict form.
         """
-        key = getattr(SortKey, in_dict['key'])
-        direction = getattr(SortDirection, in_dict['direction'])
+        # the input dictionary gives us the key and directions as ints, as
+        # those are the values for the enums
+        key = SortKey.get(in_dict['key'])
+        direction = SortDirection.get(in_dict['direction'])
         return cls(key=key, direction=direction)
 
 
@@ -147,7 +149,8 @@ def _storage_search_from_graphql_search(self):
         pass
     else:
         for token in sorts:
-            search.add_sort(token.key.name, token.direction)
+            key_name = to_snake_case(token.key.name)
+            search.add_sort(key_name, token.direction)
     return search
 
 
@@ -218,7 +221,7 @@ def _output_search_from_input_search(cls, input_search):
                     values = converted_input[attr_name]
                 setattr(output_search, attr_name, values)
         if 'sorts' in converted_input:
-            output_search.sorts = [SortToken.from_dict(t) for t in
+            output_search.sorts = [SortToken.from_input(t) for t in
                                    input_search['sorts']]
     return output_search
 

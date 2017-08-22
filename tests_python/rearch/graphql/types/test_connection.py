@@ -157,12 +157,13 @@ class TestSearchTypes(object):
             ],
             'sorts': [
                 {
-                    'key': 'payout',
-                    'direction': 'descending',
+                    # Enums use their value in Graphene input types
+                    'key': types.connection.SortKey.payout.value,
+                    'direction': types.connection.SortDirection.descending,
                 },
                 {
-                    'key': 'status',
-                    'direction': 'descending',
+                    'key': types.connection.SortKey.status.value,
+                    'direction': types.connection.SortDirection.descending,
                 },
             ],
         }
