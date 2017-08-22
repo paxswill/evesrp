@@ -2,7 +2,8 @@ import base64
 import itertools
 import uuid
 
-from graphql_relay import from_global_id
+from graphql_relay import from_global_id, connection_from_list
+import graphene.relay
 import six
 
 from evesrp import new_models as models
@@ -197,6 +198,36 @@ class Resolver(object):
         else:
             return types.Request(id=request_model.id_)
 
+    def resolve_query_field_requestsconnection(self, source, args, context,
+                                               info):
+        input_search = args.get('search')
+        # Always create an output search object, as we create the storage
+        # search object from it.
+        output_search = types.RequestSearch.from_input_search(input_search)
+        storage_requests = self.store.filter_requests(
+            output_search.to_storage_search())
+        graphql_requests = [types.Request(id=r.id_) for r in storage_requests]
+        result_connection = connection_from_list(
+            graphql_requests,
+            args,
+            connection_type=types.RequestConnection,
+            edge_type=types.RequestConnection.Edge,
+            pageinfo_type=graphene.relay.PageInfo,
+        )
+        # Always attach the output search to the output, we already have it
+        result_connection.search = output_search
+        # Peek in the AST to see if we need to compute the count or sum the
+        # payouts. field_asts[0] is requestsConnection, and we want to see the
+        # sub-selections.
+        selections_list = info.field_asts[0].selection_set.selections
+        selections_names = {f.name.value: f for f in selections_list}
+        if 'totalCount' in selections_names:
+            result_connection.total_count = len(storage_requests)
+        if 'totalPayout' in selections_names:
+            result_connection.total_payout = sum(
+                [r.payout for r in storage_requests]
+            )
+        return result_connection
 
     # Named
 
