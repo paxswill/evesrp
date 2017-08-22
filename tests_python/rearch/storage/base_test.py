@@ -569,12 +569,24 @@ class CommonStorageTest(object):
             ('status', sfilter.SortDirection.ascending),
             ('killmail_timestamp', sfilter.SortDirection.ascending),
         ),
+        # Sort on a '*_name' attribute as they are handled differently
+        (('type_name', sfilter.SortDirection.ascending), ),
+        # Sort on character names to ensure that things are compared
+        # case-insensitively (marssell vs Paxswill surfaces this).
+        (('character_name', sfilter.SortDirection.ascending), ),
+        # Sort on alliance name to check that killmails not in an allinace are
+        # handled properly (they should be sorted as if they had '' as their
+        # alliance name).
+        (('alliance_name', sfilter.SortDirection.ascending), ),
     ), ids=(
         'default_sort',
         'descending_request_timestamps',
         'ascending_request_timestamps',
         'ascending_status',
         'ascending_status__ascending_killmail_timestamp',
+        'ascending_type_name',
+        'ascending_character_name',
+        'ascending_alliance_name',
     ))
     def search_sort(self, request):
         return request.param
@@ -624,6 +636,15 @@ class CommonStorageTest(object):
             ('request_timestamp', ): {
                 (sfilter.SortDirection.descending, ): [234, 345, 789, 456, 123],
                 (sfilter.SortDirection.ascending, ): [123, 456, 789, 345, 234],
+            },
+            ('type_name', ): {
+                (sfilter.SortDirection.ascending, ): [789, 123, 456, 234, 345],
+            },
+            ('character_name', ): {
+                (sfilter.SortDirection.ascending, ): [789, 123, 456, 234, 345],
+            },
+            ('alliance_name', ): {
+                (sfilter.SortDirection.ascending, ): [789, 123, 456, 234, 345],
             },
         }
         sorts = list(search.sorts)

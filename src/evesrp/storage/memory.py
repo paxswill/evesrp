@@ -468,15 +468,17 @@ class MemoryStore(CachingCcpStore, BaseStore):
                 obj = killmail
             if key.endswith('_name'):
                 # Get the name from the ID
-                base_name = sort_key[:-5]
+                base_name = key[:-5]
                 id_attribute = base_name + '_id'
                 id_value = getattr(obj, id_attribute)
+                if id_value is None:
+                    return u''
                 getter = getattr(self, 'get_' + base_name)
                 response = getter(**{id_attribute: id_value})
                 try:
-                    return response['name']
+                    return response['name'].lower()
                 except KeyError:
-                    return response.name
+                    return response.name.lower()
             elif key.endswith('_timestamp'):
                 return getattr(obj, 'timestamp')
             elif key in ('request_id', 'killmail_id'):
