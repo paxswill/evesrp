@@ -7,6 +7,7 @@ except ImportError:
     import mock
 
 import pytest
+import six
 
 from evesrp import storage
 from evesrp import new_models as models
@@ -70,7 +71,7 @@ def srp_request(killmail, nullable_timestamp):
 
 
 @pytest.fixture
-def memory_store():
+def memory_store(monkeypatch):
     store = storage.MemoryStore()
     store._data['authn_users'].update({
         (
@@ -363,4 +364,55 @@ def memory_store():
             },
         ],
     })
+
+    def _mock_get_ccp_name(**kwargs):
+        ccp_data = {
+            # Characters
+            2112311608: u'marssell kross',
+            570140137: u'Paxswill',
+            # Corporations
+            1018389948: u'Dreddit',
+            1000166: u'Imperial Academy',
+            # Alliances
+            498125261: u'Test Alliance Please Ignore',
+            # Solar Systems
+            30000848: u'M-OEE8',
+            31002586: u'J000327',
+            30045316: u'Innia',
+            30003837: u'Aldranette',
+            # Constellations
+            20000124: u'1P-VL2',
+            21000332: u'H-C00332',
+            20000783: u'Inolari',
+            20000561: u'Amevync',
+            # Regions
+            10000010: u'Tribute',
+            11000032: u'H-R00032',
+            10000069: u'Black Rise',
+            10000048: u'Placid',
+            # Types
+            4310: u'Tornado',
+            605: u'Heron',
+            593: u'Tristan',
+        }
+        arg, value = kwargs.popitem()
+        if arg.endswith('_id'):
+            return {
+                u'name': ccp_data[value],
+                u'id': value,
+            }
+        else:
+            reversed_data = {v: k for k, v in six.iteritems(ccp_data)}
+            return {
+                u'name': value,
+                u'id': reversed_data[value],
+            }
+
+    monkeypatch.setattr(store, 'get_corporation', _mock_get_ccp_name)
+    monkeypatch.setattr(store, 'get_ccp_character', _mock_get_ccp_name)
+    monkeypatch.setattr(store, 'get_alliance', _mock_get_ccp_name)
+    monkeypatch.setattr(store, 'get_type', _mock_get_ccp_name)
+    monkeypatch.setattr(store, 'get_system', _mock_get_ccp_name)
+    monkeypatch.setattr(store, 'get_constellation', _mock_get_ccp_name)
+    monkeypatch.setattr(store, 'get_region', _mock_get_ccp_name)
     return store
