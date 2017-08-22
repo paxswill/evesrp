@@ -89,32 +89,60 @@ class CcpStore(object):
             # we're also searching for exact matches, we then just look up all
             # the names for the IDs and figure it out from there
             result_ids = search_json[category]
-            names_response = self._esi_request('v2', 'universe/names/',
-                                               method='POST',
-                                               json_data=result_ids)
-            names_json = names_response.json()
-            # the category names used in /universe/names/ are different than
-            # /search/
-            if category == 'inventorytype':
-                names_category = 'inventory_type'
-            elif category == 'solar_system':
-                names_category = 'solar_system'
+            # Create the error message early an just raise it where we
+            # eventually need it
+            error_message = ("ESI /search/ returned IDs that cannot be "
+                             "resolved ({}).").format(
+                                 ", ".join(map(str, result_ids)))
+            if category in ('alliance', 'character', 'corporation'):
+                endpoint = '/{}s/names/'.format(category)
+                esi_kwargs = {}
+                esi_kwargs['{}_ids'.format(category)] = ','.join(
+                    map(str, result_ids))
+                associations_response = self._esi_request('v1', endpoint,
+                                                          **esi_kwargs)
+                associations_json = associations_response.json()
+                id_key = '{}_id'.format(category)
+                name_key = '{}_name'.format(category)
+                for association in associations_json:
+                    if association[name_key] == query:
+                        return {
+                            u'id': association[id_key],
+                            u'name': association[name_key],
+                        }
+                else:
+                    exc = errors.EsiError(names_response)
+                    exc.error = error_message
+                    raise exc
             else:
-                names_category = category
-            # Find the matching name
-            for name_result in names_json:
-                if name_result[u'category'] == names_category and \
-                        name_result[u'name'] == query:
-                    return {
-                        u'id': name_result[u'id'],
-                        u'name': query,
-                    }
-            else:
-                exc = errors.EsiError(names_response)
-                exc.error = ("ESI /search/ returned IDs that /universe/names/ "
-                             "can't resolve ({}).").format(
-                                 ", ".join(result_ids))
-                raise exc
+                # The path parameter replacement is done in self._esi_request,
+                # so we don't have to use CCP's names for the id parameter
+                if category == 'inventorytype':
+                    endpoint = '/universe/types/{thing_id}'
+                    endpoint_version = 'v2'
+                    id_key = 'type_id'
+                elif category == 'solarsystem':
+                    endpoint = '/universe/systems/{thing_id}'
+                    endpoint_version = 'v2'
+                    id_key = 'system_id'
+                else:
+                    endpoint = '/universe/{}s/{{thing_id}}/'.format(category)
+                    endpoint_version = 'v1'
+                    id_key = '{}_id'.format(category)
+                for result_id in result_ids:
+                    name_response = self._esi_request(endpoint_version,
+                                                      endpoint,
+                                                      thing_id=result_id)
+                    name_json = name_response.json()
+                    if name_json['name'] == query:
+                        return {
+                            u'id': name_json[id_key],
+                            u'name': query
+                        }
+                else:
+                    exc = errors.EsiError(names_response)
+                    exc.error = error_message
+                    raise exc
         return search_results
 
     def _base_constellation(self, constellation_id):
