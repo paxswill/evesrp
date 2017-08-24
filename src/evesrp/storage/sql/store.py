@@ -142,3 +142,72 @@ class SqlStore(CachingCcpStore, BaseStore):
 
     def save_authn_group(self, authn_group):
         self._save_authn('group', authn_group)
+
+    # Divisions
+
+    _division_select = sqla.select([
+        ddl.division.c.id,
+        ddl.division.c.name,
+    ]).where(
+        ddl.division.c.id == sqla.bindparam('division_id')
+    )
+
+    def get_division(self, division_id):
+        result = self.connection.execute(
+            self._division_select,
+            division_id=division_id
+        )
+        row = result.first()
+        if row is None:
+            raise errors.NotFoundError('Division', division_id)
+        return models.Division(
+            name=row['name'],
+            id_=row['id']
+        )
+
+    _divisions_select = sqla.select([
+        ddl.division.c.id,
+        ddl.division.c.name,
+    ])
+
+    def get_divisions(self, division_ids=None):
+        """Get multiple divisions.
+
+        If a collection of :py:class:`~.Division` IDs is given, only the
+        divisions with those IDs are fetched. If no IDs are given, all
+        divisions are fetched. If an ID is given for a non-existant division,
+        no error is raised.
+
+        :param division_ids: Division IDs to check for.
+        :type division_ids: None or :py:class:`collections.Container`
+        :rtype: iterable
+        """
+        select_stmt = self._divisions_select
+        if division_ids is not None:
+            select_stmt = select_stmt.where(
+                ddl.division.c.id.in_(division_ids)
+            )
+        result = self.connection.execute(select_stmt)
+        rows = result.fetchall()
+        result.close()
+        return [models.Division(row['name'], row['id']) for row in rows]
+
+    _insert_division = ddl.division.insert()
+
+    def add_division(self, name):
+        result = self.connection.execute(self._insert_division,
+                                         name=name)
+        new_id = result.inserted_primary_key[0]
+        result.close()
+        return self.get_division(new_id)
+
+    _update_division = ddl.division.update().where(
+        ddl.division.c.id == sqla.bindparam('division_id')
+    )
+
+    def save_division(self, division):
+        result = self.connection.execute(self._update_division,
+                                         division_id=division.id_,
+                                         name=division.name)
+        # TODO: Check results
+        result.close()
