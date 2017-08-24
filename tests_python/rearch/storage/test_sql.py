@@ -30,13 +30,13 @@ class TestSqlStore(CommonStorageTest):
 
     @pytest.fixture(scope='session')
     def schema(self, engine):
+        # Destroy first to clear up any leftover data
+        SqlStore.destroy(engine)
         SqlStore.create(engine)
         yield
         SqlStore.destroy(engine)
 
-    @pytest.fixture(scope='session')
-    def populate_database(self, engine, schema):
-        conn = engine.connect()
+    def populate_database(self, conn):
         conn.execute(
             ddl.entity.insert(),
             [
@@ -364,15 +364,20 @@ class TestSqlStore(CommonStorageTest):
             ]
         )
 
-    @pytest.fixture
+    @pytest.fixture(scope='function')
     def store(self, engine, schema):
-        store = sql_store.SqlStore(engine=engine)
-        return store
-
-    @pytest.fixture(scope='session')
-    def populated_store(self, engine, populate_database):
         conn = engine.connect()
-        with conn.begin() as trans:
+        with conn.begin_nested() as trans:
             store = SqlStore(connection=conn)
+            yield store
+            trans.rollback()
+
+    @pytest.fixture(scope='function')
+    def populated_store(self, engine, store):
+        # Peek into the store so we can stay within the nested transaction
+        # started in the `store` fixture
+        conn = store.connection
+        with conn.begin_nested() as trans:
+            self.populate_database(conn)
             yield store
             trans.rollback()
