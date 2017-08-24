@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import sqlalchemy as sqla
-from sqlalchemy_utils import UUIDType
+from sqlalchemy_utils import UUIDType, JSONType
 
 from evesrp import new_models as models
 
@@ -33,7 +33,7 @@ authn_entity = sqla.Table(
                 primary_key=True, nullable=False),
     sqla.Column('entity_id', sqla.ForeignKey('entity.id'), primary_key=True,
                 nullable=False),
-    sqla.Column('data', sqla.JSON, nullable=True)
+    sqla.Column('data', JSONType, nullable=True)
 )
 
 
