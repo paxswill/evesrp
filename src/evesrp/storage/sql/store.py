@@ -85,6 +85,7 @@ class SqlStore(CachingCcpStore, BaseStore):
                                          provider_key=provider_key,
                                          provider_uuid=provider_uuid,
                                          data=extra_data)
+        result.close()
         return self._get_authn(type_, provider_uuid, provider_key)
 
     _authn_update = ddl.authn_entity.update().where(
@@ -103,6 +104,7 @@ class SqlStore(CachingCcpStore, BaseStore):
                                          entity_id=entity_id,
                                          data=authn_entity.extra_data,
                                          type_=type_)
+        result.close()
         # TODO check result somehow
 
     def get_authn_user(self, provider_uuid, provider_key):
