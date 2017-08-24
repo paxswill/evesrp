@@ -20,7 +20,8 @@ class TestSqlStore(CommonStorageTest):
             'postgres://paxswill@localhost/evesrp_rearch',
         ),
         ids=(
-            'sqlite',
+            #'sqlite',
+            'postgres',
         )
     )
     def engine(self, request):
