@@ -294,3 +294,197 @@ class SqlStore(CachingCcpStore, BaseStore):
         result = self.connection.execute(self._permission_delete,
                                          **delete_args)
         # Not checking result, as we don't raise errors if nothing was deleted
+
+    # Users and Groups
+
+    _user_select = sqla.select([
+        ddl.entity.c.id,
+        ddl.entity.c.name,
+        ddl.user.c.admin,
+    ]).select_from(
+        ddl.entity.join(ddl.user)
+    ).where(
+        ddl.entity.c.id == sqla.bindparam('user_id')
+    )
+
+    def get_user(self, user_id):
+        result = self.connection.execute(self._user_select, user_id=user_id)
+        row = result.first()
+        if row is None:
+            raise errors.NotFoundError('User', user_id)
+        return models.User(row['name'], row['id'], row['admin'])
+
+    _users_select = sqla.select([
+        ddl.entity.c.id,
+        ddl.entity.c.name,
+        ddl.user.c.admin,
+    ]).select_from(
+        ddl.entity.join(
+            ddl.user
+        ).join(
+            ddl.user_group,
+            onclause=(ddl.user.c.id == ddl.user_group.c.user_id),
+            isouter=True
+        )
+    )
+
+    def get_users(self, group_id=None):
+        stmt = self._users_select
+        if group_id is not None:
+            stmt = stmt.where(ddl.user_group.c.group_id == group_id)
+        result = self.connection.execute(stmt)
+        rows = result.fetchall()
+        result.close()
+        return [
+            models.User(row['name'], row['id'], row['admin']) for row in rows
+        ]
+
+    _entity_insert = ddl.entity.insert()
+
+    _user_insert = ddl.user.insert()
+
+    def add_user(self, name, is_admin=False):
+        entity_result = self.connection.execute(self._entity_insert,
+                                                name=name,
+                                                type='user')
+        entity_id = entity_result.inserted_primary_key[0]
+        entity_result.close()
+        user_result = self.connection.execute(self._user_insert,
+                                              id=entity_id,
+                                              admin=is_admin)
+        user_result.close()
+        return models.User(name, entity_id, is_admin)
+
+    _entity_update = ddl.entity.update().where(
+        sqla.and_(
+            ddl.entity.c.id == sqla.bindparam('id_'),
+            ddl.entity.c.type == sqla.bindparam('type_')
+        )
+    )
+
+    _user_update = ddl.user.update().where(
+        ddl.user.c.id == sqla.bindparam('id_')
+    )
+
+    def save_user(self, user):
+        entity_result = self.connection.execute(self._entity_update,
+                                                id_=user.id_,
+                                                type_='user',
+                                                name=user.name)
+        self._check_update_result('User', user.id_, entity_result)
+        entity_result.close()
+        user_result = self.connection.execute(self._user_update,
+                                              id_=user.id_,
+                                              admin=user.admin)
+        self._check_update_result('User', user.id_, user_result)
+        user_result.close()
+
+    _group_select = sqla.select([
+        ddl.entity.c.id,
+        ddl.entity.c.name,
+    ]).where(
+        sqla.and_(
+            ddl.entity.c.type == 'group',
+            ddl.entity.c.id == sqla.bindparam('id_')
+        )
+    )
+
+    def get_group(self, group_id):
+        result = self.connection.execute(self._group_select,
+                                         id_=group_id)
+        row = result.first()
+        if row is None:
+            raise errors.NotFoundError('Group', group_id)
+        return models.Group(row['name'], row['id'])
+
+    _groups_select = sqla.select([
+        ddl.entity.c.id,
+        ddl.entity.c.name,
+    ]).select_from(
+        ddl.entity.join(
+            ddl.user_group,
+            onclause=(ddl.entity.c.id == ddl.user_group.c.group_id),
+            isouter=True
+        )
+    ).where(
+        ddl.entity.c.type == 'group'
+    )
+
+    def get_groups(self, user_id=None):
+        stmt = self._groups_select
+        if user_id is not None:
+            stmt = stmt.where(ddl.user_group.c.user_id == user_id)
+        result = self.connection.execute(stmt)
+        rows = result.fetchall()
+        result.close()
+        return [models.Group(row['name'], row['id']) for row in rows]
+
+    def add_group(self, name):
+        result = self.connection.execute(self._entity_insert,
+                                         type='group',
+                                         name=name)
+        return models.Group(name, result.inserted_primary_key[0])
+
+    def save_group(self, group):
+        result = self.connection.execute(self._entity_update,
+                                         type_='group',
+                                         id_=group.id_,
+                                         name=group.name)
+        self._check_update_result('Group', group.id_, result)
+        result.close()
+
+    _entity_select_both = sqla.select([
+        ddl.entity.c.id,
+        ddl.entity.c.name,
+        ddl.entity.c.type,
+        ddl.user.c.admin,
+    ]).select_from(
+        ddl.entity.join(
+            ddl.user,
+            isouter=True
+        )
+    ).where(
+        ddl.entity.c.id == sqla.bindparam('id_')
+    )
+
+    def get_entity(self, entity_id):
+        result = self.connection.execute(self._entity_select_both,
+                                         id_=entity_id)
+        row = result.first()
+        if row is None:
+            raise errors.NotFoundError('Entity', entity_id)
+        if row['type'] == 'user':
+            return models.User(row['name'], row['id'], row['admin'])
+        elif row['type'] == 'group':
+            return models.Group(row['name'], row['id'])
+        else:
+            raise errors.StorageError('Entity', entity_id)
+
+    _membership_insert = ddl.user_group.insert()
+
+    def associate_user_group(self, user_id, group_id):
+        try:
+            result = self.connection.execute(self._membership_insert,
+                                             user_id=user_id,
+                                             group_id=group_id)
+        except sqla.exc.IntegrityError as integrity_exc:
+            error_message = str(integrity_exc.orig)
+            if 'user_id' in error_message:
+                not_found = errors.NotFoundError('User', user_id)
+            elif 'group_id' in error_message:
+                not_found = errors.NotFoundError('Group', group_id)
+            else:
+                raise
+            six.raise_from(not_found, integrity_exc)
+
+    _membership_delete = ddl.user_group.delete().where(
+        sqla.and_(
+            ddl.user_group.c.user_id == sqla.bindparam('user_id'),
+            ddl.user_group.c.group_id == sqla.bindparam('group_id')
+        )
+    )
+
+    def disassociate_user_group(self, user_id, group_id):
+        result = self.connection.execute(self._membership_delete,
+                                         user_id=user_id,
+                                         group_id=group_id)
