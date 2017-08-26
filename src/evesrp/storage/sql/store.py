@@ -489,3 +489,119 @@ class SqlStore(CachingCcpStore, BaseStore):
         result = self.connection.execute(self._membership_delete,
                                          user_id=user_id,
                                          group_id=group_id)
+
+    # Killmails
+
+    _killmail_select = sqla.select([
+        # We don't need to fetch all the *_type columns for all the rows,
+        # they're more a consistency thing
+        ddl.killmail.c.id,
+        ddl.killmail.c.user_id,
+        ddl.killmail.c.character_id,
+        ddl.killmail.c.corporation_id,
+        ddl.killmail.c.alliance_id,
+        ddl.killmail.c.system_id,
+        ddl.killmail.c.constellation_id,
+        ddl.killmail.c.region_id,
+        ddl.killmail.c.type_id,
+        ddl.killmail.c.timestamp,
+        ddl.killmail.c.url,
+    ])
+
+    @staticmethod
+    def _killmail_from_row(row):
+        killmail_kwargs = {
+            key: row[key] for key in
+            ('user_id', 'character_id', 'corporation_id', 'alliance_id',
+             'system_id', 'constellation_id', 'region_id', 'type_id',
+             'timestamp', 'url')
+        }
+        return models.Killmail(row['id'], **killmail_kwargs)
+
+    def get_killmail(self, killmail_id):
+        stmt = self._killmail_select.where(ddl.killmail.c.id == killmail_id)
+        result = self.connection.execute(stmt)
+        row = result.first()
+        if row is None:
+            raise errors.NotFoundError('Killmail', killmail_id)
+        return self._killmail_from_row(row)
+
+    def get_killmails(self, killmail_ids):
+        stmt = self._killmail_select.where(ddl.killmail.c.id.in_(killmail_ids))
+        result = self.connection.execute(stmt)
+        rows = result.fetchall()
+        result.close()
+        # Not checking for the no results case; this method doesn't raise for
+        # those.
+        return [self._killmail_from_row(row) for row in rows]
+
+    _name_insert = ddl.ccp_name.insert()
+
+    def ensure_ccp_names(self, **kwargs):
+        # This is taking advantage of CCP using unique ID number ranges for
+        # various classes of things in Eve (at least for now).
+        names_stmt = sqla.select([
+            ddl.ccp_name.c.id,
+            ddl.ccp_name.c.type,
+        ]).where(
+            ddl.ccp_name.c.id.in_(list(kwargs.values()))
+        )
+        names_result = self.connection.execute(names_stmt)
+        rows = names_result.fetchall()
+        names_result.close()
+        # Find missing IDs, look them up and insert them
+        found_ids = {row['id'] for row in rows}
+        to_insert = []
+        for attr_name, ccp_id in six.iteritems(kwargs):
+            if ccp_id in found_ids:
+                continue
+            type_name = attr_name[:-3]
+            # using super to skip attempting to look up the names in the DB
+            # (which we just did).
+            if type_name == 'character':
+                method_name = 'get_ccp_character'
+            else:
+                method_name = 'get_{}'.format(type_name)
+            getter = getattr(super(SqlStore, self), method_name)
+            response = getter(**{attr_name: ccp_id})
+            to_insert.append({
+                'type': type_name,
+                'id': response['id'],
+                'name': response['name'],
+            })
+        if len(to_insert) > 0:
+            insert_result = self.connection.execute(self._name_insert,
+                                                    to_insert)
+            insert_result.close()
+
+    _killmail_insert = ddl.killmail.insert()
+
+    def add_killmail(self, **kwargs):
+        # First update the various values of ccp_name as needed
+        ccp_keys = {'character_id', 'corporation_id', 'alliance_id',
+                    'system_id', 'constellation_id', 'region_id', 'type_id'}
+        ccp_ids = {k: v for k, v in six.iteritems(kwargs) if k in ccp_keys}
+        self.ensure_ccp_names(**ccp_ids)
+        insert_args = {k: v for k, v in six.iteritems(kwargs) if k in ccp_keys}
+        insert_args['id'] = kwargs['id_']
+        insert_args['user_id'] = kwargs['user_id']
+        insert_args['timestamp'] = kwargs['timestamp']
+        insert_args['url'] = kwargs['url']
+        # TODO: Handle duplicate key errors
+        try:
+            result = self.connection.execute(self._killmail_insert,
+                                             **insert_args)
+        except sqla.exc.IntegrityError as integrity_exc:
+            error_message = str(integrity_exc.orig)
+            if 'user_id' in error_message:
+                not_found = errors.NotFoundError('User', kwargs['user_id'])
+            elif 'character_id' in error_message:
+                not_found = errors.NotFoundError('Character',
+                                                 kwargs['character_id'])
+            else:
+                raise
+            six.raise_from(not_found, integrity_exc)
+        model_args = dict(insert_args)
+        model_args['id_'] = model_args['id']
+        del model_args['id']
+        return models.Killmail(**model_args)
