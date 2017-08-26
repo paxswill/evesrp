@@ -199,21 +199,21 @@ class SqlStore(CachingCcpStore, BaseStore):
         result.close()
         return [models.Division(row['name'], row['id']) for row in rows]
 
-    _insert_division = ddl.division.insert()
+    _division_insert = ddl.division.insert()
 
     def add_division(self, name):
-        result = self.connection.execute(self._insert_division,
+        result = self.connection.execute(self._division_insert,
                                          name=name)
         new_id = result.inserted_primary_key[0]
         result.close()
         return self.get_division(new_id)
 
-    _update_division = ddl.division.update().where(
+    _division_update = ddl.division.update().where(
         ddl.division.c.id == sqla.bindparam('division_id')
     )
 
     def save_division(self, division):
-        result = self.connection.execute(self._update_division,
+        result = self.connection.execute(self._division_update,
                                          division_id=division.id_,
                                          name=division.name)
         result.close()
@@ -243,12 +243,12 @@ class SqlStore(CachingCcpStore, BaseStore):
                                   row['type'])
                 for row in rows]
 
-    _insert_permission = ddl.permission.insert()
+    _permission_insert = ddl.permission.insert()
 
     def add_permission(self, division_id, entity_id, type_):
         try:
             result = self.connection.execute(
-                self._insert_permission,
+                self._permission_insert,
                 division_id=division_id,
                 entity_id=entity_id,
                 type=type_
@@ -264,7 +264,7 @@ class SqlStore(CachingCcpStore, BaseStore):
             six.raise_from(new_exc, exc)
         return models.Permission(division_id, entity_id, type_)
 
-    _delete_permission = ddl.permission.delete().where(
+    _permission_delete = ddl.permission.delete().where(
         sqla.and_(
             ddl.permission.c.entity_id == sqla.bindparam('entity_id'),
             ddl.permission.c.division_id == sqla.bindparam('division_id'),
@@ -291,6 +291,6 @@ class SqlStore(CachingCcpStore, BaseStore):
             }
         else:
             delete_args = kwargs
-        result = self.connection.execute(self._delete_permission,
+        result = self.connection.execute(self._permission_delete,
                                          **delete_args)
         # Not checking result, as we don't raise errors if nothing was deleted
