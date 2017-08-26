@@ -21,6 +21,7 @@ class SqlStore(CachingCcpStore, BaseStore):
         else:
             engine = kwargs.pop('engine')
             self.connection = engine.connect()
+        super(SqlStore, self).__init__(**kwargs)
 
     @staticmethod
     def create(engine):
