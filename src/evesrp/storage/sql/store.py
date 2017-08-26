@@ -140,20 +140,6 @@ class SqlStore(CachingCcpStore, BaseStore):
         self._check_update_result(type_, entity_id, result)
 
     def get_authn_user(self, provider_uuid, provider_key):
-        """Get an :py:class:`~.AuthenticatedUser` from storage.
-
-        If a user is unable to be found for the provided provider and key, the
-        string `u'not found'` will be present in the errors array.
-
-        :param provider_uuid: The UUID for the
-            :py:class:`~.AuthenticationProvider` for this
-            :py:class:`~.AuthenticatedUser`.
-        :type provider_uuid: :py:class:`uuid.UUID`
-        :param str provider_key: The key identifying a unique user to the
-            authentication provider.
-        :return: The user (if found).
-        :rtype: :py:class:`~.AuthenticatedUser` or `None`
-        """
         return self._get_authn('user', provider_uuid, provider_key)
 
     def add_authn_user(self, user_id, provider_uuid, provider_key,
@@ -203,17 +189,6 @@ class SqlStore(CachingCcpStore, BaseStore):
     ])
 
     def get_divisions(self, division_ids=None):
-        """Get multiple divisions.
-
-        If a collection of :py:class:`~.Division` IDs is given, only the
-        divisions with those IDs are fetched. If no IDs are given, all
-        divisions are fetched. If an ID is given for a non-existant division,
-        no error is raised.
-
-        :param division_ids: Division IDs to check for.
-        :type division_ids: None or :py:class:`collections.Container`
-        :rtype: iterable
-        """
         select_stmt = self._divisions_select
         if division_ids is not None:
             select_stmt = select_stmt.where(
@@ -298,17 +273,6 @@ class SqlStore(CachingCcpStore, BaseStore):
     )
 
     def remove_permission(self, *args, **kwargs):
-        """Remove a Permission from storage.
-        There are two modes of operation for this method:
-            remove_permission(permission)
-        or
-            remove_permission(division_id, entity_id, type_)
-
-        Because the combination of division, entity and permission type must be
-        unique, you can refer to a permission either by it's ID or the tuple of
-        those values. For the second mode of operation, keyword or positional
-        arguments are allowed.
-        """
         if len(args) == 1 or 'permission' in kwargs:
             try:
                 permission = kwargs['permission']
