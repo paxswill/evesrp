@@ -66,10 +66,10 @@ user_group = sqla.Table(
     # user.
     sqla.Column('user_id', sqla.Integer, nullable=False, primary_key=True,
                 index=True),
-    sqla.Column('user_type', sqla.String(20)),
+    sqla.Column('user_type', sqla.String(20), server_default='user'),
     sqla.Column('group_id', sqla.Integer, nullable=False, primary_key=True,
                 index=True),
-    sqla.Column('group_type', sqla.String(20)),
+    sqla.Column('group_type', sqla.String(20), server_default='group'),
     sqla.ForeignKeyConstraint(
         ['user_id', 'user_type'],
         [entity.c.id, entity.c.type]
@@ -152,7 +152,8 @@ character = sqla.Table(
     metadata,
     sqla.Column('ccp_id', sqla.Integer, primary_key=True,
                 nullable=False),
-    sqla.Column('ccp_type', sqla.String(50), nullable=False),
+    sqla.Column('ccp_type', sqla.String(50), nullable=False,
+                server_default='character'),
     # Characters do not necesarily belong to a specific user (like if a
     # character is biomassed, or transferred to another account).
     sqla.Column('user_id', sqla.ForeignKey(user.c.id), nullable=True,
@@ -178,18 +179,24 @@ killmail = sqla.Table(
     sqla.Column('character_id', sqla.ForeignKey(character.c.ccp_id),
                 nullable=False, index=True),
     sqla.Column('corporation_id', sqla.Integer, nullable=False),
-    sqla.Column('corporation_type', sqla.String(50), nullable=False),
+    sqla.Column('corporation_type', sqla.String(50), nullable=False,
+                server_default='corporation'),
     # Alliance is explicitly nullable; not all corps are in alliances
     sqla.Column('alliance_id', sqla.Integer, nullable=True),
+    # Not providing a server default for alliance_type
     sqla.Column('alliance_type', sqla.String(50), nullable=True),
     sqla.Column('system_id', sqla.Integer, nullable=False),
-    sqla.Column('system_type', sqla.String(50), nullable=False),
+    sqla.Column('system_type', sqla.String(50), nullable=False,
+                server_default='system'),
     sqla.Column('constellation_id', sqla.Integer, nullable=False),
-    sqla.Column('constellation_type', sqla.String(50), nullable=False),
+    sqla.Column('constellation_type', sqla.String(50), nullable=False,
+                server_default='constellation'),
     sqla.Column('region_id', sqla.Integer, nullable=False),
-    sqla.Column('region_type', sqla.String(50), nullable=False),
+    sqla.Column('region_type', sqla.String(50), nullable=False,
+                server_default='region'),
     sqla.Column('type_id', sqla.Integer, nullable=False),
-    sqla.Column('type_type', sqla.String(50), nullable=False),
+    sqla.Column('type_type', sqla.String(50), nullable=False,
+                server_default='type'),
     # No default given as this value should be taken from the killmail data
     # from CCP
     sqla.Column('timestamp', sqla.TIMESTAMP(timezone=True), nullable=False),
