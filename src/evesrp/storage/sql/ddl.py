@@ -42,7 +42,8 @@ entity = sqla.Table(
     metadata,
     sqla.Column('id', sqla.Integer, primary_key=True, nullable=False),
     sqla.Column('type', sqla.String(20), nullable=False),
-    sqla.Column('name', sqla.Unicode(255), nullable=False)
+    sqla.Column('name', sqla.Unicode(255), nullable=False),
+    sqla.UniqueConstraint('id', 'type')
 )
 
 
@@ -59,12 +60,32 @@ user = sqla.Table(
 user_group = sqla.Table(
     'user_group',
     metadata,
-    # TODO Add a check constraint that user_id has a type user, and group_id to
-    # a type group.
-    sqla.Column('user_id', sqla.ForeignKey(user.c.id), primary_key=True,
-                nullable=False),
-    sqla.Column('group_id', sqla.ForeignKey(entity.c.id), primary_key=True,
-                nullable=False),
+    # The [user,group]_type columns are so we can rely on them to be referenced
+    # against the entity table, and then we can have a check constraint that
+    # user_id actually points to entity.id where entity.type for that row is a
+    # user.
+    sqla.Column('user_id', sqla.Integer, nullable=False, primary_key=True,
+                index=True),
+    sqla.Column('user_type', sqla.String(20)),
+    sqla.Column('group_id', sqla.Integer, nullable=False, primary_key=True,
+                index=True),
+    sqla.Column('group_type', sqla.String(20)),
+    sqla.ForeignKeyConstraint(
+        ['user_id', 'user_type'],
+        [entity.c.id, entity.c.type]
+    ),
+    sqla.ForeignKeyConstraint(
+        ['group_id', 'group_type'],
+        [entity.c.id, entity.c.type]
+    ),
+    sqla.CheckConstraint(
+        sqla.column('user_type') == 'user',
+        name='user_type'
+    ),
+    sqla.CheckConstraint(
+        sqla.column('group_type') == 'group',
+        name='group_type'
+    )
 )
 
 
