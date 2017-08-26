@@ -1,22 +1,26 @@
-class NotFoundError(Exception):
+class StorageError(Exception):
 
     def __init__(self, kind, identifier):
         self.kind = kind
         self.identifier = identifier
+        self.error = "Error interacting with {} '{}'.".format(self.kind,
+                                                              self.identifier)
 
-    def __str__(self):
-        return "{} '{}' not found.".format(self.kind.capitalize(),
-                                           self.identifier)
+
+class NotFoundError(StorageError):
+
+    def __init__(self, kind, identifier):
+        super(NotFoundError, self).__init__(kind, identifier)
+        self.error = "{} '{}' not found.".format(self.kind,
+                                                 self.identifier)
 
 
 class NotInAllianceError(NotFoundError):
 
     def __init__(self, kind, identitifer):
         super(NotInAllianceError, self).__init__(kind, identitifer)
-
-    def __str__(self):
-        return "{} '{}' is not in an alliance.".format(self.kind.capitalize(),
-                                                       self.identifier)
+        self.error = "{} '{}' is not in an alliance.".format(self.kind,
+                                                             self.identifier)
 
 
 class EsiError(Exception):

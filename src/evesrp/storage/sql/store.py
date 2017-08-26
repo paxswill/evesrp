@@ -4,6 +4,7 @@ import itertools
 
 import six
 import sqlalchemy as sqla
+import sqlalchemy.exc
 
 from .. import BaseStore, CachingCcpStore, errors
 from evesrp import new_models as models
@@ -29,6 +30,14 @@ class SqlStore(CachingCcpStore, BaseStore):
     def destroy(engine):
         """Drop all database tables."""
         ddl.metadata.drop_all(engine)
+
+    @staticmethod
+    def _check_update_result(kind, identifier, result, expected=1):
+        if result.supports_sane_rowcount() and result.rowcount != expected:
+            if result.rowcount == 0:
+                raise errors.NotFoundError(kind, identifier)
+            else:
+                raise errors.StorageError(kind, identifier)
 
     # Authentication
 
@@ -105,7 +114,7 @@ class SqlStore(CachingCcpStore, BaseStore):
                                          data=authn_entity.extra_data,
                                          type_=type_)
         result.close()
-        # TODO check result somehow
+        self._check_update_result(type_, entity_id, result)
 
     def get_authn_user(self, provider_uuid, provider_key):
         """Get an :py:class:`~.AuthenticatedUser` from storage.
@@ -209,5 +218,5 @@ class SqlStore(CachingCcpStore, BaseStore):
         result = self.connection.execute(self._update_division,
                                          division_id=division.id_,
                                          name=division.name)
-        # TODO: Check results
         result.close()
+        self._check_update_result('Division', division.id_, result)
