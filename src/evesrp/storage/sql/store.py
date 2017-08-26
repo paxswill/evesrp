@@ -88,14 +88,36 @@ class SqlStore(CachingCcpStore, BaseStore):
         if extra_data is None:
             extra_data = {}
         extra_data.update(kwargs)
-        result = self.connection.execute(self._authn_insert,
-                                         type=type_,
-                                         entity_id=entity_id,
-                                         provider_key=provider_key,
-                                         provider_uuid=provider_uuid,
-                                         data=extra_data)
-        result.close()
-        return self._get_authn(type_, provider_uuid, provider_key)
+        try:
+            result = self.connection.execute(self._authn_insert,
+                                             type=type_,
+                                             entity_id=entity_id,
+                                             provider_key=provider_key,
+                                             provider_uuid=provider_uuid,
+                                             data=extra_data)
+        except sqla.exc.IntegrityError as integrity_exc:
+            # The only constraint (besides a possible check constraint on DBs
+            # that don't have native enums) is a foreign key constraint on
+            # entity_id
+            not_found_exc = errors.NotFoundError(
+                'Authenticated{}'.format(type_.captialize()),
+                entity_id
+            )
+            six.raise_from(not_found_exc, integrity_exc)
+        else:
+            result.close()
+            authn_entity_args = {
+                'provider_uuid': provider_uuid,
+                'provider_key': provider_key,
+                'extra_data': extra_data,
+            }
+            if type_ == 'user':
+                Entity = models.AuthenticatedUser
+                authn_entity_args['user_id'] = entity_id
+            elif type_ == 'group':
+                Entity = models.AuthenticatedGroup
+                authn_entity_args['group_id'] = entity_id
+            return Entity(**authn_entity_args)
 
     _authn_update = ddl.authn_entity.update().where(
         sqla.and_(
