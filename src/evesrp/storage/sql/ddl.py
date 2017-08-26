@@ -150,14 +150,22 @@ ccp_name = sqla.Table(
 character = sqla.Table(
     'character',
     metadata,
-    # TODO Investigate if we can ad a check constraint so that ccp_name.id has
-    # a ccp_name.type == 'character'
-    sqla.Column('ccp_id', sqla.ForeignKey(ccp_name.c.id), primary_key=True,
+    sqla.Column('ccp_id', sqla.Integer, primary_key=True,
                 nullable=False),
+    sqla.Column('ccp_type', sqla.String(50), nullable=False),
     # Characters do not necesarily belong to a specific user (like if a
     # character is biomassed, or transferred to another account).
     sqla.Column('user_id', sqla.ForeignKey(user.c.id), nullable=True,
                 index=True),
+    # Constraints to enforce that the ccp_name row points to a character row
+    sqla.ForeignKeyConstraint(
+        ['ccp_id', 'ccp_type'],
+        [ccp_name.c.id, ccp_name.c.type]
+    ),
+    sqla.CheckConstraint(
+        sqla.column('ccp_type') == 'character',
+        name='type_character'
+    )
 )
 
 
@@ -167,22 +175,76 @@ killmail = sqla.Table(
     sqla.Column('id', sqla.Integer, primary_key=True, nullable=False),
     sqla.Column('user_id', sqla.ForeignKey(user.c.id), nullable=False,
                 index=True),
-    # TODO add a bevy of check constraints
     sqla.Column('character_id', sqla.ForeignKey(character.c.ccp_id),
                 nullable=False, index=True),
-    sqla.Column('corporation_id', sqla.ForeignKey(ccp_name.c.id),
-                nullable=False),
+    sqla.Column('corporation_id', sqla.Integer, nullable=False),
+    sqla.Column('corporation_type', sqla.String(50), nullable=False),
     # Alliance is explicitly nullable; not all corps are in alliances
-    sqla.Column('alliance_id', sqla.ForeignKey(ccp_name.c.id), nullable=True),
-    sqla.Column('system_id', sqla.ForeignKey(ccp_name.c.id), nullable=False),
-    sqla.Column('constellation_id', sqla.ForeignKey(ccp_name.c.id),
-                nullable=False),
-    sqla.Column('region_id', sqla.ForeignKey(ccp_name.c.id), nullable=False),
-    sqla.Column('type_id', sqla.ForeignKey(ccp_name.c.id), nullable=False),
+    sqla.Column('alliance_id', sqla.Integer, nullable=True),
+    sqla.Column('alliance_type', sqla.String(50), nullable=True),
+    sqla.Column('system_id', sqla.Integer, nullable=False),
+    sqla.Column('system_type', sqla.String(50), nullable=False),
+    sqla.Column('constellation_id', sqla.Integer, nullable=False),
+    sqla.Column('constellation_type', sqla.String(50), nullable=False),
+    sqla.Column('region_id', sqla.Integer, nullable=False),
+    sqla.Column('region_type', sqla.String(50), nullable=False),
+    sqla.Column('type_id', sqla.Integer, nullable=False),
+    sqla.Column('type_type', sqla.String(50), nullable=False),
     # No default given as this value should be taken from the killmail data
     # from CCP
     sqla.Column('timestamp', sqla.TIMESTAMP(timezone=True), nullable=False),
-    sqla.Column('url', sqla.String(255), nullable=False)
+    sqla.Column('url', sqla.String(255), nullable=False),
+    # Big pile of constraints keeping the various ccp_name references in line
+    # NOTE: Not adding a pair of constraints for character_id as it's
+    # referencing character.id, which is already constrained.
+    sqla.ForeignKeyConstraint(
+        ['corporation_id', 'corporation_type'],
+        [ccp_name.c.id, ccp_name.c.type]
+    ),
+    sqla.ForeignKeyConstraint(
+        ['alliance_id', 'alliance_type'],
+        [ccp_name.c.id, ccp_name.c.type]
+    ),
+    sqla.ForeignKeyConstraint(
+        ['system_id', 'system_type'],
+        [ccp_name.c.id, ccp_name.c.type]
+    ),
+    sqla.ForeignKeyConstraint(
+        ['constellation_id', 'constellation_type'],
+        [ccp_name.c.id, ccp_name.c.type]
+    ),
+    sqla.ForeignKeyConstraint(
+        ['region_id', 'region_type'],
+        [ccp_name.c.id, ccp_name.c.type]
+    ),
+    sqla.ForeignKeyConstraint(
+        ['type_id', 'type_type'],
+        [ccp_name.c.id, ccp_name.c.type]
+    ),
+    sqla.CheckConstraint(
+        sqla.column('corporation_type') == 'corporation',
+        name='type_corporation'
+    ),
+    sqla.CheckConstraint(
+        sqla.column('alliance_type') == 'alliance',
+        name='type_alliance'
+    ),
+    sqla.CheckConstraint(
+        sqla.column('system_type') == 'system',
+        name='type_system'
+    ),
+    sqla.CheckConstraint(
+        sqla.column('constellation_type') == 'constellation',
+        name='type_constellation'
+    ),
+    sqla.CheckConstraint(
+        sqla.column('region_type') == 'region',
+        name='type_region'
+    ),
+    sqla.CheckConstraint(
+        sqla.column('type_type') == 'type',
+        name='type_type'
+    ),
 )
 
 
