@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import collections
 import itertools
 
 import six
@@ -242,3 +243,90 @@ class SqlStore(CachingCcpStore, BaseStore):
                                          name=division.name)
         result.close()
         self._check_update_result('Division', division.id_, result)
+
+    # Permissions
+
+    def get_permissions(self, **kwargs):
+        # Start with selecting all, adding where clauses as given by the
+        # arguments
+        stmt = ddl.permission.select()
+        conditions = []
+        for key in ('entity_id', 'division_id', 'type_'):
+            value = kwargs.get(key)
+            if key == 'type_':
+                column = ddl.permission.c.type
+            else:
+                column = getattr(ddl.permission.c, key)
+            if isinstance(value, (int, models.PermissionType)):
+                conditions.append(column == value)
+            elif isinstance(value, collections.Iterable):
+                conditions.append(column.in_(value))
+        result = self.connection.execute(stmt.where(sqla.and_(*conditions)))
+        rows = result.fetchall()
+        result.close()
+        return [models.Permission(row['division_id'], row['entity_id'],
+                                  row['type'])
+                for row in rows]
+
+    _insert_permission = ddl.permission.insert()
+
+    def add_permission(self, division_id, entity_id, type_):
+        try:
+            result = self.connection.execute(
+                self._insert_permission,
+                division_id=division_id,
+                entity_id=entity_id,
+                type=type_
+            )
+        except sqla.exc.IntegrityError as exc:
+            error_message = str(exc.orig)
+            if 'entity_id' in error_message:
+                new_exc = errors.NotFoundError('Entity', entity_id)
+            elif 'division_id' in error_message:
+                new_exc = errors.NotFoundError('Division', division_id)
+            else:
+                raise
+            six.raise_from(new_exc, exc)
+        return models.Permission(division_id, entity_id, type_)
+
+    _delete_permission = ddl.permission.delete().where(
+        sqla.and_(
+            ddl.permission.c.entity_id == sqla.bindparam('entity_id'),
+            ddl.permission.c.division_id == sqla.bindparam('division_id'),
+            ddl.permission.c.type == sqla.bindparam('type_'),
+        )
+    )
+
+    def remove_permission(self, *args, **kwargs):
+        """Remove a Permission from storage.
+        There are two modes of operation for this method:
+            remove_permission(permission)
+        or
+            remove_permission(division_id, entity_id, type_)
+
+        Because the combination of division, entity and permission type must be
+        unique, you can refer to a permission either by it's ID or the tuple of
+        those values. For the second mode of operation, keyword or positional
+        arguments are allowed.
+        """
+        if len(args) == 1 or 'permission' in kwargs:
+            try:
+                permission = kwargs['permission']
+            except KeyError:
+                permission = args[0]
+            delete_args = {
+                'division_id': permission.division_id,
+                'entity_id': permission.entity_id,
+                'type_': permission.type_,
+            }
+        elif len(args) == 3:
+            delete_args = {
+                'division_id': args[0],
+                'entity_id': args[1],
+                'type_': args[2],
+            }
+        else:
+            delete_args = kwargs
+        result = self.connection.execute(self._delete_permission,
+                                         **delete_args)
+        # Not checking result, as we don't raise errors if nothing was deleted
