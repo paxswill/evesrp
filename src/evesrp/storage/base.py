@@ -95,9 +95,9 @@ class BaseStore(object):
             remove_permission(division_id, entity_id, type_)
 
         Because the combination of division, entity and permission type must be
-        unique, you can refer to a permission either by it's ID or the tuple of
-        those values. For the second mode of operation, keyword or positional
-        arguments are allowed.
+        unique, you can either give a permission object directly, or give the
+        combination of values equal to it. For the second mode of operation,
+        keyword or positional arguments are allowed.
         """
         raise NotImplementedError
 
