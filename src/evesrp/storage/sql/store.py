@@ -605,3 +605,100 @@ class SqlStore(CachingCcpStore, BaseStore):
         model_args['id_'] = model_args['id']
         del model_args['id']
         return models.Killmail(**model_args)
+
+    # Requests
+
+    _request_select = sqla.select([ddl.request])
+
+    def get_request(self, request_id=None, killmail_id=None, division_id=None):
+        if request_id is not None:
+            stmt = self._request_select.where(ddl.request.c.id == request_id)
+        elif killmail_id is not None and division_id is not None:
+            stmt = self._request_select.where(
+                sqla.and_(
+                    ddl.request.c.killmail_id == killmail_id,
+                    ddl.request.c.division_id == division_id,
+                )
+            )
+        else:
+            raise TypeError("Either request_id or both killmail_id and"
+                            "division_id must be given.")
+        result = self.connection.execute(stmt)
+        row = result.first()
+        if row is None:
+            if request_id is not None:
+                identitifer = str(request_id)
+            else:
+                identitifer = '({}, {})'.format(killmail_id, division_id)
+            raise errors.NotFoundError('Request', identitifer)
+        return models.Request.from_dict(row)
+
+    _requests_select = sqla.select([ddl.request]).where(
+        ddl.request.c.killmail_id == sqla.bindparam('killmail_id')
+    )
+
+    def get_requests(self, killmail_id):
+        result = self.connection.execute(self._requests_select,
+                                         killmail_id=killmail_id)
+        rows = result.fetchall()
+        result.close()
+        return [models.Request.from_dict(row) for row in rows]
+
+    _request_insert = ddl.request.insert().return_defaults(
+        ddl.request.c.timestamp,
+        ddl.request.c.base_payout,
+        ddl.request.c.payout,
+    )
+
+    def add_request(self, killmail_id, division_id, details=u''):
+        try:
+            result = self.connection.execute(self._request_insert,
+                                             killmail_id=killmail_id,
+                                             division_id=division_id,
+                                             details=details)
+        except sqla.exc.IntegrityError as integrity_exc:
+            error_message = str(integrity_exc.orig)
+            if 'divsion_id' in error_message:
+                not_found = errors.NotFoundError('Division', divsion_id)
+            elif 'killmail_id' in error_message:
+                not_found = errors.NotFoundError('Killmail', killmail_id)
+            else:
+                raise
+            six.raise_from(not_found, integrity_exc)
+        if result.returned_defaults is not None:
+            request_dict = dict(result.returned_defaults)
+            # Add in the other data we have form other sources
+            request_dict['id'] = result.inserted_primary_key[0]
+            request_dict['division_id'] = division_id
+            request_dict['killmail_id'] = killmail_id
+            request_dict['details'] = details
+            # This is a SQLAlchemy default, not a server default, so we pull it
+            # from the SQLA DDL. The attribute 'default' on the column is an
+            # instance of sqlalchemy.schema.ColumnDefault, so we need to access
+            #the arg attribute.
+            request_dict['status'] = ddl.request.c.status.default.arg
+            return models.Request.from_dict(request_dict)
+        else:
+            # Execute a fresh query to get the server-generated defaults
+            return self.get_request(division_id=division_id,
+                                    killmail_id=killmail_id)
+
+    _request_update = ddl.request.update().where(
+        sqla.and_(
+            # Normally I'd put '_id' at the end of these, but I'm using these
+            # names to disambiguate from the actual column names.
+            ddl.request.c.killmail_id == sqla.bindparam('killmail'),
+            ddl.request.c.division_id == sqla.bindparam('division')
+        )
+    )
+
+    def save_request(self, request):
+        result = self.connection.execute(self._request_update,
+                                         division=request.division_id,
+                                         killmail=request.killmail_id,
+                                         details=request.details,
+                                         status=request.status,
+                                         base_payout=request.base_payout,
+                                         payout=request.payout)
+        self._check_update_result('Request', request.id_, result)
+        result.close()
