@@ -258,14 +258,9 @@ killmail = sqla.Table(
 request = sqla.Table(
     'request',
     metadata,
-    # NOTE The primary key is /not/ request.id, but a composite of
-    # request.killmail_id and request.division_id
-    sqla.Column('id', sqla.Integer, primary_key=False, nullable=False,
-                autoincrement=True, index=True),
-    sqla.Column('killmail_id', sqla.ForeignKey(killmail.c.id),
-                primary_key=True, nullable=False),
-    sqla.Column('division_id', sqla.ForeignKey(division.c.id),
-                primary_key=True, nullable=False),
+    sqla.Column('id', sqla.Integer, primary_key=True, nullable=False),
+    sqla.Column('killmail_id', sqla.ForeignKey(killmail.c.id), nullable=False),
+    sqla.Column('division_id', sqla.ForeignKey(division.c.id), nullable=False),
     # TODO possible improvement for later down the line: move details to a
     # separate table, so changing details just adds a new entry, and the
     # current details are just the latest entry in there. Not sure it'd be a
@@ -288,7 +283,9 @@ request = sqla.Table(
     sqla.Column('payout', sqla.Numeric(precision=15, scale=2),
                 nullable=False, server_default='0'),
     # TODO: Add FTS index for details column
-    sqla.UniqueConstraint('id')
+    sqla.Index('killmail_division',
+               'killmail_id', 'division_id',
+               unique=True)
 )
 
 
