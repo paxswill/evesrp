@@ -581,8 +581,8 @@ class SqlStore(CachingCcpStore, BaseStore):
         ccp_keys = {'character_id', 'corporation_id', 'alliance_id',
                     'system_id', 'constellation_id', 'region_id', 'type_id'}
         ccp_ids = {k: v for k, v in six.iteritems(kwargs) if k in ccp_keys}
+        insert_args = dict(ccp_ids)
         self.ensure_ccp_names(**ccp_ids)
-        insert_args = {k: v for k, v in six.iteritems(kwargs) if k in ccp_keys}
         insert_args['id'] = kwargs['id_']
         insert_args['user_id'] = kwargs['user_id']
         insert_args['timestamp'] = kwargs['timestamp']
