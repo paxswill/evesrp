@@ -702,3 +702,77 @@ class SqlStore(CachingCcpStore, BaseStore):
                                          payout=request.payout)
         self._check_update_result('Request', request.id_, result)
         result.close()
+
+    # Request Actions
+
+    _action_select = sqla.select([ddl.action]).where(
+        ddl.action.c.id == sqla.bindparam('action_id')
+    )
+
+    def get_action(self, action_id):
+        result = self.connection.execute(self._action_select,
+                                         action_id=action_id)
+        row = result.first()
+        if row is None:
+            raise errors.NotFoundError('Action', action_id)
+        row = dict(row)
+        row['contents'] = row.pop('details')
+        return models.Action.from_dict(row)
+
+    _actions_select = sqla.select([ddl.action]).where(
+        ddl.action.c.request_id == sqla.bindparam('request_id')
+    )
+
+    def get_actions(self, request_id):
+        result = self.connection.execute(self._actions_select,
+                                         request_id=request_id)
+        rows = result.fetchall()
+        result.close()
+
+        def create_action(row):
+            return models.Action(row['id'],
+                                 row['type'],
+                                 timestamp=row['timestamp'],
+                                 contents=row['details'],
+                                 user_id=row['user_id'],
+                                 request_id=request_id)
+
+        return [create_action(row) for row in rows]
+
+    _action_insert = ddl.action.insert().return_defaults(
+        ddl.action.c.timestamp,
+    )
+
+    def add_action(self, request_id, type_, user_id, contents=u''):
+        try:
+            result = self.connection.execute(self._action_insert,
+                                             request_id=request_id,
+                                             user_id=user_id,
+                                             type=type_,
+                                             details=contents)
+        except sqla.exc.IntegrityError as integrity_exc:
+            error_message = str(integrity_exc.orig)
+            if 'request_id' in error_message:
+                not_found = errors.NotFoundError('Request', request_id)
+            elif 'user_id' in error_message:
+                not_found = errors.NotFoundError('User', user_id)
+            else:
+                raise
+            six.raise_from(not_found, integrity_exc)
+        # Some backends support returning server generated default rows, some
+        # do not. For those that don't, fetch the entire new row in a new
+        # query.
+        action_id = result.inserted_primary_key[0]
+        result.close()
+        if result.returned_defaults is not None:
+            action_dict = dict(result.returned_defaults)
+            action_dict.update({
+                'id': action_id,
+                'type': type_,
+                'contents': contents,
+                'user_id': user_id,
+                'request_id': request_id,
+            })
+            return models.Action.from_dict(action_dict)
+        else:
+            return self.get_action(action_id=action_id)
