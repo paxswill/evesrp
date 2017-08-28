@@ -255,6 +255,10 @@ killmail = sqla.Table(
 )
 
 
+action_type = sqla.Enum(models.ActionType, metadata=metadata, native_enum=True,
+                        name='action_type')
+
+
 request = sqla.Table(
     'request',
     metadata,
@@ -269,13 +273,10 @@ request = sqla.Table(
                 server_default=u''),
     sqla.Column('timestamp', sqla.TIMESTAMP(timezone=True), nullable=False,
                 server_default=sqla.func.now()),
-    # TODO: Subclass sqla.Enum to persist the /values/ of the enum to the DB,
-    # as we're using that to sort statuses.
     # TODO: Investigate adding checking at the DB level that the status is
     # changing appropriately.
-    sqla.Column('status', sqla.Enum(models.ActionType, native_enum=False,
-                                    name='request_status'),
-                nullable=False, default=models.ActionType.evaluating),
+    sqla.Column('status', action_type, nullable=False,
+                default=models.ActionType.evaluating),
     sqla.Column('base_payout', sqla.Numeric(precision=15, scale=2),
                 nullable=False, server_default='0'),
     # TODO add a 'something' (trigger? function?) to automatically update the
@@ -297,9 +298,7 @@ action = sqla.Table(
                 index=True),
     sqla.Column('user_id', sqla.ForeignKey(user.c.id), nullable=False),
     # Possible linking of this with request.status.type checking
-    sqla.Column('type', sqla.Enum(models.ActionType, native_enum=False,
-                                  name='action_type'),
-                nullable=False, default=models.ActionType.evaluating),
+    sqla.Column('type', action_type, nullable=False),
     sqla.Column('details', sqla.UnicodeText(), nullable=False,
                 server_default=u''),
     sqla.Column('timestamp', sqla.TIMESTAMP(timezone=True), nullable=False,
