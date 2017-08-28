@@ -675,7 +675,7 @@ class SqlStore(CachingCcpStore, BaseStore):
             # This is a SQLAlchemy default, not a server default, so we pull it
             # from the SQLA DDL. The attribute 'default' on the column is an
             # instance of sqlalchemy.schema.ColumnDefault, so we need to access
-            #the arg attribute.
+            # the arg attribute.
             request_dict['status'] = ddl.request.c.status.default.arg
             return models.Request.from_dict(request_dict)
         else:
