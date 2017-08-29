@@ -289,8 +289,6 @@ class BaseStore(object):
         :param int modifier_id: The ID of the modifier to void.
         :param int user_id: The ID of the :py:class:`~.User` voiding this
             :py:class:`~.Modifier`.
-        :return: The timestamp the :py:class:`~.Modifier` was voided.
-        :rtype: :py:class:`datetime.datetime`
         """
         # In contrast to Actions, Modifiers are changed after creation, but
         # only in a specific manner: they are only voided (and unable to be
