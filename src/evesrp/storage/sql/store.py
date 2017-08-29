@@ -256,9 +256,9 @@ class SqlStore(CachingCcpStore, BaseStore):
             )
         except sqla.exc.IntegrityError as exc:
             error_message = str(exc.orig)
-            if 'entity_id' in error_message:
+            if 'fk_permission_entity_id_entity_id' in error_message:
                 new_exc = errors.NotFoundError('Entity', entity_id)
-            elif 'division_id' in error_message:
+            elif 'fk_permission_division_id_division_id' in error_message:
                 new_exc = errors.NotFoundError('Division', division_id)
             else:
                 raise
@@ -470,9 +470,11 @@ class SqlStore(CachingCcpStore, BaseStore):
                                              group_id=group_id)
         except sqla.exc.IntegrityError as integrity_exc:
             error_message = str(integrity_exc.orig)
-            if 'user_id' in error_message:
+            if 'fk_user_group_user_id_entity_id' in error_message or \
+                    'ck_user_group_user_type' in error_message:
                 not_found = errors.NotFoundError('User', user_id)
-            elif 'group_id' in error_message:
+            elif 'fk_user_group_group_id_entity_id' in error_message or \
+                    'ck_user_group_group_type' in error_message:
                 not_found = errors.NotFoundError('Group', group_id)
             else:
                 raise
@@ -587,17 +589,21 @@ class SqlStore(CachingCcpStore, BaseStore):
         insert_args['user_id'] = kwargs['user_id']
         insert_args['timestamp'] = kwargs['timestamp']
         insert_args['url'] = kwargs['url']
-        # TODO: Handle duplicate key errors
         try:
             result = self.connection.execute(self._killmail_insert,
                                              **insert_args)
         except sqla.exc.IntegrityError as integrity_exc:
             error_message = str(integrity_exc.orig)
-            if 'user_id' in error_message:
+            if 'fk_killmail_user_id_user_id' in error_message:
                 not_found = errors.NotFoundError('User', kwargs['user_id'])
-            elif 'character_id' in error_message:
+            elif 'kf_killmail_character_id_character_ccp_id' in error_message:
                 not_found = errors.NotFoundError('Character',
                                                  kwargs['character_id'])
+            elif 'pk_killmail' in error_message:
+                # Duplicate killmail submission, just return the existing
+                # killmail
+                # TODO Add tests for this
+                return self.get_killmail(kwargs['id_'])
             else:
                 raise
             six.raise_from(not_found, integrity_exc)
@@ -658,9 +664,9 @@ class SqlStore(CachingCcpStore, BaseStore):
                                              details=details)
         except sqla.exc.IntegrityError as integrity_exc:
             error_message = str(integrity_exc.orig)
-            if 'divsion_id' in error_message:
+            if 'fk_request_division_id_division_id' in error_message:
                 not_found = errors.NotFoundError('Division', divsion_id)
-            elif 'killmail_id' in error_message:
+            elif 'fk_request_killmail_id_killmail_id' in error_message:
                 not_found = errors.NotFoundError('Killmail', killmail_id)
             else:
                 raise
@@ -752,9 +758,9 @@ class SqlStore(CachingCcpStore, BaseStore):
                                              details=contents)
         except sqla.exc.IntegrityError as integrity_exc:
             error_message = str(integrity_exc.orig)
-            if 'request_id' in error_message:
+            if 'fk_action_request_id_request_id' in error_message:
                 not_found = errors.NotFoundError('Request', request_id)
-            elif 'user_id' in error_message:
+            elif 'fk_actoin_user_id_user_id' in error_message:
                 not_found = errors.NotFoundError('User', user_id)
             else:
                 raise
