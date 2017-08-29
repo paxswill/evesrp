@@ -740,7 +740,7 @@ class SqlStore(CachingCcpStore, BaseStore):
         return [create_action(row) for row in rows]
 
     _action_insert = ddl.action.insert().return_defaults(
-        ddl.action.c.timestamp,
+        ddl.action.c.timestamp
     )
 
     def add_action(self, request_id, type_, user_id, contents=u''):
