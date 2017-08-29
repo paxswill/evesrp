@@ -11,21 +11,39 @@ from evesrp.util import utc
 from .base_test import CommonStorageTest
 
 
+# These next two functions are taken from the SQLAlchemy documentation for how
+# to work around PySQLite's somewhat weird transactions behavior.
+def pysqlite_connect_listener(dbapi_connection, connection_record):
+    # disable pysqlite's emitting of the BEGIN statement entirely.
+    # also stops it from emitting COMMIT before any DDL.
+    dbapi_connection.isolation_level = None
+
+
+def pysqlite_begin_listener(conn):
+    # emit our own BEGIN
+    conn.execute("BEGIN")
+
+
 class TestSqlStore(CommonStorageTest):
 
     @pytest.fixture(
         scope='session',
         params=(
-            #'sqlite:///:memory:',
+            'sqlite:///:memory:',
             'postgres://paxswill@localhost/evesrp_rearch',
         ),
         ids=(
-            #'sqlite',
+            'sqlite',
             'postgres',
         )
     )
     def engine(self, request):
         engine = sqla.create_engine(request.param)
+        if 'sqlite' in request.param:
+            # Add some listeners to work around SQLite shortcomings in regards
+            # to transactions.
+            sqla.event.listen(engine, 'connect', pysqlite_connect_listener)
+            sqla.event.listen(engine, 'begin', pysqlite_begin_listener)
         return engine
 
     @pytest.fixture(scope='session')
