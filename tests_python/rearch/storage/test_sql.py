@@ -378,6 +378,7 @@ class TestSqlStore(CommonStorageTest):
             store = SqlStore(connection=conn)
             yield store
             trans.rollback()
+        conn.close()
 
     @pytest.fixture(scope='function')
     def populated_store(self, engine, store):
