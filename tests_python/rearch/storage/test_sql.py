@@ -321,8 +321,6 @@ class TestSqlStore(CommonStorageTest):
                     'timestamp': dt.datetime(2016, 4, 1, tzinfo=utc),
                     'user_id': 7,
                     'request_id': 123,
-                    'void_user_id': None,
-                    'void_timestamp': None,
                 },
                 {
                     'id': 200000,
@@ -332,9 +330,6 @@ class TestSqlStore(CommonStorageTest):
                     'timestamp': dt.datetime(2017, 3, 11, 1, 0, tzinfo=utc),
                     'user_id': 7,
                     'request_id': 456,
-                    'void_user_id': 7,
-                    'void_timestamp': dt.datetime(2017, 3, 11, 1, 5,
-                                                  tzinfo=utc),
                 },
                 {
                     'id': 300000,
@@ -344,8 +339,6 @@ class TestSqlStore(CommonStorageTest):
                     'timestamp': dt.datetime(2017, 3, 11, 1, 7, tzinfo=utc),
                     'user_id': 7,
                     'request_id': 456,
-                    'void_user_id': None,
-                    'void_timestamp': None,
                 },
                 {
                     'id': 400000,
@@ -355,8 +348,6 @@ class TestSqlStore(CommonStorageTest):
                     'timestamp': dt.datetime(2017, 3, 16, 1, 7, tzinfo=utc),
                     'user_id': 7,
                     'request_id': 789,
-                    'void_user_id': None,
-                    'void_timestamp': None,
                 },
                 {
                     'id': 500000,
@@ -366,8 +357,16 @@ class TestSqlStore(CommonStorageTest):
                     'timestamp': dt.datetime(2017, 3, 16, 1, 7, tzinfo=utc),
                     'user_id': 7,
                     'request_id': 789,
-                    'void_user_id': None,
-                    'void_timestamp': None,
+                },
+            ]
+        )
+        conn.execute(
+            ddl.void_modifier.insert(),
+            [
+                {
+                    'modifier_id': 200000,
+                    'user_id': 7,
+                    'timestamp':  dt.datetime(2017, 3, 11, 1, 5, tzinfo=utc),
                 },
             ]
         )

@@ -321,13 +321,17 @@ modifier = sqla.Table(
     sqla.Column('value', sqla.Numeric(precision=15, scale=5), nullable=False),
     sqla.Column('timestamp', sqla.TIMESTAMP(timezone=True), nullable=False,
                 server_default=sqla.func.now()),
-    # TODO: Maybe add a virtual boolean column modifier.void based on if these
-    # two are null or not
-    # TODO Add a check constraint that these are both null or both non-null
-    sqla.Column('void_user_id', sqla.ForeignKey(user.c.id), nullable=True),
-    sqla.Column('void_timestamp', sqla.TIMESTAMP(timezone=True),
-                nullable=True),
     # TODO: possibly add index on only active (aka non-voided) modifiers
+)
+
+void_modifier = sqla.Table(
+    'void_modifier',
+    metadata,
+    sqla.Column('modifier_id', sqla.ForeignKey(modifier.c.id),
+                primary_key=True, nullable=False),
+    sqla.Column('user_id', sqla.ForeignKey(user.c.id), nullable=False),
+    sqla.Column('timestamp', sqla.TIMESTAMP(timezone=True), nullable=False,
+                server_default=sqla.func.now())
 )
 
 

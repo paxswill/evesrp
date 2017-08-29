@@ -782,3 +782,117 @@ class SqlStore(CachingCcpStore, BaseStore):
             return models.Action.from_dict(action_dict)
         else:
             return self.get_action(action_id=action_id)
+
+    # Request Modifiers
+
+    @staticmethod
+    def _modifier_from_row(row):
+        if row['void_user_id'] is not None:
+            void = {
+                'user_id': row['void_user_id'],
+                'timestamp': row['void_timestamp'],
+            }
+        else:
+            void = None
+        modifier_dict = dict(row)
+        if void is not None:
+            modifier_dict['void'] = void
+        return models.Modifier.from_dict(modifier_dict)
+
+    _modifier_select = sqla.select([
+        ddl.modifier.c.id,
+        ddl.modifier.c.type,
+        ddl.modifier.c.user_id,
+        ddl.modifier.c.request_id,
+        ddl.modifier.c.note,
+        ddl.modifier.c.value,
+        ddl.modifier.c.timestamp,
+        ddl.void_modifier.c.user_id.label('void_user_id'),
+        ddl.void_modifier.c.timestamp.label('void_timestamp'),
+    ]).select_from(ddl.modifier.join(ddl.void_modifier, isouter=True))
+
+    def get_modifier(self, modifier_id):
+        stmt = self._modifier_select.where(ddl.modifier.c.id == modifier_id)
+        result = self.connection.execute(stmt)
+        row = result.first()
+        if row is None:
+            raise errors.NotFoundError('Modifier', modifier_id)
+        return self._modifier_from_row(row)
+
+    def get_modifiers(self, request_id, void=None, type_=None):
+        conditions = [ddl.modifier.c.request_id ==
+                      sqla.bindparam('request_id')]
+        if void is not None:
+            # If void is None, no filtering is done on a modifier's void state.
+            # If an argument is given to void, it is evaluated on it's
+            # truthiness. True values mean only voided modifiers are fetched,
+            # and the opposite for false-y values.
+            if void:
+                conditions.append(ddl.void_modifier.c.user_id != None)
+            else:
+                conditions.append(ddl.void_modifier.c.user_id == None)
+        if type_ is not None:
+            conditions.append(ddl.modifier.c.type == type_)
+        stmt = self._modifier_select.where(sqla.and_(*conditions))
+        result = self.connection.execute(stmt, request_id=request_id)
+        rows = result.fetchall()
+        result.close()
+        return [self._modifier_from_row(row) for row in rows]
+
+    _modifier_insert = ddl.modifier.insert().return_defaults(
+        ddl.modifier.c.timestamp
+    )
+
+    def add_modifier(self, request_id, user_id, type_, value, note=u''):
+        try:
+            result = self.connection.execute(self._modifier_insert,
+                                             request_id=request_id,
+                                             user_id=user_id,
+                                             type=type_,
+                                             value=value,
+                                             note=note)
+        except sqla.exc.IntegrityError as integrity_exc:
+            error_message = str(integrity_exc.orig)
+            if 'fk_modifier_request_id_request_id' in error_message:
+                not_found = errors.NotFoundError('Request', request_id)
+            elif 'fk_modifier_user_id_user_id' in error_message:
+                not_found = errors.NotFoundError('User', user_id)
+            else:
+                raise
+            six.raise_from(not_found, integrity_exc)
+        modifier_id = result.inserted_primary_key[0]
+        if result.returned_defaults is not None:
+            modifier_dict = {
+                'id': modifier_id,
+                'type': type_,
+                'value': value,
+                'user_id': user_id,
+                'request_id': request_id,
+                'note': note,
+            }
+            modifier_dict.update(result.returned_defaults)
+            result.close()
+            return models.Modifier.from_dict(modifier_dict)
+        else:
+            result.close()
+            return self.get_modifier(modifier_id)
+
+    # Not returning defaults, as we don't return anything from void_modifier()
+    _void_modifier_insert = ddl.void_modifier.insert()
+
+    def void_modifier(self, modifier_id, user_id):
+        try:
+            result = self.connection.execute(self._void_modifier_insert,
+                                             modifier_id=modifier_id,
+                                             user_id=user_id)
+        except sqla.exc.IntegrityError as integrity_exc:
+            error_message = str(integrity_exc.orig)
+            if 'fk_void_modifier_modifier_id_modifier_id' in error_message:
+                new_exc = errors.NotFoundError('Modifier', modifier_id)
+            elif 'fk_void_modifier_user_id_user_id' in error_message:
+                new_exc = errors.NotFoundError('User', user_id)
+            elif 'pk_void_modifier' in error_message:
+                new_exc = errors.VoidedModifierError(modifier_id)
+            else:
+                raise
+            six.raise_from(new_exc, integrity_exc)
