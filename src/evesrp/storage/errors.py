@@ -43,10 +43,8 @@ class EsiWarning(DeprecationWarning):
     pass
 
 
-class VoidedModifierError(Exception):
+class VoidedModifierError(StorageError):
 
     def __init__(self, modifier_id):
-        self.modifier_id = modifier_id
-
-    def __str__(self):
-        return "Modifier #{} is already voided.".format(self.modifier_id)
+        super(VoidedModifierError, self).__init__('Modifier', modifier_id)
+        self.error = "Modifier #{} is already voided.".format(self.identifier)
