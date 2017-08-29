@@ -896,3 +896,195 @@ class SqlStore(CachingCcpStore, BaseStore):
             else:
                 raise
             six.raise_from(new_exc, integrity_exc)
+
+    # Filtering
+
+    @staticmethod
+    def _check_killmail_join(statement, needs_killmail):
+        if needs_killmail:
+            # Only change the form if we're not already joining
+            if len(statement.froms) > 0 and \
+                    not isinstance(statement.froms[0], sqla.sql.Join):
+                return statement.select_from(ddl.request.join(ddl.killmail))
+        return statement
+
+    @classmethod
+    def _create_filtered_statement(cls, statement, search):
+        """This function creates an SQLAlchemy with just the filtering options
+        from the given search. It takes a statement to start with, principally
+        so you can determine which fields to be selecting against.
+        """
+        join_killmail = False
+        # The values of this dict are more dicts, with the keys to those dicts
+        # (referred to now as 'type dicts') being SQLAlchemy Column instances.
+        # The values for the type dicts are yet another dict (now referred to
+        # as 'column dicts'). The keys for column dicts are PredicateTypes, and
+        # the values are lists of values that we're filtering on.
+        predicates = {
+            'range': {},
+            'exact': {},
+            'text': {},
+        }
+        for field_name, filter_tuples in search.simplified_filters:
+            # Check to see if we need to join request and killmail together.
+            # killmail_id is special, as it's also on request (as a foreign
+            # key).
+            if field_name != 'killmail_id' and \
+                    field_name in models.Killmail.fields:
+                join_killmail = True
+            # Handle those fields where the field name is different from the
+            # column name first.
+            field_name_mapping = {
+                'killmail_id': ddl.request.c.killmail_id,
+                'request_id': ddl.request.c.id,
+                'killmail_timestamp': ddl.killmail.c.timestamp,
+                'request_timestamp': ddl.request.c.timestamp,
+            }
+            if field_name in field_name_mapping:
+                column = field_name_mapping[field_name]
+            else:
+                if field_name in models.Killmail.fields:
+                    column = getattr(ddl.killmail.c, field_name)
+                elif field_name in models.Request.fields:
+                    column = getattr(ddl.request.c, field_name)
+                else:
+                    # cribbing from Search.matches, this is a similar
+                    # situation, so we'll raise the same error
+                    raise InvalidFilterKeyError(
+                        "Somehow, a field name without a corresponding field"
+                        "type was added as a filter."
+                    )
+            # Yes, using a private field of SearchFilter
+            field_type = search._field_types[field_name]
+            if field_type == models.FieldType.text:
+                sub_predicates = predicates['text']
+            elif field_type in models.FieldType.range_types:
+                sub_predicates = predicates['range']
+            elif field_type in models.FieldType.exact_types:
+                sub_predicates = predicates['exact']
+            if column not in sub_predicates:
+                sub_predicates[column] = {}
+            column_predicates = sub_predicates[column]
+            for value, predicate in filter_tuples:
+                if predicate not in column_predicates:
+                    column_predicates[predicate] = set()
+                column_predicates[predicate].add(value)
+        #
+        and_clauses = []
+        for column, column_predicates in six.iteritems(predicates['range']):
+            for predicate, values in six.iteritems(column_predicates):
+                if predicate == search_filter.PredicateType.any:
+                    continue
+                elif predicate == search_filter.PredicateType.none:
+                    raise errors.NotFoundError('Request', None)
+                for value in values:
+                    and_clauses.append(predicate.operator(column, value))
+        for column, column_predicates in six.iteritems(predicates['exact']):
+            for predicate, values in six.iteritems(column_predicates):
+                if predicate == search_filter.PredicateType.any:
+                    continue
+                elif predicate == search_filter.PredicateType.none:
+                    raise errors.NotFoundError('Request', None)
+                elif predicate == search_filter.PredicateType.equal:
+                    and_clauses.append(column.in_(values))
+                elif predicate == search_filter.PredicateType.not_equal:
+                    and_clauses.append(~column.in_(values))
+        for column, column_predicates in six.iteritems(predicates['text']):
+            # We don't care about predicates for text searches (at least not at
+            # this time).
+            column_clauses = []
+            for values in six.itervalues(column_predicates):
+                column_clauses.extend([column.match(v) for v in values])
+            and_clauses.append(sqla.or_(*column_clauses))
+        stmt = cls._check_killmail_join(statement, join_killmail)
+        stmt = stmt.where(sqla.and_(*and_clauses))
+        return stmt
+
+    @classmethod
+    def _create_sorted_statement(cls, statement, search):
+        """A companion to _create_filtered_statement, this function creates a
+        statement with just the sorting options fmor the given search applied.
+        """
+        join_killmail = False
+        column_orders = []
+        # Use an OrderedDict so we can effciently see if a given sort key is in
+        # the set of current sorting keys.
+        sorts = collections.OrderedDict(search.stable_sorts)
+        # Determine if we need to join the killmail if it hasn't been already
+        killmail_keys = set(sorts.keys())
+        killmail_keys.discard('killmail_id')
+        killmail_keys = killmail_keys.intersection(models.Killmail.sorts)
+        statement = cls._check_killmail_join(statement,
+                                             (len(killmail_keys) > 0))
+        from_clause = statement.froms[0]
+        for key, direction in six.iteritems(sorts):
+            # First get the column we're ordering on
+            field_name_mapping = {
+                'killmail_id': ddl.request.c.killmail_id,
+                'request_id': ddl.request.c.id,
+                'killmail_timestamp': ddl.killmail.c.timestamp,
+                'request_timestamp': ddl.request.c.timestamp,
+            }
+            if key in field_name_mapping:
+                column = field_name_mapping[key]
+            elif key.endswith('_name'):
+                # If it ends with name, things get complicated
+                name_type = key[:-5]
+                id_attr = '{}_id'.format(name_type)
+                # Figure out the "left" column (the one on request or killmail)
+                if id_attr in models.Killmail.fields:
+                    id_column = getattr(ddl.killmail.c, id_attr)
+                elif id_attr in models.Request.fields:
+                    id_column = getattr(ddl.request.c.id, id_attr)
+                # Figure out the right column, and alias it as required.
+                # The various killmail.*_id columns all refer to the ccp_name
+                # table, and if we're sorting on multiple of those we need to
+                # have the tables aliased to different names.
+                # For now, only 'division_name' is joined to a different table
+                # than ccp_name
+                if name_type != 'division':
+                    aliased_table = ddl.ccp_name.alias(name_type)
+                else:
+                    aliased_table = ddl.division.alias('division_sort')
+                # Add our new aliased table to the from clauses
+                from_clause = from_clause.join(
+                    aliased_table,
+                    onclause=(id_column == aliased_table.c.id),
+                    # Outer join to handle the case (like killmail.alliance_id)
+                    # where the ID is null
+                    isouter=True
+                )
+                column = sqla.func.lower(
+                    sqla.func.coalesce(aliased_table.c.name, '')
+                )
+            else:
+                if key in models.Request.sorts:
+                    column = getattr(ddl.request.c, key)
+                elif key in models.Killmail.sorts:
+                    column = getattr(ddl.killmail.c, key)
+            # Now handle direction
+            if direction == search_filter.SortDirection.ascending:
+                direction_func = sqla.asc
+            elif direction == search_filter.SortDirection.descending:
+                direction_func = sqla.desc
+            column_orders.append(direction_func(column))
+        #import pytest; pytest.set_trace()
+        return statement.select_from(from_clause).order_by(*column_orders)
+
+    def filter_requests(self, filters):
+        stmt = sqla.select([ddl.request])
+        try:
+            stmt = self._create_filtered_statement(stmt, filters)
+        except errors.NotFoundError as exc:
+            if exc.kind == 'Request':
+                return []
+            else:
+                raise exc
+        stmt = self._create_sorted_statement(stmt, filters)
+        result = self.connection.execute(stmt)
+        # TODO: Investigate maybe creating this as a generator or something so
+        # we're not loading all matching requests (which could be quite a lot
+        # in some cases)
+        rows = result.fetchall()
+        result.close()
+        return [models.Request.from_dict(row) for row in rows]
