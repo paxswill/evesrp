@@ -596,7 +596,7 @@ class SqlStore(CachingCcpStore, BaseStore):
             error_message = str(integrity_exc.orig)
             if 'fk_killmail_user_id_user_id' in error_message:
                 not_found = errors.NotFoundError('User', kwargs['user_id'])
-            elif 'kf_killmail_character_id_character_ccp_id' in error_message:
+            elif 'fk_killmail_character_id_character_ccp_id' in error_message:
                 not_found = errors.NotFoundError('Character',
                                                  kwargs['character_id'])
             elif 'pk_killmail' in error_message:
