@@ -119,7 +119,7 @@ note = sqla.Table(
     sqla.Column('id', sqla.Integer, primary_key=True, nullable=False),
     sqla.Column('subject_id', sqla.ForeignKey(user.c.id), nullable=False),
     sqla.Column('submitter_id', sqla.ForeignKey(user.c.id), nullable=False),
-    sqla.Column('content', sqla.UnicodeText(), nullable=False),
+    sqla.Column('content', sqla.UnicodeText(), nullable=False, default=u''),
     sqla.Column('timestamp', sqla.TIMESTAMP(timezone=True), nullable=False,
                 server_default=sqla.func.now())
 )
@@ -269,8 +269,7 @@ request = sqla.Table(
     # separate table, so changing details just adds a new entry, and the
     # current details are just the latest entry in there. Not sure it'd be a
     # useful improvement though
-    sqla.Column('details', sqla.UnicodeText(), nullable=False,
-                server_default=u''),
+    sqla.Column('details', sqla.UnicodeText(), nullable=False, default=u''),
     sqla.Column('timestamp', sqla.TIMESTAMP(timezone=True), nullable=False,
                 server_default=sqla.func.now()),
     # TODO: Investigate adding checking at the DB level that the status is
@@ -299,8 +298,7 @@ action = sqla.Table(
     sqla.Column('user_id', sqla.ForeignKey(user.c.id), nullable=False),
     # Possible linking of this with request.status.type checking
     sqla.Column('type', action_type, nullable=False),
-    sqla.Column('details', sqla.UnicodeText(), nullable=False,
-                server_default=u''),
+    sqla.Column('details', sqla.UnicodeText(), nullable=False, default=u''),
     sqla.Column('timestamp', sqla.TIMESTAMP(timezone=True), nullable=False,
                 server_default=sqla.func.now())
 )
@@ -316,8 +314,7 @@ modifier = sqla.Table(
     sqla.Column('user_id', sqla.ForeignKey(user.c.id), nullable=False),
     sqla.Column('request_id', sqla.ForeignKey(request.c.id), nullable=False,
                 index=True),
-    sqla.Column('note', sqla.UnicodeText(), nullable=False,
-                server_default=u''),
+    sqla.Column('note', sqla.UnicodeText(), nullable=False, default=u''),
     sqla.Column('value', sqla.Numeric(precision=15, scale=5), nullable=False),
     sqla.Column('timestamp', sqla.TIMESTAMP(timezone=True), nullable=False,
                 server_default=sqla.func.now()),
