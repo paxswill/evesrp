@@ -10,7 +10,7 @@ import sqlalchemy.exc
 from .. import BaseStore, CachingCcpStore, errors
 from evesrp import new_models as models
 from evesrp import search_filter
-from . import ddl
+from . import ddl, fts_search
 
 
 class SqlStore(CachingCcpStore, BaseStore):
@@ -1039,7 +1039,9 @@ class SqlStore(CachingCcpStore, BaseStore):
             # this time).
             column_clauses = []
             for values in six.itervalues(column_predicates):
-                column_clauses.extend([column.match(v) for v in values])
+                column_clauses.extend(
+                    [fts_search.NaturalMatch([column], v) for v in values]
+                )
             and_clauses.append(sqla.or_(*column_clauses))
         stmt = cls._check_killmail_join(statement, join_killmail)
         stmt = stmt.where(sqla.and_(*and_clauses))
