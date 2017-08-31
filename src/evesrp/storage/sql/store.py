@@ -1088,3 +1088,120 @@ class SqlStore(CachingCcpStore, BaseStore):
         rows = result.fetchall()
         result.close()
         return [models.Request.from_dict(row) for row in rows]
+
+    # Characters
+
+    _character_select = sqla.select([
+        ddl.character.c.ccp_id.label('id'),
+        ddl.character.c.user_id,
+        ddl.ccp_name.c.name,
+    ]).select_from(
+        ddl.character.join(ddl.ccp_name,
+                           onclause=(ddl.ccp_name.c.id ==
+                                     ddl.character.c.ccp_id)
+                           )
+    )
+
+    def get_character(self, character_id):
+        stmt = self._character_select.where(
+            ddl.character.c.ccp_id == character_id
+        )
+        result = self.connection.execute(stmt)
+        row = result.first()
+        if row is None:
+            raise errors.NotFoundError('Character', character_id)
+        return models.Character.from_dict(row)
+
+    def get_characters(self, user_id):
+        stmt = self._character_select.where(
+            ddl.character.c.user_id == user_id
+        )
+        result = self.connection.execute(stmt)
+        rows = result.fetchall()
+        result.close()
+        return [models.Character.from_dict(row) for row in rows]
+
+    _character_insert = ddl.character.insert()
+
+    def add_character(self, user_id, character_id, character_name):
+        with self.connection.begin_nested() as trans:
+            try:
+                name_result = self.connection.execute(
+                    self._name_insert, type='character', name=character_name,
+                    id=character_id
+                )
+            except sqla.exc.IntegrityError as integrity_error:
+                error_message = str(integrity_error.orig)
+                if 'pk_ccp_name' in error_message:
+                    # duplicate keys are no biggie, just update the name and
+                    # keep going
+                    name_result = self.connection.execute(
+                        ddl.ccp_name.update().where(
+                            sqla.and_(
+                                ddl.ccp_name.c.type == 'character',
+                                ddl.ccp_name.c.id == character_id
+                            )
+                        ),
+                        name=character_name
+                    )
+                else:
+                    trans.close()
+                    raise
+            try:
+                character_result = self.connection.execute(
+                    self._character_insert,
+                    ccp_id=character_id,
+                    user_id=user_id
+                )
+            except sqla.exc.IntegrityError as integrity_error:
+                error_message = str(integrity_error.orig)
+                if 'fk_character_ccp_id_ccp_name_id' in error_message:
+                    # This really shouldn't be raised, but just in case
+                    not_found = errors.NotFoundError('CCP Name', character_id)
+                elif 'fk_character_user_id_user_id' in error_message:
+                    not_found = errors.NotFoundError('User', user_id)
+                elif 'pk_character' in error_message:
+                    # Attempting to add an already existing character. Treat it
+                    # like a special update
+                    # TODO: actually update the name and user
+                    existing_character = models.Character(id_=character_id,
+                                                          user_id=user_id,
+                                                          name=character_name)
+                    self.save_character(temp_character)
+                    return temp_character
+                else:
+                    trans.close()
+                    raise
+                trans.close()
+                six.raise_from(not_found, integrity_exc)
+            trans.commit()
+        return models.Character(id_=character_id,
+                                user_id=user_id,
+                                name=character_name)
+
+    _name_update = ddl.ccp_name.update().where(
+        ddl.ccp_name.c.id == sqla.bindparam('character_id')
+    )
+
+    _character_update = ddl.character.update().where(
+        ddl.character.c.ccp_id == sqla.bindparam('character_id')
+    )
+
+    def save_character(self, character):
+        name_result = self.connection.execute(self._name_update,
+                                              character_id=character.id_,
+                                              name=character.name)
+        self._check_update_result('Name', character.id_, name_result)
+        try:
+            character_result = self.connection.execute(
+                self._character_update, character_id=character.id_,
+                user_id=character.user_id
+            )
+        except sqla.exc.IntegrityError as integrity_exc:
+            error_message = str(integrity_error.orig)
+            if 'fk_character_user_id_user_id' in error_message:
+                not_found = errors.NotFoundError('User', user_id)
+            else:
+                raise
+            six.raise_from(not_found, integrity_exc)
+        self._check_update_result('Character', character.id_, name_result)
