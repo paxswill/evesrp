@@ -388,6 +388,26 @@ class TestSqlStore(CommonStorageTest):
                 },
             ]
         )
+        # For some reason the sequences are not being kept in sync on Postgres
+        if conn.dialect.name == 'postgresql':
+            sync_sequence = """
+            SELECT setval('{}', (SELECT MAX(id) FROM {})+1);
+            """
+            sequences = {
+                'entity': 'entity_id_seq',
+                'division': 'division_id_seq',
+                'killmail': 'killmail_id_seq',
+                'note': 'note_id_seq',
+                'request': 'request_id_seq',
+                'modifier': 'modifier_id_seq',
+                'action': 'action_id_seq',
+            }
+            for table_name, sequence_name in sequences.items():
+                # Yes, using string formatting instead of bind params. It's a
+                # bit easier than trying to figure out how to not quote table
+                # names in SQLAlchemy, and the input data is strictly defined.
+                stmt = sync_sequence.format(sequence_name, table_name)
+                conn.execute(sqla.text(stmt))
 
     @pytest.fixture(scope='function')
     def store(self, engine, schema):

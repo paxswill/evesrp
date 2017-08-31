@@ -1205,3 +1205,60 @@ class SqlStore(CachingCcpStore, BaseStore):
                 raise
             six.raise_from(not_found, integrity_exc)
         self._check_update_result('Character', character.id_, name_result)
+
+    # User Notes
+
+    _note_select = sqla.select([
+        ddl.note.c.id,
+        ddl.note.c.subject_id,
+        ddl.note.c.submitter_id,
+        # labeling the 'content' column so we can feed to rows directly into
+        # Note.from_dict
+        ddl.note.c.content.label('contents'),
+        ddl.note.c.timestamp,
+    ])
+
+    def get_note(self, note_id):
+        stmt = self._note_select.where(ddl.note.c.id == note_id)
+        result = self.connection.execute(stmt)
+        row = result.first()
+        if row is None:
+            raise errors.NotFoundError('Note', note_id)
+        return models.Note.from_dict(row)
+
+    def get_notes(self, subject_id):
+        stmt = self._note_select.where(ddl.note.c.subject_id == subject_id)
+        result = self.connection.execute(stmt)
+        rows = result.fetchall()
+        return [models.Note.from_dict(row) for row in rows]
+
+    _note_insert = ddl.note.insert().return_defaults(
+        ddl.note.c.timestamp
+    )
+
+    def add_note(self, subject_id, submitter_id, contents):
+        try:
+            result = self.connection.execute(self._note_insert,
+                                             subject_id=subject_id,
+                                             submitter_id=submitter_id,
+                                             content=contents)
+        except sqla.exc.IntegrityError as integrity_exc:
+            error_message = str(integrity_exc.orig)
+            if 'fk_note_subject_id_user_id' in error_message:
+                not_found = errors.NotFoundError('User', subject_id)
+            elif 'fk_note_submitter_id_user_id' in error_message:
+                not_found = errors.NotFoundError('User', submitter_id)
+            else:
+                raise
+            six.raise_from(not_found, integrity_exc)
+        note_id = result.inserted_primary_key[0]
+        if result.returned_defaults is not None:
+            return models.Note(
+                id_=note_id,
+                submitter_id=submitter_id,
+                subject_id=subject_id,
+                contents=contents,
+                timestamp=result.returned_defaults['timestamp']
+            )
+        else:
+            return self.get_note(note_id)
