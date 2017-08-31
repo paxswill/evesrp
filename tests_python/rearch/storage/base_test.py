@@ -778,7 +778,7 @@ class CommonStorageTest(object):
         with pytest.raises(storage.NotFoundError):
             populated_store.get_character(95465499)
         new_character = populated_store.add_character(7, 95465499,
-                                                      'CCP Bartender')
+                                                      u'CCP Bartender')
         character = populated_store.get_character(95465499)
         assert character == new_character
         assert character.id_ == 95465499
