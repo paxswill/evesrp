@@ -35,10 +35,12 @@ class TestSqlStore(CommonStorageTest):
         params=(
             'sqlite:///:memory:',
             'postgres://paxswill@localhost/evesrp_rearch',
+            'mysql+pymysql://root@localhost/evesrp_rearch',
         ),
         ids=(
             'sqlite',
             'postgres',
+            'mysql',
         )
     )
     def engine(self, request):
