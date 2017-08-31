@@ -41,6 +41,31 @@ class SqlStore(CachingCcpStore, BaseStore):
             else:
                 raise errors.StorageError(kind, identifier)
 
+    def _duplicate_key_error(self, error, table_name):
+        error_message = str(error.orig)
+        if self.connection.dialect.name == 'postgresql':
+            constraint_name = 'pk_{}'.format(table_name)
+            return constraint_name in error_message
+        elif self.connection.dialect.name == 'mysql':
+            return 'Duplicate entry' in error_message
+        elif self.connection.dialect.name == 'sqlite':
+            # SQLite isn't too specific in its error messages
+            return 'UNIQUE' in error_message
+
+    def _foreign_key_error(self, error, source_table, source_column,
+                           referred_table, referred_column):
+        error_message = str(error.orig)
+        if self.connection.dialect.name in ('postgresql', 'mysql'):
+            constraint_name = 'fk_{}_{}_{}_{}'.format(source_table,
+                                                      source_column,
+                                                      referred_table,
+                                                      referred_column)
+            return constraint_name in error_message
+        elif self.connection.dialect.name == 'sqlite':
+            # SQLite isn't too specific in its error messages
+            return 'FOREIGN KEY' in error_message
+
+
     # Authentication
 
     _authn_select = sqla.select(
@@ -255,10 +280,11 @@ class SqlStore(CachingCcpStore, BaseStore):
                 type=type_
             )
         except sqla.exc.IntegrityError as exc:
-            error_message = str(exc.orig)
-            if 'fk_permission_entity_id_entity_id' in error_message:
+            if self._foreign_key_error(exc, 'permission', 'entity_id',
+                                       'entity', 'id'):
                 new_exc = errors.NotFoundError('Entity', entity_id)
-            elif 'fk_permission_division_id_division_id' in error_message:
+            elif self._foreign_key_error(exc, 'permission', 'division_id',
+                                         'division', 'id'):
                 new_exc = errors.NotFoundError('Division', division_id)
             else:
                 raise
@@ -470,10 +496,14 @@ class SqlStore(CachingCcpStore, BaseStore):
                                              group_id=group_id)
         except sqla.exc.IntegrityError as integrity_exc:
             error_message = str(integrity_exc.orig)
-            if 'fk_user_group_user_id_entity_id' in error_message or \
+            # TODO genericize the check constraint handling for DBs other than
+            # Postgres.
+            if self._foreign_key_error(integrity_exc, 'user_group',
+                                       'user_id', 'entity', 'id') or \
                     'ck_user_group_user_type' in error_message:
                 not_found = errors.NotFoundError('User', user_id)
-            elif 'fk_user_group_group_id_entity_id' in error_message or \
+            elif self._foreign_key_error(integrity_exc, 'user_group',
+                                         'group_id', 'entity', 'id') or \
                     'ck_user_group_group_type' in error_message:
                 not_found = errors.NotFoundError('Group', group_id)
             else:
@@ -593,13 +623,16 @@ class SqlStore(CachingCcpStore, BaseStore):
             result = self.connection.execute(self._killmail_insert,
                                              **insert_args)
         except sqla.exc.IntegrityError as integrity_exc:
-            error_message = str(integrity_exc.orig)
-            if 'fk_killmail_user_id_user_id' in error_message:
+            if self._foreign_key_error(integrity_exc,
+                                       'killmail', 'user_id',
+                                       'user', 'id'):
                 not_found = errors.NotFoundError('User', kwargs['user_id'])
-            elif 'fk_killmail_character_id_character_ccp_id' in error_message:
+            elif self._foreign_key_error(integrity_exc,
+                                         'killmail', 'character_id',
+                                         'character', 'ccp_id'):
                 not_found = errors.NotFoundError('Character',
                                                  kwargs['character_id'])
-            elif 'pk_killmail' in error_message:
+            elif self._duplicate_key_error(integrity_exc, 'killmail'):
                 # Duplicate killmail submission, just return the existing
                 # killmail
                 # TODO Add tests for this
@@ -663,10 +696,13 @@ class SqlStore(CachingCcpStore, BaseStore):
                                              division_id=division_id,
                                              details=details)
         except sqla.exc.IntegrityError as integrity_exc:
-            error_message = str(integrity_exc.orig)
-            if 'fk_request_division_id_division_id' in error_message:
+            if self._foreign_key_error(integrity_exc,
+                                       'request', 'division_id',
+                                       'division', 'id'):
                 not_found = errors.NotFoundError('Division', divsion_id)
-            elif 'fk_request_killmail_id_killmail_id' in error_message:
+            elif self._foreign_key_error(integrity_exc,
+                                         'request', 'killmail_id',
+                                         'killmail', 'id'):
                 not_found = errors.NotFoundError('Killmail', killmail_id)
             else:
                 raise
@@ -757,10 +793,13 @@ class SqlStore(CachingCcpStore, BaseStore):
                                              type=type_,
                                              details=contents)
         except sqla.exc.IntegrityError as integrity_exc:
-            error_message = str(integrity_exc.orig)
-            if 'fk_action_request_id_request_id' in error_message:
+            if self._foreign_key_error(integrity_exc,
+                                       'action', 'request_id',
+                                       'request', 'id'):
                 not_found = errors.NotFoundError('Request', request_id)
-            elif 'fk_actoin_user_id_user_id' in error_message:
+            elif self._foreign_key_error(integrity_exc,
+                                         'action', 'user_id',
+                                         'user', 'id'):
                 not_found = errors.NotFoundError('User', user_id)
             else:
                 raise
@@ -852,10 +891,13 @@ class SqlStore(CachingCcpStore, BaseStore):
                                              value=value,
                                              note=note)
         except sqla.exc.IntegrityError as integrity_exc:
-            error_message = str(integrity_exc.orig)
-            if 'fk_modifier_request_id_request_id' in error_message:
+            if self._foreign_key_error(integrity_exc,
+                                       'modifier', 'request_id',
+                                       'request', 'id'):
                 not_found = errors.NotFoundError('Request', request_id)
-            elif 'fk_modifier_user_id_user_id' in error_message:
+            elif self._foreign_key_error(integrity_exc,
+                                         'modifier', 'user_id',
+                                         'user', 'id'):
                 not_found = errors.NotFoundError('User', user_id)
             else:
                 raise
@@ -886,12 +928,15 @@ class SqlStore(CachingCcpStore, BaseStore):
                                              modifier_id=modifier_id,
                                              user_id=user_id)
         except sqla.exc.IntegrityError as integrity_exc:
-            error_message = str(integrity_exc.orig)
-            if 'fk_void_modifier_modifier_id_modifier_id' in error_message:
+            if self._foreign_key_error(integrity_exc,
+                                       'void_modifier', 'modifier_id',
+                                       'modifier', 'id'):
                 new_exc = errors.NotFoundError('Modifier', modifier_id)
-            elif 'fk_void_modifier_user_id_user_id' in error_message:
+            elif self._foreign_key_error(integrity_exc,
+                                         'void_modifier', 'user_id',
+                                         'user', 'id'):
                 new_exc = errors.NotFoundError('User', user_id)
-            elif 'pk_void_modifier' in error_message:
+            elif self._duplicate_key_error(integrity_exc, 'void_modifier'):
                 new_exc = errors.VoidedModifierError(modifier_id)
             else:
                 raise
@@ -1131,8 +1176,7 @@ class SqlStore(CachingCcpStore, BaseStore):
                     id=character_id
                 )
             except sqla.exc.IntegrityError as integrity_error:
-                error_message = str(integrity_error.orig)
-                if 'pk_ccp_name' in error_message:
+                if self._duplicate_key_error(integrity_error, 'ccp_name'):
                     # duplicate keys are no biggie, just update the name and
                     # keep going
                     name_result = self.connection.execute(
@@ -1154,13 +1198,16 @@ class SqlStore(CachingCcpStore, BaseStore):
                     user_id=user_id
                 )
             except sqla.exc.IntegrityError as integrity_error:
-                error_message = str(integrity_error.orig)
-                if 'fk_character_ccp_id_ccp_name_id' in error_message:
+                if self._foreign_key_error(integrity_error,
+                                           'character', 'ccp_id',
+                                           'ccp_name', 'id'):
                     # This really shouldn't be raised, but just in case
                     not_found = errors.NotFoundError('CCP Name', character_id)
-                elif 'fk_character_user_id_user_id' in error_message:
+                elif self._foreign_key_error(integrity_error,
+                                             'character', 'user_id',
+                                             'user', 'id'):
                     not_found = errors.NotFoundError('User', user_id)
-                elif 'pk_character' in error_message:
+                elif self._duplicate_key_error(integrity_error, 'character'):
                     # Attempting to add an already existing character. Treat it
                     # like a special update
                     # TODO: actually update the name and user
@@ -1198,8 +1245,9 @@ class SqlStore(CachingCcpStore, BaseStore):
                 user_id=character.user_id
             )
         except sqla.exc.IntegrityError as integrity_exc:
-            error_message = str(integrity_error.orig)
-            if 'fk_character_user_id_user_id' in error_message:
+            if self._foreign_key_error(integrity_error,
+                                       'character', 'user_id',
+                                       'user', 'id'):
                 not_found = errors.NotFoundError('User', user_id)
             else:
                 raise
@@ -1243,10 +1291,13 @@ class SqlStore(CachingCcpStore, BaseStore):
                                              submitter_id=submitter_id,
                                              content=contents)
         except sqla.exc.IntegrityError as integrity_exc:
-            error_message = str(integrity_exc.orig)
-            if 'fk_note_subject_id_user_id' in error_message:
+            if self._foreign_key_error(integrity_exc,
+                                       'note', 'subject_id',
+                                       'user', 'id'):
                 not_found = errors.NotFoundError('User', subject_id)
-            elif 'fk_note_submitter_id_user_id' in error_message:
+            elif self._foreign_key_error(integrity_exc,
+                                       'note', 'submitter_id',
+                                       'user', 'id'):
                 not_found = errors.NotFoundError('User', submitter_id)
             else:
                 raise
