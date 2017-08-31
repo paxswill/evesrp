@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import six
 import sqlalchemy as sqla
 from sqlalchemy_utils import UUIDType, JSONType
 
@@ -282,7 +283,6 @@ request = sqla.Table(
     # payout based on base_payout and modifiers
     sqla.Column('payout', sqla.Numeric(precision=15, scale=2),
                 nullable=False, server_default='0'),
-    # TODO: Add FTS index for details column
     sqla.Index('killmail_division',
                'killmail_id', 'division_id',
                unique=True)
@@ -330,6 +330,47 @@ void_modifier = sqla.Table(
     sqla.Column('timestamp', sqla.TIMESTAMP(timezone=True), nullable=False,
                 server_default=sqla.func.now())
 )
+
+
+# Manage fulltext indexes
+
+create_mysql_fts = sqla.DDL(
+    'CREATE FULLTEXT INDEX ix_%(table)s_details_fulltext ON %(table)s '
+    '(details);'
+)
+
+
+create_pg_fts = sqla.DDL(
+    "CREATE INDEX ix_%(table)s_details_fulltext ON %(table)s "
+    "USING GIN (to_tsvector('english', details));"
+)
+
+
+drop_mysql_fts = sqla.DDL(
+    'DROP INDEX ix_%(table)s_details_fulltext ON %(table)s;'
+)
+
+
+drop_pg_fts = sqla.DDL(
+    'DROP INDEX ix_%(table)s_details_fulltext;'
+)
+
+
+fts_index = {
+    'mysql': {
+        'after_create': create_mysql_fts,
+        'before_drop': drop_mysql_fts,
+    },
+    'postgresql': {
+        'after_create': create_pg_fts,
+        'before_drop': drop_pg_fts,
+    },
+}
+
+
+for dialect, ddl_statements in six.iteritems(fts_index):
+    for event_name, ddl in six.iteritems(ddl_statements):
+        sqla.event.listen(request, event_name, ddl.execute_if(dialect=dialect))
 
 
 __all__ = ['metadata', 'authn_entity', 'entity', 'user', 'user_group',
