@@ -4,6 +4,7 @@ import sqlalchemy as sqla
 from sqlalchemy_utils import UUIDType, JSONType
 
 from evesrp import new_models as models
+from .value_enum import ValueEnum
 
 
 metadata = sqla.MetaData(
@@ -256,7 +257,7 @@ killmail = sqla.Table(
 )
 
 
-action_type = sqla.Enum(models.ActionType, metadata=metadata, native_enum=True,
+action_type = ValueEnum(models.ActionType, metadata=metadata, native_enum=False,
                         name='action_type')
 
 
