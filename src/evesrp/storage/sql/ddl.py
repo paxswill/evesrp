@@ -374,6 +374,19 @@ for dialect, ddl_statements in six.iteritems(fts_index):
         sqla.event.listen(request, event_name, ddl.execute_if(dialect=dialect))
 
 
+@sqla.event.listens_for(metadata, 'before_create')
+def pg_set_default_timezone(target, connection, **kw):
+    # On Postgres, set the default timezone for the database to UTC.
+    # This requires that the executing user is the owner of the database or a
+    # superuser.
+    if connection.dialect.name == 'postgresql':
+        database_name = connection.engine.url.database
+        connection.execute(
+            "ALTER DATABASE {} SET timezone TO 'Etc/UTC';".format(
+                database_name)
+        )
+
+
 __all__ = ['metadata', 'authn_entity', 'entity', 'user', 'user_group',
            'division', 'permission', 'note', 'ccp_name', 'character',
            'killmail', 'request', 'action', 'modifier']
