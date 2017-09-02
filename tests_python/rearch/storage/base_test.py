@@ -715,7 +715,7 @@ class CommonStorageTest(object):
     def test_filter(self, populated_store, search, request_ids):
         requests = populated_store.filter_requests(search)
         matching_ids = [r.id_ for r in requests]
-        assert matching_ids == request_ids
+        assert matching_ids == list(request_ids)
 
     @pytest.mark.parametrize('fields', (
         {'request_id', },
@@ -729,7 +729,7 @@ class CommonStorageTest(object):
     ))
     @pytest.mark.parametrize('search_filter', ({}, ))
     def test_sparse_filter(self, populated_store, fields, search, request_ids):
-        results = populated_store.filter_sparse(search, fields)
+        results = list(populated_store.filter_sparse(search, fields))
         other_data = {
             123: {
                 'killmail_timestamp': dt.datetime(2016, 3, 28, 2, 32, 50),
