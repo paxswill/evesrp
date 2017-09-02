@@ -20,7 +20,7 @@ not_implemented = [
     'get_request', 'get_requests', 'add_request', 'save_request',
     'get_action', 'get_actions', 'add_action',
     'get_modifier', 'get_modifiers', 'add_modifier', 'void_modifier',
-    'filter_requests',
+    'filter_requests', 'filter_sparse',
     'get_character', 'get_characters', 'add_character', 'save_character',
     'get_notes', 'add_note',
     'get_region', 'get_constellation', 'get_system',
@@ -38,7 +38,10 @@ def test_not_implemented(method_name):
     with pytest.raises(NotImplementedError):
         # This silliness with the range splat is just to fill in required
         # arguments.
-        method(*range(arg_count))
+        if inspect.isgeneratorfunction(method):
+            list(method(*range(arg_count)))
+        else:
+            method(*range(arg_count))
 
 
 def test_get_killmails():
