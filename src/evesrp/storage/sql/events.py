@@ -13,6 +13,12 @@ def connect_listener(dbapi_connection, connection_record):
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON;")
         cursor.close()
+    elif dialect_name == 'mysql':
+        # Explicitly set the timezone to UTC, otherwise MySQL is 'helpful' and
+        # converts TIMESTAMP values to the local time zone.
+        cursor = dbapi_connection.cursor()
+        cursor.execute("SET time_zone='+0:00';")
+        cursor.close()
 
 
 @sqla.event.listens_for(sqla.engine.Engine, 'begin')

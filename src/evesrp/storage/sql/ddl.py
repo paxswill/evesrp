@@ -122,7 +122,7 @@ note = sqla.Table(
     sqla.Column('subject_id', sqla.ForeignKey(user.c.id), nullable=False),
     sqla.Column('submitter_id', sqla.ForeignKey(user.c.id), nullable=False),
     sqla.Column('content', sqla.UnicodeText(), nullable=False, default=u''),
-    sqla.Column('timestamp', sqla.TIMESTAMP(timezone=True), nullable=False,
+    sqla.Column('timestamp', sqla.TIMESTAMP(timezone=False), nullable=False,
                 server_default=sqla.func.now())
 )
 
@@ -201,7 +201,7 @@ killmail = sqla.Table(
                 server_default='type'),
     # No default given as this value should be taken from the killmail data
     # from CCP
-    sqla.Column('timestamp', sqla.TIMESTAMP(timezone=True), nullable=False),
+    sqla.Column('timestamp', sqla.TIMESTAMP(timezone=False), nullable=False),
     sqla.Column('url', sqla.String(255), nullable=False),
     # Big pile of constraints keeping the various ccp_name references in line
     # NOTE: Not adding a pair of constraints for character_id as it's
@@ -257,7 +257,7 @@ killmail = sqla.Table(
 )
 
 
-action_type = ValueEnum(models.ActionType, metadata=metadata, native_enum=False,
+action_type = ValueEnum(models.ActionType, metadata=metadata, native_enum=True,
                         name='action_type')
 
 
@@ -272,7 +272,7 @@ request = sqla.Table(
     # current details are just the latest entry in there. Not sure it'd be a
     # useful improvement though
     sqla.Column('details', sqla.UnicodeText(), nullable=False, default=u''),
-    sqla.Column('timestamp', sqla.TIMESTAMP(timezone=True), nullable=False,
+    sqla.Column('timestamp', sqla.TIMESTAMP(timezone=False), nullable=False,
                 server_default=sqla.func.now()),
     # TODO: Investigate adding checking at the DB level that the status is
     # changing appropriately.
@@ -300,7 +300,7 @@ action = sqla.Table(
     # Possible linking of this with request.status.type checking
     sqla.Column('type', action_type, nullable=False),
     sqla.Column('details', sqla.UnicodeText(), nullable=False, default=u''),
-    sqla.Column('timestamp', sqla.TIMESTAMP(timezone=True), nullable=False,
+    sqla.Column('timestamp', sqla.TIMESTAMP(timezone=False), nullable=False,
                 server_default=sqla.func.now())
 )
 
@@ -317,7 +317,7 @@ modifier = sqla.Table(
                 index=True),
     sqla.Column('note', sqla.UnicodeText(), nullable=False, default=u''),
     sqla.Column('value', sqla.Numeric(precision=15, scale=5), nullable=False),
-    sqla.Column('timestamp', sqla.TIMESTAMP(timezone=True), nullable=False,
+    sqla.Column('timestamp', sqla.TIMESTAMP(timezone=False), nullable=False,
                 server_default=sqla.func.now()),
     # TODO: possibly add index on only active (aka non-voided) modifiers
 )
@@ -328,7 +328,7 @@ void_modifier = sqla.Table(
     sqla.Column('modifier_id', sqla.ForeignKey(modifier.c.id),
                 primary_key=True, nullable=False),
     sqla.Column('user_id', sqla.ForeignKey(user.c.id), nullable=False),
-    sqla.Column('timestamp', sqla.TIMESTAMP(timezone=True), nullable=False,
+    sqla.Column('timestamp', sqla.TIMESTAMP(timezone=False), nullable=False,
                 server_default=sqla.func.now())
 )
 

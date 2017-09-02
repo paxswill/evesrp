@@ -8,7 +8,7 @@ import six
 from evesrp import new_models as models
 from evesrp import search_filter as sfilter
 from evesrp import storage
-from evesrp.util import parse_datetime, utc
+from evesrp.util import parse_datetime
 
 
 class CommonStorageTest(object):
@@ -701,10 +701,8 @@ class CommonStorageTest(object):
         results = populated_store.filter_sparse(search, fields)
         other_data = {
             123: {
-                'killmail_timestamp': dt.datetime(
-                    2016, 3, 28, 2, 32, 50, tzinfo=utc),
-                'request_timestamp': dt.datetime(
-                    2016, 3, 30, 9, 30, tzinfo=utc),
+                'killmail_timestamp': dt.datetime(2016, 3, 28, 2, 32, 50),
+                'request_timestamp': dt.datetime(2016, 3, 30, 9, 30),
                 'character_id': 570140137,
                 'character_name': u'Paxswill',
                 'type_id': 4310,
@@ -712,10 +710,8 @@ class CommonStorageTest(object):
                 'status': models.ActionType.rejected,
             },
             456: {
-                'killmail_timestamp': dt.datetime(
-                    2016, 3, 28, 2, 32, 50, tzinfo=utc),
-                'request_timestamp': dt.datetime(
-                    2017, 3, 10, 10, 11, 12, tzinfo=utc),
+                'killmail_timestamp': dt.datetime(2016, 3, 28, 2, 32, 50),
+                'request_timestamp': dt.datetime(2017, 3, 10, 10, 11, 12),
                 'character_id': 570140137,
                 'character_name': u'Paxswill',
                 'type_id': 4310,
@@ -723,10 +719,8 @@ class CommonStorageTest(object):
                 'status': models.ActionType.evaluating,
             },
             789: {
-                'killmail_timestamp': dt.datetime(
-                    2017, 3, 12, 0, 33, 10, tzinfo=utc),
-                'request_timestamp': dt.datetime(
-                    2017, 3, 15, 13, 27, tzinfo=utc),
+                'killmail_timestamp': dt.datetime(2017, 3, 12, 0, 33, 10),
+                'request_timestamp': dt.datetime(2017, 3, 15, 13, 27),
                 'character_id': 2112311608,
                 'character_name': u'marssell kross',
                 'type_id': 605,
@@ -734,9 +728,8 @@ class CommonStorageTest(object):
                 'status': models.ActionType.approved,
             },
             234: {
-                'killmail_timestamp': dt.datetime(
-                    2016, 4, 4, 17, 58, 45, tzinfo=utc),
-                'request_timestamp': dt.datetime(2017, 4, 10, tzinfo=utc),
+                'killmail_timestamp': dt.datetime(2016, 4, 4, 17, 58, 45),
+                'request_timestamp': dt.datetime(2017, 4, 10),
                 'character_id': 570140137,
                 'character_name': u'Paxswill',
                 'type_id': 593,
@@ -744,9 +737,8 @@ class CommonStorageTest(object):
                 'status': models.ActionType.incomplete,
             },
             345: {
-                'killmail_timestamp': dt.datetime(
-                    2016, 4, 4, 18, 19, 27, tzinfo=utc),
-                'request_timestamp': dt.datetime(2017, 4, 9, tzinfo=utc),
+                'killmail_timestamp': dt.datetime(2016, 4, 4, 18, 19, 27),
+                'request_timestamp': dt.datetime(2017, 4, 9),
                 'character_id': 570140137,
                 'character_name': u'Paxswill',
                 'type_id': 593,

@@ -7,7 +7,6 @@ import sqlalchemy as sqla
 
 from evesrp import new_models as models
 from evesrp.storage.sql import SqlStore, ddl
-from evesrp.util import utc
 from .base_test import CommonStorageTest
 
 
@@ -116,7 +115,7 @@ class TestSqlStore(CommonStorageTest):
                     'id': 1,
                     'subject_id': 9,
                     'submitter_id': 7,
-                    'timestamp': dt.datetime(2017, 4, 1, tzinfo=utc),
+                    'timestamp': dt.datetime(2017, 4, 1),
                     'content': (u'Not the sharpest tool in the shed. Keeps '
                                  u'losing things, deny future requests.'),
                 }
@@ -177,8 +176,7 @@ class TestSqlStore(CommonStorageTest):
                     'system_id': 30000848,
                     'constellation_id': 20000124,
                     'region_id': 10000010,
-                    'timestamp': dt.datetime(2016, 3, 28, 2, 32, 50,
-                                             tzinfo=utc),
+                    'timestamp': dt.datetime(2016, 3, 28, 2, 32, 50),
                     'url': u'https://zkillboard.com/kill/52861733/',
                 },
                 {
@@ -191,8 +189,7 @@ class TestSqlStore(CommonStorageTest):
                     'system_id': 31002586,
                     'constellation_id': 21000332,
                     'region_id': 11000032,
-                    'timestamp': dt.datetime(2017, 3, 12, 0, 33, 10,
-                                             tzinfo=utc),
+                    'timestamp': dt.datetime(2017, 3, 12, 0, 33, 10),
                     'url': u'https://zkillboard.com/kill/60713776/',
                 },
                 {
@@ -205,8 +202,7 @@ class TestSqlStore(CommonStorageTest):
                     'system_id': 30045316,
                     'constellation_id': 20000783,
                     'region_id': 10000069,
-                    'timestamp': dt.datetime(2016, 4, 4, 17, 58, 45,
-                                             tzinfo=utc),
+                    'timestamp': dt.datetime(2016, 4, 4, 17, 58, 45),
                     'url': u'https://zkillboard.com/kill/53042210/',
                 },
                 {
@@ -219,8 +215,7 @@ class TestSqlStore(CommonStorageTest):
                     'system_id': 30003837,
                     'constellation_id': 20000561,
                     'region_id': 10000048,
-                    'timestamp': dt.datetime(2016, 4, 4, 18, 19, 27,
-                                             tzinfo=utc),
+                    'timestamp': dt.datetime(2016, 4, 4, 18, 19, 27),
                     'url': u'https://zkillboard.com/kill/53042755/',
                 },
             ]
@@ -233,7 +228,7 @@ class TestSqlStore(CommonStorageTest):
                     'killmail_id': 52861733,
                     'division_id': 10,
                     'details': u'Hey! I lost a Windrunner.',
-                    'timestamp': dt.datetime(2016, 3, 30, 9, 30, tzinfo=utc),
+                    'timestamp': dt.datetime(2016, 3, 30, 9, 30),
                     'base_payout': decimal.Decimal(5000000),
                     'payout': decimal.Decimal(5500000),
                     'status': models.ActionType.rejected,
@@ -244,8 +239,7 @@ class TestSqlStore(CommonStorageTest):
                     'division_id': 30,
                     'details': (u'I deserve money from this division as well, '
                                 u'please'),
-                    'timestamp': dt.datetime(2017, 3, 10, 10, 11, 12,
-                                             tzinfo=utc),
+                    'timestamp': dt.datetime(2017, 3, 10, 10, 11, 12),
                     'base_payout': decimal.Decimal(7000000),
                     'payout': decimal.Decimal(3500000),
                     'status': models.ActionType.evaluating,
@@ -256,7 +250,7 @@ class TestSqlStore(CommonStorageTest):
                     'division_id': 30,
                     'details': (u"I'm an explorer who lost a Heron. Gimme "
                                 u"money."),
-                    'timestamp': dt.datetime(2017, 3, 15, 13, 27, tzinfo=utc),
+                    'timestamp': dt.datetime(2017, 3, 15, 13, 27),
                     'base_payout': decimal.Decimal(5000000),
                     'payout': decimal.Decimal(50000),
                     'status': models.ActionType.approved,
@@ -266,7 +260,7 @@ class TestSqlStore(CommonStorageTest):
                     'killmail_id': 53042210,
                     'division_id': 30,
                     'details': u"Fund my solo PvP Tristans.",
-                    'timestamp': dt.datetime(2017, 4, 10, tzinfo=utc),
+                    'timestamp': dt.datetime(2017, 4, 10),
                     'base_payout': decimal.Decimal(5000000),
                     'payout': decimal.Decimal(5000000),
                     'status': models.ActionType.incomplete,
@@ -276,7 +270,7 @@ class TestSqlStore(CommonStorageTest):
                     'killmail_id': 53042755,
                     'division_id': 10,
                     'details': u"iskies for my toonies. Please",
-                    'timestamp': dt.datetime(2017, 4, 9, tzinfo=utc),
+                    'timestamp': dt.datetime(2017, 4, 9),
                     'base_payout': decimal.Decimal(5000000),
                     'payout': decimal.Decimal(5000000),
                     'status': models.ActionType.incomplete,
@@ -289,7 +283,7 @@ class TestSqlStore(CommonStorageTest):
                 {
                     'id': 10000,
                     'type': models.ActionType.rejected,
-                    'timestamp': dt.datetime(2016, 4, 3, tzinfo=utc),
+                    'timestamp': dt.datetime(2016, 4, 3),
                     'details': u'git gud scrub',
                     'user_id': 7,
                     'request_id': 123,
@@ -297,7 +291,7 @@ class TestSqlStore(CommonStorageTest):
                 {
                     'id': 20000,
                     'type': models.ActionType.comment,
-                    'timestamp': dt.datetime(2016, 4, 3, 1, tzinfo=utc),
+                    'timestamp': dt.datetime(2016, 4, 3, 1),
                     'details': u'sadface',
                     'user_id': 9,
                     'request_id': 123,
@@ -305,7 +299,7 @@ class TestSqlStore(CommonStorageTest):
                 {
                     'id': 30000,
                     'type': models.ActionType.approved,
-                    'timestamp': dt.datetime(2017, 4, 3, 1, tzinfo=utc),
+                    'timestamp': dt.datetime(2017, 4, 3, 1),
                     'details': u'',
                     'user_id': 7,
                     'request_id': 789,
@@ -320,7 +314,7 @@ class TestSqlStore(CommonStorageTest):
                     'type': models.ModifierType.absolute,
                     'value': decimal.Decimal(500000),
                     'note': u'For something good',
-                    'timestamp': dt.datetime(2016, 4, 1, tzinfo=utc),
+                    'timestamp': dt.datetime(2016, 4, 1),
                     'user_id': 7,
                     'request_id': 123,
                 },
@@ -329,7 +323,7 @@ class TestSqlStore(CommonStorageTest):
                     'type': models.ModifierType.absolute,
                     'value': decimal.Decimal(500000),
                     'note': u'Incorrect bonus',
-                    'timestamp': dt.datetime(2017, 3, 11, 1, 0, tzinfo=utc),
+                    'timestamp': dt.datetime(2017, 3, 11, 1, 0),
                     'user_id': 7,
                     'request_id': 456,
                 },
@@ -338,7 +332,7 @@ class TestSqlStore(CommonStorageTest):
                     'type': models.ModifierType.relative,
                     'value': decimal.Decimal('-0.5'),
                     'note': u'You dun goofed',
-                    'timestamp': dt.datetime(2017, 3, 11, 1, 7, tzinfo=utc),
+                    'timestamp': dt.datetime(2017, 3, 11, 1, 7),
                     'user_id': 7,
                     'request_id': 456,
                 },
@@ -347,7 +341,7 @@ class TestSqlStore(CommonStorageTest):
                     'type': models.ModifierType.relative,
                     'value': decimal.Decimal('-0.5'),
                     'note': u'Major deduction',
-                    'timestamp': dt.datetime(2017, 3, 16, 1, 7, tzinfo=utc),
+                    'timestamp': dt.datetime(2017, 3, 16, 1, 7),
                     'user_id': 7,
                     'request_id': 789,
                 },
@@ -356,7 +350,7 @@ class TestSqlStore(CommonStorageTest):
                     'type': models.ModifierType.relative,
                     'value': decimal.Decimal('-0.49'),
                     'note': u'Almost overkill',
-                    'timestamp': dt.datetime(2017, 3, 16, 1, 7, tzinfo=utc),
+                    'timestamp': dt.datetime(2017, 3, 16, 1, 7),
                     'user_id': 7,
                     'request_id': 789,
                 },
@@ -368,7 +362,7 @@ class TestSqlStore(CommonStorageTest):
                 {
                     'modifier_id': 200000,
                     'user_id': 7,
-                    'timestamp':  dt.datetime(2017, 3, 11, 1, 5, tzinfo=utc),
+                    'timestamp':  dt.datetime(2017, 3, 11, 1, 5),
                 },
             ]
         )
