@@ -211,6 +211,20 @@ class CommonStorageTest(object):
             assert len(permissions_post) == 1
             assert added_permission == permissions_post.pop()
 
+    def test_add_duplicate_permission(self, populated_store):
+        pre_permissions = populated_store.get_permissions(
+            type_=models.PermissionType.audit)
+        pre_permissions = set(pre_permissions)
+        assert len(pre_permissions) == 0
+        original_permission = populated_store.add_permission(
+            division_id=30, entity_id=9, type_=models.PermissionType.audit)
+        duplicate_permission = populated_store.add_permission(
+            division_id=original_permission.division_id,
+            entity_id=original_permission.entity_id,
+            type_=original_permission.type_
+        )
+        assert duplicate_permission == original_permission
+
     @pytest.mark.parametrize('remove_args,remove_kwargs', (
         (
             (
@@ -368,12 +382,19 @@ class CommonStorageTest(object):
             users = list(populated_store.get_users(group_id))
             assert len(users) == 1
 
+    def test_associate_existing_member(self, populated_store):
+        populated_store.associate_user_group(user_id=9, group_id=3000)
+
     def test_disassociate(self, populated_store):
         pre_resp = populated_store.get_users(3000)
         assert len(pre_resp) == 1
         populated_store.disassociate_user_group(9, 3000)
         post_resp = populated_store.get_users(3000)
         assert len(post_resp) == 0
+
+    def test_disassociate_nonmember(self, populated_store):
+        # Test the disassociating a user not in a group does not raise an error
+        populated_store.disassociate_user_group(user_id=7, group_id=3000)
 
     # Killmails
 
@@ -410,6 +431,15 @@ class CommonStorageTest(object):
         else:
             killmail = populated_store.add_killmail(**full_km_data)
             assert killmail is not None
+
+    def test_add_existing_killmail(self, populated_store, killmail_data):
+        full_km_data = dict(killmail_data)
+        full_km_data['id_'] = full_km_data.pop('id')
+        full_km_data['user_id'] = 9
+        original_killmail = populated_store.add_killmail(**full_km_data)
+        assert original_killmail is not None
+        duplicate_killmail = populated_store.add_killmail(**full_km_data)
+        assert original_killmail == duplicate_killmail
 
     # Requests
 

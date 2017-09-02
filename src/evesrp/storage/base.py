@@ -81,10 +81,42 @@ class BaseStore(object):
     # Permissions
 
     def get_permissions(self, **kwargs):
+        """Get an iterable of matching :py:class:`~.Permission` objects.
+
+        If no arguments are given, *all* permissions will be retrieved. Either
+        the single type (ie :py:class:`int` or :py:class:`~.PermissionType`) or
+        an iterable of the single types may be given as values for the
+        arguments. If an iterable is given, permissions matching *any* of those
+        values will be returned.
+
+        :param entity_id: If given, only fetch permissions for the entity with
+            this ID.
+        :type entity_id: int or iterable
+        :param division_id: If given, only fetch permissions for the division
+            with this ID.
+        :type division_id: int or iterable
+        :param type_: If given, only permissions of this type will be
+            retrieved.
+        :type type_: :py:class:`~.PermissionType` or iterable
+        """
         # entity_id, division_id, types, type_
         raise NotImplementedError
 
     def add_permission(self, division_id, entity_id, type_):
+        """Add a Permission to storage.
+
+        If the unique combination of entity, division and permission type are
+        already stored, no error will be raised and a :py:class:`~.Permission`
+        will be returned like normal.
+
+        :param int division_id: The ID of the division.
+        :param int entity_id: The ID of the entity (user or group).
+        :param type_: The type of the permission.
+        :type type_: :py:class:`~models.PermissionType`
+        :rtype: :py:class:`~models.Permission`
+        :raises .errors.NotFoundError: When either `entity_id` or `division_id`
+            do not correspond to an existing division or entity.
+        """
         raise NotImplementedError
 
     def remove_permission(self, *args, **kwargs):
@@ -170,9 +202,21 @@ class BaseStore(object):
         raise NotImplementedError
 
     def associate_user_group(self, user_id, group_id):
+        """Add a user to a group.
+
+        If a user is already in a group, no error is raised.
+
+        :raises errors.NotFoundError: When either of the IDs does not refer to
+            a user or group.
+        """
         raise NotImplementedError
 
     def disassociate_user_group(self, user_id, group_id):
+        """Add a user to a group.
+
+        If attempting to remove a user not in a group, no error will be raised.
+        The validity of the given user or group IDs is *not* checked.
+        """
         raise NotImplementedError
 
     # Killmails
@@ -191,6 +235,8 @@ class BaseStore(object):
     def add_killmail(self, **kwargs):
         """Create a record for a killmail.
 
+        If the killmail already exists in storage, no error is raised.
+
         :param int id_: The CCP ID for the killmail.
         :param int user_id: The internal ID for the user owning the character
             on this killmail at the time of first submission.
@@ -208,6 +254,8 @@ class BaseStore(object):
             took place in.
         :param int region_id: The CCP ID of the region the loss took place in.
         :param datetime timestamp: The date and time the loss happened.
+        :raises error.NotFoundError: When the given `user_id` or `character_id`
+            do refer to a user or character existing in storage.
         """
         raise NotImplementedError
 

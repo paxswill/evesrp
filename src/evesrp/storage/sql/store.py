@@ -280,15 +280,21 @@ class SqlStore(CachingCcpStore, BaseStore):
                 type=type_
             )
         except sqla.exc.IntegrityError as exc:
-            if self._foreign_key_error(exc, 'permission', 'entity_id',
-                                       'entity', 'id'):
-                new_exc = errors.NotFoundError('Entity', entity_id)
-            elif self._foreign_key_error(exc, 'permission', 'division_id',
-                                         'division', 'id'):
-                new_exc = errors.NotFoundError('Division', division_id)
+            if self._duplicate_key_error(exc, 'permission'):
+                # In case of duplicate permissions, just return the one that's
+                # already there (in this case by falling through to outside of
+                # the except block).
+                pass
             else:
-                raise
-            six.raise_from(new_exc, exc)
+                if self._foreign_key_error(exc, 'permission', 'entity_id',
+                                           'entity', 'id'):
+                    new_exc = errors.NotFoundError('Entity', entity_id)
+                elif self._foreign_key_error(exc, 'permission', 'division_id',
+                                             'division', 'id'):
+                    new_exc = errors.NotFoundError('Division', division_id)
+                else:
+                    raise
+                six.raise_from(new_exc, exc)
         return models.Permission(division_id, entity_id, type_)
 
     _permission_delete = ddl.permission.delete().where(
@@ -498,17 +504,20 @@ class SqlStore(CachingCcpStore, BaseStore):
             error_message = str(integrity_exc.orig)
             # TODO genericize the check constraint handling for DBs other than
             # Postgres.
-            if self._foreign_key_error(integrity_exc, 'user_group',
-                                       'user_id', 'entity', 'id') or \
-                    'ck_user_group_user_type' in error_message:
-                not_found = errors.NotFoundError('User', user_id)
-            elif self._foreign_key_error(integrity_exc, 'user_group',
-                                         'group_id', 'entity', 'id') or \
-                    'ck_user_group_group_type' in error_message:
-                not_found = errors.NotFoundError('Group', group_id)
+            if self._duplicate_key_error(integrity_exc, 'user_group'):
+                pass
             else:
-                raise
-            six.raise_from(not_found, integrity_exc)
+                if self._foreign_key_error(integrity_exc, 'user_group',
+                                           'user_id', 'entity', 'id') or \
+                        'ck_user_group_user_type' in error_message:
+                    not_found = errors.NotFoundError('User', user_id)
+                elif self._foreign_key_error(integrity_exc, 'user_group',
+                                             'group_id', 'entity', 'id') or \
+                        'ck_user_group_group_type' in error_message:
+                    not_found = errors.NotFoundError('Group', group_id)
+                else:
+                    raise
+                six.raise_from(not_found, integrity_exc)
 
     _membership_delete = ddl.user_group.delete().where(
         sqla.and_(
@@ -619,27 +628,28 @@ class SqlStore(CachingCcpStore, BaseStore):
         insert_args['user_id'] = kwargs['user_id']
         insert_args['timestamp'] = kwargs['timestamp']
         insert_args['url'] = kwargs['url']
-        try:
-            result = self.connection.execute(self._killmail_insert,
-                                             **insert_args)
-        except sqla.exc.IntegrityError as integrity_exc:
-            if self._foreign_key_error(integrity_exc,
-                                       'killmail', 'user_id',
-                                       'user', 'id'):
-                not_found = errors.NotFoundError('User', kwargs['user_id'])
-            elif self._foreign_key_error(integrity_exc,
-                                         'killmail', 'character_id',
-                                         'character', 'ccp_id'):
-                not_found = errors.NotFoundError('Character',
-                                                 kwargs['character_id'])
-            elif self._duplicate_key_error(integrity_exc, 'killmail'):
-                # Duplicate killmail submission, just return the existing
-                # killmail
-                # TODO Add tests for this
-                return self.get_killmail(kwargs['id_'])
-            else:
-                raise
-            six.raise_from(not_found, integrity_exc)
+        with self.connection.begin_nested() as trans:
+            try:
+                result = self.connection.execute(self._killmail_insert,
+                                                 **insert_args)
+            except sqla.exc.IntegrityError as integrity_exc:
+                if self._foreign_key_error(integrity_exc,
+                                           'killmail', 'user_id',
+                                           'user', 'id'):
+                    not_found = errors.NotFoundError('User', kwargs['user_id'])
+                elif self._foreign_key_error(integrity_exc,
+                                             'killmail', 'character_id',
+                                             'character', 'ccp_id'):
+                    not_found = errors.NotFoundError('Character',
+                                                     kwargs['character_id'])
+                elif self._duplicate_key_error(integrity_exc, 'killmail'):
+                    # Duplicate killmail submission, just return the existing
+                    # killmail
+                    trans.rollback()
+                    return self.get_killmail(kwargs['id_'])
+                else:
+                    raise
+                six.raise_from(not_found, integrity_exc)
         model_args = dict(insert_args)
         model_args['id_'] = model_args['id']
         del model_args['id']
@@ -1124,17 +1134,17 @@ class SqlStore(CachingCcpStore, BaseStore):
             stmt = self._create_filtered_statement(stmt, filters)
         except errors.NotFoundError as exc:
             if exc.kind == 'Request':
-                return []
+                return
             else:
                 raise exc
         stmt = self._create_sorted_statement(stmt, filters)
         result = self.connection.execute(stmt)
-        # TODO: Investigate maybe creating this as a generator or something so
-        # we're not loading all matching requests (which could be quite a lot
-        # in some cases)
-        rows = result.fetchall()
+        rows = result.fetchmany(size=500)
+        while len(rows) != 0:
+            for row in rows:
+                yield models.Request.from_dict(row)
+            rows = result.fetchmany(500)
         result.close()
-        return [models.Request.from_dict(row) for row in rows]
 
     # Characters
 
