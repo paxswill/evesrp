@@ -140,6 +140,7 @@ def test_format_sparse_exception():
 
 
 def test_filter_sparse(mock_filter_store, fields):
+    mock_filter_store.filter_requests.__func__ = None
     mock_filter_store.filter_requests.return_value = [
         mock.Mock(killmail_id=1),
         mock.Mock(killmail_id=2),

@@ -348,7 +348,8 @@ class BaseStore(object):
     def filter_requests(self, filters):
         # See comment block in BaseStore.filter_sparse for the explanation
         # about this little if block
-        if self.__class__ == BaseStore:
+        if self.filter_sparse.__func__ == six.get_unbound_function(
+                BaseStore.filter_sparse):
             raise NotImplementedError
         fields = ['request_id', 'details', 'killmail_id', 'division_id',
                   'payout', 'base_payout', 'request_timestamp', 'status']
@@ -451,7 +452,8 @@ class BaseStore(object):
         # provide basic functionality using the other, and if neither is
         # provided by the subclass, you'll get an infinite loop. So this little
         # if block prevents that from happening.
-        if self.__class__ == BaseStore:
+        if self.filter_requests.__func__ == six.get_unbound_function(
+                BaseStore.filter_requests):
             raise NotImplementedError
         full_requests = self.filter_requests(filters)
         format_kwargs = {'fields': fields}
