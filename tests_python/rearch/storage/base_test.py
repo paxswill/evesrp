@@ -598,7 +598,8 @@ class CommonStorageTest(object):
             for value in values:
                 # Massage the pair of timestamps into a range 
                 if field_name.endswith('timestamp'):
-                    start, end = value
+                    # Strip out timezone info
+                    start, end = [d.replace(tzinfo=None) for d in value]
                     search.add_filter(
                         field_name, start,
                         predicate=sfilter.PredicateType.greater_equal)

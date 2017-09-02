@@ -6,7 +6,6 @@ except ImportError:
     import mock
 
 import pytest
-from evesrp.util import utc
 from evesrp.new_models import util
 from evesrp.new_models import authorization as authz
 
@@ -45,13 +44,13 @@ def test_id_kwargs(kwargs):
 
 
 @pytest.mark.parametrize('timestamp', [
-    dt.datetime(2016, 12, 10, tzinfo=utc),
+    dt.datetime(2016, 12, 10),
     '2016-12-10'
 ])
 def test_parse_timestamp(timestamp):
     parsed_timestamp = util.parse_timestamp(timestamp)
     # Need to specify a timezone as iso8601 defaults to UTC
-    assert parsed_timestamp == dt.datetime(2016, 12, 10, tzinfo=utc)
+    assert parsed_timestamp == dt.datetime(2016, 12, 10)
 
 
 @pytest.mark.parametrize('field_type', (

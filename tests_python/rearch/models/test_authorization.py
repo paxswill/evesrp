@@ -7,7 +7,6 @@ import pytest
 
 from evesrp import storage
 from evesrp import new_models as models
-from evesrp.util import utc
 
 
 @pytest.fixture
@@ -269,7 +268,7 @@ def test_note_dict():
     note_dict = {
         "id": 11,
         "contents": contents,
-        "timestamp": dt.datetime(2016, 12, 10, tzinfo=utc),
+        "timestamp": dt.datetime(2016, 12, 10),
         "submitter_id": 22,
         "subject_id": 33,
     }
@@ -278,4 +277,4 @@ def test_note_dict():
     assert note.submitter_id == 22
     assert note.subject_id == 33
     assert note.contents == contents
-    assert note.timestamp == dt.datetime(2016, 12, 10, tzinfo=utc)
+    assert note.timestamp == dt.datetime(2016, 12, 10)

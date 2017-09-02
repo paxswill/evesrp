@@ -140,6 +140,11 @@ def _storage_search_from_graphql_search(self):
             else:
                 predicate_short_name = attr_name[-2:]
                 predicate = search_filter.PredicateType(predicate_short_name)
+            if field_name.endswith('_timestamp'):
+                # Graphene parses ISO8601 strings and defaults to UTC-aware
+                # datetimes. We use naive datetimes throughout evesrp, and
+                # coparisons between them fail.
+                values = [v.replace(tzinfo=None) for v in values]
             search.add_filter(field_name, *values, predicate=predicate)
     # Add the sorts (if any)
     search.clear_sorts()

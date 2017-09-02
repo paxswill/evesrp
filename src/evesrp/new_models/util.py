@@ -44,7 +44,7 @@ def id_from_kwargs(arg_name, kwargs):
 
 def parse_timestamp(raw_timestamp):
     if isinstance(raw_timestamp, six.string_types):
-        return iso8601.parse_date(raw_timestamp)
+        return iso8601.parse_date(raw_timestamp, default_timezone=None)
     return raw_timestamp
 
 
