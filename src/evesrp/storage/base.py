@@ -346,7 +346,17 @@ class BaseStore(object):
     # Filtering
 
     def filter_requests(self, filters):
-        raise NotImplementedError
+        # See comment block in BaseStore.filter_sparse for the explanation
+        # about this little if block
+        if self.__class__ == BaseStore:
+            raise NotImplementedError
+        fields = ['request_id', 'details', 'killmail_id', 'division_id',
+                  'payout', 'base_payout', 'request_timestamp', 'status']
+        for result_dict in self.filter_sparse(filters, fields):
+            request_dict = dict(result_dict)
+            request_dict['id'] = request_dict.pop('request_id')
+            request_dict['timestamp'] = request_dict.pop('request_timestamp')
+            yield models.Request.from_dict(request_dict)
 
     _mapped_fields = {
         'character_name': 'character_id',
@@ -436,6 +446,13 @@ class BaseStore(object):
         return sparse_request
 
     def filter_sparse(self, filters, fields):
+        # At least one of filter_requests or filter_sparse must be provided by
+        # the implementing class. The BaseStore implementations are meant to
+        # provide basic functionality using the other, and if neither is
+        # provided by the subclass, you'll get an infinite loop. So this little
+        # if block prevents that from happening.
+        if self.__class__ == BaseStore:
+            raise NotImplementedError
         full_requests = self.filter_requests(filters)
         format_kwargs = {'fields': fields}
         # Don't count fields on both Request and Killmail to figure out if we
