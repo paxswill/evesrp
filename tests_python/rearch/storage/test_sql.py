@@ -34,20 +34,41 @@ class TestSqlStore(CommonStorageTest):
         SqlStore.destroy(engine)
 
     @pytest.fixture(scope='function')
-    def store(self, engine, schema):
+    def connection(self, engine, schema):
         conn = engine.connect()
-        with conn.begin_nested() as trans:
-            store = SqlStore(connection=conn)
-            yield store
-            trans.rollback()
+        yield conn
         conn.close()
 
     @pytest.fixture(scope='function')
-    def populated_store(self, engine, store):
-        # Peek into the store so we can stay within the nested transaction
-        # started in the `store` fixture
-        conn = store.connection
-        with conn.begin_nested() as trans:
-            populate_database(conn)
-            yield store
+    def bare_store(self, connection):
+        return SqlStore(connection=connection)
+
+    @pytest.fixture(scope='function')
+    def store(self, connection, bare_store):
+        with connection.begin_nested() as trans:
+            yield bare_store
             trans.rollback()
+
+    @pytest.fixture(scope='function')
+    def populated_store(self, bare_store, request, connection):
+        dirty_database = (
+            connection.dialect.name == 'mysql' and
+            request.function.__name__ in ('test_filter',
+                                          'test_sparse_filter')
+        )
+        if dirty_database:
+            # MySQL doesn't update the FTS indexes until a commit has happened,
+            # so for those tests that need those indexes updated, we populate
+            # the test data, commit it, run the tests, than delete everything.
+            populate_database(connection)
+            transaction = connection.begin_nested()
+        else:
+            # On everything else, we populate the data inside a transaction
+            transaction = connection.begin_nested()
+            populate_database(connection)
+        yield bare_store
+        transaction.rollback()
+        if dirty_database:
+            # now delete all data we commited
+            for table in reversed(ddl.metadata.sorted_tables):
+                connection.execute(table.delete())
