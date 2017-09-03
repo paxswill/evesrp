@@ -81,10 +81,42 @@ class BaseStore(object):
     # Permissions
 
     def get_permissions(self, **kwargs):
+        """Get an iterable of matching :py:class:`~.Permission` objects.
+
+        If no arguments are given, *all* permissions will be retrieved. Either
+        the single type (ie :py:class:`int` or :py:class:`~.PermissionType`) or
+        an iterable of the single types may be given as values for the
+        arguments. If an iterable is given, permissions matching *any* of those
+        values will be returned.
+
+        :param entity_id: If given, only fetch permissions for the entity with
+            this ID.
+        :type entity_id: int or iterable
+        :param division_id: If given, only fetch permissions for the division
+            with this ID.
+        :type division_id: int or iterable
+        :param type_: If given, only permissions of this type will be
+            retrieved.
+        :type type_: :py:class:`~.PermissionType` or iterable
+        """
         # entity_id, division_id, types, type_
         raise NotImplementedError
 
     def add_permission(self, division_id, entity_id, type_):
+        """Add a Permission to storage.
+
+        If the unique combination of entity, division and permission type are
+        already stored, no error will be raised and a :py:class:`~.Permission`
+        will be returned like normal.
+
+        :param int division_id: The ID of the division.
+        :param int entity_id: The ID of the entity (user or group).
+        :param type_: The type of the permission.
+        :type type_: :py:class:`~models.PermissionType`
+        :rtype: :py:class:`~models.Permission`
+        :raises .errors.NotFoundError: When either `entity_id` or `division_id`
+            do not correspond to an existing division or entity.
+        """
         raise NotImplementedError
 
     def remove_permission(self, *args, **kwargs):
@@ -95,9 +127,9 @@ class BaseStore(object):
             remove_permission(division_id, entity_id, type_)
 
         Because the combination of division, entity and permission type must be
-        unique, you can refer to a permission either by it's ID or the tuple of
-        those values. For the second mode of operation, keyword or positional
-        arguments are allowed.
+        unique, you can either give a permission object directly, or give the
+        combination of values equal to it. For the second mode of operation,
+        keyword or positional arguments are allowed.
         """
         raise NotImplementedError
 
@@ -170,9 +202,21 @@ class BaseStore(object):
         raise NotImplementedError
 
     def associate_user_group(self, user_id, group_id):
+        """Add a user to a group.
+
+        If a user is already in a group, no error is raised.
+
+        :raises errors.NotFoundError: When either of the IDs does not refer to
+            a user or group.
+        """
         raise NotImplementedError
 
     def disassociate_user_group(self, user_id, group_id):
+        """Add a user to a group.
+
+        If attempting to remove a user not in a group, no error will be raised.
+        The validity of the given user or group IDs is *not* checked.
+        """
         raise NotImplementedError
 
     # Killmails
@@ -191,6 +235,8 @@ class BaseStore(object):
     def add_killmail(self, **kwargs):
         """Create a record for a killmail.
 
+        If the killmail already exists in storage, no error is raised.
+
         :param int id_: The CCP ID for the killmail.
         :param int user_id: The internal ID for the user owning the character
             on this killmail at the time of first submission.
@@ -208,6 +254,8 @@ class BaseStore(object):
             took place in.
         :param int region_id: The CCP ID of the region the loss took place in.
         :param datetime timestamp: The date and time the loss happened.
+        :raises error.NotFoundError: When the given `user_id` or `character_id`
+            do refer to a user or character existing in storage.
         """
         raise NotImplementedError
 
@@ -289,8 +337,6 @@ class BaseStore(object):
         :param int modifier_id: The ID of the modifier to void.
         :param int user_id: The ID of the :py:class:`~.User` voiding this
             :py:class:`~.Modifier`.
-        :return: The timestamp the :py:class:`~.Modifier` was voided.
-        :rtype: :py:class:`datetime.datetime`
         """
         # In contrast to Actions, Modifiers are changed after creation, but
         # only in a specific manner: they are only voided (and unable to be
@@ -300,7 +346,18 @@ class BaseStore(object):
     # Filtering
 
     def filter_requests(self, filters):
-        raise NotImplementedError
+        # See comment block in BaseStore.filter_sparse for the explanation
+        # about this little if block
+        if self.filter_sparse.__func__ == six.get_unbound_function(
+                BaseStore.filter_sparse):
+            raise NotImplementedError
+        fields = ['request_id', 'details', 'killmail_id', 'division_id',
+                  'payout', 'base_payout', 'request_timestamp', 'status']
+        for result_dict in self.filter_sparse(filters, fields):
+            request_dict = dict(result_dict)
+            request_dict['id'] = request_dict.pop('request_id')
+            request_dict['timestamp'] = request_dict.pop('request_timestamp')
+            yield models.Request.from_dict(request_dict)
 
     _mapped_fields = {
         'character_name': 'character_id',
@@ -390,6 +447,14 @@ class BaseStore(object):
         return sparse_request
 
     def filter_sparse(self, filters, fields):
+        # At least one of filter_requests or filter_sparse must be provided by
+        # the implementing class. The BaseStore implementations are meant to
+        # provide basic functionality using the other, and if neither is
+        # provided by the subclass, you'll get an infinite loop. So this little
+        # if block prevents that from happening.
+        if self.filter_requests.__func__ == six.get_unbound_function(
+                BaseStore.filter_requests):
+            raise NotImplementedError
         full_requests = self.filter_requests(filters)
         format_kwargs = {'fields': fields}
         # Don't count fields on both Request and Killmail to figure out if we

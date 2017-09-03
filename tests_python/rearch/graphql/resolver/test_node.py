@@ -4,8 +4,6 @@ import datetime as dt
 from graphql_relay.node.node import to_global_id
 import pytest
 
-from evesrp.util import utc
-
 
 # Old style string formatting is being used throughout, as str.format uses
 # braces, and I don't want to escape every brace in GraphQL queries. Format
@@ -204,7 +202,7 @@ class TestNode(object):
             ('submitter', {'id': to_global_id('User', 7)}),
             ('contents', (u'Not the sharpest tool in the shed. Keeps '
                           u'losing things, deny future requests.')),
-            ('timestamp', dt.datetime(2017, 4, 1, tzinfo=utc).isoformat()),
+            ('timestamp', dt.datetime(2017, 4, 1).isoformat()),
         ),
         ids=('subject', 'submitter', 'contents', 'timestamp')
     )
@@ -308,7 +306,7 @@ class TestNode(object):
             ('region', {'id': 10000010, 'name': u'Tribute'}),
             ('type', {'id': 4310, 'name': u'Tornado'}),
             ('timestamp',
-             dt.datetime(2016, 3, 28, 2, 32, 50, tzinfo=utc).isoformat()),
+             dt.datetime(2016, 3, 28, 2, 32, 50).isoformat()),
             ('url', 'https://zkillboard.com/kill/52861733/'),
             ('requests', [to_global_id('Request', rid) for rid in (123, 456)]),
         ),
@@ -369,7 +367,7 @@ class TestNode(object):
         (
             ('actionType', 'rejected'),
             ('timestamp',
-             dt.datetime(2016, 4, 3, tzinfo=utc).isoformat()),
+             dt.datetime(2016, 4, 3).isoformat()),
             ('contents', u'git gud scrub'),
             ('user', {'id': to_global_id('User', 7)}),
         ),
@@ -422,11 +420,11 @@ class TestNode(object):
             ('note', u'Incorrect bonus'),
             ('user', {'id': to_global_id('User', 7)}),
             ('timestamp',
-             dt.datetime(2017, 3, 11, 1, 0, tzinfo=utc).isoformat()),
+             dt.datetime(2017, 3, 11, 1, 0).isoformat()),
             ('void', True),
             ('voidUser', {'id': to_global_id('User', 7)}),
             ('voidTimestamp',
-             dt.datetime(2017, 3, 11, 1, 5, tzinfo=utc).isoformat()),
+             dt.datetime(2017, 3, 11, 1, 5).isoformat()),
         ),
         ids=('type', 'value', 'note', 'user', 'timestamp', 'void', 'void_user',
              'void_timestamp')
@@ -477,7 +475,7 @@ class TestNode(object):
             ('killmail', {'id': to_global_id('Killmail', 52861733)}),
             ('division', {'id': to_global_id('Division', 10)}),
             ('timestamp',
-             dt.datetime(2016, 3, 30, 9, 30, tzinfo=utc).isoformat()),
+             dt.datetime(2016, 3, 30, 9, 30).isoformat()),
             ('status', 'rejected'),
             ('basePayout', '5000000'),
             ('payout', '5500000'),

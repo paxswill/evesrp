@@ -8,7 +8,7 @@ import six
 from evesrp import new_models as models
 from evesrp import search_filter as sfilter
 from evesrp import storage
-from evesrp.util import parse_datetime, utc
+from evesrp.util import parse_datetime
 
 
 class CommonStorageTest(object):
@@ -211,6 +211,20 @@ class CommonStorageTest(object):
             assert len(permissions_post) == 1
             assert added_permission == permissions_post.pop()
 
+    def test_add_duplicate_permission(self, populated_store):
+        pre_permissions = populated_store.get_permissions(
+            type_=models.PermissionType.audit)
+        pre_permissions = set(pre_permissions)
+        assert len(pre_permissions) == 0
+        original_permission = populated_store.add_permission(
+            division_id=30, entity_id=9, type_=models.PermissionType.audit)
+        duplicate_permission = populated_store.add_permission(
+            division_id=original_permission.division_id,
+            entity_id=original_permission.entity_id,
+            type_=original_permission.type_
+        )
+        assert duplicate_permission == original_permission
+
     @pytest.mark.parametrize('remove_args,remove_kwargs', (
         (
             (
@@ -368,12 +382,19 @@ class CommonStorageTest(object):
             users = list(populated_store.get_users(group_id))
             assert len(users) == 1
 
+    def test_associate_existing_member(self, populated_store):
+        populated_store.associate_user_group(user_id=9, group_id=3000)
+
     def test_disassociate(self, populated_store):
         pre_resp = populated_store.get_users(3000)
         assert len(pre_resp) == 1
         populated_store.disassociate_user_group(9, 3000)
         post_resp = populated_store.get_users(3000)
         assert len(post_resp) == 0
+
+    def test_disassociate_nonmember(self, populated_store):
+        # Test the disassociating a user not in a group does not raise an error
+        populated_store.disassociate_user_group(user_id=7, group_id=3000)
 
     # Killmails
 
@@ -410,6 +431,15 @@ class CommonStorageTest(object):
         else:
             killmail = populated_store.add_killmail(**full_km_data)
             assert killmail is not None
+
+    def test_add_existing_killmail(self, populated_store, killmail_data):
+        full_km_data = dict(killmail_data)
+        full_km_data['id_'] = full_km_data.pop('id')
+        full_km_data['user_id'] = 9
+        original_killmail = populated_store.add_killmail(**full_km_data)
+        assert original_killmail is not None
+        duplicate_killmail = populated_store.add_killmail(**full_km_data)
+        assert original_killmail == duplicate_killmail
 
     # Requests
 
@@ -598,7 +628,8 @@ class CommonStorageTest(object):
             for value in values:
                 # Massage the pair of timestamps into a range 
                 if field_name.endswith('timestamp'):
-                    start, end = value
+                    # Strip out timezone info
+                    start, end = [d.replace(tzinfo=None) for d in value]
                     search.add_filter(
                         field_name, start,
                         predicate=sfilter.PredicateType.greater_equal)
@@ -684,7 +715,7 @@ class CommonStorageTest(object):
     def test_filter(self, populated_store, search, request_ids):
         requests = populated_store.filter_requests(search)
         matching_ids = [r.id_ for r in requests]
-        assert matching_ids == request_ids
+        assert matching_ids == list(request_ids)
 
     @pytest.mark.parametrize('fields', (
         {'request_id', },
@@ -698,13 +729,11 @@ class CommonStorageTest(object):
     ))
     @pytest.mark.parametrize('search_filter', ({}, ))
     def test_sparse_filter(self, populated_store, fields, search, request_ids):
-        results = populated_store.filter_sparse(search, fields)
+        results = list(populated_store.filter_sparse(search, fields))
         other_data = {
             123: {
-                'killmail_timestamp': dt.datetime(
-                    2016, 3, 28, 2, 32, 50, tzinfo=utc),
-                'request_timestamp': dt.datetime(
-                    2016, 3, 30, 9, 30, tzinfo=utc),
+                'killmail_timestamp': dt.datetime(2016, 3, 28, 2, 32, 50),
+                'request_timestamp': dt.datetime(2016, 3, 30, 9, 30),
                 'character_id': 570140137,
                 'character_name': u'Paxswill',
                 'type_id': 4310,
@@ -712,10 +741,8 @@ class CommonStorageTest(object):
                 'status': models.ActionType.rejected,
             },
             456: {
-                'killmail_timestamp': dt.datetime(
-                    2016, 3, 28, 2, 32, 50, tzinfo=utc),
-                'request_timestamp': dt.datetime(
-                    2017, 3, 10, 10, 11, 12, tzinfo=utc),
+                'killmail_timestamp': dt.datetime(2016, 3, 28, 2, 32, 50),
+                'request_timestamp': dt.datetime(2017, 3, 10, 10, 11, 12),
                 'character_id': 570140137,
                 'character_name': u'Paxswill',
                 'type_id': 4310,
@@ -723,10 +750,8 @@ class CommonStorageTest(object):
                 'status': models.ActionType.evaluating,
             },
             789: {
-                'killmail_timestamp': dt.datetime(
-                    2017, 3, 12, 0, 33, 10, tzinfo=utc),
-                'request_timestamp': dt.datetime(
-                    2017, 3, 15, 13, 27, tzinfo=utc),
+                'killmail_timestamp': dt.datetime(2017, 3, 12, 0, 33, 10),
+                'request_timestamp': dt.datetime(2017, 3, 15, 13, 27),
                 'character_id': 2112311608,
                 'character_name': u'marssell kross',
                 'type_id': 605,
@@ -734,9 +759,8 @@ class CommonStorageTest(object):
                 'status': models.ActionType.approved,
             },
             234: {
-                'killmail_timestamp': dt.datetime(
-                    2016, 4, 4, 17, 58, 45, tzinfo=utc),
-                'request_timestamp': dt.datetime(2017, 4, 10, tzinfo=utc),
+                'killmail_timestamp': dt.datetime(2016, 4, 4, 17, 58, 45),
+                'request_timestamp': dt.datetime(2017, 4, 10),
                 'character_id': 570140137,
                 'character_name': u'Paxswill',
                 'type_id': 593,
@@ -744,9 +768,8 @@ class CommonStorageTest(object):
                 'status': models.ActionType.incomplete,
             },
             345: {
-                'killmail_timestamp': dt.datetime(
-                    2016, 4, 4, 18, 19, 27, tzinfo=utc),
-                'request_timestamp': dt.datetime(2017, 4, 9, tzinfo=utc),
+                'killmail_timestamp': dt.datetime(2016, 4, 4, 18, 19, 27),
+                'request_timestamp': dt.datetime(2017, 4, 9),
                 'character_id': 570140137,
                 'character_name': u'Paxswill',
                 'type_id': 593,
@@ -778,7 +801,7 @@ class CommonStorageTest(object):
         with pytest.raises(storage.NotFoundError):
             populated_store.get_character(95465499)
         new_character = populated_store.add_character(7, 95465499,
-                                                      'CCP Bartender')
+                                                      u'CCP Bartender')
         character = populated_store.get_character(95465499)
         assert character == new_character
         assert character.id_ == 95465499

@@ -1,8 +1,3 @@
-from __future__ import absolute_import
-import datetime as dt
-from decimal import Decimal
-import uuid
-
 import pytest
 
 from evesrp import storage
@@ -15,6 +10,7 @@ class TestMemoryStore(CommonStorageTest):
     def store(self):
         return storage.MemoryStore()
 
+    # Instead of overriding 
     @pytest.fixture
     def populated_store(self, memory_store):
         return memory_store
