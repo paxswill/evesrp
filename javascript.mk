@@ -104,9 +104,7 @@ $(JS_DIR)/%.min.js: $(JS_DIR)/%.js
 ##### Javascript testing
 TESTS_COFFEE := $(wildcard tests_javascript/test_*.coffee)
 TESTS_JS := $(TESTS_COFFEE:.coffee=.js)
-ifeq "$(TRAVIS)" "true"
-PHANTOMJS := $(HOME)/phantomjs
-else ifeq "$(patsubst 2.%,2,$(shell phantomjs --version))" "2"
+ifeq "$(patsubst 2.%,2,$(shell phantomjs --version))" "2"
 PHANTOMJS := $(shell which phantomjs)
 else
 PHANTOMJS := $(NODE_MODULES)/phantomjs2/bin/phantomjs
