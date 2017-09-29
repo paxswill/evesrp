@@ -7,6 +7,7 @@
     "bootstrap": "^3.3.5",
     "browserify": "^11.0.1",
     "cldr-data": "^31.0.2",
+    "cldrjs": "^0.5.0",
     "clipboard": "^1.5.10",
     "coffee-script": "^1.9.3",
     "coffeeify": "^1.1.0",

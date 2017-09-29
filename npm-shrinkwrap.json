@@ -1331,9 +1331,9 @@
       }
     },
     "cldrjs": {
-      "version": "0.4.8",
-      "resolved": "https://registry.npmjs.org/cldrjs/-/cldrjs-0.4.8.tgz",
-      "integrity": "sha1-O5lMRk0qMrWsp8XeF6YKh+RdxPk="
+      "version": "0.5.0",
+      "resolved": "https://registry.npmjs.org/cldrjs/-/cldrjs-0.5.0.tgz",
+      "integrity": "sha1-N76S2NGo5myO4S8TA+0xbYXY6zc="
     },
     "clipboard": {
       "version": "1.7.1",
@@ -2123,6 +2123,13 @@
       "integrity": "sha1-xWUkuKz9LOONDJfd/c6zj2RLM5I=",
       "requires": {
         "cldrjs": "0.4.8"
+      },
+      "dependencies": {
+        "cldrjs": {
+          "version": "0.4.8",
+          "resolved": "https://registry.npmjs.org/cldrjs/-/cldrjs-0.4.8.tgz",
+          "integrity": "sha1-O5lMRk0qMrWsp8XeF6YKh+RdxPk="
+        }
       }
     },
     "globalize-compiler": {
