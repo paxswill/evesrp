@@ -84,8 +84,8 @@ class TestSubmitRequest(TestLogin):
                 self.assertTrue(zkb_form.validate())
             # CREST
             crest_form = views.requests.RequestForm(
-                    url=('http://crest-tq.eveonline.com/killmails/'
-                         '30290604/787fb3714062f1700560d4a83ce32c67640b1797/'),
+                    url=('https://esi.tech.ccp.is/v1/killmails/30290604/'
+                         '787fb3714062f1700560d4a83ce32c67640b1797/'),
                     details='Foo',
                     division=division.id,
                     submit=True)

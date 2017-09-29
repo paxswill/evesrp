@@ -5,7 +5,7 @@ Killmail Handling
 .. py:currentmodule:: evesrp.killmail
 
 EVE-SRP relies on outside sources for its killmail information. Whether that
-source is CREST, zKillboard, or some private killboard does not matter, there
+source is ESI, zKillboard, or some private killboard does not matter, there
 just has to be some sort of access to the information.
 
 The interface for :py:class:`Killmail` is fairly simple. It
@@ -18,7 +18,7 @@ the killmail's :py:meth:`~Killmail.__init__` method or by defining a
 killmail is invalid.
 
 Two implementations for creating a :py:class:`Killmail`
-from a URL are included: :py:class:`CRESTMail` is created from a CREST external
+from a URL are included: :py:class:`ESIMail` is created from a ESI external
 killmail link, and :py:class:`ZKillmail` is created from a `zKillboard
 <https://zkillboard.com>`_ details link.
 
@@ -45,34 +45,34 @@ name, but it makes allowances for this common requirement. ::
             if self.domain != 'zkillboard.com':
                 raise ValueError(u"This killmail is from the wrong killboard.")
 
-Submitting CREST Links to zKillboard
+Submitting ESI Links to zKillboard
 ------------------------------------
 
-To streamline the process for users, you can accept CREST killmail links and
+To streamline the process for users, you can accept ESI killmail links and
 then submits them to zKillboard.com and uses the new zKillboard.com link as the
 canonical URL for the request. ::
 
     from decimal import Decimal
     from flask import Markup
-    from evesrp.killmail import CRESTMail
+    from evesrp.killmail import ESIMail
 
 
-    class SubmittedCRESTZKillmail(CRESTMail):
-        """Accepts and validates CREST killmail links, but submits them to
+    class SubmittedESIZKillmail(ESIMail):
+        """Accepts and validates ESI killmail links, but submits them to
         ZKillboard and substitutes the zKB link in as the canonical link
         """
 
         def __init__(self, url, **kwargs):
-            # Let CRESTMail validate the CREST link
+            # Let ESIMail validate the ESI link
             super(self.__class__, self).__init__(url, **kwargs)
-            # Submit the CREST URL to ZKillboard
+            # Submit the ESI URL to ZKillboard
             resp = self.requests_session.post('https://zkillboard.com/post/',
                     data={'killmailurl': url})
             # Use the URL we get from ZKillboard as the new URL (if it's successful).
             if self.kill_id in resp.url:
                 self.url = resp.url
             else:
-                # Leave the CREST URL as-is and finish
+                # Leave the ESI URL as-is and finish
                 return
             # Grab zkb's data from their API
             api_url = ('https://zkillboard.com/api/no-attackers/'
@@ -96,7 +96,7 @@ canonical URL for the request. ::
             except KeyError:
                 self.value = Decimal(0)
 
-        description = Markup(u'A CREST external killmail link that will be '
+        description = Markup(u'An ESI external killmail link that will be '
                              u'automatically submitted to <a href="https://'
                              u'zkillboard.com">zKillboard.com</a>.')
 
@@ -179,7 +179,7 @@ Developer API
 
         The domain name of this killboard.
 
-.. autoclass:: CRESTMail
+.. autoclass:: ESIMail
     :show-inheritance:
 
 .. autoclass:: RequestsSessionMixin

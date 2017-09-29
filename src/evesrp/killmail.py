@@ -11,6 +11,7 @@ from .util import unistr, urlparse, urlunparse, utc
 
 from flask import Markup, current_app
 from flask_babel import gettext, lazy_gettext
+import iso8601
 import requests
 from sqlalchemy import create_engine, Table, MetaData
 from sqlalchemy.sql import select
@@ -356,42 +357,47 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
                                       u'ZKillboard</a>.')
 
 
-class CRESTMail(Killmail, RequestsSessionMixin, LocationMixin):
-    """A killmail with data sourced from a CREST killmail link."""
+class ESIMail(Killmail, RequestsSessionMixin, LocationMixin):
+    """A killmail with data sourced from a ESI killmail link."""
 
-    crest_regex = re.compile(r'/killmails/(?P<kill_id>\d+)/[0-9a-f]+/')
+    esi_regex = re.compile(r'/v1/killmails/(?P<kill_id>\d+)/[0-9a-f]+/')
+
+    @staticmethod
+    def _raise_esi_lookup(esi_error):
+        # TRANS: The %s here will be replaced with the (non-localized
+        # probably) error from CCP.
+        raise LookupError(gettext(u"Error retrieving ESI killmail: "
+                                  u"%(error)s",
+                                  error=esi_error))
 
     def __init__(self, url, **kwargs):
-        """Create a killmail from a CREST killmail link.
+        """Create a killmail from a ESI killmail link.
 
-        :param str url: the CREST killmail URL.
-        :raises ValueError: if ``url`` is not a CREST URL.
-        :raises LookupError: if the CREST API response is in an unexpected
+        :param str url: the ESI killmail URL.
+        :raises ValueError: if ``url`` is not a ESI URL.
+        :raises LookupError: if the ESI API response is in an unexpected
             format.
         """
-        super(CRESTMail, self).__init__(**kwargs)
+        super(ESIMail, self).__init__(**kwargs)
         self.url = url
-        match = self.crest_regex.search(self.url)
+        match = self.esi_regex.search(self.url)
         if match:
             self.kill_id = match.group('kill_id')
         else:
             # TRANS: The %(url)s in this case will be replaced with the
             # offending URL.
-            raise ValueError(gettext(u"'%(url)s' is not a valid CREST killmail",
+            raise ValueError(gettext(u"'%(url)s' is not a valid ESI killmail",
                     url=self.url))
         parsed = urlparse(self.url, scheme='https')
         if parsed.netloc == '':
             parsed = urlparse('//' + url, scheme='https')
             self.url = parsed.geturl()
-        # Check if it's a valid CREST URL
+        # Check if it's a valid ESI URL
         resp = self.requests_session.get(self.url)
         # JSON responses are defined to be UTF-8 encoded
+        # TODO handle all the documented error codes form CCP
         if resp.status_code != 200:
-            # TRANS: The %s here will be replaced with the (non-localized
-            # probably) error from CCP.
-            raise LookupError(gettext(u"Error retrieving CREST killmail: "
-                                      u"%(error)s",
-                                      error=resp.json()[u'message']))
+            self._raise_esi_lookup(resp.json()[u'message'])
         try:
             json = resp.json()
         except ValueError as e:
@@ -400,28 +406,68 @@ class CRESTMail(Killmail, RequestsSessionMixin, LocationMixin):
             raise LookupError(gettext(u"Error retrieving killmail data: "
                                       u"%(code)d", code=resp.status_code))
         victim = json[u'victim']
-        char = victim[u'character']
-        corp = victim[u'corporation']
-        ship = victim[u'shipType']
-        alliance = victim[u'alliance']
-        self.pilot_id = char[u'id']
-        self.pilot = char[u'name']
-        self.corp_id = corp[u'id']
-        self.corp = corp[u'name']
-        self.alliance_id = alliance[u'id']
-        self.alliance = alliance[u'name']
-        self.ship_id = ship[u'id']
-        self.ship = ship[u'name']
-        solarSystem = json[u'solarSystem']
-        self.system_id = solarSystem[u'id']
-        self.system = solarSystem[u'name']
-        # CREST Killmails are always verified
+        self.pilot_id = victim[u'character_id']
+        self.corp_id = victim[u'corporation_id']
+        self.alliance_id = victim.get(u'alliance_id')
+        self.ship_id = victim[u'ship_type_id']
+        self.system_id = json[u'solar_system_id']
+        self.timestamp = iso8601.parse_date(json[u'killmail_time'])
+        # Look up the names of the *_id attributes above. Doing this in here
+        # instead of making a mixin because /universe/names lets us cut down on
+        # the number of requests we have to make.
+        ids = [self.ship_id, self.system_id]
+        # /universe/names/ doesn't look up character/corporation/alliance IDs
+        # in the range 100000000 between 2099999999. The devblog isn't clear if
+        # this is inclusive, so let's err on the side of caution. Instead, we
+        # have to look up those IDs individually.
+        special_ids = ['pilot_id', 'corp_id']
+        if self.alliance_id != 0:
+            # Handle corporations not in alliances
+            special_ids.append('alliance_id')
+        for id_attr in special_ids:
+            id_value = getattr(self, id_attr)
+            if 100000000 <= id_value <= 2099999999:
+                esi_urls = {
+                    'pilot_id': 'https://esi.tech.ccp.is/v4/characters/{}/',
+                    'corp_id': 'https://esi.tech.ccp.is/v3/corporations/{}/',
+                    'alliance_id': 'https://esi.tech.ccp.is/v2/alliances/{}/',
+                }
+                special_resp = self.requests_session.get(
+                    esi_urls[id_attr].format(id_value))
+                if special_resp.status_code != 200:
+                    self._raise_esi_lookup(special_resp.json()['error'])
+                # CCP uses different names for the 'name' attribute
+                name_attrs = {
+                    'pilot_id': u'name',
+                    'corp_id': u'corporation_name',
+                    'alliance_id': u'alliance_name',
+                }
+                name = special_resp.json()[name_attrs[id_attr]]
+                setattr(self, id_attr[:-3], name)
+            else:
+                ids.append(id_value)
+        names_resp = self.requests_session.post(
+            'https://esi.tech.ccp.is/v2/universe/names/', json=ids)
+        if names_resp.status_code != 200:
+            self._raise_esi_lookup(names_resp.json()[u'error'])
+        for name_info in names_resp.json():
+            category_attributes = {
+                'solar_system': 'system',
+                'inventory_type': 'ship',
+                'character': 'pilot',
+                'alliance': 'alliance',
+                'corporation': 'corporation',
+            }
+            attr_name = category_attributes[name_info[u'category']]
+            name = name_info[u'name']
+            setattr(self, attr_name, name)
+        # ESI Killmails are always verified
         self.verified = True
-        # Parse the timestamp
-        time_struct = time.strptime(json[u'killTime'], '%Y.%m.%d %H:%M:%S')
-        self.timestamp = dt.datetime(*(time_struct[0:6]),
-                tzinfo=utc)
 
-    # TRANS: Description of the allowable links for the CREST killmail
+    # TRANS: Description of the allowable links for the ESI killmail
     # processor.
-    description = lazy_gettext(u'A CREST external killmail link.')
+    description = lazy_gettext(u'An ESI external killmail link.')
+
+
+# Backwards compatibility
+CRESTMail = ESIMail

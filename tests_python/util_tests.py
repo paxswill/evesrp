@@ -180,38 +180,29 @@ def no_alliance_zkillboard(url, request):
     return response(content=json.dumps(resp))
 
 
-_parsed_crest_url = urlparse('http://crest-tq.eveonline.com/killmails/30290604/'
+_parsed_esi_url = urlparse('https://esi.tech.ccp.is/v1/killmails/30290604/'
                              '787fb3714062f1700560d4a83ce32c67640b1797/')
-@urlmatch(scheme=_parsed_crest_url.scheme,
-          netloc=_parsed_crest_url.netloc,
-          path=_parsed_crest_url.path)
-def foxfour_crest(url, request):
+@urlmatch(scheme=_parsed_esi_url.scheme,
+          netloc=_parsed_esi_url.netloc,
+          path=_parsed_esi_url.path)
+def foxfour_esi(url, request):
     resp = {
-        'solarSystem': {
-            'id': 30002062,
-            'name': 'Todifrauan',
+        "killmail_id": 30290604,
+        "killmail_time": "2013-05-05T18:09:00Z",
+        "victim": {
+            "damage_taken": 570,
+            "ship_type_id": 670,
+            "character_id": 92168909,
+            "corporation_id": 109299958,
+            "alliance_id": 434243723,
         },
-        'killTime': '2013.05.05 18:09:00',
-        'victim': {
-            'alliance': {
-                'id': 434243723,
-                'name': 'C C P Alliance',
-            },
-            'character': {
-                'id': 92168909,
-                'name': 'CCP FoxFour',
-            },
-            'corporation': {
-                'id': 109299958,
-                'name': 'C C P',
-            },
-            'shipType': {
-                'id': 670,
-                'name': 'Capsule'
-            },
-        },
+        # Skipping the items array as it's not used
+        "items": None,
+        # Ditto for attackers
+        "attackers": None,
+        "solar_system_id": 30002062
     }
     return response(content=json.dumps(resp))
 
 
-all_mocks = (paxswill_zkillboard, no_alliance_zkillboard, foxfour_crest)
+all_mocks = (paxswill_zkillboard, no_alliance_zkillboard, foxfour_esi)

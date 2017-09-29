@@ -6,7 +6,7 @@ program in the game EVE Online. It features a pluggable authentication setup so
 it can integrate with existing authentication systems, and comes with built in
 support for TEST Alliance's Auth and Brave's Core systems. It also features a
 configurable killmail source system, with built in support for zKillboard based
-killboards and the recent CREST killmail endpoint. Again, this is an extensible
+killboards and the recent ESI killmail endpoint. Again, this is an extensible
 system so if you have a custom killboard, as long as there's some sort of
 programmatic access, you can probably write a custom adapter.
 

@@ -148,13 +148,13 @@ class TestZKillmail(TestCase):
                 killmail.ZKillmail(url)
 
 
-class TestCRESTmail(TestCase):
+class TestESIMail(TestCase):
 
-    def test_crest_killmails(self):
+    def test_esi_killmails(self):
         with HTTMock(*all_mocks):
-            km = killmail.CRESTMail('http://crest-tq.eveonline.com/'
-                    'killmails/30290604/'
-                    '787fb3714062f1700560d4a83ce32c67640b1797/')
+            km = killmail.ESIMail('https://esi.tech.ccp.is/'
+                                  'v1/killmails/30290604/'
+                                  '787fb3714062f1700560d4a83ce32c67640b1797/')
             expected_values = {
                 u'pilot': u'CCP FoxFour',
                 u'ship': u'Capsule',
@@ -166,14 +166,15 @@ class TestCRESTmail(TestCase):
                 self.assertEqual(getattr(km, attr), value,
                         msg=u'{} is not {}'.format(attr, value))
 
-    def test_invalid_crest_url(self):
+    def test_invalid_esi_url(self):
         with self.assertRaisesRegexp(ValueError,
-                u"'.*' is not a valid CREST killmail"):
-            killmail.CRESTMail('foobar')
+                u"'.*' is not a valid ESI killmail"):
+            killmail.ESIMail('foobar')
 
-    def test_invalid_crest_response(self):
+    def test_invalid_esi_response(self):
         @all_requests
         def bad_hash(url, request):
+            # TODO update bad hash response
             return response(
                 content=(u'{"message": "Invalid killmail ID or hash",'
                         u'"isLocalized": false, "key": "noSuchKill",'
@@ -181,8 +182,8 @@ class TestCRESTmail(TestCase):
                 status_code=403)
 
         with HTTMock(bad_hash):
-            url = ''.join(('http://crest-tq.eveonline.com/killmails/',
+            url = ''.join(('https://esi.tech.ccp.is/v1/killmails/',
                     '30290604/787fb3714062f1700560d4a83ce32c67640b1797/'))
             with self.assertRaisesRegexp(LookupError,
-                    u"Error retrieving CREST killmail:.*"):
-                killmail.CRESTMail(url)
+                    u"Error retrieving ESI killmail:.*"):
+                killmail.ESIMail(url)
