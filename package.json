@@ -16,6 +16,7 @@
     "globalize-compiler": "^1.0.0",
     "handlebars": "^3.0.3",
     "hbsfy": "^2.2.1",
+    "iana-tz-data": "^2017.1.0",
     "jed": "^1.1.0",
     "jquery": "^2.1.4",
     "less": "^2.5.1",

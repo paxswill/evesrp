@@ -2319,6 +2319,11 @@
       "version": "https://registry.npmjs.org/humanize/-/humanize-0.0.9.tgz",
       "integrity": "sha1-GZT/rs3+nEQe0r2sdFK3u0yeQaQ="
     },
+    "iana-tz-data": {
+      "version": "2017.1.0",
+      "resolved": "https://registry.npmjs.org/iana-tz-data/-/iana-tz-data-2017.1.0.tgz",
+      "integrity": "sha1-HtpL+5oJKTSZRlBmNBdDJA4Q1+w="
+    },
     "iconv-lite": {
       "version": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.15.tgz",
       "integrity": "sha1-/iZaIYrGpXz+hUkn6dBMGYJe3es="
