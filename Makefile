@@ -39,9 +39,6 @@ docs:
 # Travis targets
 ifneq (,$(findstring javascript,$(TEST_SUITE)))
 travis-setup:
-	wget https://s3.amazonaws.com/travis-phantomjs/phantomjs-2.0.0-ubuntu-12.04.tar.bz2
-	tar -xjf phantomjs-2.0.0-ubuntu-12.04.tar.bz2
-	mv phantomjs $(HOME)/phantomjs
 travis: test-javascript
 travis-success:
 	cat tests_javascript/coverage/lcov.info | $(NODE_BIN)/coveralls
