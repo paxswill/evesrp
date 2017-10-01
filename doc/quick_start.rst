@@ -24,7 +24,7 @@ privilege within a division.
 
 In the form, enter a killmail URL and any details your organization normally
 requires. What kind of killmail URLs that are acceptable is up to your
-organization, but common choices are zKillboard based killboards or CREST
+organization, but common choices are zKillboard based killboards or ESI
 killmail URLs from an in-game killmail. Click the "Submit" button once you are
 done entering the information.
 
