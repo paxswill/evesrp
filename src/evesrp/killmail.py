@@ -415,37 +415,10 @@ class ESIMail(Killmail, RequestsSessionMixin, LocationMixin):
         # Look up the names of the *_id attributes above. Doing this in here
         # instead of making a mixin because /universe/names lets us cut down on
         # the number of requests we have to make.
-        ids = [self.ship_id, self.system_id]
-        # /universe/names/ doesn't look up character/corporation/alliance IDs
-        # in the range 100000000 between 2099999999. The devblog isn't clear if
-        # this is inclusive, so let's err on the side of caution. Instead, we
-        # have to look up those IDs individually.
-        special_ids = ['pilot_id', 'corp_id']
+        ids = [self.ship_id, self.system_id, self.pilot_id, self.corp_id]
         if self.alliance_id != 0:
             # Handle corporations not in alliances
-            special_ids.append('alliance_id')
-        for id_attr in special_ids:
-            id_value = getattr(self, id_attr)
-            if 100000000 <= id_value <= 2099999999:
-                esi_urls = {
-                    'pilot_id': 'https://esi.tech.ccp.is/v4/characters/{}/',
-                    'corp_id': 'https://esi.tech.ccp.is/v3/corporations/{}/',
-                    'alliance_id': 'https://esi.tech.ccp.is/v2/alliances/{}/',
-                }
-                special_resp = self.requests_session.get(
-                    esi_urls[id_attr].format(id_value))
-                if special_resp.status_code != 200:
-                    self._raise_esi_lookup(special_resp.json()['error'])
-                # CCP uses different names for the 'name' attribute
-                name_attrs = {
-                    'pilot_id': u'name',
-                    'corp_id': u'corporation_name',
-                    'alliance_id': u'alliance_name',
-                }
-                name = special_resp.json()[name_attrs[id_attr]]
-                setattr(self, id_attr[:-3], name)
-            else:
-                ids.append(id_value)
+            ids.append('alliance_id')
         names_resp = self.requests_session.post(
             'https://esi.tech.ccp.is/v2/universe/names/', json=ids)
         if names_resp.status_code != 200:
