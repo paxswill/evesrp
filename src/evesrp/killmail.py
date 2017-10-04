@@ -449,7 +449,7 @@ class ESIMail(Killmail, RequestsSessionMixin, LocationMixin):
                 'inventory_type': 'ship',
                 'character': 'pilot',
                 'alliance': 'alliance',
-                'corporation': 'corporation',
+                'corporation': 'corp',
             }
             attr_name = category_attributes[name_info[u'category']]
             name = name_info[u'name']
