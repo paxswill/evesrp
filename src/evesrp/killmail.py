@@ -436,7 +436,7 @@ class ESIMail(Killmail, RequestsSessionMixin, LocationMixin):
         # instead of making a mixin because /universe/names lets us cut down on
         # the number of requests we have to make.
         ids = [self.ship_id, self.system_id, self.pilot_id, self.corp_id]
-        if self.alliance_id != 0:
+        if self.alliance_id not in (0, None):
             # Handle corporations not in alliances
             ids.append(self.alliance_id)
         names_resp = self.requests_session.post(
