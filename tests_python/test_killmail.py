@@ -85,12 +85,13 @@ class TestRequestsMixin(TestCase):
         self.assertIs(km.requests_session, session)
 
 
-class TestZKillmail(TestCase):
+class TestLegacyZKillmail(TestCase):
 
     def test_fw_killmail(self):
         with HTTMock(*all_mocks):
             # Actual testing
-            km = killmail.ZKillmail('https://zkillboard.com/kill/37637533/')
+            km = killmail.LegacyZKillmail(
+                'https://zkillboard.com/kill/37637533/')
             expected_values = {
                 u'pilot': u'Paxswill',
                 u'ship': u'Devoter',
@@ -107,7 +108,8 @@ class TestZKillmail(TestCase):
     def test_no_alliance_killmail(self):
         with HTTMock(*all_mocks):
             # Actual testing
-            km = killmail.ZKillmail('https://zkillboard.com/kill/38862043/')
+            km = killmail.LegacyZKillmail(
+                'https://zkillboard.com/kill/38862043/')
             expected_values = {
                 u'pilot': u'Dave Duclas',
                 u'ship': u'Breacher',
@@ -124,7 +126,7 @@ class TestZKillmail(TestCase):
     def test_invalid_zkb_url(self):
         with self.assertRaisesRegexp(ValueError,
                 u"'.*' is not a valid zKillboard killmail"):
-            killmail.ZKillmail('foobar')
+            killmail.LegacyZKillmail('foobar')
 
     def test_invalid_zkb_response(self):
         @all_requests
@@ -135,7 +137,7 @@ class TestZKillmail(TestCase):
             url = 'https://zkillboard.com/kill/38862043/'
             with self.assertRaisesRegexp(LookupError,
                     u"Error retrieving killmail data:.*"):
-                killmail.ZKillmail(url)
+                killmail.LegacyZKillmail(url)
 
     def test_invalid_kill_ids(self):
         @all_requests
@@ -145,8 +147,60 @@ class TestZKillmail(TestCase):
         with HTTMock(empty_response):
             url = 'https://zkillboard.com/kill/0/'
             with self.assertRaisesRegexp(LookupError, u"Invalid killmail: .*"):
+                killmail.LegacyZKillmail(url)
+
+class TestZKillmail(TestCase):
+
+    def test_fw_killmail(self):
+        km = killmail.ZKillmail('https://zkillboard.com/kill/37637533/')
+        expected_values = {
+            u'pilot': u'Paxswill',
+            u'ship': u'Devoter',
+            u'corp': u'Dreddit',
+            u'alliance': u'Test Alliance Please Ignore',
+            u'system': u'TA3T-3',
+            u'value': Decimal(266421715.39),
+        }
+        for attr, value in expected_values.items():
+            self.assertEqual(getattr(km, attr), value,
+                    msg=u'{} is not {}'.format(attr, value))
+
+    def test_no_alliance_killmail(self):
+        km = killmail.ZKillmail('https://zkillboard.com/kill/38862043/')
+        expected_values = {
+            u'pilot': u'Dave Duclas',
+            u'ship': u'Breacher',
+            u'corp': u'Omega LLC',
+            u'alliance': None,
+            u'system': u'Onatoh',
+            u'value': Decimal(10810333.33),
+        }
+        for attr, value in expected_values.items():
+            self.assertEqual(getattr(km, attr), value,
+                    msg=u'{} is not {}'.format(attr, value))
+
+    def test_invalid_zkb_url(self):
+        with self.assertRaisesRegexp(ValueError,
+                u"'.*' is not a valid zKillboard killmail"):
+            killmail.ZKillmail('foobar')
+
+    def test_invalid_zkb_response(self):
+        @all_requests
+        def bad_response(url, request):
+            return response(status_code=403, content=u'')
+
+        with HTTMock(bad_response):
+            url = 'https://zkillboard.com/kill/38862043/'
+            with self.assertRaisesRegexp(LookupError,
+                    u"Error retrieving zKillboard killmail: .*"):
                 killmail.ZKillmail(url)
 
+    def test_invalid_kill_ids(self):
+        url = 'https://zkillboard.com/kill/0/'
+        with self.assertRaisesRegexp(ValueError,
+                                     u".* is not a valid zKillboard "
+                                     u"killmail."):
+            killmail.ZKillmail(url)
 
 class TestESIMail(TestCase):
 
@@ -172,14 +226,15 @@ class TestESIMail(TestCase):
             killmail.ESIMail('foobar')
 
     def test_invalid_esi_response(self):
+        # UNlike the tests that are expected to apass, the error ones are still
+        # mocked, as there's error limiting as errors are expensive to process
+        # in ESI.
         @all_requests
         def bad_hash(url, request):
-            # TODO update bad hash response
             return response(
-                content=(u'{"message": "Invalid killmail ID or hash",'
-                        u'"isLocalized": false, "key": "noSuchKill",'
-                        u'"exceptionType": "ForbiddenError"}').encode('utf-8'),
-                status_code=403)
+                content=(u'{"error": '
+                         u'"Invalid killmail_id and/or killmail_hash"'),
+                status_code=422)
 
         with HTTMock(bad_hash):
             url = ''.join(('https://esi.tech.ccp.is/v1/killmails/',
