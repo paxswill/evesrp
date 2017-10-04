@@ -7,7 +7,7 @@ from functools import partial
 import re
 import sys
 import six
-from .util import unistr, urlparse, urlunparse, utc
+from .util import unistr, urlparse, urlunparse, utc, classproperty
 
 from flask import Markup, current_app
 from flask_babel import gettext, lazy_gettext
@@ -258,7 +258,8 @@ class RequestsSessionMixin(object):
         super(RequestsSessionMixin, self).__init__(**kwargs)
 
 
-class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
+class LegacyZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin,
+                      LocationMixin):
     """A killmail sourced from a zKillboard based killboard."""
 
     zkb_regex = re.compile(r'/(detail|kill)/(?P<kill_id>\d+)/?')
@@ -271,16 +272,16 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
         :raises LookupError: if the zKillboard API response is in an unexpected
             format.
         """
-        super(ZKillmail, self).__init__(**kwargs)
+        super(LegacyZKillmail, self).__init__(**kwargs)
         self.url = url
         match = self.zkb_regex.search(url)
         if match:
             self.kill_id = int(match.group('kill_id'))
         else:
-            # TRANS: Error message shown when an invalid zKillboard URL is
-            # entered.
-            raise ValueError(gettext(u"'%(url)s' is not a valid zKillboard "
-                                     u"killmail", url=self.url))
+            raise ValueError(gettext(u"'%(url)s' is not a valid %(source)s "
+                                     u"killmail.",
+                                     source=u'zKillboard',
+                                     url=self.url))
         parsed = urlparse(self.url, scheme='https')
         if parsed.netloc == '':
             # Just in case someone is silly and gives an address without a
@@ -360,14 +361,18 @@ class ZKillmail(Killmail, RequestsSessionMixin, ShipNameMixin, LocationMixin):
 class ESIMail(Killmail, RequestsSessionMixin, LocationMixin):
     """A killmail with data sourced from a ESI killmail link."""
 
-    esi_regex = re.compile(r'/v1/killmails/(?P<kill_id>\d+)/[0-9a-f]+/')
+    url_regex = re.compile(r'/v1/killmails/(?P<kill_id>\d+)/[0-9a-f]+/')
 
-    @staticmethod
-    def _raise_esi_lookup(esi_error):
+    killmail_source = u'ESI'
+
+    @classmethod
+    def _raise_esi_lookup(cls, esi_error):
         # TRANS: The %s here will be replaced with the (non-localized
-        # probably) error from CCP.
-        raise LookupError(gettext(u"Error retrieving ESI killmail: "
+        # probably) error from CCP. %(source) will be replaced with the source
+        # of the killmail, usually either ESI or ZKillboard.
+        raise LookupError(gettext(u"Error retrieving %(source)s killmail: "
                                   u"%(error)s",
+                                  source=cls.killmail_source,
                                   error=esi_error))
 
     def __init__(self, url, **kwargs):
@@ -380,24 +385,31 @@ class ESIMail(Killmail, RequestsSessionMixin, LocationMixin):
         """
         super(ESIMail, self).__init__(**kwargs)
         self.url = url
-        match = self.esi_regex.search(self.url)
+        match = self.url_regex.search(self.url)
         if match:
             self.kill_id = match.group('kill_id')
         else:
             # TRANS: The %(url)s in this case will be replaced with the
-            # offending URL.
-            raise ValueError(gettext(u"'%(url)s' is not a valid ESI killmail",
-                    url=self.url))
+            # offending URL. %(source) will be replaced with the source of the
+            # killmail (usually either ESI or zKillboard).
+            raise ValueError(gettext(u"'%(url)s' is not a valid %(source)s "
+                                     u"killmail.",
+                                     source=self.killmail_source,
+                                     url=self.url))
         parsed = urlparse(self.url, scheme='https')
         if parsed.netloc == '':
             parsed = urlparse('//' + url, scheme='https')
             self.url = parsed.geturl()
         # Check if it's a valid ESI URL
-        resp = self.requests_session.get(self.url)
+        resp = self.requests_session.get(self.api_url)
         # JSON responses are defined to be UTF-8 encoded
         # TODO handle all the documented error codes form CCP
         if resp.status_code != 200:
-            self._raise_esi_lookup(resp.json()[u'message'])
+            try:
+                error_message = resp.json()[u'error']
+            except ValueError:
+                error_message = str(resp.status_code)
+            self._raise_esi_lookup(error_message)
         try:
             json = resp.json()
         except ValueError as e:
@@ -405,13 +417,21 @@ class ESIMail(Killmail, RequestsSessionMixin, LocationMixin):
             # HTTP status code recieved from CCP.
             raise LookupError(gettext(u"Error retrieving killmail data: "
                                       u"%(code)d", code=resp.status_code))
-        victim = json[u'victim']
+        self.ingest_killmail(json)
+
+    @property
+    def api_url(self):
+        # ESI uses the same URL for the API and to identify this killmail
+        return self.url
+
+    def ingest_killmail(self, json_response):
+        victim = json_response[u'victim']
         self.pilot_id = victim[u'character_id']
         self.corp_id = victim[u'corporation_id']
         self.alliance_id = victim.get(u'alliance_id')
         self.ship_id = victim[u'ship_type_id']
-        self.system_id = json[u'solar_system_id']
-        self.timestamp = iso8601.parse_date(json[u'killmail_time'])
+        self.system_id = json_response[u'solar_system_id']
+        self.timestamp = iso8601.parse_date(json_response[u'killmail_time'])
         # Look up the names of the *_id attributes above. Doing this in here
         # instead of making a mixin because /universe/names lets us cut down on
         # the number of requests we have to make.
@@ -437,9 +457,44 @@ class ESIMail(Killmail, RequestsSessionMixin, LocationMixin):
         # ESI Killmails are always verified
         self.verified = True
 
-    # TRANS: Description of the allowable links for the ESI killmail
-    # processor.
-    description = lazy_gettext(u'An ESI external killmail link.')
+    @classproperty
+    def description(cls):
+        # TRANS: Description of the allowable links for the ESI killmail
+        # processor. %(source) is where the killmal is from, usually either ESI
+        # or zKillboard.
+        return gettext(u'A %(source)s external killmail link.',
+                       source=cls.killmail_source)
+
+
+class ZKillmail(ESIMail):
+
+    url_regex = re.compile(r'/kill/(?P<kill_id>\d+)/?')
+
+    killmail_source = u'zKillboard'
+
+    @property
+    def api_url(self):
+        # We use a minimized API URL to query against zKB
+        return ('https://zkillboard.com/'
+                'api/no-attackers/no-items/killID/{}/').format(self.kill_id)
+
+    def ingest_killmail(self, json_response):
+        # zKillboard has the ability to return multiple killmails in one API
+        # response, so the response is an array of killmail objects, while ESI
+        # only returns one killmail per response.
+        try:
+            killmail_json = json_response[0]
+        except IndexError as idx_exc:
+            val_exc = ValueError(gettext(u"'%(url)s' is not a valid %(source)s"
+                                         u" killmail.",
+                                         source=self.killmail_source,
+                                         url=self.url))
+            six.raise_from(val_exc, idx_exc)
+        super(ZKillmail, self).ingest_killmail(killmail_json)
+        # Continue on and add some zKB-specific info
+        # TODO: customize JSON parser to pull out these values as decimals, not
+        # floats
+        self.value = Decimal(killmail_json[u'zkb'][u'totalValue'])
 
 
 # Backwards compatibility

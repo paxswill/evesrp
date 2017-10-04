@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: EVE-SRP 0.10.6-dev\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2017-09-29 15:26-0400\n"
+"POT-Creation-Date: 2017-10-04 08:25-0400\n"
 "PO-Revision-Date: 2016-02-02 20:06-0500\n"
 "Last-Translator: \n"
 "Language: es\n"
@@ -36,18 +36,20 @@ msgstr ""
 "A Killmail genérico. Si ves este texto, es necesario configurar el "
 "solicitud."
 
-#. Error message shown when an invalid zKillboard URL is
-#. entered.
-#: src/evesrp/killmail.py:282
+#. The %(url)s in this case will be replaced with the
+#. offending URL. %(source) will be replaced with the source of the
+#. killmail (usually either ESI or zKillboard).
+#: src/evesrp/killmail.py:281 src/evesrp/killmail.py:395
+#: src/evesrp/killmail.py:488
 #, python-format
-msgid "'%(url)s' is not a valid zKillboard killmail"
-msgstr "'%(url)s' no es un correo de la pérdida zKillboard válida"
+msgid "'%(url)s' is not a valid %(source)s killmail."
+msgstr "'%(url)s' no es un correo de la pérdida de %(source)s válida."
 
 #. Error message shown when there's a problem accessing the
 #. zKillboard API.
 #. The %(code)d in this message will be replaced with the
 #. HTTP status code recieved from CCP.
-#: src/evesrp/killmail.py:298 src/evesrp/killmail.py:406
+#: src/evesrp/killmail.py:299 src/evesrp/killmail.py:418
 #, python-format
 msgid "Error retrieving killmail data: %(code)d"
 msgstr "Error de datos electrónico pérdida recuperar: %(code)d"
@@ -55,13 +57,13 @@ msgstr "Error de datos electrónico pérdida recuperar: %(code)d"
 #. This is an error message when the killmail is somehow
 #. failing to be recognized. The %(url)s is replaced with the URL of
 #. the offending killmail.
-#: src/evesrp/killmail.py:313
+#: src/evesrp/killmail.py:314
 #, python-format
 msgid "Invalid killmail: %(url)s"
 msgstr "Correo de la pérdida no es válido: %(url)s"
 
 #. A quick summary of a killmail's pertinent information.
-#: src/evesrp/killmail.py:344
+#: src/evesrp/killmail.py:345
 #, python-format
 msgid ""
 "%(kill_id)d: %(pilot)s lost a ship. Verified: %(verified)s. ZKillboard "
@@ -72,7 +74,7 @@ msgstr ""
 
 #. Decscribing the acceptable killmails for the ZKillboard killmail
 #. processor.
-#: src/evesrp/killmail.py:355
+#: src/evesrp/killmail.py:356
 msgid ""
 "A link to a lossmail from <a "
 "href=\"https://zkillboard.com/\">ZKillboard</a>."
@@ -81,24 +83,20 @@ msgstr ""
 "href=\"https://zkillboard.com/\">ZKillboard</a>."
 
 #. The %s here will be replaced with the (non-localized
-#. probably) error from CCP.
-#: src/evesrp/killmail.py:369
+#. probably) error from CCP. %(source) will be replaced with the source
+#. of the killmail, usually either ESI or ZKillboard.
+#: src/evesrp/killmail.py:373
 #, python-format
-msgid "Error retrieving ESI killmail: %(error)s"
-msgstr "Error al recuperar killmail ESI: %(error)s"
-
-#. The %(url)s in this case will be replaced with the
-#. offending URL.
-#: src/evesrp/killmail.py:389
-#, python-format
-msgid "'%(url)s' is not a valid ESI killmail"
-msgstr "'%(url)s' no es un correo de la pérdida de ESI válida"
+msgid "Error retrieving %(source)s killmail: %(error)s"
+msgstr "Error al recuperar killmail de %(source)s: %(error)s"
 
 #. Description of the allowable links for the ESI killmail
-#. processor.
-#: src/evesrp/killmail.py:469
-msgid "An ESI external killmail link."
-msgstr ""
+#. processor. %(source) is where the killmal is from, usually either ESI
+#. or zKillboard.
+#: src/evesrp/killmail.py:465
+#, python-format
+msgid "A %(source)s external killmail link."
+msgstr "Un killmail externo de %(source)s."
 
 #. Name of the status a request is in when it has been submitted and
 #. is ready to be evaluated.
@@ -132,7 +130,7 @@ msgstr "Incompleto"
 
 #. A comment made on a request.
 #. This is a button that will add a comment to a request when clicked.
-#: src/evesrp/models.py:59 src/evesrp/templates/request_detail.html:105
+#: src/evesrp/models.py:59 src/evesrp/templates/request_detail.html:107
 msgid "Comment"
 msgstr "Comentario"
 
