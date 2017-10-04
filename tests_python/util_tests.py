@@ -124,60 +124,66 @@ def response(*args, **kwargs):
 
 @urlmatch(netloc=r'(.*\.)?zkillboard\.com', path=r'.*37637533.*')
 def paxswill_zkillboard(url, request):
-    resp = [{
-        'killID': 37637533,
-        'solarSystemID': 30001228,
-        'killTime': '2014-03-20 02:32:00',
-        'moonID': 0,
-        'victim': {
-            'shipTypeID': 12017,
-            'damageTaken': 25198,
-            'factionName': 'Caldari State',
-            'factionID': 500001,
-            'allianceName': 'Test Alliance Please Ignore',
-            'allianceID': 498125261,
-            'corporationName': 'Dreddit',
-            'corporationID': 1018389948,
-            'characterName': 'Paxswill',
-            'characterID': 570140137,
-        },
-        'zkb': {
-            'totalValue': 273816945.63,
-            'points': 22,
+    resp = u"""
+    [
+        {
+            "killmail_id": 37637533,
+            "killmail_time": "2014-03-20T02:32:00Z",
+            "victim": {
+                "damage_taken": 25198,
+                "ship_type_id": 12017,
+                "character_id": 570140137,
+                "corporation_id": 1018389948,
+                "alliance_id": 498125261,
+                "faction_id": 500001
+            },
+            "solar_system_id": 30001228,
+            "zkb": {
+                "fittedValue": 264570854.89,
+                "hash": "151055c36c2458271928f87242f189ea315e43b3",
+                "points": 1,
+                "totalValue": 266421715.39,
+                "npc": false,
+                "solo": false,
+                "awox": false,
+                "involved": 42
+            }
         }
-    }]
-    return response(content=json.dumps(resp))
+    ]
+    """
+    return response(content=resp)
 
 
 @urlmatch(netloc=r'(.*\.)?zkillboard\.com', path=r'.*38862043.*')
 def no_alliance_zkillboard(url, request):
-    # NOTE: Keep integers wrapped up as strings in this response to simulate
-    # old zKillboard behavior.
-    resp = [{
-        'killID': '38862043',
-        'solarSystemID': '30002811',
-        'killTime': '2014-05-15 03:11:00',
-        'moonID': '0',
-        'victim': {
-            'shipTypeID': '598',
-            'damageTaken': '1507',
-            'factionName': '',
-            'factionID': '0',
-            'allianceName': '',
-            'allianceID': '0',
-            'corporationName': 'Omega LLC',
-            'corporationID': '98070272',
-            'characterName': 'Dave Duclas',
-            'characterID': '90741463',
-            'victim': '',
-        },
-        'zkb': {
-            'totalValue': '10432408.70',
-            'points': '8',
-            'involved': 1,
+    resp = u"""
+    [
+        {
+            "killmail_id": 37637533,
+            "killmail_time": "2014-03-20T02:32:00Z",
+            "victim": {
+                "damage_taken": 25198,
+                "ship_type_id": 12017,
+                "character_id": 570140137,
+                "corporation_id": 1018389948,
+                "alliance_id": 498125261,
+                "faction_id": 500001
+            },
+            "solar_system_id": 30001228,
+            "zkb": {
+                "fittedValue": 264570854.89,
+                "hash": "151055c36c2458271928f87242f189ea315e43b3",
+                "points": 1,
+                "totalValue": 266421715.39,
+                "npc": false,
+                "solo": false,
+                "awox": false,
+                "involved": 42
+            }
         }
-    }]
-    return response(content=json.dumps(resp))
+    ]
+    """
+    return response(content=resp)
 
 
 _parsed_esi_url = urlparse('https://esi.tech.ccp.is/v1/killmails/30290604/'
