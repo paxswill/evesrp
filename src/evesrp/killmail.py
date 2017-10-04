@@ -438,7 +438,7 @@ class ESIMail(Killmail, RequestsSessionMixin, LocationMixin):
         ids = [self.ship_id, self.system_id, self.pilot_id, self.corp_id]
         if self.alliance_id != 0:
             # Handle corporations not in alliances
-            ids.append('alliance_id')
+            ids.append(self.alliance_id)
         names_resp = self.requests_session.post(
             'https://esi.tech.ccp.is/v2/universe/names/', json=ids)
         if names_resp.status_code != 200:
