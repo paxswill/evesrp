@@ -852,7 +852,7 @@ def get_request_details(request_id=None, srp_request=None):
     else:
         abort(403)
     if request.is_json or request.is_xhr:
-        return jsonify(srp_request._json(True))
+        return jsonify(**srp_request._json(True))
     if request.is_xml:
         return xmlify('request.xml', srp_request=srp_request)
     return render_template(template, srp_request=srp_request,

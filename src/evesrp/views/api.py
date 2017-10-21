@@ -80,7 +80,7 @@ def user_detail(user_id):
         u'admin': user.admin,
         u'requests': user.requests,
     }
-    return jsonify(resp)
+    return jsonify(**resp)
 
 
 @api.route('/group/<int:group_id>/')
@@ -104,7 +104,7 @@ def group_detail(group_id):
             u'pay': list(set(pay)),
         },
     }
-    return jsonify(resp)
+    return jsonify(**resp)
 
 
 @api.route('/division/')
