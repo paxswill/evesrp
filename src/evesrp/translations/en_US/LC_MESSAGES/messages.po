@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: EVE-SRP 0.10.6-dev\n"
 "Report-Msgid-Bugs-To: paxswill@paxswill.com\n"
-"POT-Creation-Date: 2017-09-29 15:26-0400\n"
+"POT-Creation-Date: 2017-10-04 08:35-0400\n"
 "PO-Revision-Date: 2016-05-06 21:32-0400\n"
 "Last-Translator: \n"
 "Language: en_US\n"
@@ -36,18 +36,20 @@ msgstr ""
 "A generic Killmail. If you see this text, you need to configure your "
 "application."
 
-#. Error message shown when an invalid zKillboard URL is
-#. entered.
-#: src/evesrp/killmail.py:282
+#. The %(url)s in this case will be replaced with the
+#. offending URL. %(source) will be replaced with the source of the
+#. killmail (usually either ESI or zKillboard).
+#: src/evesrp/killmail.py:281 src/evesrp/killmail.py:395
+#: src/evesrp/killmail.py:488
 #, python-format
-msgid "'%(url)s' is not a valid zKillboard killmail"
-msgstr "'%(url)s' is not a valid zKillboard killmail"
+msgid "'%(url)s' is not a valid %(source)s killmail."
+msgstr "'%(url)s' is not a valid %(source)s killmail."
 
 #. Error message shown when there's a problem accessing the
 #. zKillboard API.
 #. The %(code)d in this message will be replaced with the
 #. HTTP status code recieved from CCP.
-#: src/evesrp/killmail.py:298 src/evesrp/killmail.py:406
+#: src/evesrp/killmail.py:299 src/evesrp/killmail.py:418
 #, python-format
 msgid "Error retrieving killmail data: %(code)d"
 msgstr "Error retrieving killmail data: %(code)d"
@@ -55,13 +57,13 @@ msgstr "Error retrieving killmail data: %(code)d"
 #. This is an error message when the killmail is somehow
 #. failing to be recognized. The %(url)s is replaced with the URL of
 #. the offending killmail.
-#: src/evesrp/killmail.py:313
+#: src/evesrp/killmail.py:314
 #, python-format
 msgid "Invalid killmail: %(url)s"
 msgstr "Invalid killmail: %(url)s"
 
 #. A quick summary of a killmail's pertinent information.
-#: src/evesrp/killmail.py:344
+#: src/evesrp/killmail.py:345
 #, python-format
 msgid ""
 "%(kill_id)d: %(pilot)s lost a ship. Verified: %(verified)s. ZKillboard "
@@ -72,7 +74,7 @@ msgstr ""
 
 #. Decscribing the acceptable killmails for the ZKillboard killmail
 #. processor.
-#: src/evesrp/killmail.py:355
+#: src/evesrp/killmail.py:356
 msgid ""
 "A link to a lossmail from <a "
 "href=\"https://zkillboard.com/\">ZKillboard</a>."
@@ -81,24 +83,20 @@ msgstr ""
 "href=\"https://zkillboard.com/\">ZKillboard</a>."
 
 #. The %s here will be replaced with the (non-localized
-#. probably) error from CCP.
-#: src/evesrp/killmail.py:369
+#. probably) error from CCP. %(source) will be replaced with the source
+#. of the killmail, usually either ESI or ZKillboard.
+#: src/evesrp/killmail.py:373
 #, python-format
-msgid "Error retrieving ESI killmail: %(error)s"
-msgstr "Error retrieving ESI killmail: %(error)s"
-
-#. The %(url)s in this case will be replaced with the
-#. offending URL.
-#: src/evesrp/killmail.py:389
-#, python-format
-msgid "'%(url)s' is not a valid ESI killmail"
-msgstr "'%(url)s' is not a valid ESI killmail"
+msgid "Error retrieving %(source)s killmail: %(error)s"
+msgstr "Error retrieving %(source)s killmail: %(error)s"
 
 #. Description of the allowable links for the ESI killmail
-#. processor.
-#: src/evesrp/killmail.py:469
-msgid "An ESI external killmail link."
-msgstr "An ESI external killmail link."
+#. processor. %(source) is where the killmal is from, usually either ESI
+#. or zKillboard.
+#: src/evesrp/killmail.py:465
+#, python-format
+msgid "A %(source)s external killmail link."
+msgstr "A %(source)s external killmail link."
 
 #. Name of the status a request is in when it has been submitted and
 #. is ready to be evaluated.
@@ -132,7 +130,7 @@ msgstr "Incomplete"
 
 #. A comment made on a request.
 #. This is a button that will add a comment to a request when clicked.
-#: src/evesrp/models.py:59 src/evesrp/templates/request_detail.html:105
+#: src/evesrp/models.py:59 src/evesrp/templates/request_detail.html:107
 msgid "Comment"
 msgstr "Comment"
 
@@ -172,49 +170,49 @@ msgstr "Insufficient permissions to perform that action."
 msgid "You must either own or have special privileges to comment on this request."
 msgstr "You must either own or have special privileges to comment on this request."
 
-#: src/evesrp/auth/__init__.py:34
+#: src/evesrp/auth/__init__.py:31
 #, python-format
 msgid "Log In using %(authmethod_name)s"
 msgstr "Log In using %(authmethod_name)s"
 
 #. The title for someone who is able to submit a request to a
 #. division.
-#: src/evesrp/auth/__init__.py:101
+#: src/evesrp/auth/__init__.py:111
 msgid "Submitter"
 msgstr "Submitter"
 
 #. The title for someone who is able to review requests to a
 #. division.
-#: src/evesrp/auth/__init__.py:108
+#: src/evesrp/auth/__init__.py:118
 msgid "Reviewer"
 msgstr "Reviewer"
 
 #. The title form someone who is able to mark requests as paid in a
 #. division.
-#: src/evesrp/auth/__init__.py:113
+#: src/evesrp/auth/__init__.py:123
 msgid "Payer"
 msgstr "Payer"
 
 #. The title for someone who is able to administer a division.
-#: src/evesrp/auth/__init__.py:117
+#: src/evesrp/auth/__init__.py:127
 msgid "Administrator"
 msgstr "Administrator"
 
 #. The title for someone who is able to audit the activities of a
 #. division. This means they are able to view all requests in a
 #. division.
-#: src/evesrp/auth/__init__.py:123
+#: src/evesrp/auth/__init__.py:133
 msgid "Auditor"
 msgstr "Auditor"
 
 #. When there's an error associated with a login.
-#: src/evesrp/auth/oauth.py:124
+#: src/evesrp/auth/oauth.py:142
 #, python-format
 msgid "Login failed: %(error)s"
 msgstr "Login failed: %(error)s"
 
 #. Error shown for a failed login.
-#: src/evesrp/auth/oauth.py:141
+#: src/evesrp/auth/oauth.py:165
 msgid "Login failed."
 msgstr "Login failed."
 
@@ -310,21 +308,21 @@ msgid "Completed"
 msgstr "Completed"
 
 #. This is a link in the navigation bar. It goes to the login page.
-#: src/evesrp/templates/base.html:65 src/evesrp/views/login.py:108
+#: src/evesrp/templates/base.html:65 src/evesrp/views/login.py:125
 msgid "Log In"
 msgstr "Log In"
 
 #. This is a link in the navigation bar to the page for submitting a request.
 #. Label for the button that submits the form.
-#: src/evesrp/templates/base.html:69 src/evesrp/views/requests.py:640
-#: src/evesrp/views/requests.py:1008
+#: src/evesrp/templates/base.html:69 src/evesrp/views/requests.py:658
+#: src/evesrp/views/requests.py:1033
 msgid "Submit"
 msgstr "Submit"
 
 #. This is a link in the navigation bar, linking to all of the requests the
 #. current user has ever made.
 #. The default title for a page with atable listing SRP requests.
-#: src/evesrp/templates/base.html:84 src/evesrp/views/requests.py:52
+#: src/evesrp/templates/base.html:84 src/evesrp/views/requests.py:54
 msgid "Requests"
 msgstr "Requests"
 
@@ -552,7 +550,7 @@ msgstr "This user doesn't have any notes."
 #. header show the ID number of the request.
 #. Title for the page showing the details about a single
 #. SRP request.
-#: src/evesrp/templates/payout.html:12 src/evesrp/views/requests.py:848
+#: src/evesrp/templates/payout.html:12 src/evesrp/views/requests.py:867
 #, python-format
 msgid "Request #%(request_id)s"
 msgstr "Request #%(request_id)s"
@@ -568,8 +566,8 @@ msgstr "External Lossmail"
 #. Label for a text entry field for inputting supporting details
 #. about a loss.
 #: src/evesrp/templates/payout.html:22 src/evesrp/templates/payout.html:23
-#: src/evesrp/templates/request_detail.html:53 src/evesrp/views/requests.py:632
-#: src/evesrp/views/requests.py:782
+#: src/evesrp/templates/request_detail.html:53 src/evesrp/views/requests.py:650
+#: src/evesrp/views/requests.py:800
 msgid "Details"
 msgstr "Details"
 
@@ -578,7 +576,7 @@ msgstr "Details"
 #. A table column header for the ship from a request.
 #. Label for the type of ship that was lost.
 #: src/evesrp/templates/payout.html:25
-#: src/evesrp/templates/request_detail.html:80
+#: src/evesrp/templates/request_detail.html:82
 #: src/evesrp/templates/requests_list.html:48 src/evesrp/views/divisions.py:99
 msgid "Ship"
 msgstr "Ship"
@@ -587,7 +585,7 @@ msgstr "Ship"
 #. bonuses for fitting special kinds of modules or flying a special kind of
 #. ship, or penalties for fitting a ship incorrectly.
 #: src/evesrp/templates/payout.html:29 src/evesrp/templates/payout.html:43
-#: src/evesrp/templates/request_detail.html:147
+#: src/evesrp/templates/request_detail.html:149
 msgid "Modifiers"
 msgstr "Modifiers"
 
@@ -604,8 +602,8 @@ msgstr "Actions"
 #. SRP to.
 #: src/evesrp/templates/payout.html:51 src/evesrp/templates/permissions.html:13
 #: src/evesrp/templates/request_detail.html:47
-#: src/evesrp/templates/requests_list.html:58 src/evesrp/views/requests.py:637
-#: src/evesrp/views/requests.py:1006
+#: src/evesrp/templates/requests_list.html:58 src/evesrp/views/requests.py:655
+#: src/evesrp/views/requests.py:1031
 msgid "Division"
 msgstr "Division"
 
@@ -623,7 +621,7 @@ msgstr "Pilot"
 #. (bonuses and penalties).
 #. A table column header for the current payout of a request.
 #: src/evesrp/templates/payout.html:57
-#: src/evesrp/templates/request_detail.html:86
+#: src/evesrp/templates/request_detail.html:88
 #: src/evesrp/templates/requests_list.html:54
 msgid "Payout"
 msgstr "Payout"
@@ -632,7 +630,7 @@ msgstr "Payout"
 #. transfer window.
 #. Label for a text field for inputting the reason a modifier is
 #. being applied.
-#: src/evesrp/templates/payout.html:60 src/evesrp/views/requests.py:742
+#: src/evesrp/templates/payout.html:60 src/evesrp/views/requests.py:760
 msgid "Reason"
 msgstr "Reason"
 
@@ -704,12 +702,12 @@ msgstr "Corporation"
 
 #. The alliance a pilot was in when the loss occured.
 #. Label for the alliance a pilot is in.
-#: src/evesrp/templates/request_detail.html:71 src/evesrp/views/divisions.py:91
+#: src/evesrp/templates/request_detail.html:72 src/evesrp/views/divisions.py:91
 msgid "Alliance"
 msgstr "Alliance"
 
 #. The solar system, constellation and region a loss occured in.
-#: src/evesrp/templates/request_detail.html:74
+#: src/evesrp/templates/request_detail.html:76
 msgid "Location"
 msgstr "Location"
 
@@ -717,7 +715,7 @@ msgstr "Location"
 #. Rejected, Paid and Incomplete.
 #. A table column header for the status of a request (like evaluating,
 #. incomplete, approved, rejected).
-#: src/evesrp/templates/request_detail.html:83
+#: src/evesrp/templates/request_detail.html:85
 #: src/evesrp/templates/requests_list.html:52
 msgid "Status"
 msgstr "Status"
@@ -725,21 +723,21 @@ msgstr "Status"
 #. The base payout assigned to a request as part of the evaluation process.
 #. This is without any modifiers (bonuses or penalties). This text is shown as
 #. a tooltip when the mouse is moved over the total payout number.
-#: src/evesrp/templates/request_detail.html:89
+#: src/evesrp/templates/request_detail.html:91
 #, python-format
 msgid "Base Payout: %(base_payout)s"
 msgstr "Base Payout: %(base_payout)s"
 
 #. This text is not show and is only used for accesibility purposes. It is used
 #. to open a dropdown menu that is normally hidden.
-#: src/evesrp/templates/request_detail.html:111
+#: src/evesrp/templates/request_detail.html:113
 msgid "Toggle Dropdown"
 msgstr "Toggle Dropdown"
 
 #. Modifiers cannot be completely removed, but they can be ignored, or voided
 #. out. When voided, they get an extra piece of text saying who voided them and
 #. when the modifier was voided.
-#: src/evesrp/templates/request_detail.html:172
+#: src/evesrp/templates/request_detail.html:174
 #, python-format
 msgid "voided by %(voided_name)s at %(voided_timestamp)s"
 msgstr "voided by %(voided_name)s at %(voided_timestamp)s"
@@ -774,7 +772,7 @@ msgstr "User Notes"
 #. A button that when clicked, will show the interface for adding a note to a
 #. user.
 #. Label for text input field for a note to be added about a user.
-#: src/evesrp/templates/request_pay.html:52 src/evesrp/views/requests.py:791
+#: src/evesrp/templates/request_pay.html:52 src/evesrp/views/requests.py:809
 msgid "Add Note"
 msgstr "Add Note"
 
@@ -974,83 +972,83 @@ msgstr "Invalid value for page number: %(num)d."
 
 #. Error message shown when a date is written
 #. incorrectly.
-#: src/evesrp/views/requests.py:227
+#: src/evesrp/views/requests.py:239
 msgid "Invalid date format. Please read the documentation for date filtering."
 msgstr "Invalid date format. Please read the documentation for date filtering."
 
 #. Warning message shown when an unknown atribute is
 #. specified in the list of filters.
-#: src/evesrp/views/requests.py:269
+#: src/evesrp/views/requests.py:281
 #, python-format
 msgid "Unknown filter attribute name: %(attribute)s."
 msgstr "Unknown filter attribute name: %(attribute)s."
 
 #. The title of the page listing all requests an individual
 #. user has made.
-#: src/evesrp/views/requests.py:424
+#: src/evesrp/views/requests.py:440
 #, python-format
 msgid "%(name)s's Requests"
 msgstr "%(name)s's Requests"
 
 #. Error message show when trying to submit a killmail
 #. that cannot be verified.
-#: src/evesrp/views/requests.py:598
+#: src/evesrp/views/requests.py:616
 #, python-format
 msgid "%(url)s cannot be verified."
 msgstr "%(url)s cannot be verified."
 
 #. Header for a list of the kinds of links that are acceptable to
 #. submit as killmails for SRP.
-#: src/evesrp/views/requests.py:620
+#: src/evesrp/views/requests.py:638
 #, python-format
 msgid "Acceptable Killmail Links:<ul>%(sources)s</ul>"
 msgstr "Acceptable Killmail Links:<ul>%(sources)s</ul>"
 
 #. Label for an input field for the killmail URL
-#: src/evesrp/views/requests.py:628
+#: src/evesrp/views/requests.py:646
 msgid "Killmail URL"
 msgstr "Killmail URL"
 
 #. Error message shown when trying to submit a request to a
 #. non-existant division.
-#: src/evesrp/views/requests.py:661
+#: src/evesrp/views/requests.py:679
 #, python-format
 msgid "No division with ID '%(div_id)s'."
 msgstr "No division with ID '%(div_id)s'."
 
 #. Error message shown when trying to a submit a request to a
 #. division you do not have the submission permission in.
-#: src/evesrp/views/requests.py:666
+#: src/evesrp/views/requests.py:684
 #, python-format
 msgid "You do not have permission to submit to division '%(name)s'."
 msgstr "You do not have permission to submit to division '%(name)s'."
 
 #. Error message shown when trying to submit a lossmail from
 #. A character not associated with your user account.
-#: src/evesrp/views/requests.py:701
+#: src/evesrp/views/requests.py:719
 msgid "You can only submit killmails of characters you control"
 msgstr "You can only submit killmails of characters you control"
 
 #. Error message shown when trying to submit a killmail for
 #. SRP a second time.
-#: src/evesrp/views/requests.py:721
+#: src/evesrp/views/requests.py:739
 msgid "This kill has already been submitted"
 msgstr "This kill has already been submitted"
 
 #. Title for the page showing the form for submitting SRP requests.
-#: src/evesrp/views/requests.py:726
+#: src/evesrp/views/requests.py:744
 msgid "Submit Request"
 msgstr "Submit Request"
 
 #. Label for an input field for the amount a modifier is for. Can be
 #. either a percentage or an ISK value (in millions of ISK).
-#: src/evesrp/views/requests.py:735
+#: src/evesrp/views/requests.py:753
 msgid "Value"
 msgstr "Value"
 
 #. Help text explaining a hidden feature about the notes made
 #. about users.
-#: src/evesrp/views/requests.py:794
+#: src/evesrp/views/requests.py:812
 msgid ""
 "If you have something like '#{Kill ID}', it will be linkified to the "
 "corresponding request (if it exists). For example, #1234567 would be "
@@ -1062,73 +1060,73 @@ msgstr ""
 
 #. Error message when someone who does not have the reviewer
 #. permission tries to change the base payout of a request.
-#: src/evesrp/views/requests.py:879
+#: src/evesrp/views/requests.py:898
 msgid "Only reviewers can change the base payout."
 msgstr "Only reviewers can change the base payout."
 
 #. Error message when a user tries to void (cancel) a
 #. modifier that does not exist.
-#: src/evesrp/views/requests.py:909
+#: src/evesrp/views/requests.py:928
 #, python-format
 msgid "Invalid modifier ID %(modifier_id)d."
 msgstr "Invalid modifier ID %(modifier_id)d."
 
 #. Error message shown when someone other than the request
 #. submitter tries to change the details of the request.
-#: src/evesrp/views/requests.py:926
+#: src/evesrp/views/requests.py:945
 msgid "Only the submitter can change the request details."
 msgstr "Only the submitter can change the request details."
 
 #. Error message shown when the submitter ties to change the
 #. details when the request is no long pending (not finished).
-#: src/evesrp/views/requests.py:931
+#: src/evesrp/views/requests.py:950
 msgid "Details can only be changed when the request is still pending."
 msgstr "Details can only be changed when the request is still pending."
 
 #. The old request details have are saved in a comment on the
 #. request. This is the text that is put at the beginning of the
 #. comment
-#: src/evesrp/views/requests.py:938
+#: src/evesrp/views/requests.py:957
 #, python-format
 msgid "Old Details: %(details)s"
 msgstr "Old Details: %(details)s"
 
 #. Error message shown when someone without the proper
 #. permissions tries to add a note to a user.
-#: src/evesrp/views/requests.py:956
+#: src/evesrp/views/requests.py:978
 msgid "You do not have permission to add a note to a user."
 msgstr "You do not have permission to add a note to a user."
 
 #. Error message shown when a user tries to move a request but is
 #. unable to becuase the request has been paid or rejected.
-#: src/evesrp/views/requests.py:1027
+#: src/evesrp/views/requests.py:1052
 msgid "Cannot change the division as this request is in a finalized state"
 msgstr "Cannot change the division as this request is in a finalized state"
 
 #. Message shown when a user tries to change a request's division
 #. but they do not have access to any other divisions.
-#: src/evesrp/views/requests.py:1042
+#: src/evesrp/views/requests.py:1067
 msgid "No other divisions to move to."
 msgstr "No other divisions to move to."
 
 #. When a request is moved from one division to another, a
 #. comment is added noting the old division's name and the new
 #. division's name. This is the text of that note.
-#: src/evesrp/views/requests.py:1054
+#: src/evesrp/views/requests.py:1079
 #, python-format
 msgid "Moving from division '%(old_division)s' to division '%(new_division)s'."
 msgstr "Moving from division '%(old_division)s' to division '%(new_division)s'."
 
 #. Confirmation message shown when wa request has been
 #. successfully moved to a new division.
-#: src/evesrp/views/requests.py:1067
+#: src/evesrp/views/requests.py:1092
 #, python-format
 msgid "Request #%(request_id)d moved to %(division)s division"
 msgstr "Request #%(request_id)d moved to %(division)s division"
 
 #. Title for the page showing the form for changing a
 #. request's division.
-#: src/evesrp/views/requests.py:1084
+#: src/evesrp/views/requests.py:1109
 #, python-format
 msgid "Change #%(request_id)d's Division"
 msgstr "Change #%(request_id)d's Division"
