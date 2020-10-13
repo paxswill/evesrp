@@ -8,7 +8,19 @@ it's closer to a real release. IN the mean time, here're some
 
 [screens]: http://imgur.com/a/3IEQC
 
+## Acknowledgements
 
+In addition to the libraries this project uses, I need to thank the Eve
+alliances Test Alliance Please Ignore and Brave. This app was originally
+written as a replacement for Test's old SRP app, but Brave ended up needing
+one before we were ready to deploy it for Test. Brave's early IT team and
+alliance members were great "beta" testers, making suggestions that improved
+the app in a myriad of ways.
+
+A very large thank you to [Galaxy Android][galaxy-android] as well for alerting
+me to a security vulnerability that was fixed in v0.12.12.
+
+[galaxy-android]: https://evewho.com/character/92317068
 ## Developing
 
 ### Dependencies
