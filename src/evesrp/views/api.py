@@ -57,7 +57,11 @@ def list_entities():
 
 
 @api.route('/user/<int:user_id>/')
+@login_required
 def user_detail(user_id):
+    if not current_user.admin and not \
+            current_user.has_permission(PermissionType.admin):
+        abort(403)
     user = User.query.get_or_404(user_id)
     # Set up divisions
     submit = map(lambda p: p.division,
@@ -84,7 +88,11 @@ def user_detail(user_id):
 
 
 @api.route('/group/<int:group_id>/')
+@login_required
 def group_detail(group_id):
+    if not current_user.admin and not \
+            current_user.has_permission(PermissionType.admin):
+        abort(403)
     group = Group.query.get_or_404(group_id)
     submit = map(lambda p: p.division,
             filter(lambda p: p.permission == PermissionType.submit,
