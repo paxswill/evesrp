@@ -1,3 +1,9 @@
+## Project Status
+I've been winning at Eve for a few years now (translation for non-players:
+"winning Eve" means not playing), and haven't been working on this in that time
+either. If anyone would like to continue development themselves, I'd be more than
+happy to transfer this repo into an organization and point people there.
+
 [![Build Status](https://travis-ci.org/paxswill/evesrp.svg?branch=master)](https://travis-ci.org/paxswill/evesrp)
 [![Documentation Status](https://readthedocs.org/projects/eve-srp/badge/?version=master)](https://readthedocs.org/projects/eve-srp/?badge=master)
 [![Coverage Status](https://coveralls.io/repos/paxswill/evesrp/badge.svg?branch=master&service=github)](https://coveralls.io/github/paxswill/evesrp?branch=master)
