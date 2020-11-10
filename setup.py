@@ -79,7 +79,7 @@ setup(
     extras_require={
         'BraveCore': [
             'braveapi == 0.1',
-            'ecdsa == 0.11',
+            'ecdsa == 0.13.3',
         ],
         'OAuth': [
             'requests-oauthlib >= 0.6.0',
