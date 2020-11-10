@@ -34,7 +34,7 @@ Pygments==1.6
 pytz==2015.7
 PyYAML==3.11
 raven==5.10.2
-requests==2.9.1
+requests==2.20.0
 requests-oauthlib==0.6.0
 simple-pbkdf2==1.0
 six==1.7.3
