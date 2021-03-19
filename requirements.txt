@@ -22,7 +22,7 @@ gunicorn==18.0
 httmock==1.2.2
 iso8601==0.1.10
 itsdangerous==0.24
-Jinja2==2.8
+Jinja2==2.11.3
 Mako==1.0.0
 MarkupSafe==0.23
 marrow.util==1.2.3
