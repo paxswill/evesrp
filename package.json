@@ -4,7 +4,7 @@
   "description": "",
   "main": "evesrp/static.js/main.coffee",
   "dependencies": {
-    "bootstrap": "^3.3.5",
+    "bootstrap": "^3.4.1",
     "browserify": "^11.0.1",
     "cldr-data": "^31.0.2",
     "cldrjs": "^0.5.0",
