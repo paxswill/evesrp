@@ -23,7 +23,7 @@ httmock==1.2.2
 iso8601==0.1.10
 itsdangerous==0.24
 Jinja2==2.8
-Mako==1.0.0
+Mako==1.2.2
 MarkupSafe==0.23
 marrow.util==1.2.3
 mock==1.0.1
